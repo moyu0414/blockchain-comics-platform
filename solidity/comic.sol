@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "Base58.sol";
-
 contract ComicPlatform {
     // 定義章節結構體
     struct Chapter {
         uint256 price; // 章節價格
         string title; // 章節標題
-        string chapterHash; // 章節哈希
+        bytes32 chapterHash; // 章節哈希
     }
 
     // 定義漫畫結構體
@@ -21,14 +19,16 @@ contract ComicPlatform {
     }
 
     // 儲存已上傳的漫畫
-    mapping(string => Comic) public comics;
+    mapping(bytes32 => Comic) public comics;
     // 儲存每本漫畫的章節信息
-    mapping(string => Chapter[]) public comicChapters;
+    mapping(bytes32 => Chapter[]) public comicChapters;
+    // 記錄每個地址購買的章節
+    mapping(address => mapping(bytes32 => bool)) public purchasedChapters; 
 
-    string[] public allComicHashes;
+    bytes32[] public allComicHashes;
     // 定義漫畫上傳事件
     event ComicUploaded(
-        string indexed comicHash,
+        bytes32 indexed comicHash,
         address indexed owner,
         string title,
         string author,
@@ -36,8 +36,8 @@ contract ComicPlatform {
         uint8 level 
     );
     event ChapterUploaded(
-        string indexed comicHash,
-        string indexed chapterHash,
+        bytes32 indexed comicHash,
+        bytes32 indexed chapterHash,
         address indexed owner,
         string title,
         uint256 price
@@ -45,7 +45,7 @@ contract ComicPlatform {
 
     // 上傳漫畫功能
     function uploadComic(
-        string memory _comicHash,
+        bytes32  _comicHash,
         string memory _title,
         string memory _author,
         string memory _description,
@@ -71,8 +71,8 @@ contract ComicPlatform {
 
     // 添加章節功能
     function addChapter(
-        string memory _comicHash,
-        string memory _chapterHash,
+        bytes32  _comicHash,
+        bytes32  _chapterHash,
         string memory _title,
         uint256 _price
     ) external {
@@ -89,36 +89,44 @@ contract ComicPlatform {
             price: _price,
             title: _title,
             chapterHash:_chapterHash
-        });
+        }); 
 
         comicChapters[_comicHash].push(newChapter);
         emit ChapterUploaded(_comicHash,_chapterHash, msg.sender, _title, _price);
     }
 
     // 檢查章節是否已存在
-    function chapterExists(string memory _comicHash, string memory _chapterHash) internal view returns (bool) {
+    function chapterExists(bytes32 _comicHash, bytes32 _chapterHash) internal view returns (bool) {
         Chapter[] memory chapters = comicChapters[_comicHash];
         for (uint256 i = 0; i < chapters.length; i++) {
-            if (compareBytes(chapters[i].chapterHash,_chapterHash)) {
+            if (chapters[i].chapterHash == _chapterHash) {
                 return false;
             }
         }
         return true;
     }
-    function titleExists(bytes memory _comicHash, string memory _title) internal view returns (bool) {
-        bytes32 titleHash = keccak256(abi.encodePacked(_title));
+    function titleExists(bytes32 _comicHash, string memory _title) internal view returns (bool) {
         Chapter[] memory chapters = comicChapters[_comicHash];
         for (uint256 i = 0; i < chapters.length; i++) {
-            if (keccak256(abi.encodePacked(chapters[i].title)) == titleHash) {
+            if (keccak256(abi.encodePacked(chapters[i].title)) == keccak256(abi.encodePacked(_title))) {
                 return false;
             }
         }
     return true;
     }
-    function getAllCID() external view returns (bytes[] memory) {
+
+    function getAllComicHashes() external view returns (bytes32[] memory) {
         return allComicHashes;
     }
-    function compareBytes(bytes memory a, bytes memory b) internal pure returns (bool) {
-        return keccak256(a) == keccak256(b);
+
+    function getChapterHashes(bytes32 _comicHash) external view returns (bytes32[] memory) {
+        Chapter[] memory chapters = comicChapters[_comicHash];
+        bytes32[] memory hashes = new bytes32[](chapters.length);
+        for (uint256 i = 0; i < chapters.length; i++) {
+            hashes[i] = chapters[i].chapterHash;
+        }
+        return hashes;
     }
+
+    
 }
