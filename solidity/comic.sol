@@ -1,182 +1,124 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.24;
 
-/**
- * @title Base58
- * @author storyicon@foxmail.com
- * @notice This algorithm was migrated from github.com/mr-tron/base58 to solidity.
- * Note that it is not yet optimized for gas, so it is recommended to use it only in the view/pure function.
- */
-library Base58 {
-    bytes constant ALPHABET =
-        "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+import "Base58.sol";
 
-    /**
-     * @notice encode is used to encode the given bytes in base58 standard.
-     * @param data_ raw data, passed in as bytes.
-     * @return base58 encoded data_, returned as bytes.
-     */
-    function encode(bytes memory data_) public pure returns (bytes memory) {
-        unchecked {
-            uint256 size = data_.length;
-            uint256 zeroCount;
-            while (zeroCount < size && data_[zeroCount] == 0) {
-                zeroCount++;
+contract ComicPlatform {
+    // 定義章節結構體
+    struct Chapter {
+        uint256 price; // 章節價格
+        string title; // 章節標題
+        string chapterHash; // 章節哈希
+    }
+
+    // 定義漫畫結構體
+    struct Comic {
+        address payable owner; // 漫畫所有者的錢包地址
+        string title; // 漫畫標題
+        string author; // 漫畫作者
+        string description; // 漫畫描述
+        uint8 level; //漫畫分級
+    }
+
+    // 儲存已上傳的漫畫
+    mapping(string => Comic) public comics;
+    // 儲存每本漫畫的章節信息
+    mapping(string => Chapter[]) public comicChapters;
+
+    string[] public allComicHashes;
+    // 定義漫畫上傳事件
+    event ComicUploaded(
+        string indexed comicHash,
+        address indexed owner,
+        string title,
+        string author,
+        string description,
+        uint8 level 
+    );
+    event ChapterUploaded(
+        string indexed comicHash,
+        string indexed chapterHash,
+        address indexed owner,
+        string title,
+        uint256 price
+    );
+
+    // 上傳漫畫功能
+    function uploadComic(
+        string memory _comicHash,
+        string memory _title,
+        string memory _author,
+        string memory _description,
+        uint8 _level 
+    ) external {
+        // 確認漫畫未重複上傳
+        
+        allComicHashes.push(_comicHash);
+
+        require(comics[_comicHash].owner == address(0), "Comic already uploaded");
+
+        // 將漫畫的識別符號標記為已上傳
+        Comic storage newComic = comics[_comicHash];
+        newComic.owner = payable(msg.sender);
+        newComic.title = _title;
+        newComic.author = _author;
+        newComic.description = _description;
+        newComic.level = _level;
+
+        // 觸發漫畫上傳事件
+        emit ComicUploaded(_comicHash, msg.sender, _title, _author, _description,_level);
+    }
+
+    // 添加章節功能
+    function addChapter(
+        string memory _comicHash,
+        string memory _chapterHash,
+        string memory _title,
+        uint256 _price
+    ) external {
+        // 確認漫畫已上傳
+        require(comics[_comicHash].owner != address(0), "Comic not uploaded");
+
+        // 確認章節標題的唯一性
+        require(comics[_comicHash].owner == msg.sender, "You are not owner");
+        require(chapterExists(_comicHash, _chapterHash), "Chapter already exists");
+        require(titleExists(_comicHash,_title), "title already exists");
+
+        // 添加章節到漫畫的章節信息中
+        Chapter memory newChapter = Chapter({
+            price: _price,
+            title: _title,
+            chapterHash:_chapterHash
+        });
+
+        comicChapters[_comicHash].push(newChapter);
+        emit ChapterUploaded(_comicHash,_chapterHash, msg.sender, _title, _price);
+    }
+
+    // 檢查章節是否已存在
+    function chapterExists(string memory _comicHash, string memory _chapterHash) internal view returns (bool) {
+        Chapter[] memory chapters = comicChapters[_comicHash];
+        for (uint256 i = 0; i < chapters.length; i++) {
+            if (compareBytes(chapters[i].chapterHash,_chapterHash)) {
+                return false;
             }
-            size = zeroCount + ((size - zeroCount) * 8351) / 6115 + 1;
-            bytes memory slot = new bytes(size);
-            uint32 carry;
-            int256 m;
-            int256 high = int256(size) - 1;
-            for (uint256 i = 0; i < data_.length; i++) {
-                m = int256(size - 1);
-                for (carry = uint8(data_[i]); m > high || carry != 0; m--) {
-                    carry = carry + 256 * uint8(slot[uint256(m)]);
-                    slot[uint256(m)] = bytes1(uint8(carry % 58));
-                    carry /= 58;
-                }
-                high = m;
-            }
-            uint256 n;
-            for (n = zeroCount; n < size && slot[n] == 0; n++) {}
-            size = slot.length - (n - zeroCount);
-            bytes memory out = new bytes(size);
-            for (uint256 i = 0; i < size; i++) {
-                uint256 j = i + n - zeroCount;
-                out[i] = ALPHABET[uint8(slot[j])];
-            }
-            return out;
         }
+        return true;
     }
-
-    /**
-     * @notice decode is used to decode the given string in base58 standard.
-     * @param data_ data encoded with base58, passed in as bytes.
-     * @return raw data, returned as bytes.
-     */
-    function decode(bytes memory data_) public pure returns (bytes memory) {
-        unchecked {
-            uint256 zero = 49;
-            uint256 b58sz = data_.length;
-            uint256 zcount = 0;
-            for (uint256 i = 0; i < b58sz && uint8(data_[i]) == zero; i++) {
-                zcount++;
+    function titleExists(bytes memory _comicHash, string memory _title) internal view returns (bool) {
+        bytes32 titleHash = keccak256(abi.encodePacked(_title));
+        Chapter[] memory chapters = comicChapters[_comicHash];
+        for (uint256 i = 0; i < chapters.length; i++) {
+            if (keccak256(abi.encodePacked(chapters[i].title)) == titleHash) {
+                return false;
             }
-            uint256 t;
-            uint256 c;
-            bool f;
-            bytes memory binu = new bytes(2 * (((b58sz * 8351) / 6115) + 1));
-            uint32[] memory outi = new uint32[]((b58sz + 3) / 4);
-            for (uint256 i = 0; i < data_.length; i++) {
-                bytes1 r = data_[i];
-                (c, f) = indexOf(ALPHABET, r);
-                require(f, "invalid base58 digit");
-                for (int256 k = int256(outi.length) - 1; k >= 0; k--) {
-                    t = uint64(outi[uint256(k)]) * 58 + c;
-                    c = t >> 32;
-                    outi[uint256(k)] = uint32(t & 0xffffffff);
-                }
-            }
-            uint64 mask = uint64(b58sz % 4) * 8;
-            if (mask == 0) {
-                mask = 32;
-            }
-            mask -= 8;
-            uint256 outLen = 0;
-            for (uint256 j = 0; j < outi.length; j++) {
-                while (mask < 32) {
-                    binu[outLen] = bytes1(uint8(outi[j] >> mask));
-                    outLen++;
-                    if (mask < 8) {
-                        break;
-                    }
-                    mask -= 8;
-                }
-                mask = 24;
-            }
-            for (uint256 msb = zcount; msb < binu.length; msb++) {
-                if (binu[msb] > 0) {
-                    return slice(binu, msb - zcount, outLen);
-                }
-            }
-            return slice(binu, 0, outLen);
         }
+    return true;
     }
-
-    /**
-     * @notice encodeToString is used to encode the given byte in base58 standard.
-     * @param data_ raw data, passed in as bytes.
-     * @return base58 encoded data_, returned as a string.
-     */
-    function encodeToString(bytes memory data_) public pure returns (string memory) {
-        return string(encode(data_));
+    function getAllCID() external view returns (bytes[] memory) {
+        return allComicHashes;
     }
-
-    /**
-     * @notice encodeFromString is used to encode the given string in base58 standard.
-     * @param data_ raw data, passed in as a string.
-     * @return base58 encoded data_, returned as bytes.
-     */
-    function encodeFromString(string memory data_)
-        public
-        pure
-        returns (bytes memory)
-    {
-        return encode(bytes(data_));
-    }
-
-    /**
-     * @notice decode is used to decode the given string in base58 standard.
-     * @param data_ data encoded with base58, passed in as string.
-     * @return raw data, returned as bytes.
-     */
-    function decodeFromString(string memory data_)
-        public
-        pure
-        returns (bytes memory)
-    {
-        return decode(bytes(data_));
-    }
-
-    /**
-     * @notice slice is used to slice the given byte, returns the bytes in the range of [start_, end_)
-     * @param data_ raw data, passed in as bytes.
-     * @param start_ start index.
-     * @param end_ end index.
-     * @return slice data
-     */
-    function slice(
-        bytes memory data_,
-        uint256 start_,
-        uint256 end_
-    ) public pure returns (bytes memory) {
-        unchecked {
-            bytes memory ret = new bytes(end_ - start_);
-            for (uint256 i = 0; i < end_ - start_; i++) {
-                ret[i] = data_[i + start_];
-            }
-            return ret;
-        }
-    }
-
-    /**
-     * @notice indexOf is used to find where char_ appears in data_.
-     * @param data_ raw data, passed in as bytes.
-     * @param char_ target byte.
-     * @return index, and whether the search was successful.
-     */
-    function indexOf(bytes memory data_, bytes1 char_)
-        public
-        pure
-        returns (uint256, bool)
-    {
-        unchecked {
-            for (uint256 i = 0; i < data_.length; i++) {
-                if (data_[i] == char_) {
-                    return (i, true);
-                }
-            }
-            return (0, false);
-        }
+    function compareBytes(bytes memory a, bytes memory b) internal pure returns (bool) {
+        return keccak256(a) == keccak256(b);
     }
 }
