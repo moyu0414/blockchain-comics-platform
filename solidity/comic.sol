@@ -1,3 +1,7 @@
+/**
+ *Submitted for verification at Etherscan.io on 2024-05-08
+*/
+
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
@@ -64,7 +68,6 @@ contract ComicPlatform {
         newComic.author = _author;
         newComic.description = _description;
         newComic.level = _level;
-
         // 觸發漫畫上傳事件
         emit ComicUploaded(_comicHash, msg.sender, _title, _author, _description,_level);
     }
@@ -81,7 +84,7 @@ contract ComicPlatform {
 
         // 確認章節標題的唯一性
         require(comics[_comicHash].owner == msg.sender, "You are not owner");
-        require(chapterExists(_comicHash, _chapterHash), "Chapter already exists");
+        require(!chapterExists(_comicHash, _chapterHash), "Chapter already exists");
         require(titleExists(_comicHash,_title), "title already exists");
 
         // 添加章節到漫畫的章節信息中
@@ -96,14 +99,14 @@ contract ComicPlatform {
     }
 
     // 檢查章節是否已存在
-    function chapterExists(bytes32 _comicHash, bytes32 _chapterHash) internal view returns (bool) {
+    function chapterExists(bytes32 _comicHash, bytes32 _chapterHash) internal  view returns (bool) {
         Chapter[] memory chapters = comicChapters[_comicHash];
         for (uint256 i = 0; i < chapters.length; i++) {
             if (chapters[i].chapterHash == _chapterHash) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
     function titleExists(bytes32 _comicHash, string memory _title) internal view returns (bool) {
         Chapter[] memory chapters = comicChapters[_comicHash];
@@ -115,18 +118,87 @@ contract ComicPlatform {
     return true;
     }
 
-    function getAllComicHashes() external view returns (bytes32[] memory) {
-        return allComicHashes;
+    function getAllComicHashes() external view returns (bytes32[] memory,string[] memory) {
+        string[] memory titles = new string[](allComicHashes.length);
+        for (uint256 i = 0; i < allComicHashes.length; i++) {
+            titles[i] = comics[allComicHashes[i]].title;
+        }
+        return(allComicHashes,titles);
     }
 
-    function getChapterHashes(bytes32 _comicHash) external view returns (bytes32[] memory) {
+    function getChapters(bytes32 _comicHash) external view returns (bytes32[] memory, string[] memory, uint256[] memory) {
         Chapter[] memory chapters = comicChapters[_comicHash];
         bytes32[] memory hashes = new bytes32[](chapters.length);
-        for (uint256 i = 0; i < chapters.length; i++) {
+        string[] memory titles = new string[](chapters.length);
+        uint256[] memory prices = new uint256[](chapters.length);
+
+       for (uint256 i = 0; i < chapters.length; i++) {
             hashes[i] = chapters[i].chapterHash;
+            titles[i] = chapters[i].title;
+            prices[i] = chapters[i].price;
         }
-        return hashes;
+        return (hashes, titles, prices);
+    }
+        // 漫畫章節的購買記錄
+    mapping(bytes32 => mapping(bytes32 => address[])) public chapterPurchases;
+    mapping(address => bytes32[]) public userPurchases;
+    
+    event ChapterPurchased( //購買事件
+        bytes32 indexed comicHash,
+        bytes32 indexed chapterHash,
+        address indexed buyer,
+        uint256 price
+    );
+    // 購買章節
+    function purchaseChapter(bytes32 _comicHash, bytes32 _chapterHash) external payable {
+        // 檢查章節是否存在
+        require(chapterExists(_comicHash, _chapterHash), "Chapter does not exist");
+
+        // 檢查是否已購買過此章節
+        require(!hasPurchasedChapter(_comicHash, _chapterHash, msg.sender), "Chapter already purchased");
+
+        // 檢查支付的價格是否正確
+        uint256 price = getChapterPrice(_comicHash, _chapterHash);
+        require(msg.value >= price, "Insufficient payment");
+
+        // 儲存購買記錄
+        chapterPurchases[_comicHash][_chapterHash].push(msg.sender);
+        userPurchases[msg.sender].push(_comicHash);
+        comics[_comicHash].owner.transfer(price);
+
+        // 觸發購買事件
+        emit ChapterPurchased(_comicHash, _chapterHash, msg.sender, price);
     }
 
-    
+    // 檢查是否已購買章節
+    function hasPurchasedChapter(bytes32 _comicHash, bytes32 _chapterHash, address _buyer) internal view returns (bool) {
+        address[] memory buyers = chapterPurchases[_comicHash][_chapterHash];
+        for (uint256 i = 0; i < buyers.length; i++) {
+            if (buyers[i] == _buyer) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 獲取章節價格
+    function getChapterPrice(bytes32 _comicHash, bytes32 _chapterHash) internal view returns (uint256) {
+        Chapter[] memory chapters = comicChapters[_comicHash];
+        for (uint256 i = 0; i < chapters.length; i++) {
+            if (chapters[i].chapterHash == _chapterHash) {
+                return chapters[i].price;
+            }
+        }
+        revert("Chapter not found");
+    }
+
+    //獲取使用者購買漫畫
+    function getmycomics() external view returns (bytes32[] memory, string[] memory) {
+        string[] memory titles = new string[](userPurchases[msg.sender].length);
+        for (uint256 i = 0; i < titles.length; i++) {
+            titles[i] = comics[userPurchases[msg.sender][i]].title ;
+        }
+        return(userPurchases[msg.sender],titles);
+    } 
+
 }
