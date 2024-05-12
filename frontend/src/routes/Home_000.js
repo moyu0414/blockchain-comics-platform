@@ -5,6 +5,7 @@ import './bootstrap.min.css';
 import './googleapis.css';
 import createWork from '../contracts/CreateWork_New.json';
 import {getIpfsHashFromBytes32} from '../index.js';
+import {currentHash} from '../index.js';
 import cors from 'cors';
 
 let meta = null;
@@ -18,14 +19,28 @@ const Home = ({contractAddress}) => {
   const [comicHashArray, setComicHashArray] = useState([]);
   const [imgURL, setImgURL] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [current, setCurrent] =  useState([]);
+  
+
 
   const initContract = async () => {
     try {
+      await Promise.resolve(currentHash()).then(
+        function(value){
+          setCurrent(value);
+          console.log(value)
+        }
+      );
+
       const web3 = new Web3(window.ethereum);
       const contractInstance = new web3.eth.Contract(createWork.abi, createWork.address);
+      
+      
+      
       const meta = await contractInstance.methods;
       let allComicHashes = await meta.getAllComicHashes().call(); // 所有漫畫 Hash
       let comicHashes = [];
+      let id = 1;
       for (var i = 0; i < allComicHashes.length; i++) {
         let ComicTitle = await meta.comics(allComicHashes[i]).call(); // 所有漫畫 Title
         //console.log(ComicTitle);
@@ -42,6 +57,7 @@ const Home = ({contractAddress}) => {
           if (results[i]) {
             console.log(results);
             comicHashes.push({ hash: temp_hash, cid: isBeing, title: temp_title }); // 將 hash 和對應的 cid 放入陣列中
+            id = id + 1;
           }
         });
       }

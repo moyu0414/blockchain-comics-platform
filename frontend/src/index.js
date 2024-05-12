@@ -15,11 +15,12 @@ import WorkManagement from './routes/workManagement';
 import SelectChapter from './routes/selectChapter';
 import Navbar from "./components/Navbar";
 import Web3 from 'web3';
-import createWork from "./contracts/CreateWork_New.json"
+import comicData from "./contracts/ComicPlatform.json"
 import { Buffer } from 'buffer';
 import bs58 from 'bs58';
 
-
+let comicDatas = [];
+let num = 1;
 
 const AppLayout = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -28,6 +29,7 @@ const AppLayout = () => {
   const [contractInstance, setContractInstance] = useState(null);
   const [voteId, setVoteId] = useState(null);
   const [account, setAccount] = useState('');
+  const [imgURL, setImgURL] = useState([]);
 
   // 處理登錄狀態的函數
   const handleLogin = () => {
@@ -50,8 +52,44 @@ const AppLayout = () => {
           setAccount(accounts[0]);
 
           // 創建合約實例，需替換為您的合約地址
-          const contractInstance = new web3Instance.eth.Contract(createWork.abi, createWork.address);
+          const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
           setContractInstance(contractInstance);
+
+          const meta = await contractInstance.methods;
+          //console.log(meta);
+          let allComicHashes = await meta.getAllComicHashes().call(); // 所有漫畫 Hash
+          //console.log(allComicHashes);
+          //console.log(allComicHashes[0].length);
+          for (var i = 0; i < allComicHashes[0].length; i++) {
+            let temp_title = allComicHashes[1][i];
+            //let temp_title = ComicTitle[1];
+            let temp_hash = allComicHashes[0][i];
+            let temp_cid = getIpfsHashFromBytes32(temp_hash);
+            let isBeing = "https://apricot-certain-boar-955.mypinata.cloud/ipfs/" + temp_cid;
+            let id = 'Comic' + num  ;
+            //console.log("id：" + id);
+            //console.log("temp_hash：" + temp_hash);
+            //console.log("isBeing：" + isBeing);
+            //console.log("temp_title：" + temp_title);
+
+            // 判斷漫畫網址是否存在
+            imgURL.push(isBeing);
+            await Promise.all(imgURL.map(imageExists))
+            .then(function(results) {
+              if (results[i]) {
+                //console.log(results);
+                comicDatas.push({comicID: id, hash: temp_hash, cid: isBeing, title: temp_title }); // 將 hash 和對應的 cid 放入陣列中
+              }
+            });
+            num = num + 1;
+          }
+
+          console.log(comicDatas);
+          //localStorage.setItem('web3Instance', 'contractInstance', 'comicDatas', JSON.stringify(comicDatas));
+          //要刪除可以用下列的程式
+          //localStorage.removeItem('web3Instance', 'contractInstance', 'comicDatas');
+          localStorage.setItem('comicDatas', JSON.stringify(comicDatas));
+
         } catch (error) {
           console.error(error);
         }
@@ -59,7 +97,7 @@ const AppLayout = () => {
         alert('請安裝 MetaMask 或其他支援的錢包');
       }
     };
-
+      
     // 初始化 Web3 和智能合約
     connectToWeb3();
 
@@ -77,14 +115,26 @@ const AppLayout = () => {
 
 // 將 32 bytes 還原成 CID
 function getIpfsHashFromBytes32(bytes32Hex) {
-  // and cut off leading "0x"
   const hashHex = "1220" + bytes32Hex.slice(2);
-  //console.log(hashHex);
   const hashBytes = Buffer.from(hashHex, 'hex');
-  //console.log(hashBytes);
   const hashStr = bs58.encode(hashBytes)
   return hashStr
 };
+
+
+function imageExists(url) {
+  return new Promise(function(resolve, reject) {
+      fetch(url, { method: 'HEAD' })
+          .then(function(response) {
+              resolve(response.ok);
+          })
+          .catch(function() {
+              resolve(false);
+          });
+  });
+};
+
+
 
 const router = createBrowserRouter([
   {
@@ -92,7 +142,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Home contractAddress={createWork.address} />,
+        element: <Home contractAddress={comicData.address}  />,
       },
       {
         path: "/reader",
@@ -116,7 +166,7 @@ const router = createBrowserRouter([
         path: "/workManagement",
         element: <WorkManagement />,
       },{
-        path: "/selectChapter/:hash",
+        path: "/selectChapter/:comicID",
         element: <SelectChapter />,
       }
     ],
@@ -127,5 +177,6 @@ const router = createBrowserRouter([
 createRoot(document.getElementById("root")).render(
   <RouterProvider router={router} />
 );
+
 
 export {getIpfsHashFromBytes32};

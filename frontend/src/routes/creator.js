@@ -2,7 +2,7 @@ import Web3 from 'web3';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
-import createWork from '../contracts/CreateWork_New.json';
+import createWork from '../contracts/ComicPlatform.json';
 import {getIpfsHashFromBytes32} from '../index.js';
 import $ from 'jquery';
 

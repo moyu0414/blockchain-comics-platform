@@ -1,54 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import createWork from '../contracts/CreateWork_New.json';
+import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
+
 
 const SelectChapter = () => {
   const [chapters, setChapters] = useState([]);
-  const { hash } = useParams();
+  const { comicID } = useParams();
+  const [current, setCurrent] =  useState([]);
+  const [meta, setMeta] = useState('');
+  let temp = [];
+
+  const fetchChapters = async () => {
+    try {
+      const storedArrayJSON = localStorage.getItem('comicDatas');
+      const storedArray = JSON.parse(storedArrayJSON);
+      console.log(storedArray);
+      
+      for (var i = 0; i < storedArray.length; i++) {
+        if(storedArray[i].comicID == comicID){
+          temp.push(storedArray[i]);
+        };
+      };
+      console.log(temp);
+      console.log(temp[0].hash);
+
+      const web3Instance = new Web3(window.ethereum);
+      const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
+      let meta = await contractInstance.methods;
+      //console.log(contractInstance);
+      console.log(meta);
+      setMeta(meta);
+      
+
+      const chapterInfo = await meta.getChapters(temp[0].hash).call(); // 所有漫畫 Hash
+      console.log('Chapter raw info:', chapterInfo);
+      let temp_chapter = {
+        title: chapterInfo[1],
+        price: chapterInfo[2]
+      };
+      console.log(temp_chapter);
+      setChapters(temp_chapter);
+
+      
+
+
+    } catch (error) {
+      console.error('Error fetching chapters:', error);
+    }
+  };
 
   useEffect(() => {
-    const fetchChapters = async () => {
-      try {
-        if (hash) {
-          const web3 = new Web3(window.ethereum);
-          const contractInstance = new web3.eth.Contract(createWork.abi, createWork.address);
-          const chapterHashes = await contractInstance.methods.getChapterHashes(hash).call();
-          
-          const chaptersData = [];
-          for (let i = 0; i < chapterHashes.length; i++) {
-            const chapterInfo = await fetchChapterInfo(contractInstance, hash, chapterHashes[i]);
-            console.log('Chapter info:', chapterInfo);
-            chaptersData.push(chapterInfo);
-          }
-    
-          setChapters(chaptersData);
-        } else {
-          console.error('Comic hash is null');
-        }
-      } catch (error) {
-        console.error('Error fetching chapters:', error);
-      }
-    };
-
-    const fetchChapterInfo = async (contractInstance, comicHash, chapterHash) => {
-      try {
-        console.log("Comic hash:", comicHash);
-        console.log("Chapter hash:", chapterHash);
-        const chapterInfo = await contractInstance.methods.comicChapters(comicHash).call();
-        console.log('Chapter raw info:', chapterInfo);
-        return {
-          title: chapterInfo.title,
-          price: chapterInfo.price
-        };
-      } catch (error) {
-        console.error('Error fetching chapter info:', error);
-        return null;
-      }
-    };
-
     fetchChapters();
-  }, [hash]);
+  }, []);
+
 
   const handlePurchase = (chapterId) => {
     console.log(`Purchased chapter with ID: ${chapterId}`);

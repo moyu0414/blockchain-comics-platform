@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { uploadFileToIPFS } from "../pinata";
 import Web3 from 'web3';
-import createWork from '../contracts/CreateWork_New.json';
+import createWork from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
 import bs58 from 'bs58';
 import { Buffer } from 'buffer';
@@ -79,9 +79,6 @@ const CreateWork = () => {
       setShowChapterForm(true);
       updateMessage("");
       updateFormParams({level:'',  name: '', description: ''});
-
-      //let HachToCID = getIpfsHashFromBytes32(comicHash);
-      //console.log("HachToCID：" + HachToCID);
 
     } catch (error) {
       console.error('上傳漫畫時發生錯誤：', error);
@@ -164,20 +161,18 @@ const CreateWork = () => {
                 enableButton();
                 updateMessage("")
                 let CID = response.pinataURL.substr(34);  //取出 IPFS 回傳的 CID
-                console.log("CID：" + CID);
-                
                 let temp_Hash = getBytes32FromIpfsHash(CID);  //CID 轉 Hash 值
-                console.log("CID 轉 Hash 值：" + temp_Hash);
-
 
                 if (showChapterForm == false){
                   setComicHash(temp_Hash);
-                  //console.log("已將漫畫封面上傳至 Pinata:", response.pinataURL)
-                  console.log("comicHash：" + temp_Hash);
+                  alert('已將漫畫封面上傳至 Pinata!');
+                  console.log("已將漫畫封面上傳至 Pinata!")
+                  //console.log("comicHash：" + temp_Hash);
                 }else{
                   setChapterHash(temp_Hash);
-                  //console.log("已將章節內容上傳至 Pinata:", response.pinataURL)
-                  console.log("chapterHash：" + temp_Hash);
+                  alert('已將章節內容上傳至 Pinata!');
+                  console.log("已將章節內容上傳至 Pinata!")
+                  //console.log("chapterHash：" + temp_Hash);
                 };
             }
         }
