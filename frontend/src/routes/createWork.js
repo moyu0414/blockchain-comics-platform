@@ -64,7 +64,7 @@ const CreateWork = () => {
         console.error('合約實例未初始化');
         return;
       }
-  
+
       disableButton();
       console.log("comicHash：" + comicHash);
       console.log("title：" + formParams.name);
@@ -72,36 +72,14 @@ const CreateWork = () => {
       console.log("description：" + formParams.description);
       console.log("title：" + formParams.level);
       updateMessage("正在上傳漫畫至合約中...請稍後。")
-  
+
       await contract.methods.uploadComic(comicHash, formParams.name, account, formParams.description, formParams.level).send({ from: account });
       alert('漫畫成功上傳！');
       enableButton();
       setShowChapterForm(true);
       updateMessage("");
       updateFormParams({level:'',  name: '', description: ''});
-  
-      // 更新localStorage中的作品資料
-      const newComic = {
-        title: formParams.name,
-        author: account,
-        description: formParams.description,
-        level: formParams.level,
-        comicHash: comicHash // 可能需要更多的作品資料
-      };
-  
-      // 從localStorage中獲取現有的作品資料
-      const storedArrayJSON = localStorage.getItem('comicDatas');
-      const storedArray = storedArrayJSON ? JSON.parse(storedArrayJSON) : [];
-  
-      // 添加新的作品資料到作品列表
-      const updatedComicList = [...storedArray, newComic];
-  
-      // 將更新後的作品列表保存回localStorage中
-      localStorage.setItem('comicDatas', JSON.stringify(updatedComicList));
-  
-      // 重新加載首頁
-      window.location.reload();
-  
+
     } catch (error) {
       console.error('上傳漫畫時發生錯誤：', error);
       alert('上傳漫畫時發生錯誤!');

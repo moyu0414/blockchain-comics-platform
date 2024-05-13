@@ -3,7 +3,6 @@ import Web3 from 'web3';
 import { Link } from 'react-router-dom'; // 導入 Link 元件
 import './bootstrap.min.css';
 import './googleapis.css';
-import {getIpfsHashFromBytes32} from '../index.js';
 
 const Home = ({contractAddress}) => {
   const [data, setData] = useState([]);
@@ -17,6 +16,7 @@ const Home = ({contractAddress}) => {
   const initContract = async () => {
     try {
       const storedArray = JSON.parse(storedArrayJSON);
+      let nowAccount = storedArray.shift();
       console.log(storedArray);
       setCurrent(storedArray);
       setLoading(false);
@@ -78,7 +78,8 @@ const Home = ({contractAddress}) => {
         {loading &&  
           <div className="loading-container">
             <div>漫畫加載中，請稍後...</div>
-          </div>}
+          </div>
+        }
 
         <div className="row mt-5">
           {current.map((comic, index) => (

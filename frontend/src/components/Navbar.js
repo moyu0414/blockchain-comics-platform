@@ -1,26 +1,24 @@
 import React, { useState, useEffect } from "react";
 import * as FaIcons from "react-icons/fa";
 import * as AiIcons from "react-icons/ai";
-import { Link, useNavigate } from "react-router-dom"; // 確保導入了 Link 和 useNavigate
+import { Link, useNavigate } from "react-router-dom"; // 修改为 useNavigate
 import { SidebarData } from "./SidebarData";
+import "../App.css";
 import { IconContext } from "react-icons";
-import '../App.css';
 
 const Navbar = ({ accounts, setAccounts }) => {
-  const [sidebar, setSidebar] = useState(false); // 確保導入了 useState
+  const [sidebar, setSidebar] = useState(false);
   const [isMetamaskInstalled, setMetamaskInstalled] = useState(true);
   const [isConnected, setConnected] = useState(false);
   const [isLogged, setIsLogged] = useState(false);
   const [currentAccount, setCurrentAccount] = useState("");
-  const [subMenuOpen, setSubMenuOpen] = useState(Array(SidebarData.length).fill(false));
-  const [menuExpanded, setMenuExpanded] = useState(false);
+  const [isMenuDisplayed, setMenuDisplayed] = useState(false);
 
-  const navigate = useNavigate();
 
-  const showSidebar = () => {
-    setSidebar(!sidebar);
-  };
-  
+  const navigate = useNavigate(); // 修改为 useNavigate
+
+  const showSidebar = () => setSidebar(!sidebar);
+  const changeMenuDisplay = () => setMenuDisplayed(!isMenuDisplayed);
 
   useEffect(() => {
     if (accounts.length > 0) {
@@ -40,7 +38,8 @@ const Navbar = ({ accounts, setAccounts }) => {
         setIsLogged(true);
         alert("登入成功!");
 
-        navigate("/identity");
+        // 登入成功後進行頁面切換
+        navigate("/identity"); // 切換到 identity 頁面
       }
     }
   };
@@ -58,47 +57,14 @@ const Navbar = ({ accounts, setAccounts }) => {
     }
   }, 100);
 
-  const handleSubMenuClick = (index, event) => {
-    event.stopPropagation();
-    setSubMenuOpen((prevState) => {
-      const newState = [...prevState];
-      newState[index] = !newState[index];
-      return newState;
-    });
-  };
 
-  const handleMenuItemClick = (index, event) => {
-    event.stopPropagation();
-    if (SidebarData[index].subMenu) {
-      // 如果有子菜單，展開子菜單，但不觸發頁面跳轉
-      event.preventDefault(); // 阻止默認的頁面跳轉行為
-      setSubMenuOpen((prevState) => {
-        const newState = [...prevState];
-        newState[index] = !newState[index];
-        return newState;
-      });
-      setSidebar(true); // 展開側邊欄
-    } else {
-      // 如果沒有子菜單，保持側邊欄展開狀態，但不進行頁面跳轉
-      setSidebar(false);
-      navigate(SidebarData[index].path);
-    }
-  };
-
-  const handleDownMenuItemClick = (path, event) => {
-    event.stopPropagation();
-    navigate(path);
-    setSidebar(false);
-  };
-  
-  
 
   return (
     <>
       <IconContext.Provider value={{ color: "undefined" }}>
-        <div className={`navbar ${menuExpanded ? "menu-expanded" : ""}`}>
-          <Link to="#" className="menu-bars" onClick={() => setSidebar(true)}>
-            <FaIcons.FaBars />
+        <div className="navbar">
+          <Link to="#" className="menu-bars">
+            <FaIcons.FaBars onClick={showSidebar} />
           </Link>
           <div className="log-in-area">
             {!isLogged && isMetamaskInstalled && (
@@ -119,39 +85,23 @@ const Navbar = ({ accounts, setAccounts }) => {
             {isLogged && <div className="login-account">{showAccount()}</div>}
           </div>
         </div>
-        <nav className={sidebar ? "nav-menu show-sidebar" : "nav-menu hide-sidebar"}>
+        <nav className={sidebar ? "nav-menu active" : "nav-menu"}>
           <ul className="nav-menu-items" onClick={showSidebar}>
             <li className="navbar-toggle">
-              <Link to="#" className="menu-bars" onClick={() => setSidebar(false)}>
+              <Link to="#" className="menu-bars">
                 <AiIcons.AiOutlineClose />
               </Link>
             </li>
-            {SidebarData.map((item, index) => (
-              <div key={index}>
-                <li
-                  className={`sidenav ${item.cName} ${subMenuOpen[index] ? "show-sub-menu" : ""}`}
-                  onClick={(event) => handleMenuItemClick(index, event)}
-                >
+            {SidebarData.map((item, index) => {
+              return (
+                <li key={index} className={item.cName}>
                   <Link to={item.path}>
                     {item.icon}
                     <span>{item.title}</span>
-                    {item.subMenu && <AiIcons.AiOutlineDown style={{ marginLeft: "auto", marginRight: "5px" }} />}
                   </Link>
-                  {item.subMenu && subMenuOpen[index] && (
-                    <ul className="dropdown-container">
-                      {item.subMenu.map((subItem, subIndex) => (
-                        <li key={subIndex}>
-                          <Link to={subItem.path} onClick={(event) => handleDownMenuItemClick(subItem.path, event)}>
-                            {subItem.title}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
                 </li>
-              </div>
-            ))}
+              );
+            })}
           </ul>
         </nav>
       </IconContext.Provider>

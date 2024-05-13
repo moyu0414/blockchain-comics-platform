@@ -48,37 +48,39 @@ const AppLayout = () => {
           setWeb3Instance(web3Instance);
 
           // 獲取用戶帳戶
-          const accounts = await web3Instance.eth.getAccounts();
-          setAccount(accounts[0]);
+          const account = await web3Instance.eth.getAccounts();
+          setAccount(account[0]);
 
           // 創建合約實例，需替換為您的合約地址
           const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
           setContractInstance(contractInstance);
-
           const meta = await contractInstance.methods;
-          //console.log(meta);
           let allComicHashes = await meta.getAllComicHashes().call(); // 所有漫畫 Hash
-          //console.log(allComicHashes);
-          //console.log(allComicHashes[0].length);
+
+          comicDatas.push({nowAccount: account[0]});  //加入目前帳戶
           for (var i = 0; i < allComicHashes[0].length; i++) {
             let temp_title = allComicHashes[1][i];
-            //let temp_title = ComicTitle[1];
             let temp_hash = allComicHashes[0][i];
             let temp_cid = getIpfsHashFromBytes32(temp_hash);
             let isBeing = "https://apricot-certain-boar-955.mypinata.cloud/ipfs/" + temp_cid;
+            let isBeing_1 = "https://gateway.pinata.cloud/ipfs/" + temp_cid;
+            let comic = await meta.comics(temp_hash).call();
+            let comicAuthor = comic[2];
             let id = 'Comic' + num  ;
-            //console.log("id：" + id);
-            //console.log("temp_hash：" + temp_hash);
-            //console.log("isBeing：" + isBeing);
-            //console.log("temp_title：" + temp_title);
+            //let curAccount = 
 
             // 判斷漫畫網址是否存在
             imgURL.push(isBeing);
+            imgURL.push(isBeing_1);
             await Promise.all(imgURL.map(imageExists))
             .then(function(results) {
               if (results[i]) {
                 //console.log(results);
-                comicDatas.push({comicID: id, hash: temp_hash, cid: isBeing, title: temp_title }); // 將 hash 和對應的 cid 放入陣列中
+                if (imgURL[i].substr(8, 7) == 'apricot'){
+                  comicDatas.push({comicID: id, hash: temp_hash, cid: isBeing, title: temp_title, author: comicAuthor }); 
+                }else{
+                  comicDatas.push({comicID: id, hash: temp_hash, cid: isBeing_1, title: temp_title, author: comicAuthor }); 
+                }
               }
             });
             num = num + 1;
@@ -89,6 +91,7 @@ const AppLayout = () => {
           //要刪除可以用下列的程式
           //localStorage.removeItem('web3Instance', 'contractInstance', 'comicDatas');
           localStorage.setItem('comicDatas', JSON.stringify(comicDatas));
+          //localStorage.setItem('comicDatas', JSON.stringify(comicDatas));
 
         } catch (error) {
           console.error(error);

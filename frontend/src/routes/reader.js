@@ -1,20 +1,12 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+// ReaderPage.js
+import React from 'react';
 
 const Reader = () => {
-
   return (
     <div>
-      <div className="row mt-5">
-        <div className="col-3" >
-            <Link to="#">
-                <p>標題</p>
-                <img src="#" alt={`Comic ${1}`} className="img-fluid" />
-            </Link>
-        </div>
-      </div>
+      <h2>讀者身分頁面</h2>
+      {/* 添加其他你需要的內容 */}
     </div>
-    
   );
 };
 

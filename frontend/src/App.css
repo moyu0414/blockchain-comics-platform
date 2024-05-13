@@ -19,7 +19,81 @@
   color: #fff;
 }
 
+/* Navbar CSS */
+.navbar {
+  background-color: #ffffff;
+  height: 80px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  border-bottom: 2px solid #ccc; /* 添加边框样式 */
+}
 
+.menu-bars {
+  margin-left: 2rem;
+  font-size: 2rem;
+  background: none;
+  color: #000;
+}
+
+.nav-menu {
+  background-color: #ffffff;
+  width: 250px;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: -100%;
+  transition: 850ms;
+  border-right: 2px solid #ccc; /* 添加右边框样式 */
+}
+
+.nav-menu.active {
+  left: 0;
+  transition: 450ms;
+}
+
+
+
+.nav-text {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 8px 0px 8px 16px;
+  list-style: none;
+  height: 60px;
+}
+
+.nav-text a {
+  text-decoration: none;
+  color: #151414;
+  font-size: 18px;
+  width: 95%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-radius: 4px;
+}
+
+.nav-text a:hover {
+  background-color: #000000;
+  color: #fff;
+}
+
+.nav-menu-items {
+  width: 100%;
+}
+
+.navbar-toggle {
+  background-color: #ffffff;
+  width: 100%;
+  height: 80px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
 
 span {
   margin-left: 16px;
@@ -582,167 +656,3 @@ th {
   padding: 20px;
   border-radius: 5px;
 }
-
-
-
-/* 導覽列 */
-.navbar {
-  background-color: #ffffff;
-  height: 80px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  border-bottom: 2px solid #ccc;
-}
-
-.menu-bars {
-  margin-left: 2rem;
-  font-size: 2rem;
-  background: none;
-  color: #000;
-}
-
-.nav-menu {
-  background-color: #ffffff;
-  width: 250px;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  position: fixed;
-  top: 0;
-  border-right: 2px solid #ccc;
-  transition: left 0.3s ease; /* 添加過渡效果 */
-}
-
-.show-sidebar {
-  left: 0;
-}
-
-.hide-sidebar {
-  left: -250px;
-}
-
-
-.nav-menu.active {
-  left: 0;
-  transition: 450ms;
-}
-
-.nav-text {
-  padding: 8px 0px 8px 16px;
-  list-style: none;
-}
-
-.nav-text a {
-  width: 95%;
-  border-radius: 4px;
-}
-
-.nav-text a:hover {
-  background-color: #000000;
-  color: #fff;
-}
-
-.nav-menu-items {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.navbar-toggle {
-  background-color: #ffffff;
-  width: 100%;
-  height: 80px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.nav-menu .nav-menu-items .nav-text > a > svg {
-  transition: transform 0.3s ease;
-}
-
-.nav-menu .nav-menu-items .nav-text > a > svg.rotated {
-  transform: rotate(180deg);
-}
-
-.nav-menu .nav-menu-items .nav-text {
-  text-decoration: none;
-  font-size: 20px;
-  color: #818181;
-  display: block;
-}
-
-.show-sub-menu .sub-menu {
-  transform: scaleY(1);
-}
-
-.nav-menu-items .nav-text.show-sub-menu .sub-menu {
-  display: inline-block;
-}
-
-.nav-menu-items .nav-text {
-  position: relative;
-}
-
-.navbar.menu-expanded .nav-menu {
-  padding-bottom: 200px;
-}
-
-
-
-
-
-
-
-
-/* Sidebar styles */
-.sidenav {
-  height: 100%;
-  width: 200px;
-  z-index: 1;
-  top: 0;
-  left: 0;
-  background-color: #ffffff;
-  padding-top: 20px;
-}
-
-.sidenav a,
-.dropdown-btn {
-  padding: 8px 0px 8px 16px;
-  text-decoration: none;
-  color: #151414;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-}
-
-.sidenav a:hover,
-.dropdown-btn:hover {
-  background-color: #007bff;
-  color: #fff;
-}
-
-.dropdown-container {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-  background-color: #ffffff;
-}
-
-.dropdown-container li {
-  text-align: center;
-}
-
-.dropdown-container li a {
-  display: block;
-  padding: 8px 0px;
-  color: #151414;
-  font-size: 16px;
-  text-decoration: none;
-}
-
-.dropdown-container li a:hover {
-  background-color: #00aeff;
-}
-

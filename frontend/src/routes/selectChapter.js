@@ -3,12 +3,13 @@ import { useParams } from 'react-router-dom';
 import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
 
-
 const SelectChapter = () => {
+  const [account, setAccount] = useState('');
   const [chapters, setChapters] = useState([]);
   const { comicID } = useParams();
-  const [current, setCurrent] =  useState([]);
   const [meta, setMeta] = useState('');
+  const [comic, setComic] = useState([]);
+  const [message, updateMessage] = useState('');
   let temp = [];
   let temp_data = [];
 
@@ -16,38 +17,33 @@ const SelectChapter = () => {
     try {
       const storedArrayJSON = localStorage.getItem('comicDatas');
       const storedArray = JSON.parse(storedArrayJSON);
-      console.log(storedArray);
       
       for (var i = 0; i < storedArray.length; i++) {
         if(storedArray[i].comicID == comicID){
           temp.push(storedArray[i]);
         };
       };
-      console.log(temp);
-      console.log(temp[0].hash);
+      //console.log(temp);
+      setComic(temp);
 
       const web3Instance = new Web3(window.ethereum);
       const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
+      const accounts = await web3Instance.eth.getAccounts();
+      setAccount(accounts[0]);
       let meta = await contractInstance.methods;
-      //console.log(contractInstance);
-      console.log(meta);
       setMeta(meta);
       
-
       const chapterInfo = await meta.getChapters(temp[0].hash).call();
-      console.log('Chapter raw info:', chapterInfo);
-      //console.log(chapterInfo[0].length);
       for (var i = 0; i < chapterInfo[0].length; i++) {
         let temp_price = chapterInfo[2][i].toString();
         temp_price = temp_price / 1e18;
         temp_data.push({
+          chapterHash: chapterInfo[0][i],
           title: chapterInfo[1][i],
           price: temp_price
         });
-        console.log(temp_data);
-        console.log(typeof(temp_data[0].price));
-
       }
+      console.log(temp_data);
       setChapters(temp_data);
       
     } catch (error) {
@@ -60,9 +56,47 @@ const SelectChapter = () => {
   }, []);
 
 
-  const handlePurchase = (chapterId) => {
-    console.log(`Purchased chapter with ID: ${chapterId}`);
+  // 章節購買函數
+  const handlePurchase = async (chapterId) => {
+    try {
+    disableButton();
+    let comicHash = comic[chapterId].hash;
+    let chapterHash = chapters[chapterId].chapterHash
+    
+    console.log("chapterId：" + chapterId);
+    console.log("comicHash：" + comicHash);
+    console.log("chapterHash：" + chapterHash);
+    updateMessage("正在購買章節中...請稍後。")
+
+    await meta.purchaseChapter(comicHash, chapterHash, 0).send({ from: account });
+    alert('章節購買成功！');
+    enableButton();
+    updateMessage("");
+  } catch (error) {
+    console.error('章節購買時發生錯誤：', error);
+    alert('章節購買時發生錯誤!');
+    enableButton();
+    updateMessage("");
+    }
+
   };
+
+
+  async function disableButton() {
+    const listButton = document.getElementById("list-button")
+    listButton.disabled = true
+    listButton.style.backgroundColor = "grey";
+    listButton.style.opacity = 0.3;
+  }
+
+  async function enableButton() {
+      const listButton = document.getElementById("list-button")
+      listButton.disabled = false
+      listButton.style.backgroundColor = "#A500FF";
+      listButton.style.opacity = 1;
+  }
+
+
 
   return (
     <div className="select-chapter-page">
@@ -85,12 +119,13 @@ const SelectChapter = () => {
                   <td className='chapter-title'>{chapter.title}</td>
                   <td>{chapter.price}</td>
                   <td>
-                    <button onClick={() => handlePurchase(chapter.id)} className="btn btn-primary">購買</button>
+                    <button onClick={() => handlePurchase(index)} className="btn btn-primary" id="list-button">購買</button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          <div className="text-red-500 text-center">{message}</div>
         </div>
       </div>
     </div>
