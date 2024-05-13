@@ -10,6 +10,7 @@ const SelectChapter = () => {
   const [current, setCurrent] =  useState([]);
   const [meta, setMeta] = useState('');
   let temp = [];
+  let temp_data = [];
 
   const fetchChapters = async () => {
     try {
@@ -33,18 +34,22 @@ const SelectChapter = () => {
       setMeta(meta);
       
 
-      const chapterInfo = await meta.getChapters(temp[0].hash).call(); // 所有漫畫 Hash
+      const chapterInfo = await meta.getChapters(temp[0].hash).call();
       console.log('Chapter raw info:', chapterInfo);
-      let temp_chapter = {
-        title: chapterInfo[1],
-        price: chapterInfo[2]
-      };
-      console.log(temp_chapter);
-      setChapters(temp_chapter);
+      //console.log(chapterInfo[0].length);
+      for (var i = 0; i < chapterInfo[0].length; i++) {
+        let temp_price = chapterInfo[2][i].toString();
+        temp_price = temp_price / 1e18;
+        temp_data.push({
+          title: chapterInfo[1][i],
+          price: temp_price
+        });
+        console.log(temp_data);
+        console.log(typeof(temp_data[0].price));
 
+      }
+      setChapters(temp_data);
       
-
-
     } catch (error) {
       console.error('Error fetching chapters:', error);
     }

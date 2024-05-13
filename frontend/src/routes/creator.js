@@ -85,7 +85,7 @@ const CreatorPage = () => {
                 <img src={comic.cid} alt={`Comic ${index + 1}`} className="img-fluid" />
               </Link>
             </div>
-          ))}
+        ))}
       </div>
 
     </div>
