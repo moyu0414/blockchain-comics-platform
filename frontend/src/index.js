@@ -56,7 +56,6 @@ const AppLayout = () => {
           setContractInstance(contractInstance);
           const meta = await contractInstance.methods;
           let allComicHashes = await meta.getAllComicHashes().call(); // 所有漫畫 Hash
-
           comicDatas.push({nowAccount: account[0]});  //加入目前帳戶
           for (var i = 0; i < allComicHashes[0].length; i++) {
             let temp_title = allComicHashes[1][i];

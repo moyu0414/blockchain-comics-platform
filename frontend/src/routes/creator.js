@@ -9,6 +9,7 @@ import $ from 'jquery';
 const CreatorPage = () => {
   const [imgURL, setImgURL] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [being, setBeing] = useState(false);
   const [current, setCurrent] =  useState([]);
   const [owner, setOwner] = useState([]);
   let temp = [];
@@ -29,6 +30,9 @@ const CreatorPage = () => {
       setOwner(temp);
       setLoading(false);
 
+      if (temp.length < 1){
+        setBeing(true);
+      };
     } catch (error) {
       console.error('Error initializing contract:', error);
     }
@@ -54,6 +58,11 @@ const CreatorPage = () => {
       {loading &&  
         <div className="loading-container">
           <div>漫畫加載中，請稍後...</div>
+        </div>
+      }
+      {being &&  
+        <div className="loading-container">
+          <div>目前鏈上無漫畫，請重新刷新...</div>
         </div>
       }
 

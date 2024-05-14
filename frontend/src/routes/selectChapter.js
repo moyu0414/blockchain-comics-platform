@@ -5,6 +5,7 @@ import Web3 from 'web3';
 
 const SelectChapter = () => {
   const [account, setAccount] = useState('');
+  const [web3Instance, setWeb3Instance] = useState('');
   const [chapters, setChapters] = useState([]);
   const { comicID } = useParams();
   const [meta, setMeta] = useState('');
@@ -27,15 +28,19 @@ const SelectChapter = () => {
       setComic(temp);
 
       const web3Instance = new Web3(window.ethereum);
+      setWeb3Instance(web3Instance);
+
       const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
       const accounts = await web3Instance.eth.getAccounts();
       setAccount(accounts[0]);
+
       let meta = await contractInstance.methods;
       setMeta(meta);
       
       const chapterInfo = await meta.getChapters(temp[0].hash).call();
       for (var i = 0; i < chapterInfo[0].length; i++) {
         let temp_price = chapterInfo[2][i].toString();
+
         temp_price = temp_price / 1e18;
         temp_data.push({
           chapterHash: chapterInfo[0][i],
@@ -45,7 +50,7 @@ const SelectChapter = () => {
       }
       console.log(temp_data);
       setChapters(temp_data);
-      
+
     } catch (error) {
       console.error('Error fetching chapters:', error);
     }
@@ -60,25 +65,32 @@ const SelectChapter = () => {
   const handlePurchase = async (chapterId) => {
     try {
     disableButton();
-    let comicHash = comic[chapterId].hash;
-    let chapterHash = chapters[chapterId].chapterHash
-    
-    console.log("chapterId：" + chapterId);
-    console.log("comicHash：" + comicHash);
-    console.log("chapterHash：" + chapterHash);
-    updateMessage("正在購買章節中...請稍後。")
+    const balance = await web3Instance.eth.getBalance(account);
+    let price = chapters[chapterId].price;
+    //如果餘額大於售價，即可購買
+    if (balance > price){
+      let comicHash = comic[chapterId].hash;
+      let chapterHash = chapters[chapterId].chapterHash
+      console.log("chapterId：" + chapterId);
+      console.log("comicHash：" + comicHash);
+      console.log("chapterHash：" + chapterHash);
+      updateMessage("正在購買章節中...請稍後。")
 
-    await meta.purchaseChapter(comicHash, chapterHash, 0).send({ from: account });
-    alert('章節購買成功！');
-    enableButton();
-    updateMessage("");
+      const gas = await meta.purchaseChapter(comicHash, chapterHash).estimateGas({ from: account, value: web3Instance.utils.toWei(price, 'ether') });
+      await meta.purchaseChapter(comicHash, chapterHash).send({ from: account, value: web3Instance.utils.toWei(price, 'ether'), gas });
+
+      alert('章節購買成功！');
+      enableButton();
+      updateMessage("");
+    } else{
+      console.log('餘額不足');
+    };
   } catch (error) {
     console.error('章節購買時發生錯誤：', error);
     alert('章節購買時發生錯誤!');
     enableButton();
     updateMessage("");
     }
-
   };
 
 
@@ -95,7 +107,6 @@ const SelectChapter = () => {
       listButton.style.backgroundColor = "#A500FF";
       listButton.style.opacity = 1;
   }
-
 
 
   return (

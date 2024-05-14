@@ -196,18 +196,6 @@ const CreateWork = () => {
   };     
 
 
-
-  // 將 32 bytes 還原成 CID
-  function getIpfsHashFromBytes32(bytes32Hex) {
-    // and cut off leading "0x"
-    const hashHex = "1220" + bytes32Hex.slice(2);
-    const hashBytes = Buffer.from(hashHex, 'hex');
-    const hashStr = bs58.encode(hashBytes)
-    return hashStr
-  };
-
-
-
   // 驗證檔案類型是否符合要求
   const validateFileType = (file) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
