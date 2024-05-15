@@ -2,58 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
+import {getIpfsHashFromBytes32, imageExists} from '../index';
 
 const Reading = () => {
-  const [account, setAccount] = useState('');
-  const [web3Instance, setWeb3Instance] = useState('');
-  const { comicID } = useParams();
-  const [meta, setMeta] = useState('');
-  const [message, updateMessage] = useState('');
-  const [purchase, isPurchase] = useState([]);
+  const [chapter, setChapter] = useState([]);
+  const [url, setURL] = useState('');
   let temp = [];
-  let temp_purchase = [];
-
 
   const fetchChapters = async () => {
     try {
-      const storedArrayJSON = localStorage.getItem('comicDatas');
-      const storedArray = JSON.parse(storedArrayJSON);
-      
-      for (var i = 0; i < storedArray.length; i++) {
-        if(storedArray[i].comicID == comicID){
-          temp.push(storedArray[i]);
-        };
-      };
+      const chapterArrayJSON = localStorage.getItem('purchaseData');
+      const chapter_temp = JSON.parse(chapterArrayJSON);
+      console.log(chapter_temp);
+      console.log(chapter_temp[0].chapterHash);
+      setChapter(chapter_temp);
 
-      const web3Instance = new Web3(window.ethereum);
-      setWeb3Instance(web3Instance);
-      const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
-      const accounts = await web3Instance.eth.getAccounts();
-      setAccount(accounts[0]);
-      let meta = await contractInstance.methods;
-      setMeta(meta);
-      
-      const chapterInfo = await meta.getChapters(temp[0].hash).call();
-      await contractInstance.getPastEvents('ChapterPurchased', {
-        fromBlock: 0,
-      }, function(error, events){ })
-      .then(function(events){
-        console.log(events);
-        for (var i = 0; i < chapterInfo[0].length; i++) {
-          if(chapterInfo[0][i] == events[0].returnValues.chapterHash){
-            temp_purchase.push({
-              buyer: events[0].returnValues.buyer,
-              chapterHash: events[0].returnValues.chapterHash,
-              title:  chapterInfo[1][i]
-            });
+
+      let cid = getIpfsHashFromBytes32(chapter_temp[0].chapterHash);
+      let IPFSurl = "https://apricot-certain-boar-955.mypinata.cloud/ipfs/" + cid;
+      let IPFSurl_1 = "https://gateway.pinata.cloud/ipfs/" + cid;
+      temp.push(IPFSurl);
+      temp.push(IPFSurl_1);
+      await Promise.all(temp.map(imageExists))
+      .then(function(results) {
+        for (var i = 0; i < results.length; i++) {
+          if (temp[i].substr(8, 7) == 'apricot'){
+            setURL(IPFSurl);
+          }else{
+            setURL(IPFSurl_1);
           }
         }
-      })
-      console.log(temp_purchase);
-      isPurchase(temp_purchase);
-
+      });
     } catch (error) {
-      console.error('Error fetching chapters:', error);
+      console.error('Error fetching chapters IPFS image:', error);
     }
   };
 
@@ -61,66 +42,17 @@ const Reading = () => {
     fetchChapters();
   }, []);
 
-
-  // 章節閱讀函數
-  const handleReading = async (chapterId) => {
-    try {
-      disableButton();
-      
-    
-
-
-    } catch (error) {
-      console.error('章節購買時發生錯誤：', error);
-      alert('章節購買時發生錯誤!');
-      enableButton();
-      updateMessage("");
-    }
-  };
-
-
-  async function disableButton() {
-    const listButton = document.getElementById("list-button")
-    listButton.disabled = true
-    listButton.style.backgroundColor = "grey";
-    listButton.style.opacity = 0.3;
-  }
-
-  async function enableButton() {
-      const listButton = document.getElementById("list-button")
-      listButton.disabled = false
-      listButton.style.backgroundColor = "#A500FF";
-      listButton.style.opacity = 1;
-  }
-
-
   return (
     <div className="select-chapter-page">
       <div className="page-content">
-        <h1>章節選擇</h1>
         <div className="chapter-selection">
-          <table className="table table-image">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">本集標題</th>
-                <th scope="col">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {purchase.map((chapter, index) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td className='chapter-title'>{chapter.title}</td>
-                  
-                  <td>
-                    <button onClick={() => handleReading(index)} className="btn btn-primary" id="list-button">閱讀</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="text-red-500 text-center">{message}</div>
+          {chapter.map((obj, index) => (
+            <div key={index}>
+              <h3>漫畫：{obj.comicTitle}</h3>
+              <h3>章節：{obj.title}</h3>
+              <img src={url} alt={obj.chapterID} className="" />
+            </div>
+          ))}
         </div>
       </div>
     </div>
