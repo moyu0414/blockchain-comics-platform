@@ -14,7 +14,7 @@ import CreateWork from './routes/createWork';
 import WorkManagement from './routes/workManagement';
 import ChapterManagement from './routes/chapterManagement';
 import SelectChapter from './routes/selectChapter';
-import Reader_Chapter from './routes/reader_Chapter';
+import ReaderChapter from './routes/reader_Chapter';
 import Reading from './routes/reading';
 import Navbar from "./components/Navbar";
 import Web3 from 'web3';
@@ -23,7 +23,6 @@ import { Buffer } from 'buffer';
 import bs58 from 'bs58';
 
 let comicDatas = [];
-let num = 1;
 
 const AppLayout = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -33,6 +32,7 @@ const AppLayout = () => {
   const [voteId, setVoteId] = useState(null);
   const [account, setAccount] = useState('');
   const [imgURL, setImgURL] = useState([]);
+  let num = 1;
 
   // 處理登錄狀態的函數
   const handleLogin = () => {
@@ -175,9 +175,9 @@ const router = createBrowserRouter([
         element: <SelectChapter />,
       },{
         path: "/reader_Chapter/:comicID",
-        element: <Reader_Chapter />,
+        element: <ReaderChapter />,
       },{
-        path: "/reading/:comicID/:chapterID",
+        path: "/reader_Chapter/:comicID/:chapterID",
         element: <Reading />,
       },{
         path: "/chapterManagement/:comicID",
@@ -193,4 +193,4 @@ createRoot(document.getElementById("root")).render(
 );
 
 
-export {getIpfsHashFromBytes32};
+export {getIpfsHashFromBytes32, imageExists};

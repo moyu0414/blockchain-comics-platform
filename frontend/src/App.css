@@ -332,12 +332,14 @@ span {
 }
 
 .category {
-  font-size: 14px; /* 設置類別文字大小 */
+  font-size: 17px; /* 設置類別文字大小 */
   font-weight: bold; /* 設置類別文字粗細 */
+  color: black;
 }
 
 .heading {
-  margin-top: 8px; /* 調整標題與類別之間的間距 */
+  margin-top: 6px; /* 調整標題與類別之間的間距 */
+  color: black;
 }
 
 .author {
@@ -345,6 +347,9 @@ span {
   font-size: 14px; /* 設置作者文字大小 */
 }
 
+a:link{
+  text-decoration: none;
+}
 
 
 

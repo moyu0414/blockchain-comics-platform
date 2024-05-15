@@ -4,17 +4,17 @@ import { useParams } from 'react-router-dom';
 import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
 
-let num = 1;
 
-const Reader_Chapter = () => {
-  const [account, setAccount] = useState('');
+const ReaderChapter = () => {
   const [web3Instance, setWeb3Instance] = useState('');
   const { comicID } = useParams();
   const [meta, setMeta] = useState('');
   const [message, updateMessage] = useState('');
+  const [comic, setComic] = useState([]);
   const [purchase, isPurchase] = useState([]);
+  let num = 1;
   let temp = [];
-  let temp_purchase = [];
+  let purchaseData = [];
 
 
   const fetchChapters = async () => {
@@ -27,38 +27,40 @@ const Reader_Chapter = () => {
           temp.push(storedArray[i]);
         };
       };
+      console.log(temp);
+      setComic(temp);
 
       const web3Instance = new Web3(window.ethereum);
       setWeb3Instance(web3Instance);
       const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
       const accounts = await web3Instance.eth.getAccounts();
-      setAccount(accounts[0]);
       let meta = await contractInstance.methods;
       setMeta(meta);
-      
       const chapterInfo = await meta.getChapters(temp[0].hash).call();
+
       await contractInstance.getPastEvents('ChapterPurchased', {
         fromBlock: 0,
       }, function(error, events){ })
       .then(function(events){
-        console.log(events);
-        for (var i = 0; i < chapterInfo[0].length; i++) {
+        for (var i = 0; i < events.length; i++) {
           let id = 'Chapter' + num;
-
-          if(chapterInfo[0][i] == events[0].returnValues.chapterHash){
-            temp_purchase.push({
-              buyer: events[0].returnValues.buyer,
-              chapterHash: events[0].returnValues.chapterHash,
-              title:  chapterInfo[1][i],
-              chapterID: id
-            });
+          for (var n = 0; n < chapterInfo[0].length; n++) {
+            if(chapterInfo[0][n] == events[i].returnValues.chapterHash){
+              purchaseData.push({
+                buyer: events[i].returnValues.buyer,
+                chapterHash: events[i].returnValues.chapterHash,
+                title:  chapterInfo[1][n],
+                chapterID: id,
+                comicTitle: temp[0].title,
+              });
+            }
           }
           num = num + 1;
         }
       })
-      console.log(temp_purchase);
-      isPurchase(temp_purchase);
-
+      console.log(purchaseData);
+      isPurchase(purchaseData);
+      localStorage.setItem('purchaseData', JSON.stringify(purchaseData));
     } catch (error) {
       console.error('Error fetching chapters:', error);
     }
@@ -68,25 +70,18 @@ const Reader_Chapter = () => {
     fetchChapters();
   }, []);
 
-  async function disableButton() {
-    const listButton = document.getElementById("list-button")
-    listButton.disabled = true
-    listButton.style.backgroundColor = "grey";
-    listButton.style.opacity = 0.3;
-  }
-
-  async function enableButton() {
-      const listButton = document.getElementById("list-button")
-      listButton.disabled = false
-      listButton.style.backgroundColor = "#A500FF";
-      listButton.style.opacity = 1;
-  }
-
 
   return (
     <div className="select-chapter-page">
       <div className="page-content">
-        <h1>章節選擇</h1>
+      {comic.map((chapter, index) => (
+          <div key={index}>
+            <center>
+              <h1>{chapter.title}</h1>
+              <h2>章節選擇</h2>
+            </center>
+          </div>
+        ))}
         <div className="chapter-selection">
           <table className="table table-image">
             <thead>
@@ -101,13 +96,11 @@ const Reader_Chapter = () => {
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td className='chapter-title'>{chapter.title}</td>
-
-                  <Link to={`/reader_Chapter/${comicID}/${chapter.chapterID}`}> {/* 將 comicID 作為路由參數 */}
-                    <td>
-                      <button className="btn btn-primary" id="list-button">閱讀</button>
-                    </td>
+                  <td>
+                  <Link to={`/reader_Chapter/${comicID}/${chapter.chapterID}`}> 
+                    <button className="btn btn-primary" >閱讀</button>
                   </Link>
-                  
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -119,4 +112,4 @@ const Reader_Chapter = () => {
   );
 };
 
-export default Reader_Chapter;
+export default ReaderChapter;

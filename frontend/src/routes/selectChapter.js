@@ -27,7 +27,7 @@ const SelectChapter = () => {
           temp.push(storedArray[i]);
         };
       };
-      //console.log(temp);
+      console.log(temp);
       setComic(temp);
 
       const web3Instance = new Web3(window.ethereum);
@@ -134,7 +134,14 @@ const SelectChapter = () => {
   return (
     <div className="select-chapter-page">
       <div className="page-content">
-        <h1>章節選擇</h1>
+       {comic.map((chapter, index) => (
+          <div key={index}>
+            <center>
+              <h1>{chapter.title}</h1>
+              <h2>章節選擇</h2>
+            </center>
+          </div>
+        ))}
         <div className="chapter-selection">
           <table className="table table-image">
             <thead>
