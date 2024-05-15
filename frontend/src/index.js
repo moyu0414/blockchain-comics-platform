@@ -13,6 +13,8 @@ import Identity from './routes/identity';
 import CreateWork from './routes/createWork';
 import WorkManagement from './routes/workManagement';
 import SelectChapter from './routes/selectChapter';
+import Reader_Chapter from './routes/reader_Chapter';
+import Reading from './routes/reading';
 import Navbar from "./components/Navbar";
 import Web3 from 'web3';
 import comicData from "./contracts/ComicPlatform.json"
@@ -170,6 +172,12 @@ const router = createBrowserRouter([
       },{
         path: "/selectChapter/:comicID",
         element: <SelectChapter />,
+      },{
+        path: "/reader_Chapter/:comicID",
+        element: <Reader_Chapter />,
+      },{
+        path: "/reading/:comicID/:chapterID",
+        element: <Reading />,
       }
     ],
   },
