@@ -12,6 +12,7 @@ import Dual from './routes/dual';
 import Identity from './routes/identity';
 import CreateWork from './routes/createWork';
 import WorkManagement from './routes/workManagement';
+import ChapterManagement from './routes/chapterManagement';
 import SelectChapter from './routes/selectChapter';
 import Reader_Chapter from './routes/reader_Chapter';
 import Reading from './routes/reading';
@@ -178,6 +179,9 @@ const router = createBrowserRouter([
       },{
         path: "/reading/:comicID/:chapterID",
         element: <Reading />,
+      },{
+        path: "/chapterManagement/:comicID",
+        element: <ChapterManagement />,
       }
     ],
   },

@@ -24,6 +24,7 @@ const CreatorPage = () => {
       for (var i = 0; i < storedArray.length; i++) {
         if (storedArray[0].nowAccount == storedArray[i].author){
           temp.push(storedArray[i]);
+          console.log(temp)
         }
       };
       console.log(temp);
