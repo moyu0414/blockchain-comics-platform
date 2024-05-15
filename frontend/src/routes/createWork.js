@@ -211,7 +211,7 @@ const CreateWork = () => {
     };
   };  
 
-// 漫畫等級取值
+  // 漫畫等級取值
   function ChoseLevel(e){
     let choseLevel = e.target.value;
     let level = {"兒童漫畫": "1", "少年漫畫": "2", "少女漫畫": "3", "成人漫畫": "4"};
