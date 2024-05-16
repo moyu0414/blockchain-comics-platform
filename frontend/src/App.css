@@ -288,17 +288,33 @@ span {
   background-color: #0056b3;
 }
 
-
-/* 選項的樣式 */
 .upload-form select option {
   background-color: #fff;
   color: #343a40;
 }
 
-/* 選中的選項的樣式 */
 .upload-form select option:checked {
   background-color: #007bff;
   color: #fff;
+}
+
+.btn{
+  font-size: 18px;
+  width: 120px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0FC2C0;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn:hover{
+  background-color: #008F8C;
+  color: white;
+  border: none;
 }
 
 
@@ -319,7 +335,11 @@ span {
 }
 
 /* 資料區塊 */
+.search-container{
+  margin-top: 1%;
+}
 .box {
+  margin-top: 1%;
   width: 60%; /* 設置寬度與搜尋框相同 */
   border-radius: 0 0 15px 15px;
 }
@@ -329,6 +349,10 @@ span {
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);  /*添加陰影效果*/
   padding: 16px; /* 調整內邊距 */
   transition: all 0.3s ease-in-out; /* 添加過渡效果 */
+}
+
+.search-card:hover{
+  background-color: #b9f5f4;
 }
 
 .category {
@@ -448,20 +472,6 @@ a:link{
   max-width: 800px;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  padding: 10px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-th {
-  background-color: #f2f2f2;
-}
 
 .work-info {
   display: flex;
@@ -518,12 +528,20 @@ th {
 
 
 
-.select-chapter-page {
-  margin: 20px auto;
-  max-width: 60%;
+/* 章節管理 */
+.comic-chapter-title{
+  margin: 2% 0;
+  font-size: 20px;
+  color: #0FC2C0;
 }
+
+.comic-chapter-title h1{
+  font-weight: bold;
+}
+
 .table {
   width: 100%;
+  min-width: 900px; /* 设置最小宽度为 800 像素 */
   height: 10%;
   border-collapse: collapse;
 }
@@ -536,23 +554,17 @@ th {
 .table th {
   font-size: 24px;
   border-bottom: 2px solid #ddd;
+  color: #0FC2C0;
 }
 
 .table td {
+  font-size: 18px;
   border-bottom: 1px solid #ddd;
-}
-
-.table th,
-.table td {
-  vertical-align: middle; /* 將每個欄位都設置為垂直置中 */
+  vertical-align: middle;
 }
 
 .table tbody tr {
   height: 120px; /* 將表格行的高度設置為固定值 */
-}
-
-.chapter-title{
-  font-size: 20px;
 }
 
 .chapter-selection img {
@@ -571,6 +583,25 @@ th {
   vertical-align: middle; /* 將圖片垂直對齊到表格行的中間 */
 }
 
+.chapter-selection .btn{
+  font-size: 18px;
+  width: 90px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0FC2C0;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.chapter-selection .btn:hover{
+  background-color: #008F8C;
+  color: white;
+  border: none;
+}
+
 .loading-container {
   position: fixed;
   top: 50%;
@@ -581,160 +612,6 @@ th {
   padding: 20px;
   border-radius: 5px;
 }
-
-
-/* 導覽列 */
-/* .navbar {
-  background-color: #ffffff;
-  height: 80px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  border-bottom: 2px solid #ccc;
-}
-
-.menu-bars {
-  margin-left: 2rem;
-  font-size: 2rem;
-  background: none;
-  color: #000;
-}
-
-.nav-menu {
-  background-color: #ffffff;
-  width: 250px;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  position: fixed;
-  top: 0;
-  border-right: 2px solid #ccc;
-  transition: left 0.3s ease; 
-}
-
-.show-sidebar {
-  left: 0;
-}
-
-.hide-sidebar {
-  left: -250px;
-}
-
-
-.nav-menu.active {
-  left: 0;
-  transition: 450ms;
-}
-
-.nav-text {
-  padding: 8px 0px 8px 16px;
-  list-style: none;
-}
-
-.nav-text a {
-  width: 95%;
-  border-radius: 4px;
-}
-
-.nav-text a:hover {
-  background-color: #000000;
-  color: #fff;
-}
-
-.nav-menu-items {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.navbar-toggle {
-  background-color: #ffffff;
-  width: 100%;
-  height: 80px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.nav-menu .nav-menu-items .nav-text > a > svg {
-  transition: transform 0.3s ease;
-}
-
-.nav-menu .nav-menu-items .nav-text > a > svg.rotated {
-  transform: rotate(180deg);
-}
-
-.nav-menu .nav-menu-items .nav-text {
-  text-decoration: none;
-  font-size: 20px;
-  color: #818181;
-  display: block;
-}
-
-.show-sub-menu .sub-menu {
-  transform: scaleY(1);
-}
-
-.nav-menu-items .nav-text.show-sub-menu .sub-menu {
-  display: inline-block;
-}
-
-.nav-menu-items .nav-text {
-  position: relative;
-}
-
-.navbar.menu-expanded .nav-menu {
-  padding-bottom: 200px;
-}
-
-.sidenav {
-  height: 100%;
-  width: 200px;
-  z-index: 1;
-  top: 0;
-  left: 0;
-  background-color: #ffffff;
-  padding-top: 20px;
-}
-
-.sidenav a,
-.dropdown-btn {
-  padding: 8px 0px 8px 16px;
-  text-decoration: none;
-  color: #151414;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-}
-
-.sidenav a:hover,
-.dropdown-btn:hover {
-  background-color: #007bff;
-  color: #fff;
-}
-
-.dropdown-container {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-  background-color: #ffffff;
-}
-
-.dropdown-container li {
-  text-align: center;
-}
-
-.dropdown-container li a {
-  display: block;
-  padding: 8px 0px;
-  color: #151414;
-  font-size: 16px;
-  text-decoration: none;
-}
-
-.dropdown-container li a:hover {
-  background-color: #00aeff;
-} */
 
 .navbar {
   display: flex;
@@ -786,7 +663,7 @@ th {
   position: fixed;
   top: 8%;
   width: 8%;
-  height: 4%;
+  height: 8%;
   z-index: 10;
   box-shadow: 4px 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   background-color: #0FC2C0;
@@ -794,10 +671,11 @@ th {
 }
 
 .show-sub-menu .dropdown-container {
-  display: flex;
+  display: block;
 }
 
 .dropdown-container li {
+  display: block;
   margin-top: 1%;
   padding-top: 1%;
   list-style: none;
@@ -846,6 +724,151 @@ th {
 }
 
 .login-account {
-  color: #fff;
+  color: #008F8C;
   padding: 10px 20px;
+}
+
+/* 首頁 */
+.comic-container {
+  position: relative;
+}
+
+.comic-info-overlay {
+  position: absolute;
+  top: 0;
+  left: 3%;
+  width: 94%;
+  height: 94.5%;
+  background-color: rgba(15, 194, 192, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* 垂直置中 */
+  align-items: center; /* 水平置中 */
+  padding: 10px;
+  z-index: 2;
+}
+
+.comic-info {
+  color: white;
+  font-size: 20px;
+  position: absolute;
+  top: 50%; /* 將元素置於父元素的中間 */
+  left: 45%;
+  transform: translate(-50%, -50%); /* 以自身寬度和高度的一半作為偏移量 */
+}
+
+.comic-container:hover .comic-info-overlay {
+  opacity: 1;
+}
+
+.comic-image {
+  position: relative;
+}
+
+.comic-image::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(15, 194, 192, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.comic-image:hover::before {
+  opacity: 1;
+}
+
+/* 閱讀側邊攔 */
+.page-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.reading-selection {
+  width: 100%;
+}
+
+.chapter-container {
+  text-align: center;
+  margin: 2% 0; 
+}
+
+.chapter-container h3{
+  color: #0FC2C0;
+  font-weight: bold;
+}
+
+.image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; 
+}
+
+.reading-image {
+  width: 35%;
+  height: auto; 
+  cursor:zoom-in;
+}
+
+.reading-image.zoomed {
+  width: 60%; 
+  cursor:zoom-out;
+}
+
+.reading-sidebar {
+  background-color: #a3f0ef;
+  width: 15%;
+  height: 30%;
+  position: fixed;
+  top: 18%;
+  bottom: 0;
+  left: 5%;
+  overflow-y: auto;
+  border-radius: 8px;
+  box-shadow: 4px 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.reading-sidebar-container{
+  
+  text-align: center;
+  margin: 4%;
+}
+
+.reading-sidebar button{
+  font-size: 18px;
+  width: 90px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0FC2C0;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.reading-sidebar button:hover{
+  background-color: #008F8C;
+  color: white;
+  border: none;
+}
+
+/* 個人書櫃 */
+.reader-title{
+  text-align: center;
+  font-size: 24px;
+  color: #0FC2C0;
+}
+
+/* 交易紀錄 */
+.history-page{
+  margin: 20px auto;
+  max-width: 800px;
 }

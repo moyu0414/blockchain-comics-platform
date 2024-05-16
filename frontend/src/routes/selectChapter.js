@@ -135,7 +135,7 @@ const SelectChapter = () => {
     <div className="select-chapter-page">
       <div className="page-content">
        {comic.map((chapter, index) => (
-          <div key={index}>
+          <div className='comic-chapter-title' key={index}>
             <center>
               <h1>{chapter.title}</h1>
               <h2>章節選擇</h2>
@@ -149,7 +149,7 @@ const SelectChapter = () => {
                 <th scope="col">#</th>
                 <th scope="col">本集標題</th>
                 <th scope="col">價格</th>
-                <th scope="col">操作</th>
+                <th scope="col"></th>
               </tr>
             </thead>
             <tbody>

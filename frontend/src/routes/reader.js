@@ -69,8 +69,8 @@ const Reader = () => {
         {owner.map((comic, index) => (
             <div className="col-3" key={index}>
               <Link to={`/reader_Chapter/${comic.comicID}`}> {/* 將 comicID 作為路由參數 */}
-                <p>{comic.title}</p>
-                <img src={comic.cid} alt={`Comic ${index + 1}`} className="img-fluid" />
+                <p className='reader-title'>{comic.title}</p>
+                <img src={comic.cid} alt={`Comic ${index + 1}`} className="img-fluid comic-image" />
               </Link>
             </div>
           ))}

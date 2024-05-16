@@ -47,7 +47,7 @@ const CreatorPage = () => {
   return (
     <div className="container">
       <div className="d-flex justify-content-end mt-3">
-      <Button variant="primary">
+      <Button className='btn'>
         <Link to="/createWork" style={{ textDecoration: 'none', color: 'inherit' }}>
           上傳作品
         </Link>

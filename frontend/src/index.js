@@ -6,23 +6,25 @@ import {
   Outlet,
 } from "react-router-dom";
 import Home from './routes/Home';
+import Navbar from "./components/Navbar";
 import Reader from './routes/reader';
 import Creator from './routes/creator';
 import Dual from './routes/dual';
-import Identity from './routes/identity';
 import CreateWork from './routes/createWork';
 import WorkManagement from './routes/workManagement';
 import ChapterManagement from './routes/chapterManagement';
 import SelectChapter from './routes/selectChapter';
-import ReaderChapter from './routes/reader_Chapter';
+import Reader_Chapter from './routes/reader_Chapter';
 import Reading from './routes/reading';
-import Navbar from "./components/Navbar";
+import TransactionHistory from './routes/transactionHistory';
+import PurchaseHistory from './routes/purchaseHistory';
 import Web3 from 'web3';
 import comicData from "./contracts/ComicPlatform.json"
 import { Buffer } from 'buffer';
 import bs58 from 'bs58';
 
 let comicDatas = [];
+let num = 1;
 
 const AppLayout = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -32,7 +34,6 @@ const AppLayout = () => {
   const [voteId, setVoteId] = useState(null);
   const [account, setAccount] = useState('');
   const [imgURL, setImgURL] = useState([]);
-  let num = 1;
 
   // 處理登錄狀態的函數
   const handleLogin = () => {
@@ -68,6 +69,7 @@ const AppLayout = () => {
             let isBeing_1 = "https://gateway.pinata.cloud/ipfs/" + temp_cid;
             let comic = await meta.comics(temp_hash).call();
             let comicAuthor = comic[2];
+            let comicDescription = comic[3];
             let id = 'Comic' + num  ;
             //let curAccount = 
 
@@ -79,9 +81,9 @@ const AppLayout = () => {
               if (results[i]) {
                 //console.log(results);
                 if (imgURL[i].substr(8, 7) == 'apricot'){
-                  comicDatas.push({comicID: id, hash: temp_hash, cid: isBeing, title: temp_title, author: comicAuthor }); 
+                  comicDatas.push({comicID: id, hash: temp_hash, cid: isBeing, title: temp_title, author: comicAuthor,  description: comicDescription}); 
                 }else{
-                  comicDatas.push({comicID: id, hash: temp_hash, cid: isBeing_1, title: temp_title, author: comicAuthor }); 
+                  comicDatas.push({comicID: id, hash: temp_hash, cid: isBeing_1, title: temp_title, author: comicAuthor,  description: comicDescription }); 
                 }
               }
             });
@@ -162,26 +164,32 @@ const router = createBrowserRouter([
         element: <Dual />,
       },
       {
-        path: "/identity",
-        element: <Identity />,
-      },{
         path: "/createWork",
         element: <CreateWork />,
-      },{
+      },
+      {
         path: "/workManagement",
         element: <WorkManagement />,
-      },{
+      },
+      {
         path: "/selectChapter/:comicID",
         element: <SelectChapter />,
-      },{
+      },
+      {
         path: "/reader_Chapter/:comicID",
-        element: <ReaderChapter />,
-      },{
+        element: <Reader_Chapter />,
+      },
+      {
         path: "/reader_Chapter/:comicID/:chapterID",
         element: <Reading />,
-      },{
-        path: "/chapterManagement/:comicID",
-        element: <ChapterManagement />,
+      },
+      {
+        path: "/transactionHistory",
+        element: <TransactionHistory />,
+      },
+      {
+        path: "/purchaseHistory",
+        element: <PurchaseHistory />,
       }
     ],
   },

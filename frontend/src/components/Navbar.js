@@ -34,7 +34,7 @@ const Navbar = ({ accounts, setAccounts }) => {
         setIsLogged(true);
         alert("登入成功!");
 
-        navigate("/identity");
+        navigate("/");
       }
     }
   };

@@ -18,6 +18,11 @@ export const SidebarData = [
         title: "作品管理",
         path: "/creator",
         cName: "nav-subtext",
+      },
+      {
+        title: "交易紀錄",
+        path: "transactionHistory",
+        cName: "nav-subtext",
       }
     ],
   },
@@ -29,6 +34,11 @@ export const SidebarData = [
       {
         title: "個人書櫃",
         path: "/reader",
+        cName: "nav-subtext",
+      },
+      {
+        title: "購買紀錄",
+        path: "purchaseHistory",
         cName: "nav-subtext",
       }
     ],

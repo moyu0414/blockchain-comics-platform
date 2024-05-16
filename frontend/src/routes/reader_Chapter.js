@@ -75,7 +75,7 @@ const ReaderChapter = () => {
     <div className="select-chapter-page">
       <div className="page-content">
       {comic.map((chapter, index) => (
-          <div key={index}>
+          <div className='comic-chapter-title' key={index}>
             <center>
               <h1>{chapter.title}</h1>
               <h2>章節選擇</h2>
@@ -88,7 +88,8 @@ const ReaderChapter = () => {
               <tr>
                 <th scope="col">#</th>
                 <th scope="col">本集標題</th>
-                <th scope="col">操作</th>
+                <th scope="col">購買時間</th>
+                <th scope="col"></th>
               </tr>
             </thead>
             <tbody>
@@ -96,10 +97,11 @@ const ReaderChapter = () => {
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td className='chapter-title'>{chapter.title}</td>
+                  <td>yyyy-mm-dd</td>
                   <td>
-                  <Link to={`/reader_Chapter/${comicID}/${chapter.chapterID}`}> 
-                    <button className="btn btn-primary" >閱讀</button>
-                  </Link>
+                    <Link to={`/reader_Chapter/${comicID}/${chapter.chapterID}`}> 
+                      <button className="btn" >閱讀</button>
+                    </Link>
                   </td>
                 </tr>
               ))}
