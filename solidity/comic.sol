@@ -38,13 +38,64 @@
         mapping(address => bytes32[]) public userPurchases;
         //章節價格 漫畫hash->章節hash->價格
         mapping(bytes32 => mapping(bytes32 => uint256)) public ChapterPrice;
+        //漫畫編輯紀錄
+        mapping(bytes32 => bytes32) public editcomicHistory;
+        //章節編輯紀錄
+        mapping(bytes32 => bytes32) public editchapterHistory;
         //首頁 all漫畫hash
         bytes32[] public allComicHashes;
+
+        //取得漫畫目前信息
+        function getcomic(bytes32 _comicHash) external view returns(bytes32, string memory,  string memory,string memory,uint8){
+                bytes32  frist_hash = editcomicHistory[_comicHash];
+                string memory title = comics[frist_hash].title;
+                string memory author = comics[frist_hash].author;
+                string memory description = comics[frist_hash].description;
+                uint8  level = comics[frist_hash].level;
+                return(frist_hash,title,author,description,level);
+        }
+        //編輯漫畫圖片
+        function editcomichash(bytes32 old_hash, bytes32 new_hash) external {
+            bytes32  frist_hash = editcomicHistory[old_hash];
+            editcomicHistory[frist_hash] = new_hash;
+            editcomicHistory[new_hash] = frist_hash;
+            emit ComichasgEdited(frist_hash,old_hash,new_hash);
+        }
+        //編輯漫畫信息
+        function editcomicdata(
+            bytes32 _comicHash,
+            string memory _title,
+            string memory _author,
+            string memory _description,
+            uint8 _level)
+            external{
+
+            bytes32  frist_hash = editcomicHistory[_comicHash];
+            comics[frist_hash].title = _title;
+            comics[frist_hash].author = _author;
+            comics[frist_hash].description = _description;
+            comics[frist_hash].level = _level;
+            emit ComicdataEdited(frist_hash,_title,_author,_description,_level);
+        }
 
         // 定義漫畫上傳事件
         event ComicUploaded(
             bytes32 indexed comicHash,
             address indexed owner,
+            string title,
+            string author,
+            string description,
+            uint8 level 
+        );
+        // 定義漫畫hash編輯事件
+        event ComichasgEdited(
+            bytes32 indexed frist_hash,
+            bytes32 indexed oldhash,
+            bytes32 indexed newhash
+        );
+        // 定義漫畫資料編輯事件
+        event ComicdataEdited(
+            bytes32 indexed comicHash,
             string title,
             string author,
             string description,
@@ -84,7 +135,9 @@
             newComic.author = _author;
             newComic.description = _description;
             newComic.level = _level;
+
             allComicHashes.push(_comicHash);
+            editcomicHistory[_comicHash]  = _comicHash;
 
             // 觸發漫畫上傳事件
             emit ComicUploaded(_comicHash, msg.sender, _title, _author, _description,_level);
@@ -97,6 +150,7 @@
             string memory _title,
             uint256 _price
         ) external {
+            _comicHash = editcomicHistory[_comicHash];
             require(comics[_comicHash].owner != address(0), "Comic not uploaded");// 確認漫畫已上傳
             require(comics[_comicHash].owner == msg.sender, "You are not owner");// 確認是否為擁有者
             require(!comicChapterhashs[_comicHash][_chapterHash], "Chapter already exists");//確認章節唯一性
@@ -118,11 +172,13 @@
         }
 
         function getAllComicHashes() external view returns (bytes32[] memory,string[] memory) {
+            bytes32[] memory hashes = new bytes32[](allComicHashes.length);
             string[] memory titles = new string[](allComicHashes.length);
             for (uint256 i = 0; i < allComicHashes.length; i++) {
+                hashes[i] = editcomicHistory[allComicHashes[i]];
                 titles[i] = comics[allComicHashes[i]].title;
             }
-            return(allComicHashes,titles);
+            return(hashes,titles);
         }
 
         function getChapters(bytes32 _comicHash) external view returns (bytes32[] memory, string[] memory, uint256[] memory, bool[] memory) {
@@ -142,7 +198,8 @@
         }
         
         // 購買章節
-        function purchaseChapter(bytes32 _comicHash, bytes32 _chapterHash) external payable{
+        function purchaseChapter(bytes32 _comicHash, bytes32 _chapterHash) external payable{         
+            _comicHash = editcomicHistory[_comicHash];
             // 檢查章節是否存在
             require(comicChapterhashs[_comicHash][_chapterHash], "Chapter does not exists");
 
@@ -166,10 +223,11 @@
         //獲取使用者購買漫畫
         function getmycomics() external view returns (bytes32[] memory, string[] memory) {
             string[] memory titles = new string[](userPurchases[msg.sender].length);
+            bytes32[] memory hashes = new bytes32[](userPurchases[msg.sender].length);
             for (uint256 i = 0; i < titles.length; i++) {
                 titles[i] = comics[userPurchases[msg.sender][i]].title ;
+                hashes[i] = editchapterHistory[userPurchases[msg.sender][i]];
             }
-            return(userPurchases[msg.sender],titles);
-        } 
-
+            return(hashes,titles);
+        }
 }
