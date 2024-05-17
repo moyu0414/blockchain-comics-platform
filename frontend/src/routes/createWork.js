@@ -7,7 +7,7 @@ import bs58 from 'bs58';
 import { Buffer } from 'buffer';
 
 
-const CreateWork = () => {
+const CreateWork = (props) => {
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
   const [account, setAccount] = useState('');
@@ -25,7 +25,7 @@ const CreateWork = () => {
     "少女漫畫": "3",
     "成人漫畫": "4",
   });
-
+  
   // 連接到 Web3 的函數
   async function connectToWeb3(){
     if (window.ethereum) {

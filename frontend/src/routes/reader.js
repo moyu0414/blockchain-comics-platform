@@ -20,6 +20,13 @@ const Reader = () => {
       const storedArray = JSON.parse(storedArrayJSON);
       setCurrent(storedArray);
 
+
+      const chapterArrayJSON = localStorage.getItem('purchaseData');
+      const chapterArray = JSON.parse(chapterArrayJSON);
+      console.log(chapterArray);
+
+
+
       const web3Instance = new Web3(window.ethereum);
       const accounts = await web3Instance.eth.getAccounts();
       const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);

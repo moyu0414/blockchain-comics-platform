@@ -12,9 +12,9 @@ const ReaderChapter = () => {
   const [message, updateMessage] = useState('');
   const [comic, setComic] = useState([]);
   const [purchase, isPurchase] = useState([]);
-  let num = 1;
+  const [loading, setLoading] = useState(true);
   let temp = [];
-  let purchaseData = [];
+  let temp_purchase = [];
 
 
   const fetchChapters = async () => {
@@ -36,31 +36,20 @@ const ReaderChapter = () => {
       const accounts = await web3Instance.eth.getAccounts();
       let meta = await contractInstance.methods;
       setMeta(meta);
-      const chapterInfo = await meta.getChapters(temp[0].hash).call();
 
-      await contractInstance.getPastEvents('ChapterPurchased', {
-        fromBlock: 0,
-      }, function(error, events){ })
-      .then(function(events){
-        for (var i = 0; i < events.length; i++) {
-          let id = 'Chapter' + num;
-          for (var n = 0; n < chapterInfo[0].length; n++) {
-            if(chapterInfo[0][n] == events[i].returnValues.chapterHash){
-              purchaseData.push({
-                buyer: events[i].returnValues.buyer,
-                chapterHash: events[i].returnValues.chapterHash,
-                title:  chapterInfo[1][n],
-                chapterID: id,
-                comicTitle: temp[0].title,
-              });
-            }
-          }
-          num = num + 1;
-        }
-      })
-      console.log(purchaseData);
-      isPurchase(purchaseData);
-      localStorage.setItem('purchaseData', JSON.stringify(purchaseData));
+      const chapterArrayJSON = localStorage.getItem('purchaseData');
+      const chapterArray = JSON.parse(chapterArrayJSON);
+      //console.log(chapterArray);
+
+      for (var i = 0; i < chapterArray.length; i++) {
+        if(chapterArray[i].comicID == comicID){
+          temp_purchase.push(chapterArray[i]);
+        };
+      };
+
+      console.log(temp_purchase);
+      isPurchase(temp_purchase);
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching chapters:', error);
     }
@@ -78,10 +67,15 @@ const ReaderChapter = () => {
           <div className='comic-chapter-title' key={index}>
             <center>
               <h1>{chapter.title}</h1>
-              <h2>章節選擇</h2>
+              <h2>讀者閱讀_章節選擇</h2>
             </center>
           </div>
         ))}
+        {loading &&  
+          <div className="loading-container">
+            <div>章節加載中，請稍後...</div>
+          </div>
+        }
         <div className="chapter-selection">
           <table className="table table-image">
             <thead>

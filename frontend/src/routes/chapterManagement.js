@@ -13,8 +13,9 @@ const ChapterManagement = () => {
   const [comic, setComic] = useState([]);
   const [message, updateMessage] = useState('');
   const [showChapterForm, setShowChapterForm] = useState(false);
+  const [loading, setLoading] = useState(true);
   let temp = [];
-  let temp_data = [];
+  let temp_purchase = [];
 
   const fetchChapters = async () => {
     try {
@@ -26,7 +27,7 @@ const ChapterManagement = () => {
           temp.push(storedArray[i]);
         };
       };
-      //console.log(temp);
+      console.log(temp);
       setComic(temp);
 
       const web3Instance = new Web3(window.ethereum);
@@ -36,19 +37,19 @@ const ChapterManagement = () => {
       let meta = await contractInstance.methods;
       setMeta(meta);
       
-      const chapterInfo = await meta.getChapters(temp[0].hash).call();
-      for (var i = 0; i < chapterInfo[0].length; i++) {
-        let temp_price = chapterInfo[2][i].toString();
-        temp_price = temp_price / 1e18;
-        temp_data.push({
-          chapterHash: chapterInfo[0][i],
-          title: chapterInfo[1][i],
-          price: temp_price
-        });
-      }
-      console.log(temp_data);
-      setChapters(temp_data);
-      
+      const chapterArrayJSON = localStorage.getItem('purchaseData');
+      const chapterArray = JSON.parse(chapterArrayJSON);
+      //console.log(chapterArray);
+
+      for (var i = 0; i < chapterArray.length; i++) {
+        if(chapterArray[i].comicID == comicID){
+          temp_purchase.push(chapterArray[i]);
+        };
+      };
+  
+      console.log(temp_purchase);
+      setChapters(temp_purchase);
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching chapters:', error);
     }
@@ -63,19 +64,35 @@ const ChapterManagement = () => {
   return (
     <div className="select-chapter-page">
       <div className="page-content">
+        {comic.map((Comic, index) => (
+          <div className='comic-chapter-title' key={index}>
+            <center>
+              <h1>{Comic.title}</h1>
+              <h4>作者：您是本作品的創作者!</h4>
+              <h2>創作者管理_章節選擇</h2>
+            </center>
+          </div>
+        ))}
         <div className="d-flex justify-content-end mt-3">
           <Button variant="primary">
-          {chapters.length > 0 && (
+          {comic.length > 0 && (
             <Link
-            to={"/createWork"}
-            state={{ showChapterForm: true, chapterHash: chapters[0].chapterHash }}
+            to={{
+              pathname: "/createWork",
+              state: { showComicHash: comic[0].hash }
+            }}
             style={{ textDecoration: 'none', color: 'inherit' }}
-            >
+          >
               新增章節
           </Link>
           )}
           </Button>
         </div>
+        {loading &&  
+          <div className="loading-container">
+            <div>章節加載中，請稍後...</div>
+          </div>
+        }
         <div className="chapter-selection">
           <table className="table table-image">
             <thead>
@@ -91,9 +108,12 @@ const ChapterManagement = () => {
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td className='chapter-title'>{chapter.title}</td>
-                  <td>{chapter.price}</td>
+                  <td>{chapter.chapterPrice}</td>
                   <td >
-                    <button className="btn btn-primary" id="list-button" style={{ marginRight: '15px' }}>閱讀</button>
+                    <Link to={`/reader_Chapter/${comicID}/${chapter.chapterID}`}> 
+                      <button className="btn btn-primary" style={{ marginRight: '15px' }}>閱讀</button>
+                    </Link>
+
                     <button className="btn btn-success" id="list-button">翻譯</button>
                   </td>
                 </tr>

@@ -16,7 +16,7 @@ const Home = ({ contractAddress }) => {
   const fetchedData = [];
   const grading = { "兒童漫畫": "1", "少年漫畫": "2", "少女漫畫": "3", "成人漫畫": "4" };
   const searchRef = useRef();
-
+  
   const initContract = async () => {
     try {
       const storedArray = JSON.parse(storedArrayJSON);
@@ -24,11 +24,10 @@ const Home = ({ contractAddress }) => {
       console.log(storedArray);
       setCurrent(storedArray);
       setLoading(false);
-
+      
       const web3Instance = new Web3(window.ethereum);
       const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
       let meta = await contractInstance.methods;
-
 
       for (var i = 0; i < storedArray.length; i++) {
         const comics = await meta.comics(storedArray[i].hash).call();
@@ -36,7 +35,6 @@ const Home = ({ contractAddress }) => {
         fetchedData.push({ comicID: storedArray[i].comicID, comicTitle: comics[1], comicDescription: comics[3], author: comics[2], level: temp_level });
       };
       setData(fetchedData);
-
 
     } catch (error) {
       console.error('Error initializing contract:', error);
@@ -63,11 +61,13 @@ const Home = ({ contractAddress }) => {
   function search(data) {
     return data.filter((data) =>
       search_parameters.some((parameter) =>
-        data[parameter].toString().toLowerCase().includes(query)
+        data[parameter].toString().includes(query)
+        //data[parameter].toString().toLowerCase().includes(query)
       )
     );
   };
 
+  
   return (
     <div className="container" ref={searchRef}>
       <div>

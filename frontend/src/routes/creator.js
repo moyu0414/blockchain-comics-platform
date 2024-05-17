@@ -24,7 +24,6 @@ const CreatorPage = () => {
       for (var i = 0; i < storedArray.length; i++) {
         if (storedArray[0].nowAccount == storedArray[i].author){
           temp.push(storedArray[i]);
-          console.log(temp)
         }
       };
       console.log(temp);
@@ -70,7 +69,7 @@ const CreatorPage = () => {
       <div className="row mt-5">
         {owner.map((comic, index) => (
             <div className="col-3" key={index}>
-              <Link to={`/selectChapter/${comic.comicID}`}> {/* 將 comicID 作為路由參數 */}
+              <Link to={`/chapterManagement/${comic.comicID}`}> {/* 將 comicID 作為路由參數 */}
                 <p>{comic.title}</p>
                 <img src={comic.cid} alt={`Comic ${index + 1}`} className="img-fluid" />
               </Link>
