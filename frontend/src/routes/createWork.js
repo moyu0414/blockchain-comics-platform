@@ -5,6 +5,7 @@ import createWork from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
 import bs58 from 'bs58';
 import { Buffer } from 'buffer';
+import { useLocation } from 'react-router-dom';
 
 
 const CreateWork = (props) => {
@@ -19,6 +20,7 @@ const CreateWork = (props) => {
   const [previewImageUrl, setPreviewImageUrl] = useState(null);
   const [comicHash, setComicHash] = useState(''); // 儲存檔案哈希值的狀態
   const [chapterHash, setChapterHash] = useState(''); // 儲存檔案哈希值的狀態
+  const location = useLocation();
   const [grading, setGrading] = useState({
     "兒童漫畫": "1",
     "少年漫畫": "2",
@@ -248,6 +250,15 @@ async function checkFile() {
   useEffect(() => {
     connectToWeb3();
   }, []);
+
+  useEffect(() => {
+    console.log("Location state:", location.state);
+    // 检查是否传递了参数并设置 showChapterForm 状态
+    if (location.state && location.state.showChapterForm) {
+      console.log("Show chapter form:", true);
+      setShowChapterForm(true);
+    }
+  }, [location]);
 
 
   return (

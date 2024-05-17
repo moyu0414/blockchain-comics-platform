@@ -73,54 +73,53 @@ const ChapterManagement = () => {
             </center>
           </div>
         ))}
-        <div className="d-flex justify-content-end mt-3">
-          <Button variant="primary">
-          {comic.length > 0 && (
-            <Link
-            to={{
-              pathname: "/createWork",
-              state: { showComicHash: comic[0].hash }
-            }}
-            style={{ textDecoration: 'none', color: 'inherit' }}
-          >
-              新增章節
-          </Link>
-          )}
-          </Button>
-        </div>
+        {!loading &&  
+          <div className="create-chapter d-flex justify-content-end mt-2">
+            <Button>
+              <Link
+                to={"/createWork"}
+                state={{ showChapterForm: true, chapterHash: chapters.length > 0 ? chapters[0].chapterHash : null }}
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                新增章節
+              </Link>
+            </Button>
+          </div>
+        }
+        {!loading &&
+          <div className="chapter-selection">
+            <table className="table table-image">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">本集標題</th>
+                  <th scope="col">價格</th>
+                  <th scope="col"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {chapters.map((chapter, index) => (
+                  <tr key={index}>
+                    <td>{index + 1}</td>
+                    <td className='chapter-title'>{chapter.title}</td>
+                    <td>{chapter.chapterPrice}</td>
+                    <td >
+                      <Link to={`/reader_Chapter/${comicID}/${chapter.chapterID}`}> 
+                        <button className="btn btn-primary" style={{ marginRight: '15px' }}>閱讀</button>
+                      </Link>
+                      <button className="btn btn-success" id="list-button">翻譯</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        }
         {loading &&  
           <div className="loading-container">
             <div>章節加載中，請稍後...</div>
           </div>
         }
-        <div className="chapter-selection">
-          <table className="table table-image">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">本集標題</th>
-                <th scope="col">價格</th>
-                <th scope="col"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {chapters.map((chapter, index) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td className='chapter-title'>{chapter.title}</td>
-                  <td>{chapter.chapterPrice}</td>
-                  <td >
-                    <Link to={`/reader_Chapter/${comicID}/${chapter.chapterID}`}> 
-                      <button className="btn btn-primary" style={{ marginRight: '15px' }}>閱讀</button>
-                    </Link>
-
-                    <button className="btn btn-success" id="list-button">翻譯</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   );

@@ -602,6 +602,10 @@ a:link{
   border: none;
 }
 
+.create-chapter{
+  width: 45%;
+}
+
 .loading-container {
   position: fixed;
   top: 50%;
@@ -611,6 +615,7 @@ a:link{
   background-color: rgba(255, 255, 255, 0.8);
   padding: 20px;
   border-radius: 5px;
+  color: #333;
 }
 
 .navbar {
@@ -657,6 +662,10 @@ a:link{
   color: #0FC2C0;
   text-decoration: none;
   padding: 10px;
+}
+
+.nav-item a:hover{
+  color: #008F8C;
 }
 
 .dropdown-container {
@@ -731,14 +740,15 @@ a:link{
 /* 首頁 */
 .comic-container {
   position: relative;
+  overflow: hidden; /* 確保圖片不會超出容器範圍 */
 }
 
 .comic-info-overlay {
   position: absolute;
   top: 0;
-  left: 3%;
-  width: 94%;
-  height: 94.5%;
+  left: 3.5%;
+  width: 93%;
+  height: 100%;
   background-color: rgba(15, 194, 192, 0.5);
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -752,8 +762,9 @@ a:link{
 
 .comic-info {
   color: white;
-  font-size: 20px;
+  font-size: 18px;
   position: absolute;
+  width: 70%;
   top: 50%; /* 將元素置於父元素的中間 */
   left: 45%;
   transform: translate(-50%, -50%); /* 以自身寬度和高度的一半作為偏移量 */
@@ -764,7 +775,9 @@ a:link{
 }
 
 .comic-image {
-  position: relative;
+  width: 100%; /* 讓圖片填滿容器 */
+  height: 100%; /* 讓圖片填滿容器 */
+  object-fit: cover; /* 等比例縮放圖片，填滿容器 */
 }
 
 .comic-image::before {
@@ -861,7 +874,7 @@ a:link{
 }
 
 /* 個人書櫃 */
-.reader-title{
+.management-title{
   text-align: center;
   font-size: 24px;
   color: #0FC2C0;
@@ -871,4 +884,8 @@ a:link{
 .history-page{
   margin: 20px auto;
   max-width: 800px;
+}
+
+.history-selection table th,.history-selection table td{
+  text-align: center;
 }

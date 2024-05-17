@@ -115,12 +115,16 @@ const Home = ({ contractAddress }) => {
 
         <div className="row mt-5">
           {current.map((comic, index) => (
-            <div className="col-3 comic-container" key={index}>
+            <div className="col-3 comic-container mb-3" key={index}>
               <Link to={`/selectChapter/${comic.comicID}`}>
                 <div className="comic-info-overlay">
                   <div className="comic-info">
                     <p>{comic.title}</p>
-                    <p className="comic-description">{comic.description}</p>
+                    <p>
+                      {comic.description.length > 50
+                        ? `${comic.description.substring(0, 50)}...`
+                        : comic.description}
+                    </p>
                   </div>
                 </div>
                 <img src={comic.cid} alt={`Comic ${index + 1}`} className="img-fluid comic-image" />

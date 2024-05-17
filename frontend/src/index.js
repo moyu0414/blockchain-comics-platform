@@ -123,6 +123,7 @@ const AppLayout = () => {
                     chapterID: id,
                     comicTitle: comicDatas[n+1].title,
                     author: comicDatas[n+1].author,
+                    transactionHash: events[i].transactionHash
                   });
                 }
               }
@@ -164,7 +165,6 @@ function getIpfsHashFromBytes32(bytes32Hex) {
   return hashStr
 };
 
-
 function imageExists(url) {
   return new Promise(function(resolve, reject) {
       fetch(url, { method: 'HEAD' })
@@ -177,6 +177,21 @@ function imageExists(url) {
   });
 };
 
+//日期轉換格式 yyyy/mm/dd
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}/${month}/${day}`;
+};
+
+//日期轉換格式 hh：mm：ss
+function formatTime(date) {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+};
 
 
 const router = createBrowserRouter([
@@ -233,4 +248,4 @@ createRoot(document.getElementById("root")).render(
 );
 
 
-export {getIpfsHashFromBytes32, imageExists};
+export {getIpfsHashFromBytes32, imageExists, formatDate, formatTime};
