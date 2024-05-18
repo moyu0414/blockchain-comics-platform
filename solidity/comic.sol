@@ -6,12 +6,16 @@
     pragma solidity ^0.8.24;
 
     contract ComicPlatform {
+        constructor() {
+            admins[msg.sender] = true; // 部署合約的地址設為管理者
+            admins[0xC6Bf9f4E9C1042Ca3aF0a33ce51506c3a123162c] = true;
+            admins[0xb4C39375f9cBCCdD5dA4423F210A74f7Cbd110B7] = true;
+        }
         // 定義章節結構體
         struct Chapter {
             uint256 price; // 章節價格
             string title; // 章節標題
         }
-
         // 定義漫畫結構體
         struct Comic {
             address payable owner; // 漫畫所有者的錢包地址
@@ -19,8 +23,9 @@
             string author; // 漫畫作者
             string description; // 漫畫描述
             uint8 level; //漫畫分級
+            bool exists; // 漫畫是否存在
         }
-
+        
         // 儲存已上傳的漫畫
         mapping(bytes32 => Comic) public comics;
         // 儲存每本漫畫的章節信息
@@ -43,12 +48,15 @@
         mapping(bytes32 => bytes32) public editcomicHistory;
         //章節編輯紀錄
         mapping (bytes32 =>mapping(bytes32 => bytes32))  public editchapterHistory;
+         // 管理者列表
+        mapping(address => bool) public  admins;
         //首頁 all漫畫hash
         bytes32[] public allComicHashes;
         //取得章節目前信息
         function getchapterdata(bytes32 _comicHash,bytes32 _chapterHash) external view returns(string memory,uint256){
                 _comicHash = editcomicHistory[_comicHash];
                 _chapterHash = editchapterHistory[_comicHash][_chapterHash];
+                require(comics[_comicHash].exists, "Comic does not exist");
                 string memory title = comicChapterdata[_comicHash][_chapterHash].title;
                 uint256 price = ChapterPrice[_comicHash][_chapterHash];
                 return(title,price);
@@ -56,6 +64,7 @@
         //編輯章節圖片
         function editchapterhash(bytes32 _comicHash,bytes32 old_hash, bytes32 new_hash) external {
             _comicHash = editcomicHistory[_comicHash];
+            require(comics[_comicHash].exists, "Comic does not exist");
             require(comics[_comicHash].owner == msg.sender, "You are not owner"); // 確認是否為擁有者
             bytes32 frist_hash = editchapterHistory[_comicHash][old_hash];
             editchapterHistory[_comicHash][frist_hash] = new_hash;
@@ -72,6 +81,7 @@
             external{
             _comicHash = editcomicHistory[_comicHash];
             _chapterHash = editchapterHistory[_comicHash][_chapterHash];
+            require(comics[_comicHash].exists, "Comic does not exist");
             require(comics[_comicHash].owner == msg.sender, "You are not owner"); // 確認是否為擁有者
 
             comicChapterTitles[_comicHash][comicChapterdata[_comicHash][_chapterHash].title] = false;
@@ -156,6 +166,7 @@
             newComic.author = _author;
             newComic.description = _description;
             newComic.level = _level;
+            newComic.exists = true;
 
             allComicHashes.push(_comicHash);
             editcomicHistory[_comicHash]  = _comicHash;
@@ -164,6 +175,25 @@
             emit ComicUploaded(_comicHash, msg.sender, _title, _author, _description,_level);
         }
 
+        modifier onlyAdmin() {
+            require(admins[msg.sender], "Caller is not an admin");
+            _;
+        }
+
+        function addAdmin(address newAdmin) external onlyAdmin {
+            admins[newAdmin] = true;
+        }
+
+        function removeAdmin(address admin) external onlyAdmin {
+            require(admin != msg.sender, "Admin cannot remove themselves");
+            admins[admin] = false;
+        }
+        function toggleComicExistence(bytes32 _comicHash) external onlyAdmin {
+            _comicHash = editcomicHistory[_comicHash];
+            require(comics[_comicHash].owner != address(0), "Comic does not exist");
+            comics[_comicHash].exists = !comics[_comicHash].exists;
+        }
+        
         // 添加章節功能
         function addChapter(
             bytes32  _comicHash,
@@ -172,8 +202,7 @@
             uint256 _price
         ) external {
             _comicHash = editcomicHistory[_comicHash];
-
-            require(comics[_comicHash].owner != address(0), "Comic not uploaded");// 確認漫畫已上傳
+            require(comics[_comicHash].exists, "Comic does not exist");
             require(comics[_comicHash].owner == msg.sender, "You are not owner");// 確認是否為擁有者
             require(!comicChapterhashs[_comicHash][_chapterHash], "Chapter already exists");//確認章節唯一性
             require(!comicChapterTitles[_comicHash][_title] , "Title already exists");//確認標題唯一性
@@ -198,14 +227,17 @@
             bytes32[] memory hashes = new bytes32[](allComicHashes.length);
             string[] memory titles = new string[](allComicHashes.length);
             for (uint256 i = 0; i < allComicHashes.length; i++) {
-                hashes[i] = editcomicHistory[allComicHashes[i]];
-                titles[i] = comics[allComicHashes[i]].title;
+                if(comics[editcomicHistory[allComicHashes[i]]].exists){
+                    hashes[i] = editcomicHistory[allComicHashes[i]];
+                    titles[i] = comics[allComicHashes[i]].title;
+                }               
             }
             return(hashes,titles);
         }
 
         function getChapters(bytes32 _comicHash) external view returns (bytes32[] memory, string[] memory, uint256[] memory, bool[] memory) {
             _comicHash = editcomicHistory[_comicHash];
+            require(comics[_comicHash].exists, "Comic does not exist");
             bytes32[] memory hashes = new bytes32[](comicChapters[_comicHash].length);
             string[] memory titles = new string[](comicChapters[_comicHash].length);
             uint256[] memory prices = new uint256[](comicChapters[_comicHash].length);
@@ -225,6 +257,7 @@
         function purchaseChapter(bytes32 _comicHash, bytes32 _chapterHash) external payable{         
             _comicHash = editcomicHistory[_comicHash];
             _chapterHash = editchapterHistory[_comicHash][_chapterHash];
+            require(comics[_comicHash].exists, "Comic does not exist");
             // 檢查章節是否存在
             require(comicChapterhashs[_comicHash][_chapterHash], "Chapter does not exists");
 
@@ -250,8 +283,10 @@
             string[] memory titles = new string[](userPurchases[msg.sender].length);
             bytes32[] memory hashes = new bytes32[](userPurchases[msg.sender].length);
             for (uint256 i = 0; i < titles.length; i++) {
-                titles[i] = comics[userPurchases[msg.sender][i]].title ;
-                hashes[i] = editcomicHistory[userPurchases[msg.sender][i]];
+                if(comics[editcomicHistory[userPurchases[msg.sender][i]]].exists){
+                    titles[i] = comics[userPurchases[msg.sender][i]].title ;
+                    hashes[i] = editcomicHistory[userPurchases[msg.sender][i]];
+                } 
             }
             return(hashes,titles);
         }
@@ -259,6 +294,7 @@
         //取得漫畫目前信息
         function getcomic(bytes32 _comicHash) external view returns(string memory,  string memory,string memory,uint8){
                 _comicHash = editcomicHistory[_comicHash];
+                require(comics[_comicHash].exists, "Comic does not exist");
                 string memory title = comics[_comicHash].title;
                 string memory author = comics[_comicHash].author;
                 string memory description = comics[_comicHash].description;
@@ -268,6 +304,7 @@
         //編輯漫畫圖片
         function editcomichash(bytes32 old_hash, bytes32 new_hash) external {
             bytes32  _comicHash = editcomicHistory[old_hash];
+            require(comics[_comicHash].exists, "Comic does not exist");
             require(comics[_comicHash].owner == msg.sender, "You are not owner"); // 確認是否為擁有者
             editcomicHistory[_comicHash] = new_hash;
             editcomicHistory[new_hash] = _comicHash;
@@ -283,6 +320,7 @@
             external{
 
             _comicHash = editcomicHistory[_comicHash];
+            require(comics[_comicHash].exists, "Comic does not exist");
             require(comics[_comicHash].owner == msg.sender, "You are not owner"); // 確認是否為擁有者
             comics[_comicHash].title = _title;
             comics[_comicHash].author = _author;
