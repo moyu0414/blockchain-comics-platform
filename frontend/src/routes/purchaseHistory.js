@@ -88,7 +88,7 @@ const PurchaseHistory = () => {
           <div>目前無購買漫畫，請重新刷新...</div>
         </div>
       }
-      <div className="history-selection">
+      <div className="history-container">
         <table className="table table-image">
           <thead>
             <tr>

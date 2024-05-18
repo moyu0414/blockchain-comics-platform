@@ -69,7 +69,7 @@ const Home = ({ contractAddress }) => {
 
   
   return (
-    <div className="container" ref={searchRef}>
+    <div className="container" >
       <div>
         <div className="input-box">
           <input
@@ -87,7 +87,7 @@ const Home = ({ contractAddress }) => {
         </div>
 
         {showResults && (
-          <div className='search-container'>
+          <div className='search-container' ref={searchRef}> 
             {search(data).map((dataObj, index) => {
               return (
                 <div className="box" key={index}>

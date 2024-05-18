@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import * as FaIcons from "react-icons/fa";
+import Web3 from 'web3';
 import * as AiIcons from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import { SidebarData } from "./SidebarData";
@@ -13,6 +13,8 @@ const Navbar = ({ accounts, setAccounts }) => {
   const [currentAccount, setCurrentAccount] = useState("");
   const [subMenuOpen, setSubMenuOpen] = useState(Array(SidebarData.length).fill(false));
   const [menuExpanded, setMenuExpanded] = useState(false);
+  const [ethBalance, setEthBalance] = useState('');
+  const [account, setAccount] = useState('');
 
   const navigate = useNavigate();
 
@@ -28,21 +30,25 @@ const Navbar = ({ accounts, setAccounts }) => {
         const accounts = await window.ethereum.request({
           method: "eth_requestAccounts",
         });
-        setAccounts(accounts);
+        setAccounts(accounts); // 設置帳戶資訊
+        setAccount(accounts[0]); // 新增這行，設置 account 狀態
         setCurrentAccount(accounts[0]);
         setConnected(true);
         setIsLogged(true);
         alert("登入成功!");
-
+  
         navigate("/");
       }
     }
   };
 
   const showAccount = () => {
-    const prefix = accounts[0].substr(0, 5);
-    const suffix = accounts[0].substr(36, 40);
-    return prefix + "..." + suffix;
+    if (isLogged && account) { // 確保已登入並有帳戶資訊
+      const prefix = account.substr(0, 5);
+      const suffix = account.substr(36, 40);
+      return prefix + "..." + suffix;
+    }
+    return "No account";
   };
 
   setTimeout(() => {
@@ -80,6 +86,65 @@ const Navbar = ({ accounts, setAccounts }) => {
     navigate(SidebarData[index].path);
   }
 
+  const reloadAccount = async () => {
+    try {
+      const provider = detectCurrentProvider();
+      if (provider) {
+        await provider.request({ method: 'wallet_requestPermissions', params: [{ eth_accounts: {} }] });
+        const accounts = await provider.request({ method: 'eth_requestAccounts' });
+        if (accounts && accounts.length > 0) {
+          const web3 = new Web3(provider);
+          const newAccount = accounts[0];
+          console.log('切換後的帳戶: ' + newAccount);
+          setAccount(newAccount); // 設置新帳戶資訊
+          const balance = await web3.eth.getBalance(newAccount);
+          setEthBalance(web3.utils.fromWei(balance, 'ether')); // 更新新帳戶的餘額
+          setIsLogged(true); // 更新登入狀態
+        } else {
+          setIsLogged(false); // 如果沒有帳戶，更新為未登入狀態
+        }
+      }
+    } catch (error) {
+      console.error('錯誤:', error);
+    }
+  };
+  
+
+  useEffect(() => {
+    const handleAccountsChanged = async (accounts) => {
+      if (accounts.length > 0) {
+        const newAccount = accounts[0];
+        console.log('MetaMask 帳戶已切換至: ' + newAccount);
+        setAccount(newAccount);
+        const web3 = new Web3(window.ethereum);
+        const balance = await web3.eth.getBalance(newAccount);
+        setEthBalance(web3.utils.fromWei(balance, 'ether')); // 更新新帳戶的餘額
+      }
+    };
+
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+    }
+
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+      }
+    };
+  }, []);
+
+  const detectCurrentProvider = () => {
+    let provider;
+    if (window.ethereum) {
+      provider = window.ethereum;
+    } else if (window.web3) {
+      provider = window.web3.currentProvider;
+    } else {
+      console.log("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
+    }
+    return provider;
+  };
+
   return (
     <>
       <IconContext.Provider value={{ color: "undefined" }}>
@@ -116,7 +181,7 @@ const Navbar = ({ accounts, setAccounts }) => {
             <div className="log-in-area">
               {!isLogged && isMetamaskInstalled && (
                 <button className="log-in-btn" onClick={connectAccount}>
-                  Log In Metamask
+                  登入
                 </button>
               )}
               {!isMetamaskInstalled && (
@@ -126,10 +191,17 @@ const Navbar = ({ accounts, setAccounts }) => {
                   rel="noreferrer"
                   href="https://metamask.io/download"
                 >
-                  Please Install Metamask
+                  請安裝Metamask
                 </a>
               )}
-              {isLogged && <div className="login-account">{showAccount()}</div>}
+              {isLogged && (
+                <div className="log-in-area">
+                  <div className="show-account">{showAccount()}</div>
+                  <button className="reload-btn" onClick={reloadAccount}>
+                    切換帳號
+                  </button>
+                </div>
+              )}
             </div>
           </nav>
         </div>

@@ -42,7 +42,7 @@ const ReaderChapter = () => {
       console.log(chapterArray);
 
       for (var i = 0; i < chapterArray.length; i++) {
-        if(chapterArray[i].comicID == comicID){
+        if(chapterArray[i].comicID == comicID && chapterArray[i].buyer == accounts[0]){
           const transactionHash = chapterArray[i].transactionHash;
           const transactionDetail = await web3Instance.eth.getTransaction(transactionHash);
           const blockNumberDetail = await web3Instance.eth.getBlock(transactionDetail.blockNumber.toString());
@@ -58,6 +58,7 @@ const ReaderChapter = () => {
           });
         };
       };
+      temp_purchase.sort(compare);  //依照時間做排序
       console.log(temp_purchase);
       isPurchase(temp_purchase);
       setLoading(false);
@@ -70,6 +71,12 @@ const ReaderChapter = () => {
     fetchChapters();
   }, []);
 
+  // 按照时间排序
+  function compare(a, b) {
+    const datetimeA = new Date(a.date + ' ' + a.time);
+    const datetimeB = new Date(b.date + ' ' + b.time);
+    return datetimeA - datetimeB;
+  }
 
   return (
     <div className="select-chapter-page">

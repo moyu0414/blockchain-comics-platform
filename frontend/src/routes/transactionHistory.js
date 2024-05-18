@@ -78,7 +78,7 @@ const TransactionHistory = () => {
           <div>交易紀錄加載中，請稍後...</div>
         </div>
       }
-      <div className="chapter-selection">
+      <div className="history-container">
         <table className="table table-image">
           <thead>
             <tr>

@@ -166,7 +166,7 @@ span {
 .navbar .log-in-area .log-in-btn{
   margin-left: 95%;
   font-size: 18px;
-  width: 200px;
+  width: 150px;
   height: 55px;
   border: none;
   border-radius: 8px;
@@ -183,6 +183,33 @@ span {
 }
 
 .navbar .log-in-area .log-in-btn:hover{
+  background-color: #008F8C;
+  color: white;
+  border: none;
+}
+
+.show-account{
+  display: inline-block;
+  margin-right: 6%;
+  color: #008F8C;
+}
+
+.reload-btn{
+  display: inline-block;
+  font-size: 18px;
+  width: 150px;
+  height: 55px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0FC2C0;
+  color: #ffffff;
+  /* margin-left: 16px; */
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.reload-btn:hover{
   background-color: #008F8C;
   color: white;
   border: none;
@@ -217,31 +244,30 @@ span {
 /* 身分選擇頁面 */
 .button-container {
   display: flex;
-  justify-content: center; /* 水平置中 */
-  align-items: center; /* 垂直置中 */
-  height: 100vh; /* 設置容器高度為視窗高度 */
+  justify-content: center; 
+  align-items: center; 
+  height: 100vh; 
 }
 
 .custom-button {
   width: 450px;
   height: 250px;
-  margin: 30px; /* 按鈕間距 */
-  font-size: 48px; /* 按鈕文字大小 */
+  margin: 30px; 
+  font-size: 48px; 
   border: none;
   border-radius: 10px;
   cursor: pointer;
   display: flex;
-  justify-content: center; /* 水平置中 */
-  align-items: center; /* 垂直置中 */
-  color: white; /* 文字顏色 */
-  font-weight: bold; /* 加粗文字 */
+  justify-content: center; 
+  align-items: center; 
+  color: white; 
+  font-weight: bold; 
 }
 
 .custom-button:hover {
-  opacity: 0.8; /* 降低透明度以顯示按鈕被懸停時的效果 */
+  opacity: 0.8; 
 }
 
-/* 移除Link元件的底線 */
 .button-container a {
   text-decoration: none;
 }
@@ -320,35 +346,37 @@ span {
 
 /* 搜尋框 */
 .search-input {
-  width: 60%; /* 調整寬度 */
+  width: 60%; 
   padding: 1%;
-  margin-top: 5%; /* 調整內邊距 */
-  border: 2px solid #ccc; /*設置邊框*/
-  border-radius: 15px; /* 設置底部圓角 */
-  font-size: 16px; /* 設置字體大小 */
-  transition: all 0.3s ease-in-out; /* 添加過渡效果 */
+  margin-top: 5%; 
+  border: 2px solid #ccc; 
+  border-radius: 15px; 
+  font-size: 16px; 
+  transition: all 0.3s ease-in-out; 
 }
 
 .search-input:focus {
-  outline: none; /* 移除聚焦時的外框 */
+  outline: none;
   border-radius: 15px 15px 0 0;
 }
 
 /* 資料區塊 */
 .search-container{
   margin-top: 1%;
+  width: 800px;
+  right: 0;
 }
 .box {
   margin-top: 1%;
-  width: 60%; /* 設置寬度與搜尋框相同 */
+  width: 97%;
   border-radius: 0 0 15px 15px;
 }
 
 .search-card {
-  background-color: #fff; /* 設置卡片背景色 */
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);  /*添加陰影效果*/
-  padding: 16px; /* 調整內邊距 */
-  transition: all 0.3s ease-in-out; /* 添加過渡效果 */
+  background-color: #fff; 
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);  
+  padding: 16px; 
+  transition: all 0.3s ease-in-out; 
 }
 
 .search-card:hover{
@@ -356,19 +384,19 @@ span {
 }
 
 .category {
-  font-size: 17px; /* 設置類別文字大小 */
-  font-weight: bold; /* 設置類別文字粗細 */
+  font-size: 17px; 
+  font-weight: bold; 
   color: black;
 }
 
 .heading {
-  margin-top: 6px; /* 調整標題與類別之間的間距 */
+  margin-top: 6px; 
   color: black;
 }
 
 .author {
-  color: #70757a; /* 設置作者文字顏色 */
-  font-size: 14px; /* 設置作者文字大小 */
+  color: #70757a; 
+  font-size: 14px; 
 }
 
 a:link{
@@ -389,11 +417,11 @@ a:link{
   flex-direction: column;
   justify-content: start;
   align-items: center;
-  color: #007bff; /* 設定文本顏色 */
+  color: #007bff; 
 }
 
 .step-item-gray {
-  color: gray; /* 設定文本顏色 */
+  color: gray; 
 }
 
 .step-item .step-line {
@@ -419,35 +447,35 @@ a:link{
 }
 
 .step-item-gray .step-line .dot {
-  border-color: gray; /* 設定灰色 */
+  border-color: gray; 
 }
 
 .step-item .step-title {
-  margin-top: 10px; /* 設定標題與圖標的距離 */
+  margin-top: 10px; 
 }
 
 
 
 .step-item .step-line::after {
-  content: ''; /* 添加偽元素 */
+  content: ''; 
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   height: 2px;
-  background-color: #007bff; /* 藍色的連接線顏色 */
+  background-color: #007bff; 
   z-index: -1;
 }
 
 .step-item.step-completed .step-line::after {
-  background-color: #007bff; /* 切換後的連接線顏色 */
+  background-color: #007bff; 
 }
 
 .step-item-gray .step-line::after {
-  background-color: #999; /* 灰色的連接線顏色 */
+  background-color: #999;
 }
 
 .step-item-gray.step-completed .step-line::after {
-  background-color: #007bff; /* 灰色切換後的連接線顏色 */
+  background-color: #007bff; 
 }
 
 
@@ -457,11 +485,11 @@ a:link{
 
 
 .step-item.step-completed {
-  color: #007bff; /* 設定文本顏色 */
+  color: #007bff; 
 }
 
 .step-item.step-completed .step-line .dot {
-  border-color: #007bff; /* 設定橙色 */
+  border-color: #007bff; 
 }
 
 
@@ -529,6 +557,10 @@ a:link{
 
 
 /* 章節管理 */
+.chapter-title{
+  width: 50%;
+}
+
 .comic-chapter-title{
   margin: 2% 0;
   font-size: 20px;
@@ -541,7 +573,7 @@ a:link{
 
 .table {
   width: 100%;
-  min-width: 900px; /* 设置最小宽度为 800 像素 */
+  min-width: 900px; 
   height: 10%;
   border-collapse: collapse;
 }
@@ -564,23 +596,23 @@ a:link{
 }
 
 .table tbody tr {
-  height: 120px; /* 將表格行的高度設置為固定值 */
+  height: 120px; 
 }
 
 .chapter-selection img {
-  width: 50%;
+  width: 100%;
 }
 
 .chapter-selection .chapter-cover {
-  width: 100px; /* 設置圖片容器的寬度 */
-  height: 100px; /* 設置圖片容器的高度 */
-  overflow: hidden; /* 將超出範圍的內容隱藏 */
+  width: 100px;
+  height: 100px;
+  overflow: hidden; 
 }
 
 .chapter-selection .chapter-cover img {
-  max-width: 100px; /* 設置圖片最大寬度 */
-  max-height: 100px; /* 設置圖片最大高度 */
-  vertical-align: middle; /* 將圖片垂直對齊到表格行的中間 */
+  max-width: 100px; 
+  max-height: 100px; 
+  vertical-align: middle;
 }
 
 .chapter-selection .btn{
@@ -631,7 +663,7 @@ a:link{
   display: flex;
   align-items: center;
   background-color: #fff;
-  width: 100%; /* 使 nav-menu 占满整个宽度 */
+  width: 100%; 
 }
 
 .nav-text {
@@ -648,7 +680,7 @@ a:link{
   display: flex;
   list-style: none;
   padding-top: 1%;
-  align-items: center; /* 垂直居中 li 元素 */
+  align-items: center; 
 }
 
 .nav-item {
@@ -704,7 +736,8 @@ a:link{
 }
 
 .log-in-area {
-  margin-left: 55%;
+  margin-left: 50%;
+  white-space: nowrap
 }
 
 .log-in-btn {
@@ -740,7 +773,7 @@ a:link{
 /* 首頁 */
 .comic-container {
   position: relative;
-  overflow: hidden; /* 確保圖片不會超出容器範圍 */
+  overflow: hidden;
 }
 
 .comic-info-overlay {
@@ -754,8 +787,8 @@ a:link{
   transition: opacity 0.3s ease;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* 垂直置中 */
-  align-items: center; /* 水平置中 */
+  justify-content: center; 
+  align-items: center; 
   padding: 10px;
   z-index: 2;
 }
@@ -765,9 +798,9 @@ a:link{
   font-size: 18px;
   position: absolute;
   width: 70%;
-  top: 50%; /* 將元素置於父元素的中間 */
+  top: 50%;/* 將元素置於父元素的中間 */
   left: 45%;
-  transform: translate(-50%, -50%); /* 以自身寬度和高度的一半作為偏移量 */
+  transform: translate(-50%, -50%); 
 }
 
 .comic-container:hover .comic-info-overlay {
@@ -775,9 +808,9 @@ a:link{
 }
 
 .comic-image {
-  width: 100%; /* 讓圖片填滿容器 */
-  height: 100%; /* 讓圖片填滿容器 */
-  object-fit: cover; /* 等比例縮放圖片，填滿容器 */
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover;
 }
 
 .comic-image::before {
@@ -882,10 +915,21 @@ a:link{
 
 /* 交易紀錄 */
 .history-page{
+  text-align: center;
   margin: 20px auto;
-  max-width: 800px;
+  max-width: 1200px;
+}
+.history-container{
+  display: flex;
+  justify-content: center;
+  margin: 20px auto;
+  max-width: 1200px;
 }
 
 .history-selection table th,.history-selection table td{
   text-align: center;
+}
+
+.history-page table{
+  min-width: 1300px;
 }
