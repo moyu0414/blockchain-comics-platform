@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Web3 from 'web3';
 import comicData from "../contracts/ComicPlatform.json";
+import {formatDate, formatTime} from '../index';
 
 const PurchaseHistory = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [being, setBeing] = useState(false);
   
   useEffect(() => {
     const initContract = async () => {
@@ -15,6 +17,7 @@ const PurchaseHistory = () => {
   
         const chapterArrayJSON = localStorage.getItem('purchaseData');
         const chapterArray = JSON.parse(chapterArrayJSON);
+        //console.log(chapterArray);
   
         const temp_logs = [];
         for (var i = 0; i < chapterArray.length; i++) {
@@ -24,30 +27,37 @@ const PurchaseHistory = () => {
             const chapterTitle = chapterArray[i].title;
             const price = chapterArray[i].chapterPrice;
             
-            const TransactionDetail = await web3Instance.eth.getTransaction(transactionHash);
-            const blockNumberDetail = await web3Instance.eth.getBlock(TransactionDetail.blockNumber.toString());
+            const transactionDetail = await web3Instance.eth.getTransaction(transactionHash);
+            const blockNumberDetail = await web3Instance.eth.getBlock(transactionDetail.blockNumber.toString());
   
-            const blockNumber = TransactionDetail.blockNumber.toString();
-            const gas = TransactionDetail.gas.toString();
-            const gasPrice = TransactionDetail.gasPrice.toString();
+            const blockNumber = transactionDetail.blockNumber.toString();
+            const gas = transactionDetail.gas.toString();
+            const gasPrice = transactionDetail.gasPrice.toString();
             let TxnFee = web3Instance.utils.fromWei(gas * gasPrice, 'ether');
             TxnFee = parseFloat(TxnFee).toFixed(5);
   
             const timestamp = blockNumberDetail.timestamp;
-            const formattedDate = formatDateWithTime(new Date(Number(timestamp) * 1000));
+            const date = formatDate(new Date(Number(timestamp) * 1000));
+            const time = formatTime(new Date(Number(timestamp) * 1000));
   
             temp_logs.push({
               comicTitles: comicTitle,
               chapterTitles: chapterTitle,
-              timestamp: formattedDate,
+              author: chapterArray[i].author,
+              date: date,
+              time: time,
               price: price,
               TxnFee: TxnFee
             });
           }
-        }
-        
+        };
+        temp_logs.sort(compare);  //依照時間做排序
+        console.log(temp_logs);
         setLogs(temp_logs);
         setLoading(false);
+        if (temp_logs.length < 1){
+          setBeing(true);
+        };
       } catch (error) {
         console.error('Error initializing contract:', error);
       }
@@ -55,17 +65,15 @@ const PurchaseHistory = () => {
   
     initContract();
   }, []);
-  
-  //日期轉換格式 yyyy/mm/dd 、 hh：mm：ss
-  function formatDateWithTime(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    return `${year}/${month}/${day}\n${hours}:${minutes}:${seconds}`;
-  };
+
+
+  // 按照时间排序
+  function compare(a, b) {
+    const datetimeA = new Date(a.date + ' ' + a.time);
+    const datetimeB = new Date(b.date + ' ' + b.time);
+    return datetimeA - datetimeB;
+  }
+    
   
   return (
     <div className='history-page'>
@@ -75,11 +83,18 @@ const PurchaseHistory = () => {
           <div>交易紀錄加載中，請稍後...</div>
         </div>
       }
+      {being &&  
+        <div className="loading-container">
+          <div>目前無購買漫畫，請重新刷新...</div>
+        </div>
+      }
       <div className="history-selection">
         <table className="table table-image">
           <thead>
             <tr>
-              <th>交易項目</th>
+              <th>漫畫</th>
+              <th>章節</th>
+              <th>作者</th>
               <th>交易時間</th>
               <th>交易金額</th>
               <th>手續費</th>
@@ -89,7 +104,9 @@ const PurchaseHistory = () => {
             {logs.map((log, index) => (
               <tr key={index}>
                 <td>{log.comicTitles}</td>
-                <td>{log.timestamp}</td>
+                <td>{log.chapterTitles}</td>
+                <td>{log.author}</td>
+                <td>{log.date}<br />{log.time}</td>
                 <td>{log.price}</td>
                 <td>{log.TxnFee}</td>
               </tr>

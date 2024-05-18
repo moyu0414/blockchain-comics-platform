@@ -15,7 +15,7 @@ const ChapterManagement = () => {
   const [showChapterForm, setShowChapterForm] = useState(false);
   const [loading, setLoading] = useState(true);
   let temp = [];
-  let temp_purchase = [];
+  let temp_data = [];
 
   const fetchChapters = async () => {
     try {
@@ -36,19 +36,27 @@ const ChapterManagement = () => {
       setAccount(accounts[0]);
       let meta = await contractInstance.methods;
       setMeta(meta);
-      
-      const chapterArrayJSON = localStorage.getItem('purchaseData');
-      const chapterArray = JSON.parse(chapterArrayJSON);
-      //console.log(chapterArray);
 
-      for (var i = 0; i < chapterArray.length; i++) {
-        if(chapterArray[i].comicID == comicID){
-          temp_purchase.push(chapterArray[i]);
-        };
+      const chapterInfo = await meta.getChapters(temp[0].hash).call();
+      console.log(chapterInfo);
+      
+      let num = 1;
+      for (var i = 0; i < chapterInfo[0].length; i++) {  //本漫畫所有章節        
+        if (accounts[0] == temp[0].author){
+          let id = 'Chapter' + num;
+          let temp_price = chapterInfo[2][i].toString();
+          temp_price = temp_price / 1e18;
+          temp_data.push({
+            title: chapterInfo[1][i],
+            chapterPrice: temp_price,
+            chapterID: id
+          });
+          num = num + 1;
+        }
       };
-  
-      console.log(temp_purchase);
-      setChapters(temp_purchase);
+
+      console.log(temp_data);
+      setChapters(temp_data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching chapters:', error);
@@ -76,9 +84,9 @@ const ChapterManagement = () => {
         {!loading &&  
           <div className="create-chapter d-flex justify-content-end mt-2">
             <Button>
-              <Link
+             <Link
                 to={"/createWork"}
-                state={{ showChapterForm: true, chapterHash: chapters.length > 0 ? chapters[0].chapterHash : null }}
+                state={{ showChapterForm: true, comicHash: comic.length > 0 ? comic[0].hash : null }}
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 新增章節
@@ -104,7 +112,7 @@ const ChapterManagement = () => {
                     <td className='chapter-title'>{chapter.title}</td>
                     <td>{chapter.chapterPrice}</td>
                     <td >
-                      <Link to={`/reader_Chapter/${comicID}/${chapter.chapterID}`}> 
+                      <Link to={`/reading/${comicID}/${chapter.chapterID}`}> 
                         <button className="btn btn-primary" style={{ marginRight: '15px' }}>閱讀</button>
                       </Link>
                       <button className="btn btn-success" id="list-button">翻譯</button>

@@ -226,36 +226,36 @@ const CreateWork = (props) => {
     }
   };
 
-
-async function checkFile() {
-  if(showChapterForm == false){
-    const {level, name, description} = formParams;
-    // 檔案不可為空
-    if( !level || !name || !description || !comicHash)  // || 其中一個為true，即為true
-    {
-      updateMessage("請填寫所有欄位！")
-      return -1;
-    }
-  }else{
-    const {name, price} = formParams_1;
-    // 檔案不可為空
-    if(!comicHash || !chapterHash || !name || !price)
-    {
-      updateMessage("請填寫所有欄位！")
-      return -1;
-    }
+  async function checkFile() {
+    if(showChapterForm == false){
+      const {level, name, description} = formParams;
+      // 檔案不可為空
+      if( !level || !name || !description || !comicHash)  // || 其中一個為true，即為true
+      {
+        updateMessage("請填寫所有欄位！")
+        return -1;
+      }
+    }else{
+      const {name, price} = formParams_1;
+      // 檔案不可為空
+      if(!comicHash || !chapterHash || !name || !price)
+      {
+        updateMessage("請填寫所有欄位！")
+        return -1;
+      }
+    };
   };
-};
 
   useEffect(() => {
     connectToWeb3();
   }, []);
 
   useEffect(() => {
-    console.log("Location state:", location.state);
     // 检查是否传递了参数并设置 showChapterForm 状态
     if (location.state && location.state.showChapterForm) {
-      console.log("Show chapter form:", true);
+      //console.log("Location state:", location.state);
+      setComicHash(location.state.comicHash);
+      //console.log("Show chapter form:", true);
       setShowChapterForm(true);
     }
   }, [location]);

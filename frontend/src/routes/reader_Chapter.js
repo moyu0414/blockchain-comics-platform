@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
-
+import {formatDate, formatTime} from '../index';
 
 const ReaderChapter = () => {
   const [web3Instance, setWeb3Instance] = useState('');
@@ -39,14 +39,25 @@ const ReaderChapter = () => {
 
       const chapterArrayJSON = localStorage.getItem('purchaseData');
       const chapterArray = JSON.parse(chapterArrayJSON);
-      //console.log(chapterArray);
+      console.log(chapterArray);
 
       for (var i = 0; i < chapterArray.length; i++) {
         if(chapterArray[i].comicID == comicID){
-          temp_purchase.push(chapterArray[i]);
+          const transactionHash = chapterArray[i].transactionHash;
+          const transactionDetail = await web3Instance.eth.getTransaction(transactionHash);
+          const blockNumberDetail = await web3Instance.eth.getBlock(transactionDetail.blockNumber.toString());
+          const timestamp = blockNumberDetail.timestamp;
+          const date = formatDate(new Date(Number(timestamp) * 1000));
+          const time = formatTime(new Date(Number(timestamp) * 1000));
+          temp_purchase.push({
+            chapterID: chapterArray[i].chapterID,
+            title: chapterArray[i].title,
+            price: chapterArray[i].chapterPrice,
+            date: date,
+            time: time
+          });
         };
       };
-
       console.log(temp_purchase);
       isPurchase(temp_purchase);
       setLoading(false);
@@ -82,6 +93,7 @@ const ReaderChapter = () => {
               <tr>
                 <th scope="col">#</th>
                 <th scope="col">本集標題</th>
+                <th scope="col">交易金額</th>
                 <th scope="col">購買時間</th>
                 <th scope="col"></th>
               </tr>
@@ -91,9 +103,10 @@ const ReaderChapter = () => {
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td className='chapter-title'>{chapter.title}</td>
-                  <td>yyyy-mm-dd</td>
+                  <td>{chapter.price}</td>
+                  <td>{chapter.date}<br />{chapter.time}</td>
                   <td>
-                    <Link to={`/reader_Chapter/${comicID}/${chapter.chapterID}`}> 
+                    <Link to={`/reading/${comicID}/${chapter.chapterID}`}> 
                       <button className="btn" >閱讀</button>
                     </Link>
                   </td>

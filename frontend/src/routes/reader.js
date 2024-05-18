@@ -6,45 +6,37 @@ import './bootstrap.min.css';
 import './googleapis.css';
 
 const Reader = () => {
-  const [showResults, setShowResults] = useState(false); // 新增狀態用來控制顯示搜索結果
   const [loading, setLoading] = useState(true);
   const [being, setBeing] = useState(false);
   const storedArrayJSON = localStorage.getItem('comicDatas');
-  const [current, setCurrent] =  useState([]);
   const [owner, setOwner] = useState([]);
-  let temp_myComics = [];
+  const uniqueData = [];
+  const uniqueCheck = {};
 
   const initContract = async () => {
     try {
       const storedArrayJSON = localStorage.getItem('comicDatas');
       const storedArray = JSON.parse(storedArrayJSON);
-      setCurrent(storedArray);
-
+      //console.log(storedArray)
 
       const chapterArrayJSON = localStorage.getItem('purchaseData');
       const chapterArray = JSON.parse(chapterArrayJSON);
-      console.log(chapterArray);
-
-
+      //console.log(chapterArray);
 
       const web3Instance = new Web3(window.ethereum);
       const accounts = await web3Instance.eth.getAccounts();
-      const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
-      const meta = await contractInstance.methods;
-      //console.log(meta);
-      let myComics = await meta.getmycomics().call({from: accounts[0]}); // 所有已購買的漫畫
-      //console.log(myComics);
-      for (var i = 1; i < storedArray.length; i++) {
-        for (var n = 0; n < myComics[0].length; n++) {
-          if (storedArray[i].hash == myComics[0][n]){  //主要取得 comicID 
-            temp_myComics.push({ comicID: storedArray[i].comicID, title: storedArray[i].title, cid: storedArray[i].cid }); 
+
+      for (var i = 0; i < storedArray.length; i++) {
+        for (var n = 0; n < chapterArray.length; n++) {
+          if (storedArray[i].comicID == chapterArray[n].comicID && chapterArray[n].buyer == accounts[0]){
+            addData({ comicID: chapterArray[n].comicID, title: chapterArray[n].comicTitle, cid: storedArray[i].cid }); 
           }
         };
       };
-      setOwner(temp_myComics);
-      console.log(temp_myComics);
+      console.log(uniqueData);
+      setOwner(uniqueData);
       setLoading(false);
-      if (temp_myComics.length < 1){
+      if (uniqueData.length < 1){
         setBeing(true);
       };
     } catch (error) {
@@ -55,6 +47,15 @@ const Reader = () => {
   useEffect(() => {
     initContract();
   }, []);
+
+  // 添加新數據時進行唯一性檢查
+  function addData(newItem) {
+    const key = newItem.comicID;
+    if (!uniqueCheck[key]) {
+      uniqueData.push(newItem);
+      uniqueCheck[key] = true;
+    } 
+  }
 
   
   return (

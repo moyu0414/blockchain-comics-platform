@@ -19,9 +19,10 @@ const TransactionHistory = () => {
         console.log(chapterArray);
 
         const temp_logs = [];
-        let totalPrice = 0;
         for (var i = 0; i < chapterArray.length; i++) {
           if (account[0] === chapterArray[i].author) {
+            //console.log(chapterArray[i]);
+
             const transactionHash = chapterArray[i].transactionHash;
             const comicTitle = chapterArray[i].comicTitle;
             const chapterTitle = chapterArray[i].title;
@@ -33,7 +34,6 @@ const TransactionHistory = () => {
             const timestamp = blockNumberDetail.timestamp;
             const date = formatDate(new Date(Number(timestamp) * 1000));
             const time = formatTime(new Date(Number(timestamp) * 1000));
-            totalPrice = totalPrice + price;
             temp_logs.push({
               comicTitles: comicTitle,
               chapterTitles: chapterTitle,
@@ -41,12 +41,18 @@ const TransactionHistory = () => {
               date: date,
               time: time,
               price: price,
-              total: totalPrice
             });
           }
         }
-        console.log(temp_logs);
-        setLogs(temp_logs);
+        temp_logs.sort(compare);  //依照時間做排序
+        let totalPrice = 0;
+        const updatedData = temp_logs.map(item => {
+          totalPrice += item.price; // 累加价格
+          const formattedTotalPrice = Number(totalPrice.toFixed(4));
+          return {...item, totalprice: formattedTotalPrice};
+        });
+        console.log(updatedData);        
+        setLogs(updatedData);
         setLoading(false);
       } catch (error) {
         console.error('Error initializing contract:', error);
@@ -54,7 +60,14 @@ const TransactionHistory = () => {
     };
   
     initContract();
-  }, []);  
+  }, []);
+
+  // 按照时间排序
+  function compare(a, b) {
+    const datetimeA = new Date(a.date + ' ' + a.time);
+    const datetimeB = new Date(b.date + ' ' + b.time);
+    return datetimeA - datetimeB;
+  }
 
 
   return (
@@ -85,7 +98,7 @@ const TransactionHistory = () => {
                 <td>{log.reader}</td>
                 <td>{log.date}<br />{log.time}</td>
                 <td>{log.price}</td>
-                <td>{log.total}</td>
+                <td>{log.totalprice}</td>
               </tr>
             ))}
           </tbody>

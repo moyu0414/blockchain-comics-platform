@@ -83,7 +83,7 @@ const AppLayout = () => {
                 if (imgURL[i].substr(8, 7) == 'apricot'){
                   comicDatas.push({comicID: id, hash: temp_hash, cid: isBeing, title: temp_title, author: comicAuthor, description: comicDescription }); 
                 }else{
-                  //comicDatas.push({comicID: id, hash: temp_hash, cid: isBeing_1, title: temp_title, author: comicAuthor, description: comicDescription }); 
+                  comicDatas.push({comicID: id, hash: temp_hash, cid: isBeing_1, title: temp_title, author: comicAuthor, description: comicDescription }); 
                 }
               }
             });
@@ -102,32 +102,34 @@ const AppLayout = () => {
             let temp = await meta.getChapters(comicDatas[i].hash).call();
             chapterInfo.push(temp);
           }
-          //console.log(chapterInfo);  //每本漫畫的所有章節
+          //console.log(chapterInfo);  //漫畫－所有章節
           await contractInstance.getPastEvents('ChapterPurchased', {
             fromBlock: 0,
           }, function(error, events){ })
           .then(function(events){
-            //console.log(events);
-            for (var i = 0; i < events.length; i++) {
-              let num = 1;
-              let id = 'Chapter' + num;
-              for (var n = 0; n < chapterInfo.length; n++) {   //每本漫畫的所有章節
-                if(chapterInfo[n][0] == events[i].returnValues.chapterHash){  //讀者購買的章節
-                  let price = (events[i].returnValues.price.toString()) / 1e18;
-                  purchaseData.push({
-                    buyer: events[i].returnValues.buyer,
-                    chapterHash: events[i].returnValues.chapterHash,
-                    chapterPrice: price,
-                    title:  chapterInfo[n][1][0],
-                    comicID: comicDatas[n+1].comicID,
-                    chapterID: id,
-                    comicTitle: comicDatas[n+1].title,
-                    author: comicDatas[n+1].author,
-                    transactionHash: events[i].transactionHash
-                  });
+           //console.log(events);  //所有購買紀錄(一次性)
+            for (var n = 0; n < chapterInfo.length; n++) {   //每本漫畫做迴圈
+              let num_01 = 1;
+              for (var m = 0; m < chapterInfo[n][0].length; m++) {   //章節－迴圈
+                let id = 'Chapter' + num_01;
+                for (var i = 0; i < events.length; i++) {
+                  if(chapterInfo[n][0][m] == events[i].returnValues.chapterHash){  //讀者購買的章節
+                    let price = (events[i].returnValues.price.toString()) / 1e18;
+                    purchaseData.push({
+                      buyer: events[i].returnValues.buyer,
+                      chapterHash: events[i].returnValues.chapterHash,
+                      chapterPrice: price,
+                      title:  chapterInfo[n][1][m],
+                      comicID: comicDatas[n+1].comicID,
+                      chapterID: id,
+                      comicTitle: comicDatas[n+1].title,
+                      author: comicDatas[n+1].author,
+                      transactionHash: events[i].transactionHash
+                    });
+                  }
                 }
+                num_01 = num_01 + 1;
               }
-              num = num + 1;
             }
           })
           console.log(purchaseData);
@@ -226,7 +228,7 @@ const router = createBrowserRouter([
         path: "/reader_Chapter/:comicID",
         element: <ReaderChapter />,
       },{
-        path: "/reader_Chapter/:comicID/:chapterID",
+        path: "/reading/:comicID/:chapterID",
         element: <Reading />,
       },{
         path: "/transactionHistory",
