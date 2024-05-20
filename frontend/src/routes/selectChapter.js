@@ -116,27 +116,28 @@ const SelectChapter = () => {
 
   // 章節購買 或 閱讀函數
   const handlePurchase = async (chapterId) => {
-    const operationValue = chapters[chapterId].isBuying;
+    const chapter = chapters[chapterId]; // 使用傳遞進來的索引值來訪問章節資料
+    const operationValue = chapter.isBuying;
+  
     if (operationValue === '閱讀') {
       updateMessage("正在進入章節閱讀中...請稍後。");
-      window.location.href = `/reading/${comicID}/${chapters[chapterId].chapterID}`;
+      window.location.href = `/reading/${comicID}/${chapter.chapterID}`;
     } else {
       try {
-        disableAllButtons(); // 在進行交易前禁用所有按鈕
+        disableAllButtons();
         const balance = await web3Instance.eth.getBalance(account);
-        let price = chapters[chapterId].price;
-        // 如果餘額大於售價，即可購買
+        const price = chapter.price;
+  
         if (balance > price) {
-          let comicHash = comic[0].hash;
-          let chapterHash = chapters[chapterId].chapterHash;
+          const comicHash = comic[0].hash;
+          const chapterHash = chapter.chapterHash;
           updateMessage("正在購買章節中...請稍後。");
           const gas = await meta.purchaseChapter(comicHash, chapterHash).estimateGas({ from: account, value: web3Instance.utils.toWei(price, 'ether') });
           await meta.purchaseChapter(comicHash, chapterHash).send({ from: account, value: web3Instance.utils.toWei(price, 'ether'), gas });
           alert('章節購買成功！');
           updateMessage("");
-          // 購買成功後將按鈕狀態設置為「閱讀」
           const updatedChapters = [...chapters];
-          chapters[chapterId].isBuying = '閱讀';
+          updatedChapters[chapterId].isBuying = '閱讀'; // 更新章節的購買狀態
           setChapters(updatedChapters);
         } else {
           console.log('餘額不足');
@@ -148,7 +149,7 @@ const SelectChapter = () => {
         window.location.reload();
         updateMessage("");
       } finally {
-        enableAllButtons(); // 無論交易成功與否，都要啟用按鈕
+        enableAllButtons();
       }
     }
   };

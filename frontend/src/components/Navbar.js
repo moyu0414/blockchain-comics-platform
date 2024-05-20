@@ -30,13 +30,15 @@ const Navbar = ({ accounts, setAccounts }) => {
         const accounts = await window.ethereum.request({
           method: "eth_requestAccounts",
         });
-        setAccounts(accounts); // 設置帳戶資訊
-        setAccount(accounts[0]); // 新增這行，設置 account 狀態
+        setAccounts(accounts);
+        setAccount(accounts[0]);
         setCurrentAccount(accounts[0]);
         setConnected(true);
         setIsLogged(true);
+        // 存储登录信息到本地存储
+        localStorage.setItem("loggedIn", "true");
+        localStorage.setItem("currentAccount", accounts[0]);
         alert("登入成功!");
-  
         navigate("/");
       }
     }
@@ -96,12 +98,14 @@ const Navbar = ({ accounts, setAccounts }) => {
           const web3 = new Web3(provider);
           const newAccount = accounts[0];
           console.log('切換後的帳戶: ' + newAccount);
-          setAccount(newAccount); // 設置新帳戶資訊
+          setAccount(newAccount);
           const balance = await web3.eth.getBalance(newAccount);
-          setEthBalance(web3.utils.fromWei(balance, 'ether')); // 更新新帳戶的餘額
-          setIsLogged(true); // 更新登入狀態
+          setEthBalance(web3.utils.fromWei(balance, 'ether'));
+          setIsLogged(true);
+          // 刷新页面
+          window.location.reload();
         } else {
-          setIsLogged(false); // 如果沒有帳戶，更新為未登入狀態
+          setIsLogged(false);
         }
       }
     } catch (error) {
@@ -111,26 +115,15 @@ const Navbar = ({ accounts, setAccounts }) => {
   
 
   useEffect(() => {
-    const handleAccountsChanged = async (accounts) => {
-      if (accounts.length > 0) {
-        const newAccount = accounts[0];
-        console.log('MetaMask 帳戶已切換至: ' + newAccount);
-        setAccount(newAccount);
-        const web3 = new Web3(window.ethereum);
-        const balance = await web3.eth.getBalance(newAccount);
-        setEthBalance(web3.utils.fromWei(balance, 'ether')); // 更新新帳戶的餘額
-      }
-    };
-
-    if (window.ethereum) {
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
+    // 检查本地存储中是否存在登录信息
+    const loggedIn = localStorage.getItem("loggedIn");
+    const currentAccount = localStorage.getItem("currentAccount");
+    if (loggedIn === "true" && currentAccount) {
+      setIsLogged(true);
+      setAccount(currentAccount);
+      setCurrentAccount(currentAccount);
+      setConnected(true);
     }
-
-    return () => {
-      if (window.ethereum) {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-      }
-    };
   }, []);
 
   const detectCurrentProvider = () => {
