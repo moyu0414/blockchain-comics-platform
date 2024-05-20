@@ -119,7 +119,7 @@ const SelectChapter = () => {
     const operationValue = chapters[chapterId].isBuying;
     if (operationValue === '閱讀') {
       updateMessage("正在進入章節閱讀中...請稍後。");
-      window.location.href = `/reading/${comicID}/${chapters[chapterId].chapterID}`; // 或根據路由設定導向首頁路徑
+      window.location.href = `/reading/${comicID}/${chapters[chapterId].chapterID}`;
     } else {
       try {
         disableAllButtons(); // 在進行交易前禁用所有按鈕
