@@ -77,7 +77,7 @@ const PurchaseHistory = () => {
   
   return (
     <div className='history-page'>
-      <h2>讀者_購買紀錄</h2>
+      <h2 className="title-text">讀者_購買紀錄</h2>
       {loading &&  
         <div className="loading-container">
           <div>交易紀錄加載中，請稍後...</div>

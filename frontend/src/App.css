@@ -933,3 +933,13 @@ a:link{
 .history-page table{
   min-width: 1300px;
 }
+
+/* 讀者 */
+.reader-container{
+  margin-bottom: 6%;
+}
+
+.title-text{
+  font-weight: bold;
+  color: #008F8C;
+}

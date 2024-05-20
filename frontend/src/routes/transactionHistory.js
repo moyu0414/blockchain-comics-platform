@@ -72,7 +72,7 @@ const TransactionHistory = () => {
 
   return (
     <div className='history-page'>
-      <h2>創作者_交易紀錄</h2>
+      <h2 className="title-text">創作者_交易紀錄</h2>
       {loading &&  
         <div className="loading-container">
           <div>交易紀錄加載中，請稍後...</div>

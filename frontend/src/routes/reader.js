@@ -60,6 +60,9 @@ const Reader = () => {
   
   return (
     <div className="container">
+      <div>
+        <h2 className='mt-5 title-text'>個人書櫃</h2>
+      </div>
       <div>已購買的漫畫</div>
 
       {loading &&  
@@ -75,7 +78,7 @@ const Reader = () => {
 
       <div className="row mt-5">
         {owner.map((comic, index) => (
-            <div className="col-3" key={index}>
+            <div className="col-3 reader-container" key={index}>
               <Link to={`/reader_Chapter/${comic.comicID}`}> {/* 將 comicID 作為路由參數 */}
                 <p className='management-title'>{comic.title}</p>
                 <img src={comic.cid} alt={`Comic ${index + 1}`} className="img-fluid comic-image" />
