@@ -15,7 +15,7 @@ const Reading = () => {
   const [being, setBeing] = useState(false);
   const [current, setCurrent] = useState([]);
   const [select, setSelect] = useState([]);
-  const [purchaseData, setPurchaseData] = useState([]);
+  const pinataGatewayToken = process.env.REACT_APP_Pinata_Gateway_Token;
   let temp = [];
   let read = [];
   let now = [];
@@ -50,7 +50,6 @@ const Reading = () => {
         throw new Error('No chapters found in purchase data');
       }
       console.log(chapterArray);
-      setPurchaseData(chapterArray);
 
       //判斷 comicID，並取出相應的購買紀錄，如果是作者也可閱讀
       let num = 1;
@@ -71,10 +70,10 @@ const Reading = () => {
         if(temp[0].author == accounts[0]){
           let id = 'Chapter' + num;
           read.push({
-            comicTitle: chapterArray[i].comicTitle,
-            chapterTitle: chapterArray[i].title,
-            chapterID: chapterArray[i].chapterID,
-            chapterHash: chapterArray[i].chapterHash,
+            comicTitle: temp[0].title,
+            chapterTitle: chapterInfo[1][i],
+            chapterID: id,
+            chapterHash: chapterInfo[0][i]
           });
           num = num + 1;
         };
@@ -87,9 +86,9 @@ const Reading = () => {
         if(read[i].chapterID == chapterID){
           let imgURL = '';
           let cid = await getIpfsHashFromBytes32(read[i].chapterHash);
-          let IPFSurl = "https://apricot-certain-boar-955.mypinata.cloud/ipfs/" + cid + "?pinataGatewayToken=DlQddJX0ZBG74RznFKeBXWq0i24fOuD8ktnJMofUAYUuBlmhKKtKs01175WVvh5N";
+          let IPFSurl = "https://apricot-certain-boar-955.mypinata.cloud/ipfs/" + cid + "?pinataGatewayToken=" + pinataGatewayToken;
           //let IPFSurl = "https://indigo-glad-rhinoceros-201.mypinata.cloud/ipfs/" + cid + '?pinataGatewayToken=';
-          let IPFSurl_1 = "https://gateway.pinata.cloud/ipfs/" + cid + "?pinataGatewayToken=DlQddJX0ZBG74RznFKeBXWq0i24fOuD8ktnJMofUAYUuBlmhKKtKs01175WVvh5N";
+          let IPFSurl_1 = "https://gateway.pinata.cloud/ipfs/" + cid + "?pinataGatewayToken=" + pinataGatewayToken;
           let temp_isBeing = [IPFSurl, IPFSurl_1];
           const results = await Promise.all(temp_isBeing.map(imageExists));
           results.forEach((exists, i) => {
@@ -138,10 +137,9 @@ const Reading = () => {
       setLoading(false);
       if (now.length < 1){
         setBeing(true);
-        fetchChapters();
-      }else{
+      } else{
         setBeing(false);
-      }
+      };
     } catch (error) {
       console.error('Error fetching chapters IPFS image:', error);
     }
