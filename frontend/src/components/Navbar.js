@@ -99,6 +99,7 @@ const Navbar = ({ accounts, setAccounts }) => {
           const newAccount = accounts[0];
           console.log('切換後的帳戶: ' + newAccount);
           setAccount(newAccount);
+          localStorage.setItem("currentAccount", newAccount);  //將轉變後的帳戶丟回localStorage
           const balance = await web3.eth.getBalance(newAccount);
           setEthBalance(web3.utils.fromWei(balance, 'ether'));
           setIsLogged(true);

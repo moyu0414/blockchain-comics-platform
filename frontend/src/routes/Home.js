@@ -20,22 +20,15 @@ const Home = ({ contractAddress }) => {
   const initContract = async () => {
     try {
       const storedArray = JSON.parse(storedArrayJSON);
-      let nowAccount = storedArray.shift();
-      console.log(storedArray);
+      //console.log(storedArray);
       setCurrent(storedArray);
-      setLoading(false);
       
-      const web3Instance = new Web3(window.ethereum);
-      const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
-      let meta = await contractInstance.methods;
-
       for (var i = 0; i < storedArray.length; i++) {
-        const comics = await meta.comics(storedArray[i].hash).call();
-        let temp_level = findKeyByValue(grading, comics[4].toString());
-        fetchedData.push({ comicID: storedArray[i].comicID, comicTitle: comics[1], comicDescription: comics[3], author: comics[2], level: temp_level });
+        let temp_level = findKeyByValue(grading, storedArray[i].level);
+        fetchedData.push({ comicID: storedArray[i].comicID, comicTitle: storedArray[i].title, comicDescription: storedArray[i].description, author: storedArray[i].author, level: temp_level });
       };
       setData(fetchedData);
-
+      setLoading(false);
     } catch (error) {
       console.error('Error initializing contract:', error);
     }
@@ -61,8 +54,8 @@ const Home = ({ contractAddress }) => {
   function search(data) {
     return data.filter((data) =>
       search_parameters.some((parameter) =>
-        data[parameter].toString().includes(query)
-        //data[parameter].toString().toLowerCase().includes(query)
+        //data[parameter].toString().includes(query)
+        data[parameter].toString().toLowerCase().includes(query)
       )
     );
   };
@@ -82,7 +75,7 @@ const Home = ({ contractAddress }) => {
               setShowResults(e.target.value !== "");
             }}
             onFocus={() => setShowResults(query !== "")}
-            placeholder="請輸入要尋找的字串"
+            placeholder="請輸入要尋找的字串、英文小寫"
           />
         </div>
 

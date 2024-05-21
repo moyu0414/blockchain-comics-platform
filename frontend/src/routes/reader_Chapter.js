@@ -13,6 +13,7 @@ const ReaderChapter = () => {
   const [comic, setComic] = useState([]);
   const [purchase, isPurchase] = useState([]);
   const [loading, setLoading] = useState(true);
+  const currentAccount = localStorage.getItem("currentAccount");
   let temp = [];
   let temp_purchase = [];
 
@@ -33,7 +34,6 @@ const ReaderChapter = () => {
       const web3Instance = new Web3(window.ethereum);
       setWeb3Instance(web3Instance);
       const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
-      const accounts = await web3Instance.eth.getAccounts();
       let meta = await contractInstance.methods;
       setMeta(meta);
 
@@ -42,7 +42,7 @@ const ReaderChapter = () => {
       console.log(chapterArray);
 
       for (var i = 0; i < chapterArray.length; i++) {
-        if(chapterArray[i].comicID == comicID && chapterArray[i].buyer == accounts[0]){
+        if(chapterArray[i].comicID == comicID && chapterArray[i].buyer == currentAccount){
           const transactionHash = chapterArray[i].transactionHash;
           const transactionDetail = await web3Instance.eth.getTransaction(transactionHash);
           const blockNumberDetail = await web3Instance.eth.getBlock(transactionDetail.blockNumber.toString());

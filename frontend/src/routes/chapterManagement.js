@@ -6,7 +6,6 @@ import { Link } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 
 const ChapterManagement = () => {
-  const [account, setAccount] = useState('');
   const [chapters, setChapters] = useState([]);
   const { comicID } = useParams();
   const [meta, setMeta] = useState('');
@@ -14,6 +13,7 @@ const ChapterManagement = () => {
   const [message, updateMessage] = useState('');
   const [showChapterForm, setShowChapterForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const currentAccount = localStorage.getItem("currentAccount");
   let temp = [];
   let temp_data = [];
 
@@ -32,8 +32,6 @@ const ChapterManagement = () => {
 
       const web3Instance = new Web3(window.ethereum);
       const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
-      const accounts = await web3Instance.eth.getAccounts();
-      setAccount(accounts[0]);
       let meta = await contractInstance.methods;
       setMeta(meta);
 
@@ -42,7 +40,7 @@ const ChapterManagement = () => {
       
       let num = 1;
       for (var i = 0; i < chapterInfo[0].length; i++) {  //本漫畫所有章節        
-        if (accounts[0] == temp[0].author){
+        if (currentAccount == temp[0].author){
           let id = 'Chapter' + num;
           let temp_price = chapterInfo[2][i].toString();
           temp_price = temp_price / 1e18;

@@ -6,52 +6,23 @@ import {formatDate, formatTime} from '../index';
 const TransactionHistory = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const currentAccount = localStorage.getItem("currentAccount");
 
   useEffect(() => {
     const initContract = async () => {
       try {
-        const web3Instance = new Web3(window.ethereum);
-        const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
-        const account = await web3Instance.eth.getAccounts();
-  
-        const chapterArrayJSON = localStorage.getItem('purchaseData');
-        const chapterArray = JSON.parse(chapterArrayJSON);
-        console.log(chapterArray);
+        const creatorLogs = localStorage.getItem("creatorLogs");
+        const chapterLogArray = JSON.parse(creatorLogs);
+        console.log(chapterLogArray);
 
-        const temp_logs = [];
-        for (var i = 0; i < chapterArray.length; i++) {
-          if (account[0] === chapterArray[i].author) {
-            //console.log(chapterArray[i]);
-
-            const transactionHash = chapterArray[i].transactionHash;
-            const comicTitle = chapterArray[i].comicTitle;
-            const chapterTitle = chapterArray[i].title;
-            const price = chapterArray[i].chapterPrice;
-            
-            const transactionDetail = await web3Instance.eth.getTransaction(transactionHash);
-            const blockNumberDetail = await web3Instance.eth.getBlock(transactionDetail.blockNumber.toString());
-            const blockNumber = transactionDetail.blockNumber.toString();
-            const timestamp = blockNumberDetail.timestamp;
-            const date = formatDate(new Date(Number(timestamp) * 1000));
-            const time = formatTime(new Date(Number(timestamp) * 1000));
-            temp_logs.push({
-              comicTitles: comicTitle,
-              chapterTitles: chapterTitle,
-              reader: chapterArray[i].buyer,
-              date: date,
-              time: time,
-              price: price,
-            });
-          }
-        }
-        temp_logs.sort(compare);  //依照時間做排序
+        chapterLogArray.sort(compare);  //依照時間做排序
         let totalPrice = 0;
-        const updatedData = temp_logs.map(item => {
+        const updatedData = chapterLogArray.map(item => {
           totalPrice += item.price; // 累加价格
           const formattedTotalPrice = Number(totalPrice.toFixed(4));
           return {...item, totalprice: formattedTotalPrice};
         });
-        console.log(updatedData);        
+        console.log(updatedData);    
         setLogs(updatedData);
         setLoading(false);
       } catch (error) {

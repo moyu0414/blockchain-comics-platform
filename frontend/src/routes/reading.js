@@ -15,7 +15,7 @@ const Reading = () => {
   const [being, setBeing] = useState(false);
   const [current, setCurrent] = useState([]);
   const [select, setSelect] = useState([]);
-  const pinataGatewayToken = process.env.REACT_APP_Pinata_Gateway_Token;
+  const currentAccount = localStorage.getItem("currentAccount");
   let temp = [];
   let read = [];
   let now = [];
@@ -35,7 +35,6 @@ const Reading = () => {
 
       const web3Instance = new Web3(window.ethereum);
       const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
-      const accounts = await web3Instance.eth.getAccounts();
       let meta = await contractInstance.methods;
       const chapterInfo = await meta.getChapters(temp[0].hash).call();  //所有章節資料
 
@@ -51,7 +50,7 @@ const Reading = () => {
       //判斷 comicID，並取出相應的購買紀錄，如果是作者也可閱讀
       let num = 1;
       for (var i = 0; i < chapterArray.length; i++) {
-        if (chapterArray[i].comicID == comicID && chapterArray[i].buyer == accounts[0]) {
+        if (chapterArray[i].comicID == comicID && chapterArray[i].buyer == currentAccount) {
           read.push({
             comicTitle: chapterArray[i].comicTitle,
             chapterTitle: chapterArray[i].title,
@@ -63,7 +62,7 @@ const Reading = () => {
       }
 
       for (var i = 0; i < chapterInfo[0].length; i++) {
-        if (temp[0].author == accounts[0]) {
+        if (temp[0].author == currentAccount) {
           let id = 'Chapter' + num;
           read.push({
             comicTitle: temp[0].title,
@@ -80,8 +79,8 @@ const Reading = () => {
         if (read[i].chapterID == chapterID) {
           let imgURL = '';
           let cid = await getIpfsHashFromBytes32(read[i].chapterHash);
-          let IPFSurl = "https://apricot-certain-boar-955.mypinata.cloud/ipfs/" + cid + "?pinataGatewayToken=" + pinataGatewayToken;
-          let IPFSurl_1 = "https://gateway.pinata.cloud/ipfs/" + cid + "?pinataGatewayToken=" + pinataGatewayToken;
+          let IPFSurl = "https://apricot-certain-boar-955.mypinata.cloud/ipfs/" + cid + "?pinataGatewayToken=DlQddJX0ZBG74RznFKeBXWq0i24fOuD8ktnJMofUAYUuBlmhKKtKs01175WVvh5N";
+          let IPFSurl_1 = "https://gateway.pinata.cloud/ipfs/" + cid + "?pinataGatewayToken=DlQddJX0ZBG74RznFKeBXWq0i24fOuD8ktnJMofUAYUuBlmhKKtKs01175WVvh5N";
           let temp_isBeing = [IPFSurl, IPFSurl_1];
           const results = await Promise.all(temp_isBeing.map(imageExists));
           results.forEach((exists, i) => {

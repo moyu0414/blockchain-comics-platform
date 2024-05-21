@@ -10,6 +10,7 @@ const Reader = () => {
   const [being, setBeing] = useState(false);
   const storedArrayJSON = localStorage.getItem('comicDatas');
   const [owner, setOwner] = useState([]);
+  const currentAccount = localStorage.getItem("currentAccount");
   const uniqueData = [];
   const uniqueCheck = {};
 
@@ -24,11 +25,10 @@ const Reader = () => {
       //console.log(chapterArray);
 
       const web3Instance = new Web3(window.ethereum);
-      const accounts = await web3Instance.eth.getAccounts();
 
       for (var i = 0; i < storedArray.length; i++) {
         for (var n = 0; n < chapterArray.length; n++) {
-          if (storedArray[i].comicID == chapterArray[n].comicID && chapterArray[n].buyer == accounts[0]){
+          if (storedArray[i].comicID == chapterArray[n].comicID && chapterArray[n].buyer == currentAccount){
             addData({ comicID: chapterArray[n].comicID, title: chapterArray[n].comicTitle, cid: storedArray[i].cid }); 
           }
         };

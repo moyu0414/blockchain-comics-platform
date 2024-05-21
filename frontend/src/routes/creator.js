@@ -12,6 +12,7 @@ const CreatorPage = () => {
   const [being, setBeing] = useState(false);
   const [current, setCurrent] =  useState([]);
   const [owner, setOwner] = useState([]);
+  const currentAccount = localStorage.getItem("currentAccount");
   let temp = [];
 
   const initContract = async () => {
@@ -22,7 +23,7 @@ const CreatorPage = () => {
       setCurrent(storedArray);
 
       for (var i = 0; i < storedArray.length; i++) {
-        if (storedArray[0].nowAccount == storedArray[i].author){
+        if (storedArray[i].author == currentAccount){
           temp.push(storedArray[i]);
         }
       };

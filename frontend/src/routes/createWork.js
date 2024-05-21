@@ -11,7 +11,6 @@ import { useLocation } from 'react-router-dom';
 const CreateWork = (props) => {
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
-  const [account, setAccount] = useState('');
   const [formParams, updateFormParams] = useState({level:'',  name: '', description: ''});
   const [formParams_1, updateFormParams_1] = useState({name: '', price: ''});
   const [message, updateMessage] = useState('');
@@ -21,6 +20,8 @@ const CreateWork = (props) => {
   const [comicHash, setComicHash] = useState(''); // 儲存檔案哈希值的狀態
   const [chapterHash, setChapterHash] = useState(''); // 儲存檔案哈希值的狀態
   const location = useLocation();
+  const [file, setFile] = useState('');
+  const currentAccount = localStorage.getItem("currentAccount");
   const [grading, setGrading] = useState({
     "兒童漫畫": "1",
     "少年漫畫": "2",
@@ -34,17 +35,8 @@ const CreateWork = (props) => {
       try {
         // 請求用戶授權
         const web3 = new Web3(window.ethereum);
-        //console.log('Web3 instance:', web3); // 檢查 Web3 實例
         setWeb3(web3);
-
         const contractInstance = new web3.eth.Contract(createWork.abi, createWork.address);
-        //console.log('Contract instance:', contractInstance); // 檢查合約實例
-
-        // 獲取用戶帳戶
-        const accounts = await web3.eth.getAccounts();
-        setAccount(accounts[0]);
-
-        //console.log(contractInstance);
         setContract(contractInstance);
       } catch (error) {
         console.error(error);
@@ -54,7 +46,6 @@ const CreateWork = (props) => {
     }
   };
 
-  
   // 漫畫上傳函數
   const createComic = async (e) => {
     e.preventDefault();
@@ -68,20 +59,34 @@ const CreateWork = (props) => {
       }
 
       disableButton();
-      console.log("comicHash：" + comicHash);
+      updateMessage("正在上傳漫畫至合約中...請稍後。")
+      let comic_Hash = '';
+      try {
+        //上傳圖片至 IPFS
+        const response = await uploadFileToIPFS(file);
+        if(response.success === true) {
+          let CID = response.pinataURL.substr(34);  //取出 IPFS 回傳的 CID
+          comic_Hash = getBytes32FromIpfsHash(CID);  //CID 轉 Hash 值
+          setComicHash(comic_Hash);
+          console.log(comic_Hash);
+        }
+      }
+      catch(e) {
+          console.log("IPFS上傳時發生錯誤!", e);
+      }
+
+      console.log("comicHash：" + comic_Hash);
       console.log("title：" + formParams.name);
-      console.log("author：" + account);
+      console.log("author：" + currentAccount);
       console.log("description：" + formParams.description);
       console.log("title：" + formParams.level);
-      updateMessage("正在上傳漫畫至合約中...請稍後。")
 
-      await contract.methods.uploadComic(comicHash, formParams.name, account, formParams.description, formParams.level).send({ from: account });
+      await contract.methods.uploadComic(comic_Hash, formParams.name, currentAccount, formParams.description, formParams.level).send({ from: currentAccount });
       alert('漫畫成功上傳！');
       enableButton();
       setShowChapterForm(true);
       updateMessage("");
       updateFormParams({level:'',  name: '', description: ''});
-
     } catch (error) {
       console.error('上傳漫畫時發生錯誤：', error);
       alert('上傳漫畫時發生錯誤!');
@@ -104,15 +109,28 @@ const CreateWork = (props) => {
         return;
       }
       disableButton();
-      console.log("chapterHash：" + chapterHash);
+      updateMessage("正在添加章節至合約中...請稍後。")
+      let chapter_Hash = '';
+      try {
+        //上傳圖片至 IPFS
+        const response = await uploadFileToIPFS(file);
+        if(response.success === true) {
+          let CID = response.pinataURL.substr(34);  //取出 IPFS 回傳的 CID
+          chapter_Hash = getBytes32FromIpfsHash(CID);  //CID 轉 Hash 值
+          setComicHash(chapter_Hash);
+          console.log(chapter_Hash);
+        }
+      }
+      catch(e) {
+          console.log("IPFS上傳時發生錯誤!", e);
+      }
+      console.log("chapterHash：" + chapter_Hash);
       console.log("title：" + formParams_1.name);
       console.log("price：" + formParams_1.price);
       let price_temp = parseFloat(formParams_1.price);
       price_temp = web3.utils.toWei(price_temp, 'ether'); 
-      updateMessage("正在添加章節至合約中...請稍後。")
 
-      await contract.methods.addChapter(comicHash, chapterHash, formParams_1.name, price_temp).send({ from: account });
-     
+      await contract.methods.addChapter(comicHash, chapter_Hash, formParams_1.name, price_temp).send({ from: currentAccount });
       alert('章節成功添加！');
       enableButton();
       updateMessage("");
@@ -126,7 +144,6 @@ const CreateWork = (props) => {
       updateMessage("");
     }
   };
-
 
   async function disableButton() {
     const listButton = document.getElementById("list-button")
@@ -142,45 +159,14 @@ const CreateWork = (props) => {
       listButton.style.opacity = 1;
   }
 
-  //圖檔上傳到 IPFS (Pinata)，得到 CID 再轉成 Hash 格式，並檢查圖檔格式
   async function OnChangeFile(e) {
     var file = e.target.files[0];
+    setFile(file);
     // 在這裡可以進行一些檔案類型、大小等的驗證
     if (file) {
       if (validateFileType(file)) {
           // 顯示圖片預覽
           setPreviewImageUrl(URL.createObjectURL(file));
-          try {
-            //上傳圖片至 IPFS
-            disableButton();
-            if (showChapterForm == false){
-              updateMessage("正在上傳漫畫封面...請稍候。")
-            }else{
-              updateMessage("正在上傳章節內容...請稍候。")
-            };
-            const response = await uploadFileToIPFS(file);
-            if(response.success === true) {
-                enableButton();
-                updateMessage("")
-                let CID = response.pinataURL.substr(34);  //取出 IPFS 回傳的 CID
-                let temp_Hash = getBytes32FromIpfsHash(CID);  //CID 轉 Hash 值
-
-                if (showChapterForm == false){
-                  setComicHash(temp_Hash);
-                  alert('已將漫畫封面上傳至 Pinata!');
-                  console.log("已將漫畫封面上傳至 Pinata!")
-                  //console.log("comicHash：" + temp_Hash);
-                }else{
-                  setChapterHash(temp_Hash);
-                  alert('已將章節內容上傳至 Pinata!');
-                  console.log("已將章節內容上傳至 Pinata!")
-                  //console.log("chapterHash：" + temp_Hash);
-                };
-            }
-        }
-        catch(e) {
-            console.log("IPFS上傳時發生錯誤!", e);
-        }
       } else {
         // 檔案類型不符合要求，進行錯誤處理
         alert("Invalid file type. Please upload an image in JPG, JPEG or PNG  format.");
@@ -230,7 +216,7 @@ const CreateWork = (props) => {
     if(showChapterForm == false){
       const {level, name, description} = formParams;
       // 檔案不可為空
-      if( !level || !name || !description || !comicHash)  // || 其中一個為true，即為true
+      if( !level || !name || !description || !file)  // || 其中一個為true，即為true
       {
         updateMessage("請填寫所有欄位！")
         return -1;
@@ -238,7 +224,7 @@ const CreateWork = (props) => {
     }else{
       const {name, price} = formParams_1;
       // 檔案不可為空
-      if(!comicHash || !chapterHash || !name || !price)
+      if(!comicHash || !file || !name || !price)
       {
         updateMessage("請填寫所有欄位！")
         return -1;
