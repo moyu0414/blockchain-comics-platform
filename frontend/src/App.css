@@ -736,7 +736,7 @@ a:link{
 }
 
 .log-in-area {
-  margin-left: 50%;
+  margin-left: 40%;
   white-space: nowrap
 }
 
@@ -940,6 +940,15 @@ a:link{
 }
 
 .title-text{
+  margin-top: 2%;
   font-weight: bold;
   color: #008F8C;
+  text-align: center;
+}
+
+
+
+/* 管理者 */
+.management-page table{
+  min-width: 1000px;
 }

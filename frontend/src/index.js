@@ -18,6 +18,8 @@ import ReaderChapter from './routes/reader_Chapter';
 import Reading from './routes/reading';
 import TransactionHistory from './routes/transactionHistory';
 import PurchaseHistory from './routes/purchaseHistory';
+import ComicManagement from './routes/comicManagement';
+import AccountManagement from './routes/accountManagement';
 import Web3 from 'web3';
 import comicData from "./contracts/ComicPlatform.json"
 import { Buffer } from 'buffer';
@@ -288,6 +290,12 @@ const router = createBrowserRouter([
       },{
         path: "/chapterManagement/:comicID",
         element: <ChapterManagement />,
+      },{
+        path: "/comicManagement",
+        element: <ComicManagement contractAddress={comicData.address} />,
+      },{
+        path: "/accountManagement",
+        element: <AccountManagement />,
       }
     ],
   },

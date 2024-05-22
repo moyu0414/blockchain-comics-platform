@@ -81,6 +81,14 @@ const ChapterManagement = () => {
         ))}
         {!loading &&  
           <div className="create-chapter d-flex justify-content-end mt-2">
+            <Button style={{ marginRight: '15px' }}>
+             <Link
+                to={"/createWork"}
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                編輯漫畫
+              </Link>
+            </Button>
             <Button>
              <Link
                 to={"/createWork"}
@@ -113,7 +121,14 @@ const ChapterManagement = () => {
                       <Link to={`/reading/${comicID}/${chapter.chapterID}`}> 
                         <button className="btn btn-primary" style={{ marginRight: '15px' }}>閱讀</button>
                       </Link>
-                      <button className="btn btn-success" id="list-button">翻譯</button>
+                      <button className="btn" id="list-button" style={{ marginRight: '15px' }}>翻譯</button>
+                      <Link
+                        to={"/createWork"}
+                        state={{ showChapterForm: true, comicHash: comic.length > 0 ? comic[0].hash : null }}
+                        style={{ textDecoration: 'none', color: 'inherit' }}
+                      >
+                        <button className="btn">編輯</button>
+                      </Link>
                     </td>
                   </tr>
                 ))}
