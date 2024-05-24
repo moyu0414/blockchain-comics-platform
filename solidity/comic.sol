@@ -67,6 +67,7 @@
             require(comics[_comicHash].exists, "Comic does not exist");
             require(comics[_comicHash].owner == msg.sender, "You are not owner"); // 確認是否為擁有者
             bytes32 frist_hash = editchapterHistory[_comicHash][old_hash];
+            require(editchapterHistory[_comicHash][frist_hash] != new_hash, "Repeat edit!"); // 確認是否為擁有者
             editchapterHistory[_comicHash][frist_hash] = new_hash;
             editchapterHistory[_comicHash][new_hash] = frist_hash;
             
@@ -227,7 +228,7 @@
             bytes32[] memory hashes = new bytes32[](allComicHashes.length);
             string[] memory titles = new string[](allComicHashes.length);
             for (uint256 i = 0; i < allComicHashes.length; i++) {
-                if(comics[editcomicHistory[allComicHashes[i]]].exists){
+                if(comics[allComicHashes[i]].exists){
                     hashes[i] = editcomicHistory[allComicHashes[i]];
                     titles[i] = comics[allComicHashes[i]].title;
                 }               
@@ -248,7 +249,7 @@
                 hashes[i] = editchapterHistory[_comicHash][_chapterhash];
                 titles[i] = comicChapterdata[_comicHash][_chapterhash].title;
                 prices[i] = comicChapterdata[_comicHash][_chapterhash].price;
-                status[i] = purchasedChapters[msg.sender][hashes[i]];
+                status[i] = purchasedChapters[msg.sender][_chapterhash];
             }
             return (hashes, titles, prices,status);
         }
