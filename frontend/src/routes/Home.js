@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Web3 from 'web3';
 import { Link } from 'react-router-dom'; // 導入 Link 元件
-import comicData from '../contracts/ComicPlatform.json';
 import './bootstrap.min.css';
 import './googleapis.css';
 
@@ -20,13 +19,14 @@ const Home = ({ contractAddress }) => {
   const initContract = async () => {
     try {
       const storedArray = JSON.parse(storedArrayJSON);
-      //console.log(storedArray);
+      console.log(storedArray);
       setCurrent(storedArray);
       
       for (var i = 0; i < storedArray.length; i++) {
         let temp_level = findKeyByValue(grading, storedArray[i].level);
         fetchedData.push({ comicID: storedArray[i].comicID, comicTitle: storedArray[i].title, comicDescription: storedArray[i].description, author: storedArray[i].author, level: temp_level });
       };
+      console.log(fetchedData);
       setData(fetchedData);
       setLoading(false);
     } catch (error) {
@@ -54,8 +54,8 @@ const Home = ({ contractAddress }) => {
   function search(data) {
     return data.filter((data) =>
       search_parameters.some((parameter) =>
-        //data[parameter].toString().includes(query)
-        data[parameter].toString().toLowerCase().includes(query)
+        data[parameter].toString().includes(query)
+        //data[parameter].toString().toLowerCase().includes(query)
       )
     );
   };

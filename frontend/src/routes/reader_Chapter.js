@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { useParams } from 'react-router-dom';
-import comicData from '../contracts/ComicPlatform.json';
+import comicData from '../contracts/ComicPlatform_0526.json';
 import Web3 from 'web3';
 import {formatDate, formatTime} from '../index';
 
 const ReaderChapter = () => {
   const [web3Instance, setWeb3Instance] = useState('');
   const { comicID } = useParams();
-  const [meta, setMeta] = useState('');
   const [message, updateMessage] = useState('');
   const [comic, setComic] = useState([]);
   const [purchase, isPurchase] = useState([]);
@@ -34,8 +33,6 @@ const ReaderChapter = () => {
       const web3Instance = new Web3(window.ethereum);
       setWeb3Instance(web3Instance);
       const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
-      let meta = await contractInstance.methods;
-      setMeta(meta);
 
       const chapterArrayJSON = localStorage.getItem('purchaseData');
       const chapterArray = JSON.parse(chapterArrayJSON);

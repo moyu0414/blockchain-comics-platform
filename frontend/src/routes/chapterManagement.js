@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import comicData from '../contracts/ComicPlatform.json';
+import comicData from '../contracts/ComicPlatform_0526.json';
 import Web3 from 'web3';
 import { Link } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 
 const ChapterManagement = () => {
+  const [comic, setComic] = useState([]);
   const [chapters, setChapters] = useState([]);
   const { comicID } = useParams();
   const [meta, setMeta] = useState('');
-  const [comic, setComic] = useState([]);
-  const [message, updateMessage] = useState('');
   const [showChapterForm, setShowChapterForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const currentAccount = localStorage.getItem("currentAccount");
@@ -27,7 +26,7 @@ const ChapterManagement = () => {
           temp.push(storedArray[i]);
         };
       };
-      console.log(temp);
+      //console.log(temp);
       setComic(temp);
 
       const web3Instance = new Web3(window.ethereum);
@@ -36,7 +35,7 @@ const ChapterManagement = () => {
       setMeta(meta);
 
       const chapterInfo = await meta.getChapters(temp[0].hash).call();
-      console.log(chapterInfo);
+      //console.log(chapterInfo);
       
       let num = 1;
       for (var i = 0; i < chapterInfo[0].length; i++) {  //本漫畫所有章節        
@@ -83,7 +82,8 @@ const ChapterManagement = () => {
           <div className="create-chapter d-flex justify-content-end mt-2">
             <Button style={{ marginRight: '15px' }}>
              <Link
-                to={"/createWork"}
+                to={"/editWork"}
+                state={{ showChapterForm: false, comicID: comic.length > 0 ? comic[0].comicID: null }}
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 編輯漫畫
@@ -123,8 +123,12 @@ const ChapterManagement = () => {
                       </Link>
                       <button className="btn" id="list-button" style={{ marginRight: '15px' }}>翻譯</button>
                       <Link
-                        to={"/createWork"}
-                        state={{ showChapterForm: true, comicHash: comic.length > 0 ? comic[0].hash : null }}
+                        to={"/editWork"}
+                        state={{
+                          showChapterForm: true,
+                          comicID: comic.length > 0 ? comic[0].comicID : null,
+                          chapterID: chapters.length > 0 ? chapter.chapterID : null
+                        }}
                         style={{ textDecoration: 'none', color: 'inherit' }}
                       >
                         <button className="btn">編輯</button>

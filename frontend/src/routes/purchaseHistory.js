@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import Web3 from 'web3';
-import comicData from "../contracts/ComicPlatform.json";
 import {formatDate, formatTime} from '../index';
 
 const PurchaseHistory = () => {

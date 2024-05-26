@@ -2,7 +2,6 @@ import Web3 from 'web3';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
-import createWork from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
 
 
@@ -18,7 +17,6 @@ const CreatorPage = () => {
   const initContract = async () => {
     try {
       const storedArrayJSON = localStorage.getItem('comicDatas');
-
       const storedArray = JSON.parse(storedArrayJSON);
       setCurrent(storedArray);
 
@@ -48,7 +46,6 @@ const CreatorPage = () => {
     <div className="container">
       <div>
         <h2 className='mt-5 title-text'>作品管理</h2>
-        <p>作品已上鏈</p>
       </div>
       <div className="d-flex justify-content-end mt-3">
       <Button className='btn'>

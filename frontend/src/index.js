@@ -11,6 +11,7 @@ import Reader from './routes/reader';
 import Creator from './routes/creator';
 import Dual from './routes/dual';
 import CreateWork from './routes/createWork';
+import EditWork from './routes/editWork';
 import WorkManagement from './routes/workManagement';
 import ChapterManagement from './routes/chapterManagement';
 import SelectChapter from './routes/selectChapter';
@@ -21,11 +22,12 @@ import PurchaseHistory from './routes/purchaseHistory';
 import ComicManagement from './routes/comicManagement';
 import AccountManagement from './routes/accountManagement';
 import Web3 from 'web3';
-import comicData from "./contracts/ComicPlatform.json"
+import comicData from "./contracts/ComicPlatform_0526.json"
 import { Buffer } from 'buffer';
 import bs58 from 'bs58';
 
 let comicDatas = [];
+let initialData = [];
 let purchaseData = [];
 let creatorLogs = [];
 let readerLogs = [];
@@ -36,7 +38,6 @@ const AppLayout = () => {
   const [accounts, setAccounts] = useState([]);
   const [web3Instance, setWeb3Instance] = useState(null);
   const [contractInstance, setContractInstance] = useState(null);
-  const [imgURL, setImgURL] = useState([]);
   const currentAccount = localStorage.getItem("currentAccount");
 
   // 處理登錄狀態的函數
@@ -58,38 +59,51 @@ const AppLayout = () => {
           // 創建合約實例，需替換為您的合約地址
           const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
           setContractInstance(contractInstance);
+          //console.log(contractInstance);
           const meta = await contractInstance.methods;
-          let allComicHashes = await meta.getAllComicHashes().call(); // 所有漫畫 Hash
-          //console.log(allComicHashes);
-          for (var i = 0; i < allComicHashes[0].length; i++) {
-            let temp_title = allComicHashes[1][i];
-            let temp_hash = allComicHashes[0][i];
-            let temp_cid = getIpfsHashFromBytes32(temp_hash);
-            let isBeing = "https://apricot-certain-boar-955.mypinata.cloud/ipfs/" + temp_cid + "?pinataGatewayToken=DlQddJX0ZBG74RznFKeBXWq0i24fOuD8ktnJMofUAYUuBlmhKKtKs01175WVvh5N";
-            let isBeing_1 = "https://gateway.pinata.cloud/ipfs/" + temp_cid + "?pinataGatewayToken=DlQddJX0ZBG74RznFKeBXWq0i24fOuD8ktnJMofUAYUuBlmhKKtKs01175WVvh5N";
-            let comic = await meta.comics(temp_hash).call();
-            let comicAuthor = comic[2].toLowerCase();  //轉成小寫
-            let comicDescription = comic[3];
-            let comicLevel = comic[4].toString();
-            let id = 'Comic' + num  ;
+          //console.log(meta);
 
-            // 判斷漫畫網址是否存在
-            imgURL.push(isBeing);
-            //imgURL.push(isBeing_1);
-            await Promise.all(imgURL.map(imageExists))
-            .then(function(results) {
-              if (results[i]) {
-                //console.log(results);
-                if (imgURL[i].substr(8, 7) == 'apricot'){
-                  comicDatas.push({comicID: id, hash: temp_hash, cid: isBeing, title: temp_title, author: comicAuthor, description: comicDescription, level: comicLevel});
-                }else{
-                  comicDatas.push({comicID: id, hash: temp_hash, cid: isBeing_1, title: temp_title, author: comicAuthor, description: comicDescription, level: comicLevel });
+          let allComic = await meta.getAllComicHashes().call(); // 所有最新的漫畫 Hash
+          //console.log(allComic);
+
+          let temp_title, temp_hash, temp_initialHash, temp_cid, comicAuthor, comicDescription, comicLevel, comicExists, exists;
+          for (var i = 0; i < allComic[0].length; i++) {
+            exists = allComic[2][i]
+            if (exists == true) {
+              let initialComic = await meta.editcomicHistory(allComic[0][i]).call();
+              if (initialComic == allComic[0][i]) {  //漫畫hash未改變 => comics
+                temp_hash = initialComic;
+                temp_initialHash = temp_hash;
+                let comic = await meta.comics(temp_hash).call();
+                temp_title = comic[1];
+                comicAuthor = comic[2].toLowerCase();
+                comicDescription = comic[3];
+                comicLevel = comic[4].toString();
+                //comicExists = comic[5];
+              } else {  //漫畫hash改變 => getcomic
+                temp_hash = allComic[0][i];
+                temp_initialHash = initialComic;
+                let comic = await meta.getcomic(temp_hash).call();
+                temp_title = comic[0];
+                comicAuthor = comic[1].toLowerCase();
+                comicDescription = comic[2];
+                comicLevel = comic[3].toString();
+                //comicExists = comic[5];  //待確認
+              };
+              let id = 'Comic' + num  ;
+              temp_cid = getIpfsHashFromBytes32(temp_hash);
+              let getURL = "https://apricot-certain-boar-955.mypinata.cloud/ipfs/" + temp_cid + "?pinataGatewayToken=DlQddJX0ZBG74RznFKeBXWq0i24fOuD8ktnJMofUAYUuBlmhKKtKs01175WVvh5N";
+              let imgURL = [];
+              imgURL.push(getURL);
+              await Promise.all(imgURL.map(imageExists))
+              .then(function(results) {
+                if (results[0] == true && imgURL[0].substr(8, 7) == 'apricot') {
+                  comicDatas.push({comicID: id, hash: temp_hash, cid: getURL, title: temp_title, author: comicAuthor, description: comicDescription, level: comicLevel, initialHash: temp_initialHash, exists: exists});
                 }
-              }
-            });
-            num = num + 1;
+              });
+              num = num + 1;
+            }
           }
-
           console.log(comicDatas);
           //儲存comicDatas資料至各分頁
           localStorage.setItem('comicDatas', JSON.stringify(comicDatas));
@@ -98,39 +112,57 @@ const AppLayout = () => {
 
           //儲存purchaseData資料至各分頁
           const chapterInfo = [];
+          const temp_initialChapterHash = [];
           for (var i = 0; i < comicDatas.length; i++) {
             let temp = await meta.getChapters(comicDatas[i].hash).call();
             chapterInfo.push(temp);
           }
-          //console.log(chapterInfo);  //漫畫－所有章節
+          console.log(chapterInfo);  //漫畫－所有章節－變更後資料
+          let latestChapterHash, temp_price, initialChapterHash, isPurchasedChapter;
+          for (var i = 0; i < chapterInfo.length; i++) {
+            for (var n = 0; n < chapterInfo[0][0].length; n++) {
+              latestChapterHash = chapterInfo[i][0][n];
+              temp_title = chapterInfo[i][1][n];
+              let price = chapterInfo[i][2][n];
+              temp_price = parseFloat(price) / 1e18;
+              initialChapterHash = await meta.editchapterHistory(comicDatas[i].initialHash, latestChapterHash).call();
+              initialData.push({
+                initialComic: comicDatas[i].initialHash,
+                initialChapterHash: initialChapterHash,
+                latestChapterHash: latestChapterHash,
+                chapterTitle: temp_title
+              });
+            };
+          };
+          console.log(initialData);
+
           await contractInstance.getPastEvents('ChapterPurchased', {
             fromBlock: 0,
           }, function(error, events){ })
           .then(function(events){
-           //console.log(events);  //所有購買紀錄(一次性)
-            for (var n = 0; n < chapterInfo.length; n++) {   //每本漫畫做迴圈
-              let num_01 = 1;
-              for (var m = 0; m < chapterInfo[n][0].length; m++) {   //章節－迴圈
-                let id = 'Chapter' + num_01;
-                for (var i = 0; i < events.length; i++) {
-                  if(chapterInfo[n][0][m] == events[i].returnValues.chapterHash){  //讀者購買的章節
-                    let price = (events[i].returnValues.price.toString()) / 1e18;
-                    purchaseData.push({
-                      buyer: events[i].returnValues.buyer.toLowerCase(),  //轉成小寫
-                      chapterHash: events[i].returnValues.chapterHash,
-                      chapterPrice: price,
-                      title:  chapterInfo[n][1][m],
-                      comicID: comicDatas[n].comicID,
-                      chapterID: id,
-                      comicTitle: comicDatas[n].title,
-                      author: comicDatas[n].author,
-                      transactionHash: events[i].transactionHash
-                    });
-                  }
-                }
-                num_01 = num_01 + 1;
+           console.log(events);  //所有購買紀錄(一次性)
+          let num_01 = 1;
+          let id = 'Chapter' + num_01;
+          for (var i = 0; i < events.length; i++) {
+            for (var n = 0; n < initialData.length; n++) {
+              if(initialData[n].initialComic == events[i].returnValues.comicHash && initialData[n].initialChapterHash == events[i].returnValues.chapterHash){  //讀者購買的章節
+                let price = (events[i].returnValues.price.toString()) / 1e18;
+                purchaseData.push({
+                  buyer: events[i].returnValues.buyer.toLowerCase(),  //轉成小寫
+                  chapterHash: events[i].returnValues.chapterHash,  //最初的章節hash
+                  latestChapterHash: initialData[n].latestChapterHash,  //最新的章節hash
+                  chapterPrice: price,
+                  title:  initialData[n].chapterTitle,
+                  comicID: comicDatas[n].comicID,
+                  chapterID: id,
+                  comicTitle: comicDatas[n].title,
+                  author: comicDatas[n].author,
+                  transactionHash: events[i].transactionHash
+                });
               }
             }
+          }
+          num_01 = num_01 + 1;
           })
           console.log(purchaseData);
           localStorage.setItem('purchaseData', JSON.stringify(purchaseData));
@@ -269,6 +301,9 @@ const router = createBrowserRouter([
       },{
         path: "/createWork",
         element: <CreateWork />,
+      },{
+        path: "/editWork",
+        element: <EditWork />,
       },{
         path: "/workManagement",
         element: <WorkManagement />,

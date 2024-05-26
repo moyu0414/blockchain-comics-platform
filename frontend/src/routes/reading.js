@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import comicData from '../contracts/ComicPlatform.json';
+import comicData from '../contracts/ComicPlatform_0526.json';
 import Web3 from 'web3';
 import { Link } from 'react-router-dom';
 import { getIpfsHashFromBytes32, imageExists } from '../index';
@@ -32,6 +32,7 @@ const Reading = () => {
         }
       }
       setComic(temp);
+      console.log(temp);
 
       const web3Instance = new Web3(window.ethereum);
       const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
@@ -39,13 +40,20 @@ const Reading = () => {
       const chapterInfo = await meta.getChapters(temp[0].hash).call();  //所有章節資料
 
       const chapterArrayJSON = localStorage.getItem('purchaseData');
-      if (!chapterArrayJSON) {
-        throw new Error('No purchase data found in localStorage');
-      }
+      try{
+        if (!chapterArrayJSON) {
+          throw new Error('No purchase data  in localStorage');
+      }} catch (error) {
+      console.error('Error found purchase data:', error);
+      };
+
       const chapterArray = JSON.parse(chapterArrayJSON);
+      try{
       if (!chapterArray || chapterArray.length === 0) {
         throw new Error('No chapters found in purchase data');
-      }
+      }} catch (error) {
+      console.error('Error found chapters data:', error);
+      };
 
       //判斷 comicID，並取出相應的購買紀錄，如果是作者也可閱讀
       let num = 1;
@@ -74,6 +82,7 @@ const Reading = () => {
         }
       }
       setChapter(read);
+      console.log(read);
 
       for (var i = 0; i < read.length; i++) {
         if (read[i].chapterID == chapterID) {

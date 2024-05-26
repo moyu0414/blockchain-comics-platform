@@ -952,3 +952,8 @@ a:link{
 .management-page table{
   min-width: 1000px;
 }
+
+.management-btn{
+  position: absolute;
+  left: 30%;
+}

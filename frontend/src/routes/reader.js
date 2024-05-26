@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import Web3 from 'web3';
-import comicData from '../contracts/ComicPlatform.json';
 import './bootstrap.min.css';
 import './googleapis.css';
 
@@ -63,7 +62,6 @@ const Reader = () => {
       <div>
         <h2 className='mt-5 title-text'>個人書櫃</h2>
       </div>
-      <div>已購買的漫畫</div>
 
       {loading &&  
         <div className="loading-container">

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { uploadFileToIPFS } from "../pinata";
 import Web3 from 'web3';
-import createWork from '../contracts/ComicPlatform.json';
+import createWork from '../contracts/ComicPlatform_0526.json';
 import $ from 'jquery';
 import bs58 from 'bs58';
-import { Buffer } from 'buffer';
 import { useLocation } from 'react-router-dom';
 
 
@@ -68,7 +67,6 @@ const CreateWork = (props) => {
           let CID = response.pinataURL.substr(34);  //取出 IPFS 回傳的 CID
           comic_Hash = getBytes32FromIpfsHash(CID);  //CID 轉 Hash 值
           setComicHash(comic_Hash);
-          console.log(comic_Hash);
         }
       }
       catch(e) {
@@ -118,7 +116,6 @@ const CreateWork = (props) => {
           let CID = response.pinataURL.substr(34);  //取出 IPFS 回傳的 CID
           chapter_Hash = getBytes32FromIpfsHash(CID);  //CID 轉 Hash 值
           setComicHash(chapter_Hash);
-          console.log(chapter_Hash);
         }
       }
       catch(e) {
@@ -239,7 +236,7 @@ const CreateWork = (props) => {
   useEffect(() => {
     // 检查是否传递了参数并设置 showChapterForm 状态
     if (location.state && location.state.showChapterForm) {
-      //console.log("Location state:", location.state);
+      console.log("Location state:", location.state);
       setComicHash(location.state.comicHash);
       //console.log("Show chapter form:", true);
       setShowChapterForm(true);

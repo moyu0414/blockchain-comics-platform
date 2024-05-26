@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import Web3 from 'web3';
-import comicData from "../contracts/ComicPlatform.json";
 import {formatDate, formatTime} from '../index';
 
 const TransactionHistory = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [being, setBeing] = useState(false);
   const currentAccount = localStorage.getItem("currentAccount");
 
   useEffect(() => {
@@ -25,6 +25,9 @@ const TransactionHistory = () => {
         console.log(updatedData);    
         setLogs(updatedData);
         setLoading(false);
+        if (updatedData.length < 1){
+          setBeing(true);
+        };
       } catch (error) {
         console.error('Error initializing contract:', error);
       }
@@ -47,6 +50,11 @@ const TransactionHistory = () => {
       {loading &&  
         <div className="loading-container">
           <div>交易紀錄加載中，請稍後...</div>
+        </div>
+      }
+      {being &&  
+        <div className="loading-container">
+          <div>目前沒有讀者購買漫畫，請重新刷新...</div>
         </div>
       }
       <div className="history-container">

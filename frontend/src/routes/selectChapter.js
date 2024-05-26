@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import comicData from '../contracts/ComicPlatform.json';
+import comicData from '../contracts/ComicPlatform_0526.json';
 import Web3 from 'web3';
 import $ from 'jquery';
 
@@ -40,6 +40,8 @@ const SelectChapter = () => {
       let meta = await contractInstance.methods;
       setMeta(meta);
       const chapterInfo = await meta.getChapters(temp[0].hash).call();
+      console.log(chapterInfo);
+
       const chapterArrayJSON = localStorage.getItem('purchaseData');
       const chapterArray = JSON.parse(chapterArrayJSON);
       console.log(chapterArray);
@@ -65,7 +67,7 @@ const SelectChapter = () => {
         let id = 'Chapter' + num;
         let temp_isBuying = '購買';
         for (var i = 0; i < temp_purchase.length; i++) {  //讀者部分
-          if(temp_purchase[i].buyer == currentAccount && chapterHash == temp_purchase[i].chapterHash){
+          if(temp_purchase[i].buyer == currentAccount && chapterHash == temp_purchase[i].latestChapterHash){
             temp_isBuying = '閱讀';
           }
         };
@@ -83,6 +85,7 @@ const SelectChapter = () => {
         num = num + 1;
         setIsAuthor(temp_isAuthor);
       };
+      console.log(temp_chapter);
       setChapters(temp_chapter);
       setLoading(false);
       setChaptersLoaded(true);
@@ -133,11 +136,11 @@ const SelectChapter = () => {
           const comicHash = comic[0].hash;
           const chapterHash = chapter.chapterHash;
           updateMessage("正在購買章節中...請稍後。");
-
-          //console.log(comicHash);
-          //console.log(chapterHash);
-
           const gas = await meta.purchaseChapter(comicHash, chapterHash).estimateGas({ from: currentAccount, value: web3Instance.utils.toWei(price, 'ether') });
+          
+          console.log(comicHash);
+          console.log(chapterHash);
+
           await meta.purchaseChapter(comicHash, chapterHash).send({ from: currentAccount, value: web3Instance.utils.toWei(price, 'ether'), gas });
           alert('章節購買成功！');
           updateMessage("");
@@ -151,7 +154,7 @@ const SelectChapter = () => {
       } catch (error) {
         console.error('章節購買時發生錯誤：', error);
         alert(error);
-        window.location.reload();
+        //window.location.reload();
         updateMessage("");
       } finally {
         enableAllButtons();
