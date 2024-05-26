@@ -1,4 +1,12 @@
-    /**
+/**
+ *Submitted for verification at Etherscan.io on 2024-05-26
+*/
+
+/**
+ *Submitted for verification at Etherscan.io on 2024-05-25
+*/
+
+/**
     *Submitted for verification at Etherscan.io on 2024-05-08
     */
 
@@ -224,16 +232,16 @@
             emit ChapterUploaded(_comicHash,_chapterHash, msg.sender, _title, _price);
         }
 
-        function getAllComicHashes() external view returns (bytes32[] memory,string[] memory) {
+        function getAllComicHashes() external view returns (bytes32[] memory,string[] memory,bool[] memory) {
             bytes32[] memory hashes = new bytes32[](allComicHashes.length);
             string[] memory titles = new string[](allComicHashes.length);
-            for (uint256 i = 0; i < allComicHashes.length; i++) {
-                if(comics[allComicHashes[i]].exists){
-                    hashes[i] = editcomicHistory[allComicHashes[i]];
-                    titles[i] = comics[allComicHashes[i]].title;
-                }               
+            bool[] memory status  = new bool[](allComicHashes.length);
+            for (uint256 i = 0; i < allComicHashes.length; i++) {         
+                hashes[i] = editcomicHistory[allComicHashes[i]];
+                titles[i] = comics[allComicHashes[i]].title;  
+                status[i] = comics[allComicHashes[i]].exists;             
             }
-            return(hashes,titles);
+            return(hashes,titles,status);
         }
 
         function getChapters(bytes32 _comicHash) external view returns (bytes32[] memory, string[] memory, uint256[] memory, bool[] memory) {
@@ -280,16 +288,16 @@
         }
 
         //獲取使用者購買漫畫
-        function getmycomics() external view returns (bytes32[] memory, string[] memory) {
-            string[] memory titles = new string[](userPurchases[msg.sender].length);
+        function getmycomics() external view returns (bytes32[] memory, string[] memory,bool[] memory){
             bytes32[] memory hashes = new bytes32[](userPurchases[msg.sender].length);
-            for (uint256 i = 0; i < titles.length; i++) {
-                if(comics[editcomicHistory[userPurchases[msg.sender][i]]].exists){
-                    titles[i] = comics[userPurchases[msg.sender][i]].title ;
-                    hashes[i] = editcomicHistory[userPurchases[msg.sender][i]];
-                } 
+            string[] memory titles = new string[](userPurchases[msg.sender].length);
+            bool[] memory status  = new bool[](userPurchases[msg.sender].length);
+            for (uint256 i = 0; i < allComicHashes.length; i++) {                         
+                hashes[i] = editcomicHistory[userPurchases[msg.sender][i]];
+                titles[i] = comics[userPurchases[msg.sender][i]].title ;
+                status[i] = comics[userPurchases[msg.sender][i]].exists;             
             }
-            return(hashes,titles);
+            return(hashes,titles,status);
         }
 
         //取得漫畫目前信息
