@@ -197,16 +197,26 @@ span {
 .reload-btn{
   display: inline-block;
   font-size: 18px;
-  width: 150px;
-  height: 55px;
+  width: 180px;
+  height: 50px;
   border: none;
   border-radius: 8px;
   background-color: #0FC2C0;
   color: #ffffff;
-  /* margin-left: 16px; */
   text-decoration: none;
   cursor: pointer;
   transition: 0.3s;
+}
+
+/* 新增以下樣式 */
+.log-in-area {
+  display: flex;
+  align-items: center;
+}
+
+.eth-balance {
+  margin-right: 6%;
+  color: #008F8C;
 }
 
 .reload-btn:hover{
@@ -736,7 +746,7 @@ a:link{
 }
 
 .log-in-area {
-  margin-left: 40%;
+  margin-left: 30%;
   white-space: nowrap
 }
 
@@ -940,7 +950,7 @@ a:link{
 }
 
 .title-text{
-  margin-top: 2%;
+  margin: 2% 0 ;
   font-weight: bold;
   color: #008F8C;
   text-align: center;
@@ -949,11 +959,24 @@ a:link{
 
 
 /* 管理者 */
-.management-page table{
-  min-width: 1000px;
+.account-page .table{
+  min-width: 800px;
+  margin-top: 2%;
 }
 
-.management-btn{
-  position: absolute;
-  left: 30%;
+.management-page .table{
+  min-width: 1600px;
+  margin-top: 2%;
+}
+
+.management-title{
+  width: 15%;
+}
+
+.management-btn input{
+  margin-left: 35%;
+  flex: 1; 
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }

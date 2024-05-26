@@ -96,7 +96,7 @@ const ComicManagement = ({ contractAddress }) =>  {
   };
 
   return (
-    <div className="management-page">
+    <div className="account-page">
       <h2 className="title-text">管理者_帳號管理</h2>
       {isAdmin ? (
         <>

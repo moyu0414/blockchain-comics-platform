@@ -21,8 +21,22 @@ const Navbar = ({ accounts, setAccounts }) => {
   useEffect(() => {
     if (accounts.length > 0) {
       setIsLogged(true);
+      loadAccountBalance(accounts[0]);
     }
   }, [accounts]);
+
+  const loadAccountBalance = async (account) => {
+    try {
+      const provider = detectCurrentProvider();
+      if (provider) {
+        const web3 = new Web3(provider);
+        const balance = await web3.eth.getBalance(account);
+        setEthBalance(parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(3)); // 設定餘額只顯示到小數點第三位
+      }
+    } catch (error) {
+      console.error('錯誤:', error);
+    }
+  };
 
   const connectAccount = async () => {
     if (isConnected === false) {
@@ -40,6 +54,7 @@ const Navbar = ({ accounts, setAccounts }) => {
         localStorage.setItem("currentAccount", accounts[0]);
         alert("登入成功!");
         navigate("/");
+        loadAccountBalance(accounts[0]); // 加载账号余额
       }
     }
   };
@@ -101,7 +116,7 @@ const Navbar = ({ accounts, setAccounts }) => {
           setAccount(newAccount);
           localStorage.setItem("currentAccount", newAccount);  //將轉變後的帳戶丟回localStorage
           const balance = await web3.eth.getBalance(newAccount);
-          setEthBalance(web3.utils.fromWei(balance, 'ether'));
+          setEthBalance(parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(3)); // 設定餘額只顯示到小數點第三位
           setIsLogged(true);
           // 刷新页面
           window.location.reload();
@@ -113,7 +128,6 @@ const Navbar = ({ accounts, setAccounts }) => {
       console.error('錯誤:', error);
     }
   };
-  
 
   useEffect(() => {
     // 检查本地存储中是否存在登录信息
@@ -124,6 +138,7 @@ const Navbar = ({ accounts, setAccounts }) => {
       setAccount(currentAccount);
       setCurrentAccount(currentAccount);
       setConnected(true);
+      loadAccountBalance(currentAccount); // 加载账号余额
     }
   }, []);
 
@@ -191,6 +206,7 @@ const Navbar = ({ accounts, setAccounts }) => {
               {isLogged && (
                 <div className="log-in-area">
                   <div className="show-account">{showAccount()}</div>
+                  <div className="eth-balance">餘額: {ethBalance} SepoliaETH</div>
                   <button className="reload-btn" onClick={reloadAccount}>
                     切換帳號
                   </button>

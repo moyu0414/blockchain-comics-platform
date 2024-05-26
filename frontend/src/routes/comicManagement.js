@@ -139,7 +139,7 @@ const ComicManagement = ({ contractAddress }) => {
                   {current.map((comic, index) => (
                     <tr key={index}>
                       <td>{index + 1}</td>
-                      <td className='chapter-title'>{comic.title}</td>
+                      <td className='management-title'>{comic.title}</td>
                       <td>{comic.author}</td>
                       <td>{comic.hash}</td>
 
