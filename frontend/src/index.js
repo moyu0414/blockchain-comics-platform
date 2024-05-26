@@ -142,27 +142,32 @@ const AppLayout = () => {
           .then(function(events){
            console.log(events);  //所有購買紀錄(一次性)
           let num_01 = 1;
-          let id = 'Chapter' + num_01;
           for (var i = 0; i < events.length; i++) {
             for (var n = 0; n < initialData.length; n++) {
+              let id = 'Chapter' + num_01;
+
               if(initialData[n].initialComic == events[i].returnValues.comicHash && initialData[n].initialChapterHash == events[i].returnValues.chapterHash){  //讀者購買的章節
-                let price = (events[i].returnValues.price.toString()) / 1e18;
-                purchaseData.push({
-                  buyer: events[i].returnValues.buyer.toLowerCase(),  //轉成小寫
-                  chapterHash: events[i].returnValues.chapterHash,  //最初的章節hash
-                  latestChapterHash: initialData[n].latestChapterHash,  //最新的章節hash
-                  chapterPrice: price,
-                  title:  initialData[n].chapterTitle,
-                  comicID: comicDatas[n].comicID,
-                  chapterID: id,
-                  comicTitle: comicDatas[n].title,
-                  author: comicDatas[n].author,
-                  transactionHash: events[i].transactionHash
-                });
+                for (var z = 0; z < comicDatas.length; z++) {
+                  if(comicDatas[z].initialHash == events[i].returnValues.comicHash){
+                    let price = (events[i].returnValues.price.toString()) / 1e18;
+                    purchaseData.push({
+                      buyer: events[i].returnValues.buyer.toLowerCase(),  //轉成小寫
+                      chapterHash: events[i].returnValues.chapterHash,  //最初的章節hash
+                      latestChapterHash: initialData[n].latestChapterHash,  //最新的章節hash
+                      chapterPrice: price,
+                      title:  initialData[n].chapterTitle,
+                      comicID: comicDatas[z].comicID,
+                      chapterID: id,
+                      comicTitle: comicDatas[z].title,
+                      author: comicDatas[z].author,
+                      transactionHash: events[i].transactionHash
+                    });
+                  }
+                }
               }
+              num_01 = num_01 + 1;
             }
           }
-          num_01 = num_01 + 1;
           })
           console.log(purchaseData);
           localStorage.setItem('purchaseData', JSON.stringify(purchaseData));

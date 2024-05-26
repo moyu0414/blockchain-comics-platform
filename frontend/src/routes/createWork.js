@@ -106,6 +106,12 @@ const CreateWork = (props) => {
         console.error('合約實例未初始化');
         return;
       }
+      let price_temp = parseFloat(formParams_1.price);
+      price_temp = web3.utils.toWei(price_temp, 'ether');
+      if (price_temp < 10000000000000000) {
+        alert('價格至少0.01 ETH!');
+        return;
+      }
       disableButton();
       updateMessage("正在添加章節至合約中...請稍後。")
       let chapter_Hash = '';
@@ -124,9 +130,6 @@ const CreateWork = (props) => {
       console.log("chapterHash：" + chapter_Hash);
       console.log("title：" + formParams_1.name);
       console.log("price：" + formParams_1.price);
-      let price_temp = parseFloat(formParams_1.price);
-      price_temp = web3.utils.toWei(price_temp, 'ether'); 
-
       await contract.methods.addChapter(comicHash, chapter_Hash, formParams_1.name, price_temp).send({ from: currentAccount });
       alert('章節成功添加！');
       enableButton();

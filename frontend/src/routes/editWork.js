@@ -152,10 +152,14 @@ const EditWork = (props) => {
         console.error('合約實例未初始化');
         return;
       }
+      let price_temp = parseFloat(newChapter.price);
+      price_temp = web3.utils.toWei(price_temp, 'ether');
+      if (price_temp < 10000000000000000) {
+        alert('價格至少0.01 ETH!');
+        return;
+      }
       disableButton();
       let chapter_Hash = '';
-      let price_temp = parseFloat(newChapter.price);
-      price_temp = web3.utils.toWei(price_temp, 'ether'); 
       if ((chapter.chapterTitle != newChapter.chapterTitle || chapter.price != newChapter.price) && file == '') {  // 合約：編輯章節data
         updateMessage("正在編輯章節資料至合約中...請稍後。")
         await contract.methods.editchapterdata(comicHash, newChapter.chapterHash, newChapter.chapterTitle, price_temp).send({ from: currentAccount });

@@ -48,6 +48,8 @@ const Reading = () => {
       };
 
       const chapterArray = JSON.parse(chapterArrayJSON);
+      console.log(chapterArray);
+
       try{
       if (!chapterArray || chapterArray.length === 0) {
         throw new Error('No chapters found in purchase data');
@@ -63,7 +65,7 @@ const Reading = () => {
             comicTitle: chapterArray[i].comicTitle,
             chapterTitle: chapterArray[i].title,
             chapterID: chapterArray[i].chapterID,
-            chapterHash: chapterArray[i].chapterHash
+            chapterHash: chapterArray[i].latestChapterHash
           });
           num = num + 1;
         }
