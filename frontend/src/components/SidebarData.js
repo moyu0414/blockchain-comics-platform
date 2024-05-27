@@ -45,20 +45,20 @@ export const SidebarData = [
   },
   {
     title: "管理者",
-    path: "#",
-    cName: "nav-text",
-    subMenu: [
-      {
-        title: "帳號管理",
-        path: "accountManagement",
-        cName: "nav-subtext",
-      },
-      {
-        title: "漫畫管理",
-        path: "comicManagement",
-        cName: "nav-subtext",
-      }
-    ],
+    path: "comicManagement",
+    cName: "nav-text"
+    // subMenu: [
+    //   {
+    //     title: "帳號管理",
+    //     path: "accountManagement",
+    //     cName: "nav-subtext",
+    //   },
+    //   {
+    //     title: "漫畫管理",
+    //     path: "comicManagement",
+    //     cName: "nav-subtext",
+    //   }
+    // ],
   }
 ];
 

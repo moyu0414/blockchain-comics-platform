@@ -10,6 +10,8 @@ const ComicManagement = ({ contractAddress }) => {
   const [current, setCurrent] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [message, updateMessage] = useState('');
+  const [inputValue, setInputValue] = useState('');
+  const [web3Instance, setWeb3Instance] = useState('');
 
   useEffect(() => {
     const connectToWeb3 = async () => {
@@ -116,14 +118,85 @@ const ComicManagement = ({ contractAddress }) => {
     });
   };
 
+  const connectToWeb3 = async () => {
+    try {
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const web3Instance = new Web3(window.ethereum);
+      setWeb3Instance(web3Instance);
+      const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
+      console.log(contractInstance);
+
+      const meta = await contractInstance.methods;
+      setMeta(meta);
+
+      let admin = await meta.admins(currentAccount).call();
+      setIsAdmin(admin);
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleInputChange = (event) => {
+    setInputValue(event.target.value);
+  };
+
+  const addAdmin = async () => {
+    disableAllButtons();
+    updateMessage("正在新增管理者中...請稍後。");
+
+    let address = web3Instance.utils.isAddress(inputValue);
+    if (address == true) {
+      address = web3Instance.utils.toChecksumAddress(inputValue);
+      try{
+        await meta.addAdmin(inputValue).send({ from: currentAccount });
+
+        alert('管理者新增成功！');
+        updateMessage("");
+        //const updatedComics = [...current];
+        //updatedComics[comicId].exists = '復原'; // 更新漫畫狀態
+        //setCurrent(updatedComics);
+      } catch (error) {
+        console.error('管理者新增時發生錯誤：', error);
+        alert(error);
+        //window.location.reload();
+        updateMessage("");
+      } finally {
+        enableAllButtons();
+      }
+
+    } else {
+      alert("請輸入有效的帳戶!");
+      enableAllButtons();
+    };
+  };
+
+  const removeAdmin = async () => {
+
+
+
+
+  };
+
 
   return (
     <div className="management-page">
-      <h2 className="title-text">管理者_漫畫管理</h2>
       {isAdmin ? (
         <>
+          <h2 className="title-text">帳號管理</h2>
+          <div className="management-btn mb-5">
+            <input value={inputValue} type="text" placeholder="請輸入帳號" onChange={handleInputChange} style={{width: '420px'}}></input>
+            <button  onClick={addAdmin} className="btn" style={{ marginLeft: '15px', marginRight: '15px' }}>
+              新增管理者
+            </button>
+            <button onClick={removeAdmin} className="btn">
+              刪除管理者
+            </button >
+          </div>
+          
           <div className="page-content">
             <div className="chapter-selection">
+              <h2 className="title-text">漫畫管理</h2>
               <table className="table table-image">
                 <thead>
                   <tr>
@@ -139,7 +212,7 @@ const ComicManagement = ({ contractAddress }) => {
                   {current.map((comic, index) => (
                     <tr key={index}>
                       <td>{index + 1}</td>
-                      <td className='management-title'>{comic.title}</td>
+                      <td className='comic-management-title'>{comic.title}</td>
                       <td>{comic.author}</td>
                       <td>{comic.hash}</td>
 
