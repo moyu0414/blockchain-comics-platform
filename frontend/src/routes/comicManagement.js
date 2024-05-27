@@ -10,6 +10,7 @@ const ComicManagement = ({ contractAddress }) => {
   const [current, setCurrent] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [message, updateMessage] = useState('');
+  const [messageAccount, updateMessageAccount] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [web3Instance, setWeb3Instance] = useState('');
 
@@ -18,13 +19,14 @@ const ComicManagement = ({ contractAddress }) => {
       try {
         await window.ethereum.request({ method: 'eth_requestAccounts' });
         const web3Instance = new Web3(window.ethereum);
+        setWeb3Instance(web3Instance);
         const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
         const meta = await contractInstance.methods;
         setMeta(meta);
         let admin = await meta.admins(currentAccount).call();
         setIsAdmin(admin);
         let all_Comic = await meta.getAllComicHashes().call(); // 所有最新的漫畫 Hash
-        console.log(all_Comic);
+        //console.log(all_Comic);
 
         if (admin == true) {
           let storedArray = JSON.parse(storedArrayJSON);
@@ -34,8 +36,8 @@ const ComicManagement = ({ contractAddress }) => {
           });
           for (var i = 0; i < all_Comic[0].length; i++) {
             if (all_Comic[2][i] == false) {
-              let editcomicHash = await meta.editcomicHistory(all_Comic[0][i]).call(); // 所有最新的漫畫 Hash
-              let comics = await meta.comics(editcomicHash).call(); // 所有最新的漫畫 Hash
+              let editcomicHash = await meta.editcomicHistory(all_Comic[0][i]).call(); // 最初的漫畫 Hash
+              let comics = await meta.comics(editcomicHash).call(); // comics => 最初的漫畫 Hash => 得到comic data
               
               storedArray.push({
                 title: all_Comic[1][i],
@@ -118,24 +120,6 @@ const ComicManagement = ({ contractAddress }) => {
     });
   };
 
-  const connectToWeb3 = async () => {
-    try {
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const web3Instance = new Web3(window.ethereum);
-      setWeb3Instance(web3Instance);
-      const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
-      console.log(contractInstance);
-
-      const meta = await contractInstance.methods;
-      setMeta(meta);
-
-      let admin = await meta.admins(currentAccount).call();
-      setIsAdmin(admin);
-
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
@@ -143,39 +127,62 @@ const ComicManagement = ({ contractAddress }) => {
 
   const addAdmin = async () => {
     disableAllButtons();
-    updateMessage("正在新增管理者中...請稍後。");
-
+    updateMessageAccount("正在新增管理者中...請稍後。");
     let address = web3Instance.utils.isAddress(inputValue);
     if (address == true) {
       address = web3Instance.utils.toChecksumAddress(inputValue);
       try{
-        await meta.addAdmin(inputValue).send({ from: currentAccount });
-
-        alert('管理者新增成功！');
-        updateMessage("");
-        //const updatedComics = [...current];
-        //updatedComics[comicId].exists = '復原'; // 更新漫畫狀態
-        //setCurrent(updatedComics);
+        let admins = await meta.admins(address).call();
+        if (admins == true) {
+          alert("此帳號已是管理者!");
+        } else {
+          await meta.addAdmin(inputValue).send({ from: currentAccount });
+          alert('管理者新增成功！');
+        }
+        updateMessageAccount("");
       } catch (error) {
         console.error('管理者新增時發生錯誤：', error);
         alert(error);
         //window.location.reload();
-        updateMessage("");
+        updateMessageAccount("");
       } finally {
         enableAllButtons();
       }
-
     } else {
-      alert("請輸入有效的帳戶!");
+      alert("請輸入有效的帳號!");
       enableAllButtons();
+      updateMessageAccount("");
     };
   };
 
   const removeAdmin = async () => {
-
-
-
-
+    disableAllButtons();
+    updateMessageAccount("正在刪除管理者中...請稍後。");
+    let address = web3Instance.utils.isAddress(inputValue);
+    if (address == true) {
+      address = web3Instance.utils.toChecksumAddress(inputValue);
+      try{
+        let admins = await meta.admins(address).call();
+        if (admins == false) {
+          alert("此帳號並非管理者，所以不用刪除!");
+        } else {
+          await meta.removeAdmin(inputValue).send({ from: currentAccount });
+          alert('管理者刪除成功！');
+        }
+        updateMessageAccount("");
+      } catch (error) {
+        console.error('管理者刪除時發生錯誤：', error);
+        alert(error);
+        //window.location.reload();
+        updateMessageAccount("");
+      } finally {
+        enableAllButtons();
+      }
+    } else {
+      alert("請輸入有效的帳號!");
+      enableAllButtons();
+      updateMessageAccount("");
+    };
   };
 
 
@@ -192,8 +199,8 @@ const ComicManagement = ({ contractAddress }) => {
             <button onClick={removeAdmin} className="btn">
               刪除管理者
             </button >
+            <div className="text-red-500 text-center" style={{marginTop: '10px'}}>{messageAccount}</div>
           </div>
-          
           <div className="page-content">
             <div className="chapter-selection">
               <h2 className="title-text">漫畫管理</h2>

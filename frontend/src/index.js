@@ -104,7 +104,7 @@ const AppLayout = () => {
               num = num + 1;
             }
           }
-          console.log(comicDatas);
+          console.log("comicDatas：" , comicDatas);
           //儲存comicDatas資料至各分頁
           localStorage.setItem('comicDatas', JSON.stringify(comicDatas));
           //要刪除可以用下列的程式
@@ -117,7 +117,7 @@ const AppLayout = () => {
             let temp = await meta.getChapters(comicDatas[i].hash).call();
             chapterInfo.push(temp);
           }
-          console.log(chapterInfo);  //漫畫－所有章節－變更後資料
+          //console.log(chapterInfo);  //漫畫－所有章節－變更後資料
           let latestChapterHash, temp_price, initialChapterHash, isPurchasedChapter;
           for (var i = 0; i < chapterInfo.length; i++) {
             for (var n = 0; n < chapterInfo[0][0].length; n++) {
@@ -134,42 +134,41 @@ const AppLayout = () => {
               });
             };
           };
-          console.log(initialData);
+          console.log("initialData：", initialData);
 
           await contractInstance.getPastEvents('ChapterPurchased', {
             fromBlock: 0,
           }, function(error, events){ })
           .then(function(events){
-           console.log(events);  //所有購買紀錄(一次性)
-          let num_01 = 1;
-          for (var i = 0; i < events.length; i++) {
-            for (var n = 0; n < initialData.length; n++) {
-              let id = 'Chapter' + num_01;
-
-              if(initialData[n].initialComic == events[i].returnValues.comicHash && initialData[n].initialChapterHash == events[i].returnValues.chapterHash){  //讀者購買的章節
-                for (var z = 0; z < comicDatas.length; z++) {
-                  if(comicDatas[z].initialHash == events[i].returnValues.comicHash){
-                    let price = (events[i].returnValues.price.toString()) / 1e18;
-                    purchaseData.push({
-                      buyer: events[i].returnValues.buyer.toLowerCase(),  //轉成小寫
-                      chapterHash: events[i].returnValues.chapterHash,  //最初的章節hash
-                      latestChapterHash: initialData[n].latestChapterHash,  //最新的章節hash
-                      chapterPrice: price,
-                      title:  initialData[n].chapterTitle,
-                      comicID: comicDatas[z].comicID,
-                      chapterID: id,
-                      comicTitle: comicDatas[z].title,
-                      author: comicDatas[z].author,
-                      transactionHash: events[i].transactionHash
-                    });
+           //console.log(events);  //所有購買紀錄(一次性)
+            for (var z = 0; z < comicDatas.length; z++) {
+              let num_01 = 1;
+              for (var n = 0; n < initialData.length; n++) {
+                if(comicDatas[z].initialHash == initialData[n].initialComic){
+                  let id = 'Chapter' + num_01;
+                  for (var i = 0; i < events.length; i++) {
+                    if(initialData[n].initialComic == events[i].returnValues.comicHash && initialData[n].initialChapterHash == events[i].returnValues.chapterHash){  //讀者購買的章節
+                      let price = (events[i].returnValues.price.toString()) / 1e18;
+                      purchaseData.push({
+                        buyer: events[i].returnValues.buyer.toLowerCase(),  //轉成小寫
+                        chapterHash: events[i].returnValues.chapterHash,  //最初的章節hash
+                        latestChapterHash: initialData[n].latestChapterHash,  //最新的章節hash
+                        chapterPrice: price,
+                        title:  initialData[n].chapterTitle,
+                        comicID: comicDatas[z].comicID,
+                        chapterID: id,
+                        comicTitle: comicDatas[z].title,
+                        author: comicDatas[z].author,
+                        transactionHash: events[i].transactionHash
+                      });
+                    }
                   }
+                  num_01 = num_01 + 1;
                 }
               }
-              num_01 = num_01 + 1;
             }
-          }
           })
-          console.log(purchaseData);
+          console.log("purchaseData：" , purchaseData);
           localStorage.setItem('purchaseData', JSON.stringify(purchaseData));
           //localStorage.removeItem('purchaseData');   // 刪除purchaseData的localStorage
 
