@@ -120,7 +120,7 @@ const AppLayout = () => {
           //console.log(chapterInfo);  //漫畫－所有章節－變更後資料
           let latestChapterHash, temp_price, initialChapterHash, isPurchasedChapter;
           for (var i = 0; i < chapterInfo.length; i++) {
-            for (var n = 0; n < chapterInfo[0][0].length; n++) {
+            for (var n = 0; n < chapterInfo[i][0].length; n++) {
               latestChapterHash = chapterInfo[i][0][n];
               temp_title = chapterInfo[i][1][n];
               let price = chapterInfo[i][2][n];
