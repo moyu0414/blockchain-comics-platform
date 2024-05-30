@@ -173,7 +173,7 @@ const AppLayout = () => {
           //localStorage.removeItem('purchaseData');   // 刪除purchaseData的localStorage
 
           //儲存logsData資料至各分頁
-          let transactionHash, comicTitle, chapterTitle, price = '';
+          let transactionHash, comicTitle, chapterTitle, price, TxnFee, date, time= '';
           for (var i = 0; i < purchaseData.length; i++) {
             const currentPurchase = purchaseData[i];
             if (currentAccount === currentPurchase.author) {  //作者logs
@@ -186,17 +186,21 @@ const AppLayout = () => {
               comicTitle = currentPurchase.comicTitle;
               chapterTitle = currentPurchase.title;
               price = currentPurchase.chapterPrice;
+            } else {
+              continue;
             }
-            const transactionDetail = await web3Instance.eth.getTransaction(transactionHash);
-            const blockNumberDetail = await web3Instance.eth.getBlock(transactionDetail.blockNumber.toString());
-            const blockNumber = transactionDetail.blockNumber.toString();
-            const gas = transactionDetail.gas.toString();
-            const gasPrice = transactionDetail.gasPrice.toString();
-            let TxnFee = web3Instance.utils.fromWei(gas * gasPrice, 'ether');
-            TxnFee = parseFloat(TxnFee).toFixed(5);
-            const timestamp = blockNumberDetail.timestamp;
-            const date = formatDate(new Date(Number(timestamp) * 1000));
-            const time = formatTime(new Date(Number(timestamp) * 1000));
+            if (transactionHash != '') {
+              const transactionDetail = await web3Instance.eth.getTransaction(transactionHash);
+              const blockNumberDetail = await web3Instance.eth.getBlock(transactionDetail.blockNumber.toString());
+              const blockNumber = transactionDetail.blockNumber.toString();
+              const gas = transactionDetail.gas.toString();
+              const gasPrice = transactionDetail.gasPrice.toString();
+              TxnFee = web3Instance.utils.fromWei(gas * gasPrice, 'ether');
+              TxnFee = parseFloat(TxnFee).toFixed(5);
+              const timestamp = blockNumberDetail.timestamp;
+              date = formatDate(new Date(Number(timestamp) * 1000));
+              time = formatTime(new Date(Number(timestamp) * 1000));
+            }
             if (currentAccount === currentPurchase.author) {  //作者logs
               creatorLogs.push({
                 comicTitles: comicTitle,
@@ -218,8 +222,8 @@ const AppLayout = () => {
               });
             }
           }
-          //console.log(creatorLogs);
-          //console.log(readerLogs);
+          console.log(creatorLogs);
+          console.log(readerLogs);
           localStorage.setItem('creatorLogs', JSON.stringify(creatorLogs));
           localStorage.setItem('readerLogs', JSON.stringify(readerLogs));
 
