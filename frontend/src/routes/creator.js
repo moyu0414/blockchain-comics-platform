@@ -71,7 +71,7 @@ const CreatorPage = () => {
             <div className="col-3" key={index}>
               <Link to={`/chapterManagement/${comic.comicID}`}> {/* 將 comicID 作為路由參數 */}
                 <p className='management-title'>{comic.title}</p>
-                <img src={comic.cid} alt={`Comic ${index + 1}`} className="img-fluid" />
+                <img src={`http://localhost:5000/api/comicIMG/${comic.filename}`} alt={`Comic ${index + 1}`} className="img-fluid" />
               </Link>
             </div>
           ))}

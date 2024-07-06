@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import comicData from '../contracts/ComicPlatform_0526.json';
+import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
 import $ from 'jquery';
+import axios from 'axios';
+import { sortByTimestamp } from '../index';
 
 const SelectChapter = () => {
+  const [web3, setWeb3] = useState(null);
   const [web3Instance, setWeb3Instance] = useState('');
   const [chapters, setChapters] = useState([]);
   const { comicID } = useParams();
-  const [meta, setMeta] = useState('');
   const [comic, setComic] = useState([]);
   const [message, updateMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -17,13 +19,20 @@ const SelectChapter = () => {
   const currentAccount = localStorage.getItem("currentAccount");
 
   let temp = [];
+  let chapterInfo = [];
   let temp_chapter = [];
   let temp_purchase = [];
 
   const fetchChapters = async () => {
     try {
+      const web3 = new Web3(window.ethereum);
+      setWeb3(web3);
+      const contractInstance = new web3.eth.Contract(comicData.abi, comicData.address);
+      setWeb3Instance(contractInstance);
+
       const storedArrayJSON = localStorage.getItem('comicDatas');
       const storedArray = JSON.parse(storedArrayJSON);
+      console.log(storedArray);
       
       for (var i = 0; i < storedArray.length; i++) {
         if(storedArray[i].comicID == comicID){
@@ -33,13 +42,19 @@ const SelectChapter = () => {
       setComic(temp);  //本漫畫所有漫畫資料
       console.log(temp);
 
-      const web3Instance = new Web3(window.ethereum);
-      setWeb3Instance(web3Instance);
-      const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
-
-      let meta = await contractInstance.methods;
-      setMeta(meta);
-      const chapterInfo = await meta.getChapters(temp[0].hash).call();
+      await axios.get('http://localhost:5000/api/chapters')
+      .then(response => {
+        console.log("DB chapterData：" , response.data);
+        for (var i = 0; i < response.data.length; i++) {  //本漫畫中，章節購買者
+          if (response.data[i].comic_id == temp[0].comicHash){
+            chapterInfo.push(response.data[i]);
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching comics: ', error);
+      });
+      sortByTimestamp(chapterInfo);
       console.log(chapterInfo);
 
       const chapterArrayJSON = localStorage.getItem('purchaseData');
@@ -54,20 +69,19 @@ const SelectChapter = () => {
       if(temp_purchase.length == 0){
         temp_purchase.push({buyer: '', chapterHash: ''});
       };
-
       console.log(temp_purchase);
+
       let author = temp[0].author;
       let temp_isAuthor = author;
       let num = 1;
-      for (var n = 0; n < chapterInfo[0].length; n++) {  //本漫畫所有章節
-        let chapterHash = chapterInfo[0][n];
-        let chapterTitle = chapterInfo[1][n];
-        let temp_price = chapterInfo[2][n].toString();
-        temp_price = temp_price / 1e18;
+      for (var n = 0; n < chapterInfo.length; n++) {  //本漫畫所有章節
+        let chapterHash = chapterInfo[n].chapter_id;
+        let chapterTitle = chapterInfo[n].title;
+        let price = chapterInfo[n].price.toString();
         let id = 'Chapter' + num;
         let temp_isBuying = '購買';
         for (var i = 0; i < temp_purchase.length; i++) {  //讀者部分
-          if(temp_purchase[i].buyer == currentAccount && chapterHash == temp_purchase[i].latestChapterHash){
+          if(temp_purchase[i].buyer == currentAccount){
             temp_isBuying = '閱讀';
           }
         };
@@ -79,7 +93,7 @@ const SelectChapter = () => {
           chapterHash: chapterHash,
           chapterID: id,
           title: chapterTitle,
-          price: temp_price,
+          price: price,
           isBuying: temp_isBuying
         });
         num = num + 1;
@@ -129,19 +143,34 @@ const SelectChapter = () => {
     } else {
       try {
         disableAllButtons();
-        const balance = await web3Instance.eth.getBalance(currentAccount);
-        const price = chapter.price;
+
+        let balance = await web3.eth.getBalance(currentAccount);
+        balance = balance.toString() / 1e18;
+        let price = chapter.price;
   
         if (balance > price) {
-          const comicHash = comic[0].hash;
+
+          const comicHash = comic[0].comicHash;
           const chapterHash = chapter.chapterHash;
-          updateMessage("正在購買章節中...請稍後。");
-          const gas = await meta.purchaseChapter(comicHash, chapterHash).estimateGas({ from: currentAccount, value: web3Instance.utils.toWei(price, 'ether') });
-          
+          //price = web3.utils.toWei(price, 'ether');
           console.log(comicHash);
           console.log(chapterHash);
+          updateMessage("正在購買章節中...請稍後。");
 
-          await meta.purchaseChapter(comicHash, chapterHash).send({ from: currentAccount, value: web3Instance.utils.toWei(price, 'ether'), gas });
+          //let gasEstimate = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, 0).estimateGas({
+            //from: currentAccount,
+            //value: web3.utils.toWei(price, 'ether')
+          //});
+          console.log(comicHash);
+          console.log(chapterHash);
+          console.log(price);
+          //await web3Instance.methods.purchaseChapter(comicHash, chapterHash, gas).send({ from: currentAccount, value: web3Instance.utils.toWei(price, 'ether'), gas });
+          await web3Instance.methods.purchaseChapter(comicHash, chapterHash, 200000000000000000).send({
+            from: currentAccount,
+            value: web3.utils.toWei(price, 'ether'),
+            gas: 200000000000000000
+          });
+          
           alert('章節購買成功！');
           updateMessage("");
           const updatedChapters = [...chapters];

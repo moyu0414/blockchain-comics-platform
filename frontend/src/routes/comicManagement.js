@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
-import comicData from '../contracts/ComicPlatform_0526.json';
+import comicData from '../contracts/ComicPlatform.json';
 import { Button } from 'react-bootstrap';
 
 const ComicManagement = ({ contractAddress }) => {

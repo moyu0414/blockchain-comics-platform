@@ -3,6 +3,7 @@ import Web3 from 'web3';
 import { Link } from 'react-router-dom'; // 導入 Link 元件
 import './bootstrap.min.css';
 import './googleapis.css';
+import axios from 'axios';
 
 const Home = ({ contractAddress }) => {
   const [data, setData] = useState([]);
@@ -13,20 +14,20 @@ const Home = ({ contractAddress }) => {
   const storedArrayJSON = localStorage.getItem('comicDatas');
   const [current, setCurrent] = useState([]);
   const fetchedData = [];
-  const grading = { "兒童漫畫": "1", "少年漫畫": "2", "少女漫畫": "3", "成人漫畫": "4" };
+  //const grading = { "兒童漫畫": "1", "少年漫畫": "2", "少女漫畫": "3", "成人漫畫": "4" };
   const searchRef = useRef();
-  
+
   const initContract = async () => {
     try {
       const storedArray = JSON.parse(storedArrayJSON);
       console.log(storedArray);
-      setCurrent(storedArray);
-      
+
       for (var i = 0; i < storedArray.length; i++) {
-        let temp_level = findKeyByValue(grading, storedArray[i].level);
-        fetchedData.push({ comicID: storedArray[i].comicID, comicTitle: storedArray[i].title, comicDescription: storedArray[i].description, author: storedArray[i].author, level: temp_level });
+        //let temp_level = findKeyByValue(grading, storedArray[i].level);
+        fetchedData.push({ comicID: storedArray[i].comicID, comicTitle: storedArray[i].title, comicDescription: storedArray[i].description, author: storedArray[i].author, level: storedArray[i].level});
       };
       console.log(fetchedData);
+      setCurrent(storedArray);
       setData(fetchedData);
       setLoading(false);
     } catch (error) {
@@ -47,9 +48,9 @@ const Home = ({ contractAddress }) => {
     };
   }, []);
 
-  function findKeyByValue(obj, value) {
-    return Object.keys(obj).find(key => obj[key] === value);
-  };
+  //function findKeyByValue(obj, value) {
+    //return Object.keys(obj).find(key => obj[key] === value);
+  //};
 
   function search(data) {
     return data.filter((data) =>
@@ -120,7 +121,7 @@ const Home = ({ contractAddress }) => {
                     </p>
                   </div>
                 </div>
-                <img src={comic.cid} alt={`Comic ${index + 1}`} className="img-fluid comic-image" />
+                <img src={`http://localhost:5000/api/comicIMG/${comic.filename}`} alt={`Comic ${index + 1}`} className="img-fluid comic-image" />
               </Link>
             </div>
           ))}

@@ -22,10 +22,13 @@ import PurchaseHistory from './routes/purchaseHistory';
 import ComicManagement from './routes/comicManagement';
 import AccountManagement from './routes/accountManagement';
 import Web3 from 'web3';
-import comicData from "./contracts/ComicPlatform_0526.json"
+import comicData from "./contracts/ComicPlatform.json"
 import { Buffer } from 'buffer';
 import bs58 from 'bs58';
+import axios from 'axios';
 
+let DBComicDatas = [];
+let DBChapterDatas = [];
 let comicDatas = [];
 let initialData = [];
 let purchaseData = [];
@@ -46,9 +49,20 @@ const AppLayout = () => {
     // 其他處理邏輯，例如登錄成功後的操作
   };
 
+
   useEffect(() => {
     // 初始化 Web3 和智能合約
     const connectToWeb3 = async () => {
+      await axios.get('http://localhost:5000/api/comics')
+      .then(response => {
+        console.log("DB comicData：" , response.data);
+        DBComicDatas = response.data;
+        localStorage.setItem('DB_ComicDatas', JSON.stringify(response.data));
+      })
+      .catch(error => {
+        console.error('Error fetching comics: ', error);
+      });
+
       if (window.ethereum) {
         try {
           // 請求用戶授權
@@ -63,45 +77,20 @@ const AppLayout = () => {
           const meta = await contractInstance.methods;
           //console.log(meta);
 
-          let allComic = await meta.getAllComicHashes().call(); // 所有最新的漫畫 Hash
-          //console.log(allComic);
+          sortByTimestamp(DBComicDatas);
+          let comicHash, id, temp_title, temp_hash, comicAuthor, comicDescription, comicLevel, comicExists, exists, filename;
+          for (var i = 0; i < DBComicDatas.length; i++) {
+            let id = 'Comic' + (i + 1) ;
+            if (DBComicDatas[i].is_exist == 1) {
+              comicHash = DBComicDatas[i].comic_id;
+              temp_title = DBComicDatas[i].title;
+              comicAuthor = DBComicDatas[i].creator;
+              comicDescription = DBComicDatas[i].description;
+              comicLevel = DBComicDatas[i].category;
+              exists = DBComicDatas[i].is_exist;
+              filename = DBComicDatas[i].filename;
 
-          let temp_title, temp_hash, temp_initialHash, temp_cid, comicAuthor, comicDescription, comicLevel, comicExists, exists;
-          for (var i = 0; i < allComic[0].length; i++) {
-            exists = allComic[2][i]
-            if (exists == true) {
-              let initialComic = await meta.editcomicHistory(allComic[0][i]).call();
-              if (initialComic == allComic[0][i]) {  //漫畫hash未改變 => comics
-                temp_hash = initialComic;
-                temp_initialHash = temp_hash;
-                let comic = await meta.comics(temp_hash).call();
-                temp_title = comic[1];
-                comicAuthor = comic[2].toLowerCase();
-                comicDescription = comic[3];
-                comicLevel = comic[4].toString();
-                //comicExists = comic[5];
-              } else {  //漫畫hash改變 => getcomic
-                temp_hash = allComic[0][i];
-                temp_initialHash = initialComic;
-                let comic = await meta.getcomic(temp_hash).call();
-                temp_title = comic[0];
-                comicAuthor = comic[1].toLowerCase();
-                comicDescription = comic[2];
-                comicLevel = comic[3].toString();
-                //comicExists = comic[5];  //待確認
-              };
-              let id = 'Comic' + num  ;
-              temp_cid = getIpfsHashFromBytes32(temp_hash);
-              let getURL = "https://apricot-certain-boar-955.mypinata.cloud/ipfs/" + temp_cid + "?pinataGatewayToken=DlQddJX0ZBG74RznFKeBXWq0i24fOuD8ktnJMofUAYUuBlmhKKtKs01175WVvh5N";
-              let imgURL = [];
-              imgURL.push(getURL);
-              await Promise.all(imgURL.map(imageExists))
-              .then(function(results) {
-                if (results[0] == true && imgURL[0].substr(8, 7) == 'apricot') {
-                  comicDatas.push({comicID: id, hash: temp_hash, cid: getURL, title: temp_title, author: comicAuthor, description: comicDescription, level: comicLevel, initialHash: temp_initialHash, exists: exists});
-                }
-              });
-              num = num + 1;
+              comicDatas.push({comicID: id, hash: temp_hash, title: temp_title, author: comicAuthor, description: comicDescription, level: comicLevel, exists: exists, filename: filename, comicHash: comicHash});
             }
           }
           console.log("comicDatas：" , comicDatas);
@@ -110,31 +99,19 @@ const AppLayout = () => {
           //要刪除可以用下列的程式
           //localStorage.removeItem('web3Instance', 'contractInstance', 'comicDatas');
 
+
           //儲存purchaseData資料至各分頁
-          const chapterInfo = [];
-          const temp_initialChapterHash = [];
-          for (var i = 0; i < comicDatas.length; i++) {
-            let temp = await meta.getChapters(comicDatas[i].hash).call();
-            chapterInfo.push(temp);
-          }
+          await axios.get('http://localhost:5000/api/chapters')
+          .then(response => {
+            //console.log("DB chapterData：" , response.data);
+            DBChapterDatas = response.data;
+          })
+          .catch(error => {
+            console.error('Error fetching comics: ', error);
+          });
           //console.log(chapterInfo);  //漫畫－所有章節－變更後資料
           let latestChapterHash, temp_price, initialChapterHash, isPurchasedChapter;
-          for (var i = 0; i < chapterInfo.length; i++) {
-            for (var n = 0; n < chapterInfo[i][0].length; n++) {
-              latestChapterHash = chapterInfo[i][0][n];
-              temp_title = chapterInfo[i][1][n];
-              let price = chapterInfo[i][2][n];
-              temp_price = parseFloat(price) / 1e18;
-              initialChapterHash = await meta.editchapterHistory(comicDatas[i].initialHash, latestChapterHash).call();
-              initialData.push({
-                initialComic: comicDatas[i].initialHash,
-                initialChapterHash: initialChapterHash,
-                latestChapterHash: latestChapterHash,
-                chapterTitle: temp_title
-              });
-            };
-          };
-          console.log("initialData：", initialData);
+
 
           await contractInstance.getPastEvents('ChapterPurchased', {
             fromBlock: 0,
@@ -286,6 +263,15 @@ function formatTime(date) {
   return `${hours}:${minutes}:${seconds}`;
 };
 
+// 排序函数，根据时间戳部分进行比较
+function sortByTimestamp(Array) {
+  return Array.sort((a, b) => {
+    const timestampA = parseInt(a.filename.split('-')[0]);
+    const timestampB = parseInt(b.filename.split('-')[0]);
+    return timestampA - timestampB;  // 升序排序
+  });
+}
+
 
 const router = createBrowserRouter([
   {
@@ -350,4 +336,4 @@ createRoot(document.getElementById("root")).render(
 );
 
 
-export {getIpfsHashFromBytes32, imageExists, formatDate, formatTime};
+export {getIpfsHashFromBytes32, imageExists, formatDate, formatTime, sortByTimestamp};

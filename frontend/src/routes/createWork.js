@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { uploadFileToIPFS } from "../pinata";
 import Web3 from 'web3';
-import createWork from '../contracts/ComicPlatform_0526.json';
+import comicData from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
 import bs58 from 'bs58';
 import { useLocation } from 'react-router-dom';
-
+import axios from 'axios';
+import CryptoJS from 'crypto-js';
 
 const CreateWork = (props) => {
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
-  const [formParams, updateFormParams] = useState({level:'',  name: '', description: ''});
-  const [formParams_1, updateFormParams_1] = useState({name: '', price: ''});
+  const [formParams, updateFormParams] = useState({title:'', description:'',  category: ''});
+  const [formParams_1, updateFormParams_1] = useState({title: '', price: '', images: []});
   const [message, updateMessage] = useState('');
   const [stepCompleted, setStepCompleted] = useState(false);
   const [showChapterForm, setShowChapterForm] = useState(false);
@@ -19,7 +20,10 @@ const CreateWork = (props) => {
   const [comicHash, setComicHash] = useState(''); // 儲存檔案哈希值的狀態
   const [chapterHash, setChapterHash] = useState(''); // 儲存檔案哈希值的狀態
   const location = useLocation();
+  //const [selectedFile, setSelectedFile] = useState(null);
+  const [hashValue, setHashValue] = useState('');
   const [file, setFile] = useState('');
+  const [comicID, setComicID] = useState('');
   const currentAccount = localStorage.getItem("currentAccount");
   const [grading, setGrading] = useState({
     "兒童漫畫": "1",
@@ -27,7 +31,7 @@ const CreateWork = (props) => {
     "少女漫畫": "3",
     "成人漫畫": "4",
   });
-  
+ 
   // 連接到 Web3 的函數
   async function connectToWeb3(){
     if (window.ethereum) {
@@ -35,7 +39,7 @@ const CreateWork = (props) => {
         // 請求用戶授權
         const web3 = new Web3(window.ethereum);
         setWeb3(web3);
-        const contractInstance = new web3.eth.Contract(createWork.abi, createWork.address);
+        const contractInstance = new web3.eth.Contract(comicData.abi, comicData.address);
         setContract(contractInstance);
       } catch (error) {
         console.error(error);
@@ -49,6 +53,7 @@ const CreateWork = (props) => {
   const createComic = async (e) => {
     e.preventDefault();
     try {
+      setComicHash(hashValue);
       const fillFile = await checkFile();
       if(fillFile === -1)
           return;
@@ -56,35 +61,41 @@ const CreateWork = (props) => {
         console.error('合約實例未初始化');
         return;
       }
-
       disableButton();
       updateMessage("正在上傳漫畫至合約中...請稍後。")
-      let comic_Hash = '';
-      try {
-        //上傳圖片至 IPFS
-        const response = await uploadFileToIPFS(file);
-        if(response.success === true) {
-          let CID = response.pinataURL.substr(34);  //取出 IPFS 回傳的 CID
-          comic_Hash = getBytes32FromIpfsHash(CID);  //CID 轉 Hash 值
-          setComicHash(comic_Hash);
-        }
-      }
-      catch(e) {
-          console.log("IPFS上傳時發生錯誤!", e);
-      }
 
-      console.log("comicHash：" + comic_Hash);
-      console.log("title：" + formParams.name);
+      console.log("comicHash：" + hashValue);
+      console.log("title：" + formParams.title);
       console.log("author：" + currentAccount);
       console.log("description：" + formParams.description);
-      console.log("title：" + formParams.level);
+      console.log("level：" + formParams.category);
+     
+      await contract.methods.uploadComic(hashValue, formParams.title).send({ from: currentAccount });
 
-      await contract.methods.uploadComic(comic_Hash, formParams.name, currentAccount, formParams.description, formParams.level).send({ from: currentAccount });
-      alert('漫畫成功上傳！');
-      enableButton();
-      setShowChapterForm(true);
-      updateMessage("");
-      updateFormParams({level:'',  name: '', description: ''});
+      ChoseLevelValue(formParams.category);
+      const formData = new FormData();
+      formData.append('comicIMG', file); // 使用正确的字段名，这里是 'comicIMG'
+      formData.append('creator', currentAccount);
+      formData.append('title', formParams.title);
+      formData.append('description', formParams.description);
+      formData.append('category', formParams.category);
+      formData.append('is_exist', 1);
+      formData.append('comic_id', hashValue);
+
+      try {
+        const response = await axios.post('http://localhost:5000/api/add/comics', formData);
+        console.log('Comic added successfully:', response.data);
+
+        alert('漫畫成功上傳！');
+        enableButton();
+        setShowChapterForm(true);
+        updateMessage("");
+        updateFormParams({category:'',  title: '', description: ''});
+        setHashValue('');
+      } catch (error) {
+        console.error('Error adding comic:', error);
+        // 处理添加漫画失败后的逻辑
+      }
     } catch (error) {
       console.error('上傳漫畫時發生錯誤：', error);
       alert('上傳漫畫時發生錯誤!');
@@ -99,6 +110,7 @@ const CreateWork = (props) => {
   const createChapter = async (e) => {
     e.preventDefault();
     try {
+      //setComicHash(hashValue);
       const fillFile = await checkFile();
       if(fillFile === -1)
           return;
@@ -114,28 +126,34 @@ const CreateWork = (props) => {
       }
       disableButton();
       updateMessage("正在添加章節至合約中...請稍後。")
-      let chapter_Hash = '';
-      try {
-        //上傳圖片至 IPFS
-        const response = await uploadFileToIPFS(file);
-        if(response.success === true) {
-          let CID = response.pinataURL.substr(34);  //取出 IPFS 回傳的 CID
-          chapter_Hash = getBytes32FromIpfsHash(CID);  //CID 轉 Hash 值
-          setComicHash(chapter_Hash);
-        }
-      }
-      catch(e) {
-          console.log("IPFS上傳時發生錯誤!", e);
-      }
-      console.log("chapterHash：" + chapter_Hash);
-      console.log("title：" + formParams_1.name);
+
+      console.log("comicHash：" + comicHash);
+      console.log("chapterHash：" + hashValue);
+      console.log("title：" + formParams_1.title);
       console.log("price：" + formParams_1.price);
-      await contract.methods.addChapter(comicHash, chapter_Hash, formParams_1.name, price_temp).send({ from: currentAccount });
-      alert('章節成功添加！');
-      enableButton();
-      updateMessage("");
-      updateFormParams_1({name: '', price: ''});
-      window.location.replace("/creator");
+
+      await contract.methods.addChapter(comicHash, hashValue, formParams_1.title, price_temp).send({ from: currentAccount });
+
+      const formData = new FormData();
+      formData.append('chapterIMG', file); // 使用正确的字段名，这里是 'chapterIMG'
+      formData.append('comic_id', comicHash);
+      formData.append('price', formParams_1.price);
+      formData.append('title', formParams_1.title);
+      formData.append('chapter_hash', hashValue);
+
+      try {
+        const response = await axios.post('http://localhost:5000/api/add/chapters', formData);
+        console.log('chapter added successfully:', response.data);
+
+        alert('章節成功添加！');
+        enableButton();
+        updateMessage("");
+        updateFormParams_1({title: '', price: ''});
+        window.location.replace("/creator");
+      } catch (error) {
+        console.error('章節內容添加至資料庫時發生錯誤：', error);
+        // 处理添加漫画失败后的逻辑
+      }
     } catch (error) {
       console.error('添加章節時發生錯誤：', error);
       alert('添加章節時發生錯誤!');
@@ -159,24 +177,39 @@ const CreateWork = (props) => {
       listButton.style.opacity = 1;
   }
 
-  async function OnChangeFile(e) {
-    var file = e.target.files[0];
+  const handleFileInputChange = (event) => {
+    const file = event.target.files[0];
+    //setSelectedFile(file);
     setFile(file);
-    // 在這裡可以進行一些檔案類型、大小等的驗證
-    if (file) {
-      if (validateFileType(file)) {
-          // 顯示圖片預覽
-          setPreviewImageUrl(URL.createObjectURL(file));
-      } else {
-        // 檔案類型不符合要求，進行錯誤處理
-        alert("Invalid file type. Please upload an image in JPG, JPEG or PNG  format.");
-        console.log("Invalid file type. Please upload an image in JPG, JPEG or PNG format.");
-        return -1;
-      }
+    if (validateFileType(file)) {
+      previewImage(file);
+    } else {
+      alert("Invalid file type. Please upload an image in JPG, JPEG or PNG  format.");
+      console.log("Invalid file type. Please upload an image in JPG, JPEG or PNG format.");
+      return -1;
     }
-  }
+    if (showChapterForm == false) {
+      //updateFormParams({ ...formParams, images: file })
+    } else {
+      //updateFormParams_1({ ...formParams_1, images: file })
+    }
 
-  
+    const reader = new FileReader();
+    reader.onload = handleFileReaderLoad;
+    reader.readAsArrayBuffer(file);
+  };
+
+  const handleFileReaderLoad = (event) => {  // 圖片轉為一 hash 值
+    const fileBuffer = event.target.result;
+    const hash = CryptoJS.SHA256(CryptoJS.lib.WordArray.create(fileBuffer));  // 計算 SHA-256 hash
+    const hashValue = "0x" + hash.toString(CryptoJS.enc.Hex);
+    console.log(hashValue);
+    setHashValue(hashValue);
+
+    //return hashValue;
+  };
+
+
   // 將 CID 轉換為 32 bytes
   function getBytes32FromIpfsHash(ipfsListing) {
     let a = bs58.decode(ipfsListing);
@@ -195,36 +228,41 @@ const CreateWork = (props) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onloadend = () => {
-        setPreviewImageUrl(reader.result);
+      setPreviewImageUrl(reader.result);
     };
-  };  
+  };
 
   // 漫畫等級取值
   function ChoseLevel(e){
     let choseLevel = e.target.value;
-    let level = {"兒童漫畫": "1", "少年漫畫": "2", "少女漫畫": "3", "成人漫畫": "4"};
-    let Level = Object.keys(level);
+    let Level = Object.keys(grading);
     for (var i = 0; i < Level.length; i++) {
-      let name = Level[i];
-      if(choseLevel == name){
-        formParams.level = i+1;
+      let title = Level[i];
+      if(choseLevel == title){
+        formParams.category = i+1;
       };
     }
   };
 
+  // 漫畫等級取值
+  function ChoseLevelValue(){
+    let choseLevel = formParams.category.toString();
+    formParams.category = Object.keys(grading).find(key => grading[key] === choseLevel);
+  };
+
   async function checkFile() {
     if(showChapterForm == false){
-      const {level, name, description} = formParams;
+      const {category, title, description} = formParams;
       // 檔案不可為空
-      if( !level || !name || !description || !file)  // || 其中一個為true，即為true
+      if( !category || !title || !description)  // || 其中一個為true，即為true
       {
         updateMessage("請填寫所有欄位！")
         return -1;
       }
     }else{
-      const {name, price} = formParams_1;
+      const {title, price, images} = formParams_1;
       // 檔案不可為空
-      if(!comicHash || !file || !name || !price)
+      if(!comicHash || !title || !price || !images)
       {
         updateMessage("請填寫所有欄位！")
         return -1;
@@ -240,6 +278,7 @@ const CreateWork = (props) => {
     // 检查是否传递了参数并设置 showChapterForm 状态
     if (location.state && location.state.showChapterForm) {
       console.log("Location state:", location.state);
+      //console.log(location.state.comicID.match(/\d+/)[0]);
       setComicHash(location.state.comicHash);
       //console.log("Show chapter form:", true);
       setShowChapterForm(true);
@@ -269,12 +308,12 @@ const CreateWork = (props) => {
       </div>
       {showChapterForm ? (
         <div>
-          <label htmlFor="name">本章名稱</label>
+          <label htmlFor="title">本章名稱</label>
           <input
             type="text"
-            value={formParams_1.name}
+            value={formParams_1.title}
             placeholder="請輸入章節名稱"
-            onChange={(e) => updateFormParams_1({ ...formParams_1, name: e.target.value })}
+            onChange={(e) => updateFormParams_1({ ...formParams_1, title: e.target.value })}
           />
 
           <label htmlFor="price">本章價格 (ETH)</label>
@@ -289,7 +328,7 @@ const CreateWork = (props) => {
           <label htmlFor="image">本章作品上傳</label>
           <input
             type="file"
-            onChange={OnChangeFile}
+            onChange={handleFileInputChange}
           />
           {previewImageUrl && (
             <img
@@ -305,20 +344,20 @@ const CreateWork = (props) => {
         </div>
       ) : (
         <div>
-          <label htmlFor="level">漫畫分級</label>
+          <label htmlFor="category">漫畫分級</label>
           <select onChange={ChoseLevel}>
             <option>請選擇分級</option>
-            {Object.keys(grading).map((name, index) => (
-              <option key={index}>{name}</option>
+            {Object.keys(grading).map((title, index) => (
+              <option key={index}>{title}</option>
             ))}
           </select>
           
           <p></p>
-          <label htmlFor="name">作品名稱</label>
+          <label htmlFor="title">作品名稱</label>
           <input
             type="text"
-            value={formParams.name}
-            onChange={(e) => updateFormParams({ ...formParams, name: e.target.value })}
+            value={formParams.title}
+            onChange={(e) => updateFormParams({ ...formParams, title: e.target.value })}
           />
 
           <label htmlFor="description">作品簡介</label>
@@ -332,7 +371,7 @@ const CreateWork = (props) => {
           <label htmlFor="image">上傳漫畫封面</label>
           <input
             type="file"
-            onChange={OnChangeFile}
+            onChange={handleFileInputChange}
           />
           {previewImageUrl && (
             <img

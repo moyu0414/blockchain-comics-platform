@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { uploadFileToIPFS } from "../pinata";
 import Web3 from 'web3';
-import createWork from '../contracts/ComicPlatform_0526.json';
+import createWork from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
 import bs58 from 'bs58';
 import { useLocation } from 'react-router-dom';
@@ -340,7 +340,7 @@ const EditWork = (props) => {
             <div className="dot">1</div>
             <div className={`line ${stepCompleted ? 'bg-blue' : 'bg-gray'}`}></div>
           </div>
-          <div className="step-title">新增漫畫</div>
+          <div className="step-title">編輯漫畫</div>
         </div>
         <div className={`step-item ${!showChapterForm && !stepCompleted ? 'step-item-gray' : ''}`}>
           <div className="step-line">
@@ -348,7 +348,7 @@ const EditWork = (props) => {
             <div className="dot">2</div>
             <div className={`line ${!showChapterForm && !stepCompleted ? 'bg-gray' : 'bg-blue'}`}></div>
           </div>
-          <div className="step-title">添加章節</div>
+          <div className="step-title">編輯章節</div>
         </div>
       </div>
       {loading ? (

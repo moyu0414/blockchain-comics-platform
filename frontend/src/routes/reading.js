@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import comicData from '../contracts/ComicPlatform_0526.json';
+import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
 import { Link } from 'react-router-dom';
 import { getIpfsHashFromBytes32, imageExists } from '../index';
+import axios from 'axios';
+import { sortByTimestamp } from '../index';
 
 const Reading = () => {
   const [comic, setComic] = useState([]);
@@ -17,6 +19,7 @@ const Reading = () => {
   const [select, setSelect] = useState([]);
   const currentAccount = localStorage.getItem("currentAccount");
   let temp = [];
+  let chapterInfo = [];
   let read = [];
   let now = [];
   let linkData = [];
@@ -34,10 +37,21 @@ const Reading = () => {
       setComic(temp);
       console.log(temp);
 
-      const web3Instance = new Web3(window.ethereum);
-      const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
-      let meta = await contractInstance.methods;
-      const chapterInfo = await meta.getChapters(temp[0].hash).call();  //所有章節資料
+      await axios.get('http://localhost:5000/api/chapters')
+      .then(response => {
+        console.log("DB chapterData：" , response.data);
+        for (var i = 0; i < response.data.length; i++) {  //本漫畫中，章節購買者
+          if (response.data[i].comic_id == temp[0].comicHash){
+            chapterInfo.push(response.data[i]);
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching comics: ', error);
+      });
+      sortByTimestamp(chapterInfo);
+      console.log(chapterInfo);
+
 
       const chapterArrayJSON = localStorage.getItem('purchaseData');
       try{
@@ -71,14 +85,14 @@ const Reading = () => {
         }
       }
 
-      for (var i = 0; i < chapterInfo[0].length; i++) {
+      for (var i = 0; i < chapterInfo.length; i++) {
         if (temp[0].author == currentAccount) {
           let id = 'Chapter' + num;
           read.push({
             comicTitle: temp[0].title,
-            chapterTitle: chapterInfo[1][i],
+            chapterTitle: chapterInfo[i].title,
             chapterID: id,
-            chapterHash: chapterInfo[0][i]
+            filename: chapterInfo[i].filename
           });
           num = num + 1;
         }
@@ -89,22 +103,12 @@ const Reading = () => {
       for (var i = 0; i < read.length; i++) {
         if (read[i].chapterID == chapterID) {
           let imgURL = '';
-          let cid = await getIpfsHashFromBytes32(read[i].chapterHash);
-          let IPFSurl = "https://apricot-certain-boar-955.mypinata.cloud/ipfs/" + cid + "?pinataGatewayToken=DlQddJX0ZBG74RznFKeBXWq0i24fOuD8ktnJMofUAYUuBlmhKKtKs01175WVvh5N";
-          let IPFSurl_1 = "https://gateway.pinata.cloud/ipfs/" + cid + "?pinataGatewayToken=DlQddJX0ZBG74RznFKeBXWq0i24fOuD8ktnJMofUAYUuBlmhKKtKs01175WVvh5N";
-          let temp_isBeing = [IPFSurl, IPFSurl_1];
-          const results = await Promise.all(temp_isBeing.map(imageExists));
-          results.forEach((exists, i) => {
-            if (exists) {
-              imgURL = temp_isBeing[i];
-              setURL(temp_isBeing[i]);
-            }
-          });
+          let url = "http://localhost:5000/api/chapterIMG/" + read[i].filename;
           now.push({   //當前顯示頁面資料
             comicTitle: read[i].comicTitle,
             chapterTitle: read[i].chapterTitle,
             chapterID: read[i].chapterID,
-            url: imgURL,
+            url: url,
           });
         }
       }
