@@ -12,25 +12,22 @@ const CreateWork = (props) => {
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
   const [formParams, updateFormParams] = useState({title:'', description:'',  category: ''});
-  const [formParams_1, updateFormParams_1] = useState({title: '', price: '', images: []});
+  const [formParams_1, updateFormParams_1] = useState({title: '', price: ''});
   const [message, updateMessage] = useState('');
   const [stepCompleted, setStepCompleted] = useState(false);
   const [showChapterForm, setShowChapterForm] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState(null);
   const [comicHash, setComicHash] = useState(''); // 儲存檔案哈希值的狀態
-  const [chapterHash, setChapterHash] = useState(''); // 儲存檔案哈希值的狀態
   const location = useLocation();
-  //const [selectedFile, setSelectedFile] = useState(null);
   const [hashValue, setHashValue] = useState('');
-  const [file, setFile] = useState('');
-  const [comicID, setComicID] = useState('');
+  const [file, setFiles] = useState('');
   const currentAccount = localStorage.getItem("currentAccount");
-  const [grading, setGrading] = useState({
-    "兒童漫畫": "1",
-    "少年漫畫": "2",
-    "少女漫畫": "3",
-    "成人漫畫": "4",
-  });
+  const [grading, setGrading] = useState([
+    "戀愛漫畫",
+    "科幻漫畫",
+    "推理漫畫",
+    "校園漫畫",
+  ]);
  
   // 連接到 Web3 的函數
   async function connectToWeb3(){
@@ -61,7 +58,7 @@ const CreateWork = (props) => {
         console.error('合約實例未初始化');
         return;
       }
-      disableButton();
+      //disableButton();
       updateMessage("正在上傳漫畫至合約中...請稍後。")
 
       console.log("comicHash：" + hashValue);
@@ -70,9 +67,8 @@ const CreateWork = (props) => {
       console.log("description：" + formParams.description);
       console.log("level：" + formParams.category);
      
-      await contract.methods.uploadComic(hashValue, formParams.title).send({ from: currentAccount });
+      //await contract.methods.uploadComic(hashValue, formParams.title).send({ from: currentAccount });
 
-      ChoseLevelValue(formParams.category);
       const formData = new FormData();
       formData.append('comicIMG', file); // 使用正确的字段名，这里是 'comicIMG'
       formData.append('creator', currentAccount);
@@ -83,7 +79,11 @@ const CreateWork = (props) => {
       formData.append('comic_id', hashValue);
 
       try {
-        const response = await axios.post('http://localhost:5000/api/add/comics', formData);
+        const response = await axios.post('http://localhost:5000/api/add/comics', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
         console.log('Comic added successfully:', response.data);
 
         alert('漫畫成功上傳！');
@@ -92,13 +92,13 @@ const CreateWork = (props) => {
         updateMessage("");
         updateFormParams({category:'',  title: '', description: ''});
         setHashValue('');
+        setFiles('');
       } catch (error) {
         console.error('Error adding comic:', error);
-        // 处理添加漫画失败后的逻辑
       }
     } catch (error) {
       console.error('上傳漫畫時發生錯誤：', error);
-      alert('上傳漫畫時發生錯誤!');
+      alert('上傳漫畫時發生錯誤!' + error);
       enableButton();
       setShowChapterForm(false);
       updateMessage("");
@@ -110,7 +110,6 @@ const CreateWork = (props) => {
   const createChapter = async (e) => {
     e.preventDefault();
     try {
-      //setComicHash(hashValue);
       const fillFile = await checkFile();
       if(fillFile === -1)
           return;
@@ -132,7 +131,7 @@ const CreateWork = (props) => {
       console.log("title：" + formParams_1.title);
       console.log("price：" + formParams_1.price);
 
-      await contract.methods.addChapter(comicHash, hashValue, formParams_1.title, price_temp).send({ from: currentAccount });
+      //await contract.methods.addChapter(comicHash, hashValue, formParams_1.title, price_temp).send({ from: currentAccount });
 
       const formData = new FormData();
       formData.append('chapterIMG', file); // 使用正确的字段名，这里是 'chapterIMG'
@@ -142,7 +141,11 @@ const CreateWork = (props) => {
       formData.append('chapter_hash', hashValue);
 
       try {
-        const response = await axios.post('http://localhost:5000/api/add/chapters', formData);
+        const response = await axios.post('http://localhost:5000/api/add/chapters', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
         console.log('chapter added successfully:', response.data);
 
         alert('章節成功添加！');
@@ -156,7 +159,7 @@ const CreateWork = (props) => {
       }
     } catch (error) {
       console.error('添加章節時發生錯誤：', error);
-      alert('添加章節時發生錯誤!');
+      alert('添加章節時發生錯誤!' + error);
       enableButton();
       setShowChapterForm(true);
       updateMessage("");
@@ -179,8 +182,7 @@ const CreateWork = (props) => {
 
   const handleFileInputChange = (event) => {
     const file = event.target.files[0];
-    //setSelectedFile(file);
-    setFile(file);
+    setFiles(file);
     if (validateFileType(file)) {
       previewImage(file);
     } else {
@@ -188,12 +190,6 @@ const CreateWork = (props) => {
       console.log("Invalid file type. Please upload an image in JPG, JPEG or PNG format.");
       return -1;
     }
-    if (showChapterForm == false) {
-      //updateFormParams({ ...formParams, images: file })
-    } else {
-      //updateFormParams_1({ ...formParams_1, images: file })
-    }
-
     const reader = new FileReader();
     reader.onload = handleFileReaderLoad;
     reader.readAsArrayBuffer(file);
@@ -201,21 +197,14 @@ const CreateWork = (props) => {
 
   const handleFileReaderLoad = (event) => {  // 圖片轉為一 hash 值
     const fileBuffer = event.target.result;
-    const hash = CryptoJS.SHA256(CryptoJS.lib.WordArray.create(fileBuffer));  // 計算 SHA-256 hash
-    const hashValue = "0x" + hash.toString(CryptoJS.enc.Hex);
-    console.log(hashValue);
-    setHashValue(hashValue);
-
-    //return hashValue;
+    const hash = CryptoJS.SHA256(CryptoJS.lib.WordArray.create(fileBuffer));  // 计算 SHA-256 hash
+    const timestamp = Date.now().toString(); // 获取当前时间戳，并转换为字符串
+    const hashValue = hash.toString(CryptoJS.enc.Hex); // SHA-256 hash 值的十六进制表示
+    const combinedValue = hashValue + timestamp; // 将 SHA-256 hash 值和時間戳串接
+    const finalValue = "0x" + combinedValue.slice(-64);
+    console.log(finalValue);
+    setHashValue(finalValue); // 设置最终的 hash 值
   };
-
-
-  // 將 CID 轉換為 32 bytes
-  function getBytes32FromIpfsHash(ipfsListing) {
-    let a = bs58.decode(ipfsListing);
-    return "0x"+bs58.decode(ipfsListing).slice(2).toString('hex')
-  };     
-
 
   // 驗證檔案類型是否符合要求
   const validateFileType = (file) => {
@@ -235,34 +224,21 @@ const CreateWork = (props) => {
   // 漫畫等級取值
   function ChoseLevel(e){
     let choseLevel = e.target.value;
-    let Level = Object.keys(grading);
-    for (var i = 0; i < Level.length; i++) {
-      let title = Level[i];
-      if(choseLevel == title){
-        formParams.category = i+1;
-      };
-    }
+    formParams.category = choseLevel;
   };
 
-  // 漫畫等級取值
-  function ChoseLevelValue(){
-    let choseLevel = formParams.category.toString();
-    formParams.category = Object.keys(grading).find(key => grading[key] === choseLevel);
-  };
-
+  // 檔案不可為空
   async function checkFile() {
     if(showChapterForm == false){
       const {category, title, description} = formParams;
-      // 檔案不可為空
-      if( !category || !title || !description)  // || 其中一個為true，即為true
+      if( !category || !title || !description || !hashValue)  // || 其中一個為true，即為true
       {
         updateMessage("請填寫所有欄位！")
         return -1;
       }
     }else{
-      const {title, price, images} = formParams_1;
-      // 檔案不可為空
-      if(!comicHash || !title || !price || !images)
+      const {title, price} = formParams_1;
+      if(!comicHash || !title || !price || !hashValue)
       {
         updateMessage("請填寫所有欄位！")
         return -1;
@@ -278,9 +254,7 @@ const CreateWork = (props) => {
     // 检查是否传递了参数并设置 showChapterForm 状态
     if (location.state && location.state.showChapterForm) {
       console.log("Location state:", location.state);
-      //console.log(location.state.comicID.match(/\d+/)[0]);
       setComicHash(location.state.comicHash);
-      //console.log("Show chapter form:", true);
       setShowChapterForm(true);
     }
   }, [location]);
@@ -344,11 +318,11 @@ const CreateWork = (props) => {
         </div>
       ) : (
         <div>
-          <label htmlFor="category">漫畫分級</label>
+          <label htmlFor="category">漫畫類型</label>
           <select onChange={ChoseLevel}>
-            <option>請選擇分級</option>
-            {Object.keys(grading).map((title, index) => (
-              <option key={index}>{title}</option>
+            <option>請選擇類型</option>
+            {grading.map((name, index) => (
+              <option key={index}>{name}</option>
             ))}
           </select>
           

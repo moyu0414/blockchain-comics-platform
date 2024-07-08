@@ -23,8 +23,7 @@ const Home = ({ contractAddress }) => {
       console.log(storedArray);
 
       for (var i = 0; i < storedArray.length; i++) {
-        //let temp_level = findKeyByValue(grading, storedArray[i].level);
-        fetchedData.push({ comicID: storedArray[i].comicID, comicTitle: storedArray[i].title, comicDescription: storedArray[i].description, author: storedArray[i].author, level: storedArray[i].level});
+        fetchedData.push({ comicID: storedArray[i].comicID, comicTitle: storedArray[i].title, comicDescription: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category});
       };
       console.log(fetchedData);
       setCurrent(storedArray);
@@ -91,7 +90,7 @@ const Home = ({ contractAddress }) => {
                       <div className="heading">
                         內容：{dataObj.comicDescription}
                         <div className="author">作者：{dataObj.author}</div>
-                        <div className="author">分級：{dataObj.level}</div>
+                        <div className="author">類型：{dataObj.category}</div>
                       </div>
                     </Link>
                   </div>

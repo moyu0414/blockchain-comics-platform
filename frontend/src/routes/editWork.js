@@ -5,12 +5,12 @@ import createWork from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
 import bs58 from 'bs58';
 import { useLocation } from 'react-router-dom';
-import { getIpfsHashFromBytes32 } from '../index';
-
+import { getIpfsHashFromBytes32, sortByTimestamp } from '../index';
+import axios from 'axios';
+import CryptoJS from 'crypto-js';
 
 const EditWork = (props) => {
   const [web3, setWeb3] = useState(null);
-  const [contract, setContract] = useState(null);
   const [message, updateMessage] = useState('');
   const [stepCompleted, setStepCompleted] = useState(false);
   const [showChapterForm, setShowChapterForm] = useState(false);
@@ -18,21 +18,23 @@ const EditWork = (props) => {
   const [comicHash, setComicHash] = useState('');
   const [chapterHash, setChapterHash] = useState('');
   const location = useLocation();
+  const [hashValue, setHashValue] = useState('');
   const [file, setFile] = useState('');
   const [chapterID, setChapterID] = useState('');
   const currentAccount = localStorage.getItem("currentAccount");
   const [comic, setComic] = useState([]);
   const [chapter, setChapter] = useState([]);
-  const [newComic, setNewComic] = useState({level:'',  name: '', description: '', cid: '', hash: ''});
+  const [newComic, setNewComic] = useState({category:'',  title: '', description: '', imgURL: '', hash: '', filename: ''});
   const [newChapter, setNewChapter] = useState({chapterTitle: '', price: '', chapterHash: '', imgURL: ''});
   const [loading, setLoading] = useState(false);
-  const [grading, setGrading] = useState({
-    "兒童漫畫": "1",
-    "少年漫畫": "2",
-    "少女漫畫": "3",
-    "成人漫畫": "4",
-  });
+  const [grading, setGrading] = useState([
+    "戀愛漫畫",
+    "科幻漫畫",
+    "推理漫畫",
+    "校園漫畫",
+  ]);
   let temp = [];
+  let chapterInfo = [];
   
   // 連接到 Web3 的函數
   async function connectToWeb3(){
@@ -40,34 +42,40 @@ const EditWork = (props) => {
       try {
         const web3 = new Web3(window.ethereum);
         setWeb3(web3);
-        const contractInstance = new web3.eth.Contract(createWork.abi, createWork.address);
-        setContract(contractInstance);
-        let meta = await contractInstance.methods;
-        const chapterInfo = await meta.getChapters(temp[0].hash).call();  //所有章節資料
 
-        let num = 1;
-        for (var i = 0; i < chapterInfo[0].length; i++) {
+        await axios.get('http://localhost:5000/api/chapters')
+        .then(response => {
+          for (var i = 0; i < response.data.length; i++) {
+            if (response.data[i].comic_id == temp[0].comicHash){
+              chapterInfo.push(response.data[i]);
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching comics: ', error);
+        });
+        sortByTimestamp(chapterInfo);
+        console.log(chapterInfo);
+
+        for (var i = 0; i < chapterInfo.length; i++) {
           if (temp[0].author == currentAccount) {
-            let id = 'Chapter' + num;
+            let id = 'Chapter' + (i+1);
             if (id == location.state.chapterID) {
-              let temp_price = chapterInfo[2][i].toString();
-              temp_price = temp_price / 1e18;
-              let cid = await getIpfsHashFromBytes32(chapterInfo[0][i]);
-              let getURL = "https://apricot-certain-boar-955.mypinata.cloud/ipfs/" + cid + "?pinataGatewayToken=DlQddJX0ZBG74RznFKeBXWq0i24fOuD8ktnJMofUAYUuBlmhKKtKs01175WVvh5N";
+              let price = chapterInfo[i].price;
+              let imgURL = "http://localhost:5000/api/chapterIMG/" + chapterInfo[i].filename;
               setNewChapter({
-                chapterTitle: chapterInfo[1][i],
-                price: temp_price,
-                chapterHash: chapterInfo[0][i],
-                imgURL: getURL
+                chapterTitle: chapterInfo[i].title,
+                price: price,
+                chapterHash: chapterInfo[i].chapter_id,
+                imgURL: imgURL
               });
               setChapter({
-                chapterTitle: chapterInfo[1][i],
-                price: temp_price,
-                chapterHash: chapterInfo[0][i],
-                imgURL: getURL
+                chapterTitle: chapterInfo[i].title,
+                price: price,
+                chapterHash: chapterInfo[i].chapter_id,
+                imgURL: imgURL
               })
             }
-            num = num + 1;
           }
         }
       } catch (error) {
@@ -82,56 +90,45 @@ const EditWork = (props) => {
   const editComic = async (e) => {
     e.preventDefault();
     try {
+      setComicHash(hashValue);
       const fillFile = await checkFile();
-      if(fillFile === -1)
-          return;
-      if (!contract) {
-        console.error('合約實例未初始化');
+      if(fillFile === -1){
         return;
       }
-
       disableButton();
-      let comic_Hash = '';
-      if ((comic[0].level != newComic.level || comic[0].title != newComic.name || comic[0].description != newComic.description) && file == '') {  // 合約：編輯漫畫data
-        updateMessage("正在編輯漫畫資料至合約中...請稍後。")
-        await contract.methods.editcomicdata(newComic.hash, newComic.name, currentAccount, newComic.description, newComic.level).send({ from: currentAccount });
-      } else if (file != '') {  // 合約：編輯漫畫hash
-        try {
-          updateMessage("正在編輯漫畫封面至合約中...請稍後。")
-          const response = await uploadFileToIPFS(file);
-          if(response.success === true) {
-            let CID = response.pinataURL.substr(34);
-            comic_Hash = getBytes32FromIpfsHash(CID);
-            setComicHash(comic_Hash);  //更改後的漫畫hash
-          }
-        }
-        catch(e) {
-          alert("IPFS上傳時發生錯誤");
-          console.log("IPFS上傳時發生錯誤!", e);
-        }
-        await contract.methods.editcomichash(newComic.hash, comic_Hash).send({ from: currentAccount });
 
-        if (comic[0].level != newComic.level || comic[0].title != newComic.name || comic[0].description != newComic.description) {  // 合約：編輯漫畫hash(已完成) => 編輯漫畫data
-          updateMessage("正在編輯漫畫資料至合約中...請稍後。")
-          await contract.methods.editcomicdata(comic_Hash, newComic.name, currentAccount, newComic.description, newComic.level).send({ from: currentAccount });
-        };
+      if (comic[0].category != newComic.category || comic[0].title != newComic.title || comic[0].description != newComic.description || file != '') {
+        updateMessage("正在編輯漫畫資料中...請稍後。")
+        try {
+          const formData = new FormData();
+          formData.append('id', comic[0].comicHash); // 将 comicHash 改为 id
+          formData.append('title', newComic.title);
+          formData.append('description', newComic.description);
+          formData.append('category', newComic.category);
+          if (file) {
+            formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
+            formData.append('fileName', ''); // 可以根据需要传递空字符串
+            formData.append('hash', hashValue);
+          } else {
+            formData.append('hash', newComic.hash);
+            formData.append('fileName', newComic.filename); // 如果有需要，可以传递 filename
+          }
+          await axios.put('http://localhost:5000/api/update/comicData', formData);
+
+          alert('漫畫編輯成功！');
+          window.location.replace("/creator");
+
+        } catch (error) {
+          alert('漫畫編輯失敗!');
+        }
       } else {
         alert('目前您未編輯任何東西!');
         updateMessage("");
         enableButton();
         return -1;
       };
-      console.log("comicHash：" + newComic.hash);
-      console.log("comic_Hash：" + comic_Hash);
-      console.log("title：" + newComic.name);
-      console.log("author：" + currentAccount);
-      console.log("description：" + newComic.description);
-      console.log("level：" + newComic.level);
-      alert('漫畫編輯成功！');
       enableButton();
       updateMessage("");
-      window.location.replace("/editWork");
-      window.location.replace("/creator");
     } catch (error) {
       console.error('漫畫編輯時發生錯誤：', error);
       alert('漫畫編輯時發生錯誤!');
@@ -146,43 +143,24 @@ const EditWork = (props) => {
     e.preventDefault();
     try {
       const fillFile = await checkFile();
-      if(fillFile === -1)
-          return;
-      if (!contract) {
-        console.error('合約實例未初始化');
+      if(fillFile === -1){
         return;
       }
+
+      console.log(newChapter.price);
       let price_temp = parseFloat(newChapter.price);
       price_temp = web3.utils.toWei(price_temp, 'ether');
       if (price_temp < 10000000000000000) {
         alert('價格至少0.01 ETH!');
         return;
       }
-      disableButton();
+      //disableButton();
       let chapter_Hash = '';
       if ((chapter.chapterTitle != newChapter.chapterTitle || chapter.price != newChapter.price) && file == '') {  // 合約：編輯章節data
-        updateMessage("正在編輯章節資料至合約中...請稍後。")
-        await contract.methods.editchapterdata(comicHash, newChapter.chapterHash, newChapter.chapterTitle, price_temp).send({ from: currentAccount });
-      } else if (file != '') {  // 合約：編輯章節hash
-        try {
-          updateMessage("正在編輯章節圖檔至合約中...請稍後。")
-          const response = await uploadFileToIPFS(file);
-          if(response.success === true) {
-            let CID = response.pinataURL.substr(34);
-            chapter_Hash = getBytes32FromIpfsHash(CID);
-            setChapterHash(chapter_Hash);  //更改後的章節hash
-          }
-        }
-        catch(e) {
-          alert("IPFS上傳時發生錯誤");
-          console.log("IPFS上傳時發生錯誤!", e);
-        }
-        await contract.methods.editchapterhash(comicHash, chapter.chapterHash , chapter_Hash).send({ from: currentAccount });
+        updateMessage("正在編輯章節資料中...請稍後。")
 
-        if (chapter.chapterTitle != newChapter.chapterTitle || chapter.price != newChapter.price) {  // 合約：編輯漫畫hash(已完成) => 編輯漫畫data
-          updateMessage("正在編章節資料至合約中...請稍後。")
-          await contract.methods.editchapterdata(comicHash, chapter_Hash, newChapter.chapterTitle, price_temp).send({ from: currentAccount });
-        };
+
+
       } else {
         alert('目前您未編輯任何東西!');
         updateMessage("");
@@ -190,15 +168,14 @@ const EditWork = (props) => {
         return -1;
       };
       console.log("comicHash：" + comicHash);
-      console.log("chapterHash：" + newChapter.chapttemp_chaptererHash);
-      console.log("chapter_Hash：" + chapter_Hash);
+      console.log("oldChapterHash：" + newChapter.chapterHash);
+      console.log("newChapter_Hash：" + chapter_Hash);
       console.log("chapterTitle：" + newChapter.chapterTitle);
       console.log("price：" + newChapter.price);
       alert('章節編輯成功！');
       enableButton();
       updateMessage("");
-      window.location.replace("/editWork");
-      window.location.href = `/chapterManagement/${comic[0].comicID}`;
+      //window.location.href = `/chapterManagement/${comic[0].comicID}`;
     } catch (error) {
       console.error('章節編輯時發生錯誤', error);
       alert('章節編輯時發生錯誤!');
@@ -221,30 +198,29 @@ const EditWork = (props) => {
       listButton.style.opacity = 1;
   }
 
-  async function OnChangeFile(e) {
-    var file = e.target.files[0];
+  const handleFileInputChange = (event) => {
+    const file = event.target.files[0];
+    //setSelectedFile(file);
     setFile(file);
-    // 在這裡可以進行一些檔案類型、大小等的驗證
-    if (file) {
-      if (validateFileType(file)) {
-          // 顯示圖片預覽
-          setPreviewImageUrl(URL.createObjectURL(file));
-      } else {
-        // 檔案類型不符合要求，進行錯誤處理
-        alert("Invalid file type. Please upload an image in JPG, JPEG or PNG  format.");
-        console.log("Invalid file type. Please upload an image in JPG, JPEG or PNG format.");
-        return -1;
-      }
+    if (validateFileType(file)) {
+      previewImage(file);
+    } else {
+      alert("Invalid file type. Please upload an image in JPG, JPEG or PNG  format.");
+      console.log("Invalid file type. Please upload an image in JPG, JPEG or PNG format.");
+      return -1;
     }
-  }
+    const reader = new FileReader();
+    reader.onload = handleFileReaderLoad;
+    reader.readAsArrayBuffer(file);
+  };
 
-  
-  // 將 CID 轉換為 32 bytes
-  function getBytes32FromIpfsHash(ipfsListing) {
-    let a = bs58.decode(ipfsListing);
-    return "0x"+bs58.decode(ipfsListing).slice(2).toString('hex')
-  };     
-
+  const handleFileReaderLoad = (event) => {  // 圖片轉為一 hash 值
+    const fileBuffer = event.target.result;
+    const hash = CryptoJS.SHA256(CryptoJS.lib.WordArray.create(fileBuffer));  // 計算 SHA-256 hash
+    const hashValue = "0x" + hash.toString(CryptoJS.enc.Hex);
+    console.log(hashValue);
+    setHashValue(hashValue);
+  };
 
   // 驗證檔案類型是否符合要求
   const validateFileType = (file) => {
@@ -261,29 +237,17 @@ const EditWork = (props) => {
     };
   }; 
 
-  // 漫畫等級取值
+  // 漫畫類型取值
   function ChoseLevel(e){
     let choseLevel = e.target.value;
-    let level = {"兒童漫畫": "1", "少年漫畫": "2", "少女漫畫": "3", "成人漫畫": "4"};
-    let Level = Object.keys(level);
-    for (var i = 0; i < Level.length; i++) {
-      let name = Level[i];
-      if(choseLevel == name){
-        setNewComic({ ...newComic, level: i+1 })
-      };
-    }
+    setNewComic({ ...newComic, category: choseLevel })
   };
-
-  function levelToKey(levelNumber) {
-    let levelMap = {"1": "兒童漫畫", "2": "少年漫畫", "3": "少女漫畫", "4": "成人漫畫"};
-    return levelMap[levelNumber];
-  }
 
   async function checkFile() {
     if(showChapterForm == false){
-      const {level, name, description} = newComic;
+      const {category, title, description} = newComic;
       // 檔案不可為空
-      if( !level || !name || !description)  // || 其中一個為true，即為true
+      if( !category || !title || !description)  // || 其中一個為true，即為true
       {
         updateMessage("請填寫所有欄位！")
         return -1;
@@ -320,10 +284,11 @@ const EditWork = (props) => {
       };
       console.log(temp);
       setComic(temp);
-      setNewComic({level:temp[0].level,  name: temp[0].title, description: temp[0].description, cid: temp[0].cid, hash:temp[0].hash});
-      
+      let imgURL = "http://localhost:5000/api/comicIMG/" + temp[0].filename;
+      setNewComic({category:temp[0].category,  title: temp[0].title, description: temp[0].description, imgURL: imgURL, filename: temp[0].filename, hash:temp[0].comicHash});
+    
       if (location.state.chapterID) {
-        setComicHash(temp[0].hash);
+        setComicHash(temp[0].comicHash);
         setChapterID(location.state.chapterID);
       };
       setLoading(true);
@@ -374,7 +339,7 @@ const EditWork = (props) => {
                 <label htmlFor="image">本章作品上傳，如不需變更章節內容，則無需上傳圖檔</label>
                 <input
                   type="file"
-                  onChange={OnChangeFile}
+                  onChange={handleFileInputChange}
                 />
                 <div style={{display: 'flex'}}>
                   <div style={{marginRight: '170px'}}>更改前的章節內容
@@ -401,19 +366,19 @@ const EditWork = (props) => {
               </div>
           ) : (
               <div>
-                <label htmlFor="level">漫畫分級</label>
-                <select value={levelToKey(newComic.level)} onChange={ChoseLevel}>
-                  <option>請選擇分級</option>
-                  {Object.keys(grading).map((name, index) => (
-                    <option key={index} >{name}</option>
+                <label htmlFor="category">漫畫類型</label>
+                <select value={newComic.category} onChange={ChoseLevel}>
+                  <option>請選擇類型</option>
+                  {grading.map((name, index) => (
+                    <option key={index}>{name}</option>
                   ))}
                 </select>
                 <p></p>
-                <label htmlFor="name">作品名稱</label>
+                <label htmlFor="title">作品名稱</label>
                 <input
                   type="text"
-                  value={newComic.name}
-                  onChange={(e) => setNewComic({ ...newComic, name: e.target.value })}
+                  value={newComic.title}
+                  onChange={(e) => setNewComic({ ...newComic, title: e.target.value })}
                 />
                 <label htmlFor="description">作品簡介</label>
                 <textarea
@@ -425,13 +390,13 @@ const EditWork = (props) => {
                 <label htmlFor="image">上傳漫畫封面，如不需變更圖片封面，則無需上傳圖檔</label>
                 <input
                   type="file"
-                  onChange={OnChangeFile}
+                  onChange={handleFileInputChange}
                 />
                 <div style={{display: 'flex'}}>
                     <div style={{marginRight: '170px'}}>更改前的圖片封面
                       <br />
                       <img
-                        src={newComic.cid}
+                        src={newComic.imgURL}
                         alt="Preview"
                         style={{ width: '150px', paddingBottom: '3%', marginRight: '50px'}}
                       />

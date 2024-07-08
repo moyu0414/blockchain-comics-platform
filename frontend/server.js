@@ -6,7 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-//const CryptoJS = require('crypto-js');
+const CryptoJS = require('crypto-js');
 const app = express();
 const port = 5000;
 app.use(cors());
@@ -45,98 +45,163 @@ pool.getConnection((err, connection) => {
     connection.release(); // 釋放連線
   });
 
-
-// 设置multer中间件用于处理文件上传
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './uploads'); // 上传的文件存储在 uploads 文件夹中
+    cb(null, './uploads');
   },
   filename: function (req, file, cb) {
-    const timestamp = Date.now(); // 获取当前时间戳
-    const randomString = crypto.randomBytes(8).toString('hex'); // 生成随机字符串
-    const ext = path.extname(file.originalname); // 获取文件的扩展名
-    const fileName = `${timestamp}-${randomString}${ext}`; // 将时间戳、随机字符串和扩展名组合成文件名
-    cb(null, fileName); // 使用生成的文件名
+    cb(null, file.originalname); // 保持文件名不变，或者根据需要修改
   }
 });
 const upload = multer({ storage: storage });
+//const upload = multer({ dest: 'uploads/' });  // 圖片存到跟目錄下的 uploads 資料夾，檔名隨機生成
+
+// 計算圖檔hash值
+function calculateHash(filePath) {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash('sha256');
+    const input = fs.createReadStream(filePath);
+    input.on('error', err => reject(err));
+    input.on('data', chunk => hash.update(chunk));
+    input.on('end', () => resolve(hash.digest('hex')));
+  });
+}
+
+// 获取文件扩展名的函数
+function getFileExtension(filename) {
+  return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2);
+}
 
 
 // 讀取所有漫畫
 app.get('/api/comics', (req, res) => {
-    // 執行 COUNT(*) 查詢以確定資料庫中是否有資料
-    pool.query('SELECT COUNT(*) AS count FROM comics', (error, results, fields) => {
-      if (error) {
-        console.error('Error checking comics data: ', error);
-        return res.status(500).json({ message: 'Internal Server Error' });
-      }
-      // 取得結果中的第一筆資料的 count 欄位值
-      const count = results[0].count;
-      if (count === 0) {
-        // 如果資料庫中沒有資料，返回空陣列
-        return res.json([]);
-      } else {
-        // 如果資料庫中有資料，則執行原本的 SELECT * 查詢
-        pool.query('SELECT * FROM comics', (error, results, fields) => {
-          if (error) {
-            console.error('Error fetching comics: ', error);
-            return res.status(500).json({ message: 'Error fetching comics' });
-          }
-          res.json(results);
-        });
-      }
-    });
+  // 執行 COUNT(*) 查詢以確定資料庫中是否有資料
+  pool.query('SELECT COUNT(*) AS count FROM comics', (error, results, fields) => {
+    if (error) {
+      console.error('Error checking comics data: ', error);
+      return res.status(500).json({ message: 'Internal Server Error' });
+    }
+    // 取得結果中的第一筆資料的 count 欄位值
+    const count = results[0].count;
+    if (count === 0) {
+      // 如果資料庫中沒有資料，返回空陣列
+      return res.json([]);
+    } else {
+      // 如果資料庫中有資料，則執行原本的 SELECT * 查詢
+      pool.query('SELECT * FROM comics', (error, results, fields) => {
+        if (error) {
+          console.error('Error fetching comics: ', error);
+          return res.status(500).json({ message: 'Error fetching comics' });
+        }
+        res.json(results);
+      });
+    }
   });
+});
 
 
-  // 讀取所有章節
-  app.get('/api/chapters', (req, res) => {
-    // 執行 COUNT(*) 查詢以確定資料庫中是否有資料
-    pool.query('SELECT COUNT(*) AS count FROM chapters', (error, results, fields) => {
-      if (error) {
-        console.error('Error checking chapters data: ', error);
-        return res.status(500).json({ message: 'Internal Server Error' });
-      }
-      // 取得結果中的第一筆資料的 count 欄位值
-      const count = results[0].count;
-      if (count === 0) {
-        // 如果資料庫中沒有資料，返回空陣列
-        return res.json([]);
-      } else {
-        // 如果資料庫中有資料，則執行原本的 SELECT * 查詢
-        pool.query('SELECT * FROM chapters', (error, results, fields) => {
-          if (error) {
-            console.error('Error fetching chapters: ', error);
-            return res.status(500).json({ message: 'Error fetching chapters' });
-          }
-          res.json(results);
-        });
-      }
-    });
+// 讀取所有章節
+app.get('/api/chapters', (req, res) => {
+  // 執行 COUNT(*) 查詢以確定資料庫中是否有資料
+  pool.query('SELECT COUNT(*) AS count FROM chapters', (error, results, fields) => {
+    if (error) {
+      console.error('Error checking chapters data: ', error);
+      return res.status(500).json({ message: 'Internal Server Error' });
+    }
+    // 取得結果中的第一筆資料的 count 欄位值
+    const count = results[0].count;
+    if (count === 0) {
+      // 如果資料庫中沒有資料，返回空陣列
+      return res.json([]);
+    } else {
+      // 如果資料庫中有資料，則執行原本的 SELECT * 查詢
+      pool.query('SELECT * FROM chapters', (error, results, fields) => {
+        if (error) {
+          console.error('Error fetching chapters: ', error);
+          return res.status(500).json({ message: 'Error fetching chapters' });
+        }
+        res.json(results);
+      });
+    }
   });
+});
   
 
 // 新增一筆 comics 資料、添加漫画信息到数据库的路由
-app.post('/api/add/comics', upload.single('comicIMG'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: 'No file uploaded.' });
+app.post('/api/add/comics', upload.single('comicIMG'),async (req, res) => {
+  const file = req.file;
+  if (!file) {
+    return res.status(400).json({ error: 'No file uploaded' });
   }
-  const { creator, title, description, category, is_exist, comic_id } = req.body;
-  const filename = req.file.filename; // 获取保存在服务器上的文件名
-  // 在这里处理文件上传，并将相关信息存储到数据库中
-  const fileBuffer = fs.readFileSync(req.file.path); // 读取上传的文件
-
-  // 根据前端传递的哈希值存储 comic_id 到数据库
-  pool.query(
-    'INSERT INTO comics (comic_id, creator, title, description, category, is_exist, filename) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [comic_id, creator, title, description, category, is_exist, filename],
-    (error, results, fields) => {
-      if (error) {
-        console.error('Error inserting into comics: ', error);
-        return res.status(500).json({ message: 'Error inserting into comics' });
+  try {
+    const timestamp = Date.now().toString();
+    const hashValue = await calculateHash(file.path);
+    const filename = `${timestamp}_${hashValue}.${getFileExtension(file.originalname)}`;
+    const filePath = `uploads/${filename}`;
+    fs.renameSync(file.path, filePath);  // 移动文件到上传目录，并重命名
+    const { creator, title, description, category, is_exist, comic_id } = req.body;
+    pool.query(
+      'INSERT INTO comics (comic_id, creator, title, description, category, is_exist, filename) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [comic_id, creator, title, description, category, is_exist, filename],
+      (error, results, fields) => {
+        if (error) {
+          console.error('Error inserting into comics: ', error);
+          return res.status(500).json({ message: 'Error inserting into comics' });
+        }
+        res.json({ message: 'Comic added successfully.', comic_id: comic_id, filename: filename });
       }
-      res.json({ message: 'Comic added successfully.', comic_id: comic_id, filename: req.file.filename });
-    }
+    );
+  } catch (error) {
+    console.error('Error processing comics upload:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// 新增一筆 chapters 資料、添加漫画信息到数据库的路由
+app.post('/api/add/chapters', upload.single('chapterIMG'),async (req, res) => {
+  const file = req.file;
+  if (!file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+  try {
+    const timestamp = Date.now().toString();
+    const hashValue = await calculateHash(file.path);
+    const filename = `${timestamp}_${hashValue}.${getFileExtension(file.originalname)}`;
+    const filePath = `uploads/${filename}`;
+    fs.renameSync(file.path, filePath);  // 移动文件到上传目录，并重命名
+    const { chapter_hash, comic_id, price, title} = req.body;
+    pool.query(
+      'INSERT INTO chapters (chapter_id, comic_id, price, title, filename) VALUES (?, ?, ?, ?, ?)',
+      [chapter_hash, comic_id, price, title, filename],
+      (error, results, fields) => {
+          if (error) {
+              console.error('Error inserting into chapters: ', error);
+              return res.status(500).json({ message: 'Error inserting into chapters' });
+          }
+          res.json({ message: 'chapter added successfully.', chapter_hash: chapter_hash, filename: filename });
+      }
+    );
+  } catch (error) {
+    console.error('Error processing chapters upload:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// 新增一筆 records 資料
+app.post('/api/add/records', (req, res) => {
+  const { hash, comic_id, chapter_id, address, purchase_date, price } = req.body;
+  pool.query(
+      'INSERT INTO records (hash, comic_id, price, chapter_id, address, purchase_date, price) VALUES (?, ?, ?, ?, ?, ?)',
+      [hash, comic_id, price, chapter_id, address, purchase_date, price],
+      (error, results, fields) => {
+          if (error) {
+              console.error('Error inserting into records: ', error);
+              return res.status(500).json({ message: 'Error inserting into records' });
+          }
+          res.json({ message: 'chapter added successfully.', hash: hash, purchaseDate: purchase_date });
+      }
   );
 });
 
@@ -163,30 +228,7 @@ app.get('/api/comicIMG/:filename', (req, res) => {
 });
 
 
-// 新增一筆 chapters 資料、添加漫画信息到数据库的路由
-app.post('/api/add/chapters', upload.single('chapterIMG'), (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded.' });
-    }
-    const { chapter_hash, comic_id, price, title} = req.body;
-    const filename = req.file.filename; // 取得保存在伺服器上的檔案名
-    const fileBuffer = fs.readFileSync(req.file.path);
-
-    pool.query(
-        'INSERT INTO chapters (chapter_id, comic_id, price, title, filename) VALUES (?, ?, ?, ?, ?)',
-        [chapter_hash, comic_id, price, title, filename],
-        (error, results, fields) => {
-            if (error) {
-                console.error('Error inserting into chapters: ', error);
-                return res.status(500).json({ message: 'Error inserting into chapters' });
-            }
-            res.json({ message: 'chapter added successfully.', chapter_hash: chapter_hash, filename: req.file.filename });
-        }
-    );
-});
-
-
-// 根据 filename 获取漫画图片的路由
+// 根据 filename 获取章節图片的路由
 app.get('/api/chapterIMG/:filename', (req, res) => {
   const { filename } = req.params;
   pool.query(
@@ -208,20 +250,43 @@ app.get('/api/chapterIMG/:filename', (req, res) => {
 });
 
 
-// 新增一筆 records 資料
-app.post('/api/add/records', (req, res) => {
-  const { hash, comic_id, chapter_id, address, purchase_date, price } = req.body;
-  pool.query(
-      'INSERT INTO records (hash, comic_id, price, chapter_id, address, purchase_date, price) VALUES (?, ?, ?, ?, ?, ?)',
-      [hash, comic_id, price, chapter_id, address, purchase_date, price],
-      (error, results, fields) => {
-          if (error) {
-              console.error('Error inserting into records: ', error);
-              return res.status(500).json({ message: 'Error inserting into records' });
-          }
-          res.json({ message: 'chapter added successfully.', hash: hash, purchaseDate: purchase_date });
-      }
-  );
+// 編輯漫畫資料的請求、添加漫畫信息到數據庫的路由
+app.put('/api/update/comicData', upload.single('comicIMG'), (req, res) => {
+  const { id, hash, title, description, category, fileName } = req.body;
+  let filename = ''; // 初始化 filename 变量
+  if (fileName) {
+    filename = fileName; // 如果请求中有 fileName 属性，则使用该属性值
+  } else if (req.file) {
+    filename = req.file.filename; // 否则使用上传的文件的文件名
+  }
+  const updateQuery = `UPDATE comics SET comic_id = ?, title = ?, description = ?, category = ?, filename = ? WHERE comic_id = ?`;
+  pool.query(updateQuery, [hash, title, description, category, filename, id], (error, results, fields) => {
+    if (error) {
+      res.status(500).json({ error: 'Failed to update comicData' });
+      return;
+    }
+    res.status(200).json({ message: 'comicData updated successfully' });
+  });
+});
+
+
+// 編輯章節資料的請求、添加章節信息到數據庫的路由
+app.put('/api/update/chapterData', upload.single('chapterIMG'), (req, res) => {
+  const { id, chapter_id, price, title, fileName } = req.body;
+  let filename = ''; // 初始化 filename 变量
+  if (fileName) {
+    filename = fileName; // 如果请求中有 fileName 属性，则使用该属性值
+  } else if (req.file) {
+    filename = req.file.filename; // 否则使用上传的文件的文件名
+  }
+  const updateQuery = `UPDATE chapters SET chapter_id = ?, price = ?, title = ?, filename = ? WHERE chapter_id = ?`;
+  pool.query(updateQuery, [chapter_id, price, title, filename, id], (error, results, fields) => {
+    if (error) {
+      res.status(500).json({ error: 'Failed to update chapterData' });
+      return;
+    }
+    res.status(200).json({ message: 'chapterData updated successfully' });
+  });
 });
 
 

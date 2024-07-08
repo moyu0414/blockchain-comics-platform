@@ -78,7 +78,7 @@ const AppLayout = () => {
           //console.log(meta);
 
           sortByTimestamp(DBComicDatas);
-          let comicHash, id, temp_title, temp_hash, comicAuthor, comicDescription, comicLevel, comicExists, exists, filename;
+          let comicHash, id, temp_title, temp_hash, comicAuthor, comicDescription, comicCategory, comicExists, exists, filename;
           for (var i = 0; i < DBComicDatas.length; i++) {
             let id = 'Comic' + (i + 1) ;
             if (DBComicDatas[i].is_exist == 1) {
@@ -86,11 +86,11 @@ const AppLayout = () => {
               temp_title = DBComicDatas[i].title;
               comicAuthor = DBComicDatas[i].creator;
               comicDescription = DBComicDatas[i].description;
-              comicLevel = DBComicDatas[i].category;
+              comicCategory = DBComicDatas[i].category;
               exists = DBComicDatas[i].is_exist;
               filename = DBComicDatas[i].filename;
 
-              comicDatas.push({comicID: id, hash: temp_hash, title: temp_title, author: comicAuthor, description: comicDescription, level: comicLevel, exists: exists, filename: filename, comicHash: comicHash});
+              comicDatas.push({comicID: id, hash: temp_hash, title: temp_title, author: comicAuthor, description: comicDescription, category: comicCategory, exists: exists, filename: filename, comicHash: comicHash});
             }
           }
           console.log("comicDatas：" , comicDatas);
