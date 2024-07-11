@@ -58,7 +58,7 @@ const CreateWork = (props) => {
         console.error('合約實例未初始化');
         return;
       }
-      //disableButton();
+      disableButton();
       updateMessage("正在上傳漫畫至合約中...請稍後。")
 
       console.log("comicHash：" + hashValue);
@@ -67,7 +67,7 @@ const CreateWork = (props) => {
       console.log("description：" + formParams.description);
       console.log("level：" + formParams.category);
      
-      //await contract.methods.uploadComic(hashValue, formParams.title).send({ from: currentAccount });
+      await contract.methods.uploadComic(hashValue, formParams.title).send({ from: currentAccount });
 
       const formData = new FormData();
       formData.append('comicIMG', file); // 使用正确的字段名，这里是 'comicIMG'
@@ -131,7 +131,7 @@ const CreateWork = (props) => {
       console.log("title：" + formParams_1.title);
       console.log("price：" + formParams_1.price);
 
-      //await contract.methods.addChapter(comicHash, hashValue, formParams_1.title, price_temp).send({ from: currentAccount });
+      await contract.methods.addChapter(comicHash, hashValue, formParams_1.title, price_temp).send({ from: currentAccount });
 
       const formData = new FormData();
       formData.append('chapterIMG', file); // 使用正确的字段名，这里是 'chapterIMG'
@@ -155,7 +155,6 @@ const CreateWork = (props) => {
         window.location.replace("/creator");
       } catch (error) {
         console.error('章節內容添加至資料庫時發生錯誤：', error);
-        // 处理添加漫画失败后的逻辑
       }
     } catch (error) {
       console.error('添加章節時發生錯誤：', error);
@@ -202,7 +201,6 @@ const CreateWork = (props) => {
     const hashValue = hash.toString(CryptoJS.enc.Hex); // SHA-256 hash 值的十六进制表示
     const combinedValue = hashValue + timestamp; // 将 SHA-256 hash 值和時間戳串接
     const finalValue = "0x" + combinedValue.slice(-64);
-    console.log(finalValue);
     setHashValue(finalValue); // 设置最终的 hash 值
   };
 

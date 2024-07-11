@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { useParams } from 'react-router-dom';
-import comicData from '../contracts/ComicPlatform.json';
-import Web3 from 'web3';
-import {formatDate, formatTime} from '../index';
+//import comicData from '../contracts/ComicPlatform.json';
 
 const ReaderChapter = () => {
-  const [web3Instance, setWeb3Instance] = useState('');
   const { comicID } = useParams();
   const [message, updateMessage] = useState('');
   const [comic, setComic] = useState([]);
@@ -30,32 +27,21 @@ const ReaderChapter = () => {
       console.log(temp);
       setComic(temp);
 
-      const web3Instance = new Web3(window.ethereum);
-      setWeb3Instance(web3Instance);
-      const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
-
       const chapterArrayJSON = localStorage.getItem('purchaseData');
       const chapterArray = JSON.parse(chapterArrayJSON);
       console.log(chapterArray);
 
       for (var i = 0; i < chapterArray.length; i++) {
         if(chapterArray[i].comicID == comicID && chapterArray[i].buyer == currentAccount){
-          const transactionHash = chapterArray[i].transactionHash;
-          const transactionDetail = await web3Instance.eth.getTransaction(transactionHash);
-          const blockNumberDetail = await web3Instance.eth.getBlock(transactionDetail.blockNumber.toString());
-          const timestamp = blockNumberDetail.timestamp;
-          const date = formatDate(new Date(Number(timestamp) * 1000));
-          const time = formatTime(new Date(Number(timestamp) * 1000));
           temp_purchase.push({
             chapterID: chapterArray[i].chapterID,
             title: chapterArray[i].title,
             price: chapterArray[i].chapterPrice,
-            date: date,
-            time: time
+            date: chapterArray[i].date,
+            time: chapterArray[i].time
           });
         };
       };
-      temp_purchase.sort(compare);  //依照時間做排序
       console.log(temp_purchase);
       isPurchase(temp_purchase);
       setLoading(false);
@@ -68,12 +54,6 @@ const ReaderChapter = () => {
     fetchChapters();
   }, []);
 
-  // 按照时间排序
-  function compare(a, b) {
-    const datetimeA = new Date(a.date + ' ' + a.time);
-    const datetimeB = new Date(b.date + ' ' + b.time);
-    return datetimeA - datetimeB;
-  }
 
   return (
     <div className="select-chapter-page">

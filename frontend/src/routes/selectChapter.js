@@ -32,20 +32,19 @@ const SelectChapter = () => {
 
       const storedArrayJSON = localStorage.getItem('comicDatas');
       const storedArray = JSON.parse(storedArrayJSON);
-      console.log(storedArray);
       
       for (var i = 0; i < storedArray.length; i++) {
         if(storedArray[i].comicID == comicID){
           temp.push(storedArray[i]);
         };
       };
-      setComic(temp);  //本漫畫所有漫畫資料
+      setComic(temp);  // 此漫畫資料
       console.log(temp);
 
       await axios.get('http://localhost:5000/api/chapters')
       .then(response => {
-        console.log("DB chapterData：" , response.data);
-        for (var i = 0; i < response.data.length; i++) {  //本漫畫中，章節購買者
+        //console.log("DB chapterData：" , response.data);
+        for (var i = 0; i < response.data.length; i++) {
           if (response.data[i].comic_id == temp[0].comicHash){
             chapterInfo.push(response.data[i]);
           }
@@ -55,14 +54,14 @@ const SelectChapter = () => {
         console.error('Error fetching comics: ', error);
       });
       sortByTimestamp(chapterInfo);
-      console.log(chapterInfo);
+      //console.log(chapterInfo);
 
       const chapterArrayJSON = localStorage.getItem('purchaseData');
       const chapterArray = JSON.parse(chapterArrayJSON);
       console.log(chapterArray);
 
       for (var i = 0; i < chapterArray.length; i++) {  //本漫畫中，章節購買者
-        if(chapterArray[i].comicID == comicID){
+        if(chapterArray[i].comicID == comicID && chapterArray[i].buyer == currentAccount){
           temp_purchase.push(chapterArray[i]);
         }
       };
@@ -80,11 +79,13 @@ const SelectChapter = () => {
         let price = chapterInfo[n].price.toString();
         let id = 'Chapter' + num;
         let temp_isBuying = '購買';
+
         for (var i = 0; i < temp_purchase.length; i++) {  //讀者部分
-          if(temp_purchase[i].buyer == currentAccount){
+          if(temp_purchase[i].chapterHash == chapterHash){
             temp_isBuying = '閱讀';
           }
         };
+
         if(temp[0].author == currentAccount){  //作者部分
           temp_isBuying = '閱讀';
           temp_isAuthor = '您是本作品的創作者!';
@@ -143,39 +144,51 @@ const SelectChapter = () => {
     } else {
       try {
         disableAllButtons();
-
         let balance = await web3.eth.getBalance(currentAccount);
         balance = balance.toString() / 1e18;
         let price = chapter.price;
-  
         if (balance > price) {
-
           const comicHash = comic[0].comicHash;
           const chapterHash = chapter.chapterHash;
-          //price = web3.utils.toWei(price, 'ether');
-          console.log(comicHash);
-          console.log(chapterHash);
-          updateMessage("正在購買章節中...請稍後。");
-
-          //let gasEstimate = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, 0).estimateGas({
-            //from: currentAccount,
-            //value: web3.utils.toWei(price, 'ether')
-          //});
           console.log(comicHash);
           console.log(chapterHash);
           console.log(price);
-          //await web3Instance.methods.purchaseChapter(comicHash, chapterHash, gas).send({ from: currentAccount, value: web3Instance.utils.toWei(price, 'ether'), gas });
-          await web3Instance.methods.purchaseChapter(comicHash, chapterHash, 200000000000000000).send({
+          price = web3.utils.toWei(price, 'ether');
+          updateMessage("正在購買章節中...請稍後。");
+
+          let gasEstimate = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, price/10).estimateGas({
             from: currentAccount,
-            value: web3.utils.toWei(price, 'ether'),
-            gas: 200000000000000000
+            value: price,
           });
-          
-          alert('章節購買成功！');
+          const transaction = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, gasEstimate).send({
+            from: currentAccount,
+            value: price,
+            gas: gasEstimate
+          });
+          const transactionHash = transaction.transactionHash;
+          let Timestamp = await getTransactionTimestamp(transactionHash);
+
+          const formData = new FormData();
+          formData.append('hash', transactionHash);
+          formData.append('comic_id', comicHash);
+          formData.append('chapter_id', chapterHash);
+          formData.append('address', currentAccount);
+          formData.append('purchase_date', Timestamp);
+          formData.append('price', chapter.price);
+          try {
+            const response = await axios.post('http://localhost:5000/api/add/records', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            });
+            alert('章節購買成功！');
+            const updatedChapters = [...chapters];
+            updatedChapters[chapterId].isBuying = '閱讀'; // 更新章節的購買狀態
+            setChapters(updatedChapters);
+          } catch (error) {
+            console.error('購買紀錄添加至資料庫時發生錯誤：', error);
+          }
           updateMessage("");
-          const updatedChapters = [...chapters];
-          updatedChapters[chapterId].isBuying = '閱讀'; // 更新章節的購買狀態
-          setChapters(updatedChapters);
         } else {
           console.log('餘額不足');
           alert('餘額不足');
@@ -183,13 +196,33 @@ const SelectChapter = () => {
       } catch (error) {
         console.error('章節購買時發生錯誤：', error);
         alert(error);
-        //window.location.reload();
+        window.location.reload();
         updateMessage("");
       } finally {
         enableAllButtons();
       }
     }
   };
+
+  async function getTransactionTimestamp(transactionHash) {
+    try {
+      const transaction = await web3.eth.getTransaction(transactionHash);
+      const block = await web3.eth.getBlock(transaction.blockHash);
+      const timestamp = parseInt(block.timestamp.toString()) * 1000; // 转换为毫秒
+      const date = new Date(timestamp);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      return formattedDate;
+    } catch (error) {
+      console.error('获取交易时间失败:', error);
+      throw error;
+    }
+  }
 
   const disableAllButtons = () => {
     const buttons = document.querySelectorAll(".btn");
@@ -217,9 +250,9 @@ const SelectChapter = () => {
             {comic.map((Comic, index) => (
               <div className='comic-chapter-title' key={index}>
                 <center>
+                  <h2>讀者購買_章節選擇</h2>
                   <h1>{Comic.title}</h1>
                   <h4>作者：{isAuthor}</h4>
-                  <h2>讀者購買_章節選擇</h2>
                 </center>
               </div>
             ))}

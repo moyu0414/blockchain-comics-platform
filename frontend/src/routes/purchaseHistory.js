@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Web3 from 'web3';
-import {formatDate, formatTime} from '../index';
 
 const PurchaseHistory = () => {
   const [logs, setLogs] = useState([]);
@@ -11,15 +9,20 @@ const PurchaseHistory = () => {
   useEffect(() => {
     const initContract = async () => {
       try {
-        const readerLogs = localStorage.getItem("readerLogs");
+        const readerLogs = localStorage.getItem("purchaseData");
         const readerLogArray = JSON.parse(readerLogs);
         console.log(readerLogArray);
         
-        readerLogArray.sort(compare);  //依照時間做排序
-        console.log(readerLogArray);
-        setLogs(readerLogArray);
+        let totalPrice = 0;
+        const updatedData = readerLogArray.map(item => {
+          totalPrice += parseFloat(item.chapterPrice); // 累加价格
+          const formattedTotalPrice = Number(totalPrice.toFixed(4));
+          return {...item, totalprice: formattedTotalPrice};
+        });
+        console.log(updatedData);
+        setLogs(updatedData);
         setLoading(false);
-        if (readerLogArray.length < 1){
+        if (updatedData.length < 1){
           setBeing(true);
         };
       } catch (error) {
@@ -28,14 +31,6 @@ const PurchaseHistory = () => {
     };
     initContract();
   }, []);
-
-
-  // 按照时间排序
-  function compare(a, b) {
-    const datetimeA = new Date(a.date + ' ' + a.time);
-    const datetimeB = new Date(b.date + ' ' + b.time);
-    return datetimeA - datetimeB;
-  }
     
   
   return (
@@ -60,18 +55,18 @@ const PurchaseHistory = () => {
               <th>作者</th>
               <th>交易時間</th>
               <th>交易金額</th>
-              <th>手續費</th>
+              <th>累計金額</th>
             </tr>
           </thead>
           <tbody>
             {logs.map((log, index) => (
               <tr key={index}>
-                <td>{log.comicTitles}</td>
-                <td>{log.chapterTitles}</td>
+                <td>{log.comicTitle}</td>
+                <td>{log.title}</td>
                 <td>{log.author}</td>
                 <td>{log.date}<br />{log.time}</td>
-                <td>{log.price}</td>
-                <td>{log.TxnFee}</td>
+                <td>{log.chapterPrice}</td>
+                <td>{log.totalprice}</td>
               </tr>
             ))}
           </tbody>

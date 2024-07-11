@@ -17,7 +17,7 @@ const Reader = () => {
     try {
       const storedArrayJSON = localStorage.getItem('comicDatas');
       const storedArray = JSON.parse(storedArrayJSON);
-      //console.log(storedArray)
+      console.log(storedArray)
 
       const chapterArrayJSON = localStorage.getItem('purchaseData');
       const chapterArray = JSON.parse(chapterArrayJSON);
@@ -28,7 +28,7 @@ const Reader = () => {
       for (var i = 0; i < storedArray.length; i++) {
         for (var n = 0; n < chapterArray.length; n++) {
           if (storedArray[i].comicID == chapterArray[n].comicID && chapterArray[n].buyer == currentAccount){
-            addData({ comicID: chapterArray[n].comicID, title: chapterArray[n].comicTitle, cid: storedArray[i].cid }); 
+            addData({ comicID: chapterArray[n].comicID, title: chapterArray[n].comicTitle, filename: storedArray[i].filename }); 
           }
         };
       };
@@ -79,7 +79,7 @@ const Reader = () => {
             <div className="col-3 reader-container" key={index}>
               <Link to={`/reader_Chapter/${comic.comicID}`}> {/* 將 comicID 作為路由參數 */}
                 <p className='management-title'>{comic.title}</p>
-                <img src={comic.cid} alt={`Comic ${index + 1}`} className="img-fluid comic-image" />
+                <img src={`http://localhost:5000/api/comicIMG/${comic.filename}`} alt={`Comic ${index + 1}`} className="img-fluid comic-image" />
               </Link>
             </div>
           ))}

@@ -79,7 +79,7 @@ const Reading = () => {
             comicTitle: chapterArray[i].comicTitle,
             chapterTitle: chapterArray[i].title,
             chapterID: chapterArray[i].chapterID,
-            chapterHash: chapterArray[i].latestChapterHash
+            filename: chapterArray[i].filename
           });
           num = num + 1;
         }
