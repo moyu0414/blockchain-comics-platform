@@ -33,7 +33,7 @@ const pool = mysql.createPool({
     port: 3306,
     waitForConnections: true,
     connectionLimit: 10,  // 設定連線池大小，預設為10
-    connectTimeout: 5000, // 增加連接超時時間為 5 秒
+    connectTimeout: 10000, // 增加連接超時時間為 10 秒
 });
 
 
@@ -86,7 +86,7 @@ const deleteFile = async (filePath) => {
   const unlinkAsync = promisify(fs.unlink);
   try {
     await unlinkAsync(filePath);
-    console.log(`Deleted file: ${filePath}`);
+    //console.log(`Deleted file: ${filePath}`);
   } catch (error) {
     console.error(`Error deleting file ${filePath}:`, error);
     throw error;
@@ -121,84 +121,141 @@ app.get('/api/comics', (req, res) => {
 });
 
 
-// 讀取所有章節
+// 這本漫畫的所有章節
 app.get('/api/chapters', (req, res) => {
-  // 執行 COUNT(*) 查詢以確定資料庫中是否有資料
-  pool.query('SELECT COUNT(*) AS count FROM chapters', (error, results, fields) => {
+  const comicHash = req.query.comicHash;
+  const query = `
+    SELECT chapters.chapter_id AS chapterHash, chapters.title AS chapterTitle, chapters.price, chapters.filename, comics.title AS comicTitle, comics.creator
+    FROM chapters
+    INNER JOIN comics ON chapters.comic_id = comics.comic_id
+    WHERE comics.comic_id = ? AND comics.is_exist = 1
+  `;
+  pool.query(query, [comicHash], (error, results, fields) => {
     if (error) {
-      console.error('Error checking chapters data: ', error);
-      return res.status(500).json({ message: 'Internal Server Error' });
+      console.error('Error fetching chapters records: ', error);
+      return res.status(500).json({ message: 'Error fetching chapters records' });
     }
-    // 取得結果中的第一筆資料的 count 欄位值
-    const count = results[0].count;
-    if (count === 0) {
-      // 如果資料庫中沒有資料，返回空陣列
+    if (results.length === 0) {
       return res.json([]);
-    } else {
-      // 如果資料庫中有資料，則執行原本的 SELECT * 查詢
-      pool.query('SELECT * FROM chapters', (error, results, fields) => {
-        if (error) {
-          console.error('Error fetching chapters: ', error);
-          return res.status(500).json({ message: 'Error fetching chapters' });
-        }
-        res.json(results);
-      });
     }
+    res.json(results);
   });
 });
 
 
-// 讀取所有購買紀錄
-app.get('/api/records', (req, res) => {
-  // 執行 COUNT(*) 查詢以確定資料庫中是否有資料
-  pool.query('SELECT COUNT(*) AS count FROM records', (error, results, fields) => {
+// 讀取創作者所有漫畫中，所有章節購買紀錄，下架不算：transactionHistory
+app.get('/api/creator/records', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const query = `
+    SELECT comics.title AS comicTitle, chapters.title AS chapterTitle, records.purchase_date, records.price
+    FROM records
+    INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
+    INNER JOIN comics ON chapters.comic_id = comics.comic_id
+    WHERE comics.creator = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 1
+  `;
+  pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
-      console.error('Error checking creator records data: ', error);
-      return res.status(500).json({ message: 'Internal Server Error' });
+      console.error('Error fetching creator records: ', error);
+      return res.status(500).json({ message: 'Error fetching creator records' });
     }
-    // 取得結果中的第一筆資料的 count 欄位值
-    const count = results[0].count;
-    if (count === 0) {
-      // 如果資料庫中沒有資料，返回空陣列
+    if (results.length === 0) {
       return res.json([]);
-    } else {
-      // 如果資料庫中有資料，則執行原本的 SELECT * 查詢
-      pool.query('SELECT * FROM records', (error, results, fields) => {
-        if (error) {
-          console.error('Error fetching records :', error);
-          return res.status(500).json({ message: 'Error fetching records' });
-        }
-        res.json(results); // 将查询结果作为 JSON 响应返回
-      });
     }
+    res.json(results);
   });
 });
 
 
-// 讀取讀者購買的所有漫畫
+// 讀取讀者所有漫畫中，漫畫資訊，下架不算：reader
 app.get('/api/reader/records', (req, res) => {
-  // 執行 COUNT(*) 查詢以確定資料庫中是否有資料
-  pool.query('SELECT COUNT(*) AS count FROM records', (error, results, fields) => {
+  const currentAccount = req.query.currentAccount;
+  const query = `
+    SELECT comics.title AS comicTitle, comics.comic_id AS comicHash, chapters.title AS chapterTitle
+    FROM records
+    INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
+    INNER JOIN comics ON chapters.comic_id = comics.comic_id
+    WHERE records.buyer = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 1
+  `;
+  pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
-      console.error('Error checking reader records data: ', error);
-      return res.status(500).json({ message: 'Internal Server Error' });
+      console.error('Error fetching reader records: ', error);
+      return res.status(500).json({ message: 'Error fetching reader records' });
     }
-    // 取得結果中的第一筆資料的 count 欄位值
-    const count = results[0].count;
-    if (count === 0) {
-      // 如果資料庫中沒有資料，返回空陣列
+    if (results.length === 0) {
       return res.json([]);
-    } else {
-      const { currentAccount } = req.query;
-      // 如果資料庫中有資料，則執行原本的 SELECT * 查詢
-      pool.query('SELECT * FROM records WHERE address = ?', [currentAccount], (error, results, fields) => {
-        if (error) {
-          console.error('Error fetching reader records for address:', currentAccount, error);
-          return res.status(500).json({ message: 'Error fetching reader records' });
-        }
-        res.json(results); // 将查询结果作为 JSON 响应返回
-      });
     }
+    res.json(results);
+  });
+});
+
+
+// 讀取讀者_購買紀錄，下架不算：purchaseHistory
+app.get('/api/purchaseHistory/records', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const query = `
+    SELECT comics.title AS comicTitle, chapters.title AS chapterTitle, comics.creator, records.purchase_date, records.price AS recordsPrice
+    FROM records
+    INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
+    INNER JOIN comics ON chapters.comic_id = comics.comic_id
+    WHERE records.buyer = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 1
+  `;
+  pool.query(query, [currentAccount], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching reader records: ', error);
+      return res.status(500).json({ message: 'Error fetching reader records' });
+    }
+    if (results.length === 0) {
+      return res.json([]);
+    }
+    res.json(results);
+  });
+});
+
+
+// 購買紀錄＿章節選擇：selectChapter、reader_Chapter
+app.get('/api/selectChapter/records', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const comicHash = req.query.comicHash;
+  const query = `
+    SELECT chapters.chapter_id AS chapterHash, chapters.title AS chapterTitle, chapters.price, records.price AS recordsPrice, records.purchase_date
+    FROM records
+    INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
+    INNER JOIN comics ON chapters.comic_id = comics.comic_id
+    WHERE records.buyer = ? AND comics.comic_id = ? AND comics.is_exist = 1
+  `;
+  pool.query(query, [currentAccount, comicHash], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching reader records: ', error);
+      return res.status(500).json({ message: 'Error fetching reader records' });
+    }
+    if (results.length === 0) {
+      return res.json([]);
+    }
+    res.json(results);
+  });
+});
+
+
+// 購買紀錄_reading
+app.get('/api/reading/records', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const comicHash = req.query.comicHash;
+  const query = `
+    SELECT comics.title AS comicTitle, chapters.title AS chapterTitle, chapters.filename, chapters.chapter_id
+    FROM records
+    INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
+    INNER JOIN comics ON chapters.comic_id = comics.comic_id
+    WHERE records.buyer = ? AND comics.comic_id = ? AND comics.is_exist = 1
+  `;
+  pool.query(query, [currentAccount, comicHash], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching reading records: ', error);
+      return res.status(500).json({ message: 'Error fetching reading records' });
+    }
+    if (results.length === 0) {
+      return res.json([]);
+    }
+    res.json(results);
   });
 });
 
@@ -259,10 +316,10 @@ app.post('/api/add/chapters', upload.single('chapterIMG'),async (req, res) => {
 
 // 新增一筆 records 資料
 app.post('/api/add/records',upload.any(), (req, res) => {
-  const { hash, comic_id, chapter_id, address, purchase_date, price } = req.body;
+  const { hash, comic_id, chapter_id, buyer, creator, purchase_date, price } = req.body;
   pool.query(
-    'INSERT INTO records (hash, comic_id, chapter_id, address, purchase_date, price) VALUES (?, ?, ?, ?, ?, ?)',
-    [hash, comic_id, chapter_id, address, purchase_date, price],
+    'INSERT INTO records (hash, comic_id, chapter_id, buyer, creator, purchase_date, price) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [hash, comic_id, chapter_id, buyer, creator, purchase_date, price],
     (error, results, fields) => {
       if (error) {
         console.error('Error inserting into records: ', error);
@@ -272,7 +329,6 @@ app.post('/api/add/records',upload.any(), (req, res) => {
     }
   );
 });
-
 
 
 // 根据 filename 获取漫画图片的路由
@@ -341,7 +397,7 @@ app.put('/api/update/comicData', upload.single('comicIMG'), async (req, res) => 
       });
     });
     if (file) {
-      console.log(fileName);
+      //console.log(fileName);
       await deleteFile(`uploads/${fileName}`);
     }
     res.status(200).json({ message: 'comicData updated successfully' });
@@ -350,8 +406,6 @@ app.put('/api/update/comicData', upload.single('comicIMG'), async (req, res) => 
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-
 
 
 // 編輯章節資料的請求、添加章節信息到數據庫的路由
@@ -376,12 +430,34 @@ app.put('/api/update/chapterData', upload.single('chapterIMG'), async (req, res)
       });
     });
     if (file) {
-      console.log(fileName);
+      //console.log(fileName);
       await deleteFile(`uploads/${fileName}`);
     }
     res.status(200).json({ message: 'chapterData updated successfully' });
   } catch (error) {
     console.error('Error updating Chapter data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// 更新漫畫存在狀態的路由
+app.put('/api/update/comicExist', async (req, res) => {
+  const { is_exist, comicHash } = req.body;
+  try {
+    const updateQuery = `UPDATE comics SET is_exist = ? WHERE comic_id = ?`;
+    const queryResult = await new Promise((resolve, reject) => {
+      pool.query(updateQuery, [is_exist, comicHash], (error, results, fields) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(results);
+      });
+    });
+    res.status(200).json({ message: 'comicExist updated successfully' });
+  } catch (error) {
+    console.error('Error updating comicExist:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

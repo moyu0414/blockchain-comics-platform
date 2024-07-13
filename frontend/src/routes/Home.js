@@ -14,7 +14,6 @@ const Home = ({ contractAddress }) => {
   const storedArrayJSON = localStorage.getItem('comicDatas');
   const [current, setCurrent] = useState([]);
   const fetchedData = [];
-  //const grading = { "兒童漫畫": "1", "少年漫畫": "2", "少女漫畫": "3", "成人漫畫": "4" };
   const searchRef = useRef();
 
   const initContract = async () => {
@@ -23,10 +22,12 @@ const Home = ({ contractAddress }) => {
       console.log(storedArray);
 
       for (var i = 0; i < storedArray.length; i++) {
-        fetchedData.push({ comicID: storedArray[i].comicID, comicTitle: storedArray[i].title, comicDescription: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category});
+        if (storedArray[i].exists == 1) {
+          fetchedData.push({ comicID: storedArray[i].comicID, title: storedArray[i].title, description: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, filename: storedArray[i].filename});
+        }
       };
       console.log(fetchedData);
-      setCurrent(storedArray);
+      setCurrent(fetchedData);
       setData(fetchedData);
       setLoading(false);
     } catch (error) {
@@ -47,9 +48,6 @@ const Home = ({ contractAddress }) => {
     };
   }, []);
 
-  //function findKeyByValue(obj, value) {
-    //return Object.keys(obj).find(key => obj[key] === value);
-  //};
 
   function search(data) {
     return data.filter((data) =>
@@ -86,9 +84,9 @@ const Home = ({ contractAddress }) => {
                 <div className="box" key={index}>
                   <div className="search-card">
                     <Link to={`/selectChapter/${dataObj.comicID}`}>
-                      <div className="category">名稱：{dataObj.comicTitle} </div>
+                      <div className="category">名稱：{dataObj.title} </div>
                       <div className="heading">
-                        內容：{dataObj.comicDescription}
+                        內容：{dataObj.description}
                         <div className="author">作者：{dataObj.author}</div>
                         <div className="author">類型：{dataObj.category}</div>
                       </div>

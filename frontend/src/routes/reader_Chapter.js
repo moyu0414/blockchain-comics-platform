@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { useParams } from 'react-router-dom';
+import { formatDate, formatTime, sortByDatetime, sortByTimestamp } from '../index.js';
+import axios from 'axios';
 //import comicData from '../contracts/ComicPlatform.json';
 
 const ReaderChapter = () => {
@@ -9,8 +11,11 @@ const ReaderChapter = () => {
   const [comic, setComic] = useState([]);
   const [purchase, isPurchase] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthor, setIsAuthor] = useState('');
   const currentAccount = localStorage.getItem("currentAccount");
   let temp = [];
+  let chapterInfo = [];
+  let readerLogs = [];
   let temp_purchase = [];
 
 
@@ -24,26 +29,56 @@ const ReaderChapter = () => {
           temp.push(storedArray[i]);
         };
       };
-      console.log(temp);
       setComic(temp);
+      //console.log(temp);
 
-      const chapterArrayJSON = localStorage.getItem('purchaseData');
-      const chapterArray = JSON.parse(chapterArrayJSON);
-      console.log(chapterArray);
+      try {  // 這本漫畫得所有章節
+        const response = await axios.get('http://localhost:5000/api/chapters', {
+          params: {
+            comicHash: temp[0].comicHash
+          }
+        });
+        chapterInfo = response.data;
+      } catch (error) {
+        console.error('Error fetching records:', error);
+      }
+      sortByTimestamp(chapterInfo);
+      //console.log(chapterInfo);
 
-      for (var i = 0; i < chapterArray.length; i++) {
-        if(chapterArray[i].comicID == comicID && chapterArray[i].buyer == currentAccount){
+      try {
+        const response = await axios.get('http://localhost:5000/api/selectChapter/records', {
+          params: {
+            currentAccount: currentAccount,
+            comicHash: temp[0].comicHash
+          }
+        });
+        readerLogs = response.data;
+      } catch (error) {
+        console.error('Error fetching reader records:', error);
+      }
+      sortByDatetime(readerLogs);
+      //console.log(readerLogs);
+
+      for (var n = 0; n < chapterInfo.length; n++) {
+        let id = 'Chapter' + (n + 1);
+        let purchasedChapter = readerLogs.find(log => log.chapterHash === chapterInfo[n].chapterHash);
+        if (purchasedChapter) {
+          let date = formatDate(new Date(purchasedChapter.purchase_date));
+          let time = formatTime(new Date(purchasedChapter.purchase_date));
           temp_purchase.push({
-            chapterID: chapterArray[i].chapterID,
-            title: chapterArray[i].title,
-            price: chapterArray[i].chapterPrice,
-            date: chapterArray[i].date,
-            time: chapterArray[i].time
+            chapterID: id,
+            title: purchasedChapter.chapterTitle,
+            price: purchasedChapter.recordsPrice,
+            date: date,
+            time: time,
+            chapterHash: purchasedChapter.chapterHash
           });
-        };
-      };
+        }
+      }
+
       console.log(temp_purchase);
       isPurchase(temp_purchase);
+      setIsAuthor(temp[0].author);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching chapters:', error);
@@ -61,8 +96,9 @@ const ReaderChapter = () => {
       {comic.map((chapter, index) => (
           <div className='comic-chapter-title' key={index}>
             <center>
-              <h1>{chapter.title}</h1>
               <h2>讀者閱讀_章節選擇</h2>
+              <h1>{chapter.title}</h1>
+              <h4>作者：{isAuthor}</h4>
             </center>
           </div>
         ))}

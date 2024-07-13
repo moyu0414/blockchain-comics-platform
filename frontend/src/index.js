@@ -33,7 +33,6 @@ let DBPurchasedDatas = [];
 let comicDatas = [];
 let initialData = [];
 let purchaseData = [];
-let readerLogs = [];
 let num = 1;
 
 const AppLayout = () => {
@@ -79,17 +78,15 @@ const AppLayout = () => {
           let comicHash, id, temp_title, comicAuthor, comicDescription, comicCategory, comicExists, filename;
           for (var i = 0; i < DBComicDatas.length; i++) {
             let id = 'Comic' + (i + 1) ;
-            if (DBComicDatas[i].is_exist == 1) {
-              comicHash = DBComicDatas[i].comic_id;
-              temp_title = DBComicDatas[i].title;
-              comicAuthor = DBComicDatas[i].creator;
-              comicDescription = DBComicDatas[i].description;
-              comicCategory = DBComicDatas[i].category;
-              comicExists = DBComicDatas[i].is_exist;
-              filename = DBComicDatas[i].filename;
+            comicHash = DBComicDatas[i].comic_id;
+            temp_title = DBComicDatas[i].title;
+            comicAuthor = DBComicDatas[i].creator;
+            comicDescription = DBComicDatas[i].description;
+            comicCategory = DBComicDatas[i].category;
+            comicExists = DBComicDatas[i].is_exist;
+            filename = DBComicDatas[i].filename;
 
-              comicDatas.push({comicID: id, title: temp_title, author: comicAuthor, description: comicDescription, category: comicCategory, exists: comicExists, filename: filename, comicHash: comicHash});
-            }
+            comicDatas.push({comicID: id, title: temp_title, author: comicAuthor, description: comicDescription, category: comicCategory, exists: comicExists, filename: filename, comicHash: comicHash});
           }
           console.log("comicDatas：" , comicDatas);
           //儲存comicDatas資料至各分頁
@@ -106,98 +103,6 @@ const AppLayout = () => {
             console.error('Error fetching comics: ', error);
           });
           sortByTimestamp(DBChapterDatas);
-
-          // 此帳戶的 purchaseData 儲存至各分頁
-          try {
-            const response = await axios.get('http://localhost:5000/api/reader/records', {
-              params: { currentAccount }
-            });
-            //console.log('DB Purchased Data:', response.data);
-            DBPurchasedDatas = response.data;
-          } catch (error) {
-            console.error('Error fetching reader records:', error);
-          }
-
-          for (var z = 0; z < comicDatas.length; z++) {
-            let num_01 = 1;
-            for (var n = 0; n < DBChapterDatas.length; n++) {
-              if(comicDatas[z].comicHash == DBChapterDatas[n].comic_id){
-                let id = 'Chapter' + num_01;
-                for (var i = 0; i < DBPurchasedDatas.length; i++) {
-                  if(DBChapterDatas[n].comic_id == DBPurchasedDatas[i].comic_id && DBChapterDatas[n].chapter_id == DBPurchasedDatas[i].chapter_id){  //讀者購買的章節
-                    let date = formatDate(new Date(DBPurchasedDatas[i].purchase_date));
-                    let time = formatTime(new Date(DBPurchasedDatas[i].purchase_date));
-                    purchaseData.push({
-                      buyer: DBPurchasedDatas[i].address,
-                      chapterHash: DBPurchasedDatas[i].chapter_id,
-                      chapterPrice: DBPurchasedDatas[i].price,
-                      title:  DBChapterDatas[n].title,
-                      filename: DBChapterDatas[n].filename,
-                      comicID: comicDatas[z].comicID,
-                      chapterID: id,
-                      comicTitle: comicDatas[z].title,
-                      author: comicDatas[z].author,
-                      transactionHash: DBPurchasedDatas[i].hash,
-                      date: date,
-                      time: time,
-                    });
-                  }
-                }
-                num_01 = num_01 + 1;
-              }
-            }
-          }
-          console.log("purchaseData：" , purchaseData);
-          localStorage.setItem('purchaseData', JSON.stringify(purchaseData));
-          //localStorage.removeItem('purchaseData');   // 刪除purchaseData的localStorage
-
-          //儲存logsData資料至各分頁
-          let transactionHash, comicTitle, chapterTitle, price, TxnFee, date, time= '';
-          for (var i = 0; i < purchaseData.length; i++) {
-            const currentPurchase = purchaseData[i];
-            if (currentAccount === currentPurchase.author) {  //作者logs
-              transactionHash = currentPurchase.transactionHash;
-              comicTitle = currentPurchase.comicTitle;
-              chapterTitle = currentPurchase.title;
-              price = currentPurchase.chapterPrice;
-            } else if (currentAccount === currentPurchase.buyer){   //讀者logs
-              transactionHash = currentPurchase.transactionHash;
-              comicTitle = currentPurchase.comicTitle;
-              chapterTitle = currentPurchase.title;
-              price = currentPurchase.chapterPrice;
-            } else {
-              continue;
-            }
-            if (transactionHash != '') {
-              const transactionDetail = await web3Instance.eth.getTransaction(transactionHash);
-              const blockNumberDetail = await web3Instance.eth.getBlock(transactionDetail.blockNumber.toString());
-              const blockNumber = transactionDetail.blockNumber.toString();
-              const gas = transactionDetail.gas.toString();
-              const gasPrice = transactionDetail.gasPrice.toString();
-              TxnFee = web3Instance.utils.fromWei(gas * gasPrice, 'ether');
-              TxnFee = parseFloat(TxnFee).toFixed(5);
-              const timestamp = blockNumberDetail.timestamp;
-              date = formatDate(new Date(Number(timestamp) * 1000));
-              time = formatTime(new Date(Number(timestamp) * 1000));
-            }
-            if (currentAccount === currentPurchase.author) {  //作者logs
-
-            } else if (currentAccount === currentPurchase.buyer){   //讀者logs
-              readerLogs.push({
-                comicTitles: comicTitle,
-                chapterTitles: chapterTitle,
-                author: currentPurchase.author,
-                date: date,
-                time: time,
-                price: price,
-                TxnFee: TxnFee
-              });
-            }
-          }
-          console.log(readerLogs);
-
-          localStorage.setItem('readerLogs', JSON.stringify(readerLogs));
-
         } catch (error) {
           console.error(error);
         }
@@ -219,26 +124,6 @@ const AppLayout = () => {
       <Outlet />
     </>
   );
-};
-
-// 將 32 bytes 還原成 CID
-function getIpfsHashFromBytes32(bytes32Hex) {
-  const hashHex = "1220" + bytes32Hex.slice(2);
-  const hashBytes = Buffer.from(hashHex, 'hex');
-  const hashStr = bs58.encode(hashBytes)
-  return hashStr
-};
-
-function imageExists(url) {
-  return new Promise(function(resolve, reject) {
-      fetch(url, { method: 'HEAD' })
-          .then(function(response) {
-              resolve(response.ok);
-          })
-          .catch(function() {
-              resolve(false);
-          });
-  });
 };
 
 //日期轉換格式 yyyy/mm/dd
@@ -264,6 +149,15 @@ function sortByTimestamp(Array) {
     const timestampA = parseInt(a.filename.split('-')[0]);
     const timestampB = parseInt(b.filename.split('-')[0]);
     return timestampA - timestampB;  // 升序排序
+  });
+}
+
+
+function sortByDatetime(array) {
+  return array.sort((a, b) => {
+    const datetimeA = new Date(a.purchase_date);
+    const datetimeB = new Date(b.purchase_date);
+    return datetimeA - datetimeB;  // 升序排序
   });
 }
 
@@ -331,4 +225,4 @@ createRoot(document.getElementById("root")).render(
 );
 
 
-export {getIpfsHashFromBytes32, imageExists, formatDate, formatTime, sortByTimestamp};
+export {formatDate, formatTime, sortByTimestamp, sortByDatetime};

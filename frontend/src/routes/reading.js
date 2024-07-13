@@ -20,6 +20,7 @@ const Reading = () => {
   const currentAccount = localStorage.getItem("currentAccount");
   let temp = [];
   let chapterInfo = [];
+  let readingInfo = [];
   let read = [];
   let now = [];
   let linkData = [];
@@ -28,74 +29,62 @@ const Reading = () => {
     try {
       const storedArrayJSON = localStorage.getItem('comicDatas');
       const storedArray = JSON.parse(storedArrayJSON);
-      
       for (var i = 0; i < storedArray.length; i++) {
-        if (storedArray[i].comicID == comicID) {
+        if(storedArray[i].comicID == comicID){
           temp.push(storedArray[i]);
-        }
-      }
-      setComic(temp);
+        };
+      };
       console.log(temp);
 
-      await axios.get('http://localhost:5000/api/chapters')
-      .then(response => {
-        console.log("DB chapterData：" , response.data);
-        for (var i = 0; i < response.data.length; i++) {  //本漫畫中，章節購買者
-          if (response.data[i].comic_id == temp[0].comicHash){
-            chapterInfo.push(response.data[i]);
+
+
+      try {  // 這本漫畫得所有章節
+        const response = await axios.get('http://localhost:5000/api/chapters', {
+          params: {
+            comicHash: temp[0].comicHash
           }
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching comics: ', error);
-      });
+        });
+        chapterInfo = response.data;
+      } catch (error) {
+        console.error('Error fetching records:', error);
+      }
       sortByTimestamp(chapterInfo);
       console.log(chapterInfo);
 
-
-      const chapterArrayJSON = localStorage.getItem('purchaseData');
-      try{
-        if (!chapterArrayJSON) {
-          throw new Error('No purchase data  in localStorage');
-      }} catch (error) {
-      console.error('Error found purchase data:', error);
-      };
-
-      const chapterArray = JSON.parse(chapterArrayJSON);
-      console.log(chapterArray);
-
-      try{
-      if (!chapterArray || chapterArray.length === 0) {
-        throw new Error('No chapters found in purchase data');
-      }} catch (error) {
-      console.error('Error found chapters data:', error);
-      };
-
-      //判斷 comicID，並取出相應的購買紀錄，如果是作者也可閱讀
-      let num = 1;
-      for (var i = 0; i < chapterArray.length; i++) {
-        if (chapterArray[i].comicID == comicID && chapterArray[i].buyer == currentAccount) {
-          read.push({
-            comicTitle: chapterArray[i].comicTitle,
-            chapterTitle: chapterArray[i].title,
-            chapterID: chapterArray[i].chapterID,
-            filename: chapterArray[i].filename
-          });
-          num = num + 1;
-        }
+      try {
+        const response = await axios.get('http://localhost:5000/api/reading/records', {
+          params: {
+            currentAccount: currentAccount,
+            comicHash: temp[0].comicHash,
+          }
+        });
+        readingInfo = response.data;
+      } catch (error) {
+        console.error('Error fetching records:', error);
       }
+      console.log(readingInfo);
 
+      // 取出相應的購買紀錄，如果是作者也可閱讀
       for (var i = 0; i < chapterInfo.length; i++) {
-        if (temp[0].author == currentAccount) {
-          let id = 'Chapter' + num;
-          read.push({
-            comicTitle: temp[0].title,
-            chapterTitle: chapterInfo[i].title,
-            chapterID: id,
-            filename: chapterInfo[i].filename
-          });
-          num = num + 1;
-        }
+        let id = 'Chapter' + (i + 1);
+          for (var n = 0; n < readingInfo.length; n++) {
+            if (readingInfo[n].chapter_id == chapterInfo[i].chapterHash) {
+              read.push({
+                comicTitle: readingInfo[n].comicTitle,
+                chapterTitle: readingInfo[n].chapterTitle,
+                chapterID: id,
+                filename: readingInfo[n].filename
+              });
+            }
+          }
+          if (chapterInfo[i].creator == currentAccount) {
+            read.push({
+              comicTitle: chapterInfo[i].comicTitle,
+              chapterTitle: chapterInfo[i].chapterTitle,
+              chapterID: id,
+              filename: chapterInfo[i].filename
+            });
+          }
       }
       setChapter(read);
       console.log(read);
@@ -136,6 +125,7 @@ const Reading = () => {
           linkData.push({ previous: previous, next: next, chapterTitle: now[0].chapterTitle });
         }
       }
+      console.log(linkData);
       setSelect(linkData);
       setCurrent(now);
       setLoading(false);
@@ -166,6 +156,7 @@ const Reading = () => {
     setIsZoomed(!isZoomed);
   };
 
+
   return (
     <div className="reading-page">
       <div className="reading-sidebar">
@@ -173,7 +164,8 @@ const Reading = () => {
           <div key={index} className="reading-sidebar-container">
             <h3>章節：{data.chapterTitle}</h3>
             <button style={{ marginRight: '15px' }}>
-              <Link to={`/reading/${comicID}/${data.previous}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Link 
+                to={`/reading/${comicID}/${data.previous}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                 上一章
               </Link>
             </button>

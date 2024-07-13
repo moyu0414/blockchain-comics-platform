@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
-import Web3 from 'web3';
+import { sortByDatetime } from '../index.js';
+import axios from 'axios';
 import './bootstrap.min.css';
 import './googleapis.css';
 
@@ -10,6 +11,7 @@ const Reader = () => {
   const storedArrayJSON = localStorage.getItem('comicDatas');
   const [owner, setOwner] = useState([]);
   const currentAccount = localStorage.getItem("currentAccount");
+  let readerLogs = [];
   const uniqueData = [];
   const uniqueCheck = {};
 
@@ -17,18 +19,25 @@ const Reader = () => {
     try {
       const storedArrayJSON = localStorage.getItem('comicDatas');
       const storedArray = JSON.parse(storedArrayJSON);
-      console.log(storedArray)
-
-      const chapterArrayJSON = localStorage.getItem('purchaseData');
-      const chapterArray = JSON.parse(chapterArrayJSON);
-      //console.log(chapterArray);
-
-      const web3Instance = new Web3(window.ethereum);
+      //console.log(storedArray)
+      
+      try {
+        const response = await axios.get('http://localhost:5000/api/reader/records', {
+          params: {
+            currentAccount: currentAccount
+          }
+        });
+        readerLogs = response.data;
+      } catch (error) {
+        console.error('Error fetching reader records:', error);
+      }
+      sortByDatetime(readerLogs);
+      //console.log(readerLogs);
 
       for (var i = 0; i < storedArray.length; i++) {
-        for (var n = 0; n < chapterArray.length; n++) {
-          if (storedArray[i].comicID == chapterArray[n].comicID && chapterArray[n].buyer == currentAccount){
-            addData({ comicID: chapterArray[n].comicID, title: chapterArray[n].comicTitle, filename: storedArray[i].filename }); 
+        for (var n = 0; n < readerLogs.length; n++) {
+          if (storedArray[i].comicHash == readerLogs[n].comicHash){
+            addData({ comicID: storedArray[i].comicID, title: readerLogs[n].comicTitle, filename: storedArray[i].filename }); 
           }
         };
       };

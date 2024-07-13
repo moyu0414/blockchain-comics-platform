@@ -19,6 +19,7 @@ const SelectChapter = () => {
   const currentAccount = localStorage.getItem("currentAccount");
 
   let temp = [];
+  let purchaseChapter = [];
   let chapterInfo = [];
   let temp_chapter = [];
   let temp_purchase = [];
@@ -41,47 +42,51 @@ const SelectChapter = () => {
       setComic(temp);  // 此漫畫資料
       console.log(temp);
 
-      await axios.get('http://localhost:5000/api/chapters')
-      .then(response => {
-        //console.log("DB chapterData：" , response.data);
-        for (var i = 0; i < response.data.length; i++) {
-          if (response.data[i].comic_id == temp[0].comicHash){
-            chapterInfo.push(response.data[i]);
+      try {  // 這本漫畫得所有章節
+        const response = await axios.get('http://localhost:5000/api/chapters', {
+          params: {
+            comicHash: temp[0].comicHash
           }
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching comics: ', error);
-      });
+        });
+        chapterInfo = response.data;
+      } catch (error) {
+        console.error('Error fetching records:', error);
+      }
       sortByTimestamp(chapterInfo);
-      //console.log(chapterInfo);
+      console.log(chapterInfo);
 
-      const chapterArrayJSON = localStorage.getItem('purchaseData');
-      const chapterArray = JSON.parse(chapterArrayJSON);
-      console.log(chapterArray);
+      try {
+        const response = await axios.get('http://localhost:5000/api/selectChapter/records', {
+          params: {
+            currentAccount: currentAccount,
+            comicHash: temp[0].comicHash
+          }
+        });
+        purchaseChapter = response.data;
+      } catch (error) {
+        console.error('Error fetching records:', error);
+      }
+      console.log(purchaseChapter);
 
-      for (var i = 0; i < chapterArray.length; i++) {  //本漫畫中，章節購買者
-        if(chapterArray[i].comicID == comicID && chapterArray[i].buyer == currentAccount){
-          temp_purchase.push(chapterArray[i]);
-        }
+
+
+      if(purchaseChapter.length == 0){
+        purchaseChapter.push({buyer: '', chapterHash: ''});
       };
-      if(temp_purchase.length == 0){
-        temp_purchase.push({buyer: '', chapterHash: ''});
-      };
-      console.log(temp_purchase);
+      console.log(purchaseChapter);
 
       let author = temp[0].author;
       let temp_isAuthor = author;
       let num = 1;
       for (var n = 0; n < chapterInfo.length; n++) {  //本漫畫所有章節
-        let chapterHash = chapterInfo[n].chapter_id;
-        let chapterTitle = chapterInfo[n].title;
-        let price = chapterInfo[n].price.toString();
+        let chapterHash = chapterInfo[n].chapterHash;
+        let chapterTitle = chapterInfo[n].chapterTitle;
+        let price = chapterInfo[n].price;
         let id = 'Chapter' + num;
         let temp_isBuying = '購買';
 
-        for (var i = 0; i < temp_purchase.length; i++) {  //讀者部分
-          if(temp_purchase[i].chapterHash == chapterHash){
+        for (var i = 0; i < purchaseChapter.length; i++) {  //讀者部分
+          if(purchaseChapter[i].chapterHash == chapterHash){
             temp_isBuying = '閱讀';
           }
         };
@@ -172,7 +177,8 @@ const SelectChapter = () => {
           formData.append('hash', transactionHash);
           formData.append('comic_id', comicHash);
           formData.append('chapter_id', chapterHash);
-          formData.append('address', currentAccount);
+          formData.append('buyer', currentAccount);
+          formData.append('creator', isAuthor);
           formData.append('purchase_date', Timestamp);
           formData.append('price', chapter.price);
           try {
