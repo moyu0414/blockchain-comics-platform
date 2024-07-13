@@ -19,82 +19,6 @@
   color: #fff;
 }
 
-/* Navbar CSS */
-.navbar {
-  background-color: #ffffff;
-  height: 80px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  border-bottom: 2px solid #ccc; /* 添加边框样式 */
-}
-
-.menu-bars {
-  margin-left: 2rem;
-  font-size: 2rem;
-  background: none;
-  color: #000;
-}
-
-.nav-menu {
-  background-color: #ffffff;
-  width: 250px;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  position: fixed;
-  top: 0;
-  left: -100%;
-  transition: 850ms;
-  border-right: 2px solid #ccc; /* 添加右边框样式 */
-}
-
-.nav-menu.active {
-  left: 0;
-  transition: 450ms;
-}
-
-
-
-.nav-text {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 8px 0px 8px 16px;
-  list-style: none;
-  height: 60px;
-}
-
-.nav-text a {
-  text-decoration: none;
-  color: #151414;
-  font-size: 18px;
-  width: 95%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  border-radius: 4px;
-}
-
-.nav-text a:hover {
-  background-color: #000000;
-  color: #fff;
-}
-
-.nav-menu-items {
-  width: 100%;
-}
-
-.navbar-toggle {
-  background-color: #ffffff;
-  width: 100%;
-  height: 80px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
 span {
   margin-left: 16px;
 }
@@ -239,18 +163,14 @@ span {
   z-index: 1000; /* 可以根据需要调整 z-index */
 }
 
-.navbar .log-in-area {
-  width: 85%;
-}
-
 .navbar .log-in-area .log-in-btn{
   margin-left: 95%;
   font-size: 18px;
-  width: 200px;
+  width: 150px;
   height: 55px;
   border: none;
   border-radius: 8px;
-  background-color: #007bff;
+  background-color: #0FC2C0;
   color: #ffffff;
   /* margin-left: 16px; */
   text-decoration: none;
@@ -263,7 +183,44 @@ span {
 }
 
 .navbar .log-in-area .log-in-btn:hover{
-  background-color: #0056b3;
+  background-color: #008F8C;
+  color: white;
+  border: none;
+}
+
+.show-account{
+  display: inline-block;
+  margin-right: 6%;
+  color: #008F8C;
+}
+
+.reload-btn{
+  display: inline-block;
+  font-size: 18px;
+  width: 180px;
+  height: 50px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0FC2C0;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* 新增以下樣式 */
+.log-in-area {
+  display: flex;
+  align-items: center;
+}
+
+.eth-balance {
+  margin-right: 6%;
+  color: #008F8C;
+}
+
+.reload-btn:hover{
+  background-color: #008F8C;
   color: white;
   border: none;
 }
@@ -297,31 +254,30 @@ span {
 /* 身分選擇頁面 */
 .button-container {
   display: flex;
-  justify-content: center; /* 水平置中 */
-  align-items: center; /* 垂直置中 */
-  height: 100vh; /* 設置容器高度為視窗高度 */
+  justify-content: center; 
+  align-items: center; 
+  height: 100vh; 
 }
 
 .custom-button {
   width: 450px;
   height: 250px;
-  margin: 30px; /* 按鈕間距 */
-  font-size: 48px; /* 按鈕文字大小 */
+  margin: 30px; 
+  font-size: 48px; 
   border: none;
   border-radius: 10px;
   cursor: pointer;
   display: flex;
-  justify-content: center; /* 水平置中 */
-  align-items: center; /* 垂直置中 */
-  color: white; /* 文字顏色 */
-  font-weight: bold; /* 加粗文字 */
+  justify-content: center; 
+  align-items: center; 
+  color: white; 
+  font-weight: bold; 
 }
 
 .custom-button:hover {
-  opacity: 0.8; /* 降低透明度以顯示按鈕被懸停時的效果 */
+  opacity: 0.8; 
 }
 
-/* 移除Link元件的底線 */
 .button-container a {
   text-decoration: none;
 }
@@ -368,63 +324,94 @@ span {
   background-color: #0056b3;
 }
 
-
-/* 選項的樣式 */
 .upload-form select option {
   background-color: #fff;
   color: #343a40;
 }
 
-/* 選中的選項的樣式 */
 .upload-form select option:checked {
   background-color: #007bff;
   color: #fff;
 }
 
+.btn{
+  font-size: 18px;
+  width: 120px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0FC2C0;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn:hover{
+  background-color: #008F8C;
+  color: white;
+  border: none;
+}
+
 
 /* 搜尋框 */
 .search-input {
-  width: 60%; /* 調整寬度 */
+  width: 60%; 
   padding: 1%;
-  margin-top: 5%; /* 調整內邊距 */
-  border: 2px solid #ccc; /*設置邊框*/
-  border-radius: 15px; /* 設置底部圓角 */
-  font-size: 16px; /* 設置字體大小 */
-  transition: all 0.3s ease-in-out; /* 添加過渡效果 */
+  margin-top: 5%; 
+  border: 2px solid #ccc; 
+  border-radius: 15px; 
+  font-size: 16px; 
+  transition: all 0.3s ease-in-out; 
 }
 
 .search-input:focus {
-  outline: none; /* 移除聚焦時的外框 */
+  outline: none;
   border-radius: 15px 15px 0 0;
 }
 
 /* 資料區塊 */
+.search-container{
+  margin-top: 1%;
+  width: 800px;
+  right: 0;
+}
 .box {
-  width: 60%; /* 設置寬度與搜尋框相同 */
+  margin-top: 1%;
+  width: 97%;
   border-radius: 0 0 15px 15px;
 }
 
 .search-card {
-  background-color: #fff; /* 設置卡片背景色 */
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);  /*添加陰影效果*/
-  padding: 16px; /* 調整內邊距 */
-  transition: all 0.3s ease-in-out; /* 添加過渡效果 */
+  background-color: #fff; 
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);  
+  padding: 16px; 
+  transition: all 0.3s ease-in-out; 
+}
+
+.search-card:hover{
+  background-color: #b9f5f4;
 }
 
 .category {
-  font-size: 14px; /* 設置類別文字大小 */
-  font-weight: bold; /* 設置類別文字粗細 */
+  font-size: 17px; 
+  font-weight: bold; 
+  color: black;
 }
 
 .heading {
-  margin-top: 8px; /* 調整標題與類別之間的間距 */
+  margin-top: 6px; 
+  color: black;
 }
 
 .author {
-  color: #70757a; /* 設置作者文字顏色 */
-  font-size: 14px; /* 設置作者文字大小 */
+  color: #70757a; 
+  font-size: 14px; 
 }
 
+a:link{
+  text-decoration: none;
+}
 
 
 
@@ -440,11 +427,11 @@ span {
   flex-direction: column;
   justify-content: start;
   align-items: center;
-  color: #007bff; /* 設定文本顏色 */
+  color: #007bff; 
 }
 
 .step-item-gray {
-  color: gray; /* 設定文本顏色 */
+  color: gray; 
 }
 
 .step-item .step-line {
@@ -470,35 +457,35 @@ span {
 }
 
 .step-item-gray .step-line .dot {
-  border-color: gray; /* 設定灰色 */
+  border-color: gray; 
 }
 
 .step-item .step-title {
-  margin-top: 10px; /* 設定標題與圖標的距離 */
+  margin-top: 10px; 
 }
 
 
 
 .step-item .step-line::after {
-  content: ''; /* 添加偽元素 */
+  content: ''; 
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   height: 2px;
-  background-color: #007bff; /* 藍色的連接線顏色 */
+  background-color: #007bff; 
   z-index: -1;
 }
 
 .step-item.step-completed .step-line::after {
-  background-color: #007bff; /* 切換後的連接線顏色 */
+  background-color: #007bff; 
 }
 
 .step-item-gray .step-line::after {
-  background-color: #999; /* 灰色的連接線顏色 */
+  background-color: #999;
 }
 
 .step-item-gray.step-completed .step-line::after {
-  background-color: #007bff; /* 灰色切換後的連接線顏色 */
+  background-color: #007bff; 
 }
 
 
@@ -508,11 +495,11 @@ span {
 
 
 .step-item.step-completed {
-  color: #007bff; /* 設定文本顏色 */
+  color: #007bff; 
 }
 
 .step-item.step-completed .step-line .dot {
-  border-color: #007bff; /* 設定橙色 */
+  border-color: #007bff; 
 }
 
 
@@ -523,20 +510,6 @@ span {
   max-width: 800px;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  padding: 10px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-th {
-  background-color: #f2f2f2;
-}
 
 .work-info {
   display: flex;
@@ -593,12 +566,24 @@ th {
 
 
 
-.select-chapter-page {
-  margin: 20px auto;
-  max-width: 60%;
+/* 章節管理 */
+.chapter-title{
+  width: 50%;
 }
+
+.comic-chapter-title{
+  margin: 2% 0;
+  font-size: 20px;
+  color: #0FC2C0;
+}
+
+.comic-chapter-title h1{
+  font-weight: bold;
+}
+
 .table {
   width: 100%;
+  min-width: 900px; 
   height: 10%;
   border-collapse: collapse;
 }
@@ -611,39 +596,56 @@ th {
 .table th {
   font-size: 24px;
   border-bottom: 2px solid #ddd;
+  color: #0FC2C0;
 }
 
 .table td {
+  font-size: 18px;
   border-bottom: 1px solid #ddd;
-}
-
-.table th,
-.table td {
-  vertical-align: middle; /* 將每個欄位都設置為垂直置中 */
+  vertical-align: middle;
 }
 
 .table tbody tr {
-  height: 120px; /* 將表格行的高度設置為固定值 */
-}
-
-.chapter-title{
-  font-size: 20px;
+  height: 120px; 
 }
 
 .chapter-selection img {
-  width: 50%;
+  width: 100%;
 }
 
 .chapter-selection .chapter-cover {
-  width: 100px; /* 設置圖片容器的寬度 */
-  height: 100px; /* 設置圖片容器的高度 */
-  overflow: hidden; /* 將超出範圍的內容隱藏 */
+  width: 100px;
+  height: 100px;
+  overflow: hidden; 
 }
 
 .chapter-selection .chapter-cover img {
-  max-width: 100px; /* 設置圖片最大寬度 */
-  max-height: 100px; /* 設置圖片最大高度 */
-  vertical-align: middle; /* 將圖片垂直對齊到表格行的中間 */
+  max-width: 100px; 
+  max-height: 100px; 
+  vertical-align: middle;
+}
+
+.chapter-selection .btn{
+  font-size: 18px;
+  width: 90px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0FC2C0;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.chapter-selection .btn:hover{
+  background-color: #008F8C;
+  color: white;
+  border: none;
+}
+
+.create-chapter{
+  width: 45%;
 }
 
 .loading-container {
@@ -655,4 +657,326 @@ th {
   background-color: rgba(255, 255, 255, 0.8);
   padding: 20px;
   border-radius: 5px;
+  color: #333;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  padding: 10px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  width: 100%; 
+}
+
+.nav-text {
+  padding: 8px 0px 8px 16px;
+  list-style: none;
+  }
+
+.nav-text a {
+  width: 95%;
+  border-radius: 4px;
+}
+
+.nav-menu-items {
+  display: flex;
+  list-style: none;
+  padding-top: 1%;
+  align-items: center; 
+}
+
+.nav-item {
+  position: relative;
+  margin-right: 20px;
+}
+
+.nav-item a {
+  font-size: 20px;
+  font-weight: bold; 
+  color: #0FC2C0;
+  text-decoration: none;
+  padding: 10px;
+}
+
+.nav-item a:hover{
+  color: #008F8C;
+}
+
+.dropdown-container {
+  position: fixed;
+  top: 8%;
+  width: 8%;
+  height: 8%;
+  z-index: 10;
+  box-shadow: 4px 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background-color: #0FC2C0;
+  transition: all 0.5s ease;
+}
+
+.show-sub-menu .dropdown-container {
+  display: block;
+}
+
+.dropdown-container li {
+  display: block;
+  margin-top: 1%;
+  padding-top: 1%;
+  list-style: none;
+}
+
+.dropdown-container li a:hover {
+  color: #008F8C;
+}
+
+.dropdown-container a {
+  list-style: none;
+  padding: 10px;
+  width: 100%;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.log-in-area {
+  margin-left: 30%;
+  white-space: nowrap
+}
+
+.log-in-btn {
+  background-color: #fff;
+  color: #0FC2C0;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.log-in-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.install-link {
+  color: #fff;
+  text-decoration: none;
+  padding: 10px 20px;
+  background-color: #f00;
+  border-radius: 5px;
+}
+
+.install-link:hover {
+  background-color: #c00;
+}
+
+.login-account {
+  color: #008F8C;
+  padding: 10px 20px;
+}
+
+/* 首頁 */
+.comic-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.comic-info-overlay {
+  position: absolute;
+  top: 0;
+  left: 3.5%;
+  width: 93%;
+  height: 100%;
+  background-color: rgba(15, 194, 192, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center; 
+  padding: 10px;
+  z-index: 2;
+}
+
+.comic-info {
+  color: white;
+  font-size: 18px;
+  position: absolute;
+  width: 70%;
+  top: 50%;/* 將元素置於父元素的中間 */
+  left: 45%;
+  transform: translate(-50%, -50%); 
+}
+
+.comic-container:hover .comic-info-overlay {
+  opacity: 1;
+}
+
+.comic-image {
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover;
+}
+
+.comic-image::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(15, 194, 192, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.comic-image:hover::before {
+  opacity: 1;
+}
+
+/* 閱讀側邊攔 */
+.page-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.reading-selection {
+  width: 100%;
+}
+
+.chapter-container {
+  text-align: center;
+  margin: 2% 0; 
+}
+
+.chapter-container h3{
+  color: #0FC2C0;
+  font-weight: bold;
+}
+
+.image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; 
+}
+
+.reading-image {
+  width: 35%;
+  height: auto; 
+  cursor:zoom-in;
+}
+
+.reading-image.zoomed {
+  width: 60%; 
+  cursor:zoom-out;
+}
+
+.reading-sidebar {
+  background-color: #a3f0ef;
+  width: 15%;
+  height: 30%;
+  position: fixed;
+  top: 18%;
+  bottom: 0;
+  left: 5%;
+  overflow-y: auto;
+  border-radius: 8px;
+  box-shadow: 4px 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.reading-sidebar-container{
+  
+  text-align: center;
+  margin: 4%;
+}
+
+.reading-sidebar button{
+  font-size: 18px;
+  width: 90px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0FC2C0;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.reading-sidebar button:hover{
+  background-color: #008F8C;
+  color: white;
+  border: none;
+}
+
+/* 個人書櫃 */
+.management-title{
+  text-align: center;
+  font-size: 24px;
+  color: #0FC2C0;
+}
+
+/* 交易紀錄 */
+.history-page{
+  text-align: center;
+  margin: 20px auto;
+  max-width: 1200px;
+}
+.history-container{
+  display: flex;
+  justify-content: center;
+  margin: 20px auto;
+  max-width: 1200px;
+}
+
+.history-selection table th,.history-selection table td{
+  text-align: center;
+}
+
+.history-page table{
+  min-width: 1300px;
+}
+
+/* 讀者 */
+.reader-container{
+  margin-bottom: 6%;
+}
+
+.title-text{
+  margin: 2% 0 ;
+  font-weight: bold;
+  color: #008F8C;
+  text-align: center;
+}
+
+
+
+/* 管理者 */
+.account-page .table{
+  min-width: 800px;
+  margin-top: 2%;
+}
+
+.management-page .table{
+  min-width: 1600px;
+  margin-top: 2%;
+}
+
+.comic-management-title{
+  width: 15%;
+}
+
+.management-btn input{
+  margin-left: 35%;
+  flex: 1; 
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }

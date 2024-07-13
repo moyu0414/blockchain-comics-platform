@@ -6,28 +6,41 @@ import {
   Outlet,
 } from "react-router-dom";
 import Home from './routes/Home';
+import Navbar from "./components/Navbar";
 import Reader from './routes/reader';
 import Creator from './routes/creator';
 import Dual from './routes/dual';
-import Identity from './routes/identity';
 import CreateWork from './routes/createWork';
+import EditWork from './routes/editWork';
 import WorkManagement from './routes/workManagement';
+import ChapterManagement from './routes/chapterManagement';
 import SelectChapter from './routes/selectChapter';
-import Navbar from "./components/Navbar";
+import ReaderChapter from './routes/reader_Chapter';
+import Reading from './routes/reading';
+import TransactionHistory from './routes/transactionHistory';
+import PurchaseHistory from './routes/purchaseHistory';
+import ComicManagement from './routes/comicManagement';
+import AccountManagement from './routes/accountManagement';
 import Web3 from 'web3';
-import createWork from "./contracts/CreateWork_New.json"
+import comicData from "./contracts/ComicPlatform.json"
 import { Buffer } from 'buffer';
 import bs58 from 'bs58';
+import axios from 'axios';
 
-
+let DBComicDatas = [];
+let DBChapterDatas = [];
+let DBPurchasedDatas = [];
+let comicDatas = [];
+let initialData = [];
+let purchaseData = [];
+let num = 1;
 
 const AppLayout = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [accounts, setAccounts] = useState([]);
   const [web3Instance, setWeb3Instance] = useState(null);
   const [contractInstance, setContractInstance] = useState(null);
-  const [voteId, setVoteId] = useState(null);
-  const [account, setAccount] = useState('');
+  const currentAccount = localStorage.getItem("currentAccount");
 
   // 處理登錄狀態的函數
   const handleLogin = () => {
@@ -35,9 +48,20 @@ const AppLayout = () => {
     // 其他處理邏輯，例如登錄成功後的操作
   };
 
+
   useEffect(() => {
     // 初始化 Web3 和智能合約
     const connectToWeb3 = async () => {
+      await axios.get('http://localhost:5000/api/comics')
+      .then(response => {
+        //console.log("DB comicData：" , response.data);
+        DBComicDatas = response.data;
+        localStorage.setItem('DB_ComicDatas', JSON.stringify(response.data));
+      })
+      .catch(error => {
+        console.error('Error fetching comics: ', error);
+      });
+
       if (window.ethereum) {
         try {
           // 請求用戶授權
@@ -45,13 +69,40 @@ const AppLayout = () => {
           const web3Instance = new Web3(window.ethereum);
           setWeb3Instance(web3Instance);
 
-          // 獲取用戶帳戶
-          const accounts = await web3Instance.eth.getAccounts();
-          setAccount(accounts[0]);
-
           // 創建合約實例，需替換為您的合約地址
-          const contractInstance = new web3Instance.eth.Contract(createWork.abi, createWork.address);
+          const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
           setContractInstance(contractInstance);
+          const meta = await contractInstance.methods;
+
+          sortByTimestamp(DBComicDatas);
+          let comicHash, id, temp_title, comicAuthor, comicDescription, comicCategory, comicExists, filename;
+          for (var i = 0; i < DBComicDatas.length; i++) {
+            let id = 'Comic' + (i + 1) ;
+            comicHash = DBComicDatas[i].comic_id;
+            temp_title = DBComicDatas[i].title;
+            comicAuthor = DBComicDatas[i].creator;
+            comicDescription = DBComicDatas[i].description;
+            comicCategory = DBComicDatas[i].category;
+            comicExists = DBComicDatas[i].is_exist;
+            filename = DBComicDatas[i].filename;
+
+            comicDatas.push({comicID: id, title: temp_title, author: comicAuthor, description: comicDescription, category: comicCategory, exists: comicExists, filename: filename, comicHash: comicHash});
+          }
+          console.log("comicDatas：" , comicDatas);
+          //儲存comicDatas資料至各分頁
+          localStorage.setItem('comicDatas', JSON.stringify(comicDatas));
+          //要刪除可以用下列的程式
+          //localStorage.removeItem('web3Instance', 'contractInstance', 'comicDatas');
+
+          await axios.get('http://localhost:5000/api/chapters')
+          .then(response => {
+            //console.log("DB Chapter Data：" , response.data);
+            DBChapterDatas = response.data;
+          })
+          .catch(error => {
+            console.error('Error fetching comics: ', error);
+          });
+          sortByTimestamp(DBChapterDatas);
         } catch (error) {
           console.error(error);
         }
@@ -59,7 +110,7 @@ const AppLayout = () => {
         alert('請安裝 MetaMask 或其他支援的錢包');
       }
     };
-
+      
     // 初始化 Web3 和智能合約
     connectToWeb3();
 
@@ -75,16 +126,41 @@ const AppLayout = () => {
   );
 };
 
-// 將 32 bytes 還原成 CID
-function getIpfsHashFromBytes32(bytes32Hex) {
-  // and cut off leading "0x"
-  const hashHex = "1220" + bytes32Hex.slice(2);
-  //console.log(hashHex);
-  const hashBytes = Buffer.from(hashHex, 'hex');
-  //console.log(hashBytes);
-  const hashStr = bs58.encode(hashBytes)
-  return hashStr
+//日期轉換格式 yyyy/mm/dd
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}/${month}/${day}`;
 };
+
+//日期轉換格式 hh：mm：ss
+function formatTime(date) {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+};
+
+
+// 排序函数，根据时间戳部分进行比较
+function sortByTimestamp(Array) {
+  return Array.sort((a, b) => {
+    const timestampA = parseInt(a.filename.split('-')[0]);
+    const timestampB = parseInt(b.filename.split('-')[0]);
+    return timestampA - timestampB;  // 升序排序
+  });
+}
+
+
+function sortByDatetime(array) {
+  return array.sort((a, b) => {
+    const datetimeA = new Date(a.purchase_date);
+    const datetimeB = new Date(b.purchase_date);
+    return datetimeA - datetimeB;  // 升序排序
+  });
+}
+
 
 const router = createBrowserRouter([
   {
@@ -92,7 +168,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Home contractAddress={createWork.address} />,
+        element: <Home contractAddress={comicData.address}  />,
       },
       {
         path: "/reader",
@@ -105,19 +181,39 @@ const router = createBrowserRouter([
       {
         path: "/dual",
         element: <Dual />,
-      },
-      {
-        path: "/identity",
-        element: <Identity />,
       },{
         path: "/createWork",
         element: <CreateWork />,
       },{
+        path: "/editWork",
+        element: <EditWork />,
+      },{
         path: "/workManagement",
         element: <WorkManagement />,
       },{
-        path: "/selectChapter/:hash",
+        path: "/selectChapter/:comicID",
         element: <SelectChapter />,
+      },{
+        path: "/reader_Chapter/:comicID",
+        element: <ReaderChapter />,
+      },{
+        path: "/reading/:comicID/:chapterID",
+        element: <Reading />,
+      },{
+        path: "/transactionHistory",
+        element: <TransactionHistory />,
+      },{
+        path: "/purchaseHistory",
+        element: <PurchaseHistory />,
+      },{
+        path: "/chapterManagement/:comicID",
+        element: <ChapterManagement />,
+      },{
+        path: "/comicManagement",
+        element: <ComicManagement contractAddress={comicData.address} />,
+      },{
+        path: "/accountManagement",
+        element: <AccountManagement />,
       }
     ],
   },
@@ -128,4 +224,5 @@ createRoot(document.getElementById("root")).render(
   <RouterProvider router={router} />
 );
 
-export {getIpfsHashFromBytes32};
+
+export {formatDate, formatTime, sortByTimestamp, sortByDatetime};

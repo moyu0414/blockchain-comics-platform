@@ -1,30 +1,42 @@
 import React, { useState, useEffect } from "react";
-import * as FaIcons from "react-icons/fa";
+import Web3 from 'web3';
 import * as AiIcons from "react-icons/ai";
-import { Link, useNavigate } from "react-router-dom"; // 修改为 useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import { SidebarData } from "./SidebarData";
-import "../App.css";
 import { IconContext } from "react-icons";
+import '../App.css';
 
 const Navbar = ({ accounts, setAccounts }) => {
-  const [sidebar, setSidebar] = useState(false);
   const [isMetamaskInstalled, setMetamaskInstalled] = useState(true);
   const [isConnected, setConnected] = useState(false);
   const [isLogged, setIsLogged] = useState(false);
   const [currentAccount, setCurrentAccount] = useState("");
-  const [isMenuDisplayed, setMenuDisplayed] = useState(false);
+  const [subMenuOpen, setSubMenuOpen] = useState(Array(SidebarData.length).fill(false));
+  const [menuExpanded, setMenuExpanded] = useState(false);
+  const [ethBalance, setEthBalance] = useState('');
+  const [account, setAccount] = useState('');
 
-
-  const navigate = useNavigate(); // 修改为 useNavigate
-
-  const showSidebar = () => setSidebar(!sidebar);
-  const changeMenuDisplay = () => setMenuDisplayed(!isMenuDisplayed);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (accounts.length > 0) {
       setIsLogged(true);
+      loadAccountBalance(accounts[0]);
     }
   }, [accounts]);
+
+  const loadAccountBalance = async (account) => {
+    try {
+      const provider = detectCurrentProvider();
+      if (provider) {
+        const web3 = new Web3(provider);
+        const balance = await web3.eth.getBalance(account);
+        setEthBalance(parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(3)); // 設定餘額只顯示到小數點第三位
+      }
+    } catch (error) {
+      console.error('錯誤:', error);
+    }
+  };
 
   const connectAccount = async () => {
     if (isConnected === false) {
@@ -33,21 +45,27 @@ const Navbar = ({ accounts, setAccounts }) => {
           method: "eth_requestAccounts",
         });
         setAccounts(accounts);
+        setAccount(accounts[0]);
         setCurrentAccount(accounts[0]);
         setConnected(true);
         setIsLogged(true);
+        // 存储登录信息到本地存储
+        localStorage.setItem("loggedIn", "true");
+        localStorage.setItem("currentAccount", accounts[0]);
         alert("登入成功!");
-
-        // 登入成功後進行頁面切換
-        navigate("/identity"); // 切換到 identity 頁面
+        navigate("/");
+        loadAccountBalance(accounts[0]); // 加载账号余额
       }
     }
   };
 
   const showAccount = () => {
-    const prefix = accounts[0].substr(0, 5);
-    const suffix = accounts[0].substr(36, 40);
-    return prefix + "..." + suffix;
+    if (isLogged && account) { // 確保已登入並有帳戶資訊
+      const prefix = account.substr(0, 5);
+      const suffix = account.substr(36, 40);
+      return prefix + "..." + suffix;
+    }
+    return "No account";
   };
 
   setTimeout(() => {
@@ -57,53 +75,146 @@ const Navbar = ({ accounts, setAccounts }) => {
     }
   }, 100);
 
+  const handleSubMenuClick = (index, event) => {
+    event.stopPropagation();
+    setSubMenuOpen((prevState) => {
+      const newState = Array(SidebarData.length).fill(false); // 先将所有子菜单关闭
+      newState[index] = true; // 再打开指定的子菜单
+      return newState;
+    });
+  };
 
+  const handleMenuItemClick = (index, event) => {
+    event.stopPropagation();
+    if (SidebarData[index].subMenu) {
+      event.preventDefault();
+      setSubMenuOpen((prevState) => {
+        const newState = [...prevState];
+        newState[index] = !newState[index];
+        return newState;
+      });
+    } else {
+      navigate(SidebarData[index].path);
+    }
+  };
+
+  const handleDownMenuItemClick = (index, event) =>{
+    event.stopPropagation();
+    navigate(SidebarData[index].path);
+  }
+
+  const reloadAccount = async () => {
+    try {
+      const provider = detectCurrentProvider();
+      if (provider) {
+        await provider.request({ method: 'wallet_requestPermissions', params: [{ eth_accounts: {} }] });
+        const accounts = await provider.request({ method: 'eth_requestAccounts' });
+        if (accounts && accounts.length > 0) {
+          const web3 = new Web3(provider);
+          const newAccount = accounts[0];
+          console.log('切換後的帳戶: ' + newAccount);
+          setAccount(newAccount);
+          localStorage.setItem("currentAccount", newAccount);  //將轉變後的帳戶丟回localStorage
+          const balance = await web3.eth.getBalance(newAccount);
+          setEthBalance(parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(3)); // 設定餘額只顯示到小數點第三位
+          setIsLogged(true);
+          // 刷新页面
+          window.location.reload();
+        } else {
+          setIsLogged(false);
+        }
+      }
+    } catch (error) {
+      console.error('錯誤:', error);
+    }
+  };
+
+  useEffect(() => {
+    // 检查本地存储中是否存在登录信息
+    const loggedIn = localStorage.getItem("loggedIn");
+    const currentAccount = localStorage.getItem("currentAccount");
+    if (loggedIn === "true" && currentAccount) {
+      setIsLogged(true);
+      setAccount(currentAccount);
+      setCurrentAccount(currentAccount);
+      setConnected(true);
+      loadAccountBalance(currentAccount); // 加载账号余额
+    }
+  }, []);
+
+  const detectCurrentProvider = () => {
+    let provider;
+    if (window.ethereum) {
+      provider = window.ethereum;
+    } else if (window.web3) {
+      provider = window.web3.currentProvider;
+    } else {
+      console.log("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
+    }
+    return provider;
+  };
 
   return (
     <>
       <IconContext.Provider value={{ color: "undefined" }}>
-        <div className="navbar">
-          <Link to="#" className="menu-bars">
-            <FaIcons.FaBars onClick={showSidebar} />
-          </Link>
-          <div className="log-in-area">
-            {!isLogged && isMetamaskInstalled && (
-              <button className="log-in-btn" onClick={connectAccount}>
-                Log In Metamask
-              </button>
-            )}
-            {!isMetamaskInstalled && (
-              <a
-                className="install-link"
-                target="_blank"
-                rel="noreferrer"
-                href="https://metamask.io/download"
+        <div className={`navbar ${menuExpanded ? "menu-expanded" : ""}`}>
+          <nav className={menuExpanded ? "nav-menu expanded" : "nav-menu"}>
+            <ul className="nav-menu-items">
+            {SidebarData.map((item, index) => (
+              <li key={index}
+                className={`nav-item ${item.cName} ${subMenuOpen[index] ? "show-sub-menu" : ""}`}
+                onMouseEnter={(event) => handleSubMenuClick(index, event)} // 修改为 onMouseEnter
+                onMouseLeave={() => setSubMenuOpen((prevState) => {
+                  const newState = [...prevState];
+                  newState[index] = false;
+                  return newState;
+                })} // 添加 onMouseLeave
               >
-                Please Install Metamask
-              </a>
-            )}
-            {isLogged && <div className="login-account">{showAccount()}</div>}
-          </div>
-        </div>
-        <nav className={sidebar ? "nav-menu active" : "nav-menu"}>
-          <ul className="nav-menu-items" onClick={showSidebar}>
-            <li className="navbar-toggle">
-              <Link to="#" className="menu-bars">
-                <AiIcons.AiOutlineClose />
+              <Link to={item.path}>
+                {item.icon}
+                <span>{item.title}</span>
+                {item.subMenu && <AiIcons.AiOutlineDown style={{ marginLeft: "auto", marginRight: "5px" }} />}
               </Link>
-            </li>
-            {SidebarData.map((item, index) => {
-              return (
-                <li key={index} className={item.cName}>
-                  <Link to={item.path}>
-                    {item.icon}
-                    <span>{item.title}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+              {item.subMenu && subMenuOpen[index] && (
+                <ul className="dropdown-container">
+                  {item.subMenu.map((subItem, subIndex) => (
+                    <li key={subIndex} onClick={(event) => handleDownMenuItemClick(index, event)}>
+                      <Link to={subItem.path}>{subItem.title}</Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              </li>
+            ))}
+            </ul>
+            <div className="log-in-area">
+              {!isLogged && isMetamaskInstalled && (
+                <button className="log-in-btn" onClick={connectAccount}>
+                  登入
+                </button>
+              )}
+              {!isMetamaskInstalled && (
+                <a
+                  className="install-link"
+                  target="_blank"
+                  rel="noreferrer"
+                  href="https://metamask.io/download"
+                >
+                  請安裝Metamask
+                </a>
+              )}
+              {isLogged && (
+                <div className="log-in-area">
+                  <div className="show-account">{showAccount()}</div>
+                  <div className="eth-balance">餘額: {ethBalance} SepoliaETH</div>
+                  <button className="reload-btn" onClick={reloadAccount}>
+                    切換帳號
+                  </button>
+                </div>
+              )}
+            </div>
+          </nav>
+        </div>
       </IconContext.Provider>
     </>
   );
