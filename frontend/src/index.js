@@ -6,7 +6,9 @@ import {
   Outlet,
 } from "react-router-dom";
 import Home from './routes/Home';
+import HomePage from './routes/homePage';
 import Navbar from "./components/Navbar";
+import Navigation from "./components/navigation";
 import Reader from './routes/reader';
 import Creator from './routes/creator';
 import Dual from './routes/dual';
@@ -215,6 +217,7 @@ const AppLayout = () => {
 
   return (
     <>
+      {/* <Navigation/> */}
       {isLoggedIn && <Navbar accounts={accounts} setAccounts={setAccounts} />}
       <Outlet />
     </>
@@ -320,6 +323,9 @@ const router = createBrowserRouter([
       },{
         path: "/accountManagement",
         element: <AccountManagement />,
+      },{
+        path: "/homePage",
+        element: <HomePage />,
       }
     ],
   },
