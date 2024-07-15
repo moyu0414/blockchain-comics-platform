@@ -32,18 +32,16 @@ const ChapterManagement = () => {
       setComic(temp);
       console.log(temp);
 
-      await axios.get('http://localhost:5000/api/chapters')
-      .then(response => {
-        console.log("DB chapterData：" , response.data);
-        for (var i = 0; i < response.data.length; i++) {  //本漫畫中，章節購買者
-          if (response.data[i].comic_id == temp[0].comicHash){
-            chapterInfo.push(response.data[i]);
+      try {  // 這本漫畫得所有章節
+        const response = await axios.get('http://localhost:5000/api/chapters', {
+          params: {
+            comicHash: temp[0].comicHash
           }
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching comics: ', error);
-      });
+        });
+        chapterInfo = response.data;
+      } catch (error) {
+        console.error('Error fetching records:', error);
+      }
       sortByTimestamp(chapterInfo);
       console.log(chapterInfo);
 
@@ -52,7 +50,7 @@ const ChapterManagement = () => {
         if (currentAccount == temp[0].author){
           let id = 'Chapter' + num;
           temp_data.push({
-            title: chapterInfo[i].title,
+            title: chapterInfo[i].chapterTitle,
             chapterPrice: chapterInfo[i].price.toString(),
             chapterID: id
           });
@@ -79,9 +77,9 @@ const ChapterManagement = () => {
         {comic.map((Comic, index) => (
           <div className='comic-chapter-title' key={index}>
             <center>
+              <h2>創作者管理_章節選擇</h2>
               <h1>{Comic.title}</h1>
               <h4>作者：您是本作品的創作者!</h4>
-              <h2>創作者管理_章節選擇</h2>
             </center>
           </div>
         ))}

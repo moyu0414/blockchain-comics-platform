@@ -502,6 +502,40 @@ a:link{
   border-color: #007bff; 
 }
 
+.image-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.image-item {
+  position: relative;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.preview-image {
+  width: 150px;
+  height: auto;
+}
+
+.remove-button {
+  max-width: 10px;
+  height: 15px;
+  position: absolute;
+  right: 0px;
+  border: none;
+  cursor: pointer;
+}
+
+.MdClose-button {
+  size: 20px;
+  color: black;
+  position: absolute;
+  top: 0px;
+  right: 2px;
+}
+
 
 
 /* 作品管理 */

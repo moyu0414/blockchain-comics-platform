@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
-import { Button } from 'react-bootstrap';
+//import { Button } from 'react-bootstrap';
+import axios from 'axios';
 
 const ComicManagement = ({ contractAddress }) => {
   const storedArrayJSON = localStorage.getItem('comicDatas');
@@ -13,6 +14,7 @@ const ComicManagement = ({ contractAddress }) => {
   const [messageAccount, updateMessageAccount] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [web3Instance, setWeb3Instance] = useState('');
+  let modifiedArray = [];
 
   useEffect(() => {
     const connectToWeb3 = async () => {
@@ -25,30 +27,22 @@ const ComicManagement = ({ contractAddress }) => {
         setMeta(meta);
         let admin = await meta.admins(currentAccount).call();
         setIsAdmin(admin);
-        let all_Comic = await meta.getAllComicHashes().call(); // 所有最新的漫畫 Hash
-        //console.log(all_Comic);
 
         if (admin == true) {
           let storedArray = JSON.parse(storedArrayJSON);
           //console.log('Stored Comics Array:', storedArray);
-          storedArray.forEach(obj => {
-            obj.exists = '刪除';  // 現有的皆存在
-          });
-          for (var i = 0; i < all_Comic[0].length; i++) {
-            if (all_Comic[2][i] == false) {
-              let editcomicHash = await meta.editcomicHistory(all_Comic[0][i]).call(); // 最初的漫畫 Hash
-              let comics = await meta.comics(editcomicHash).call(); // comics => 最初的漫畫 Hash => 得到comic data
-              
-              storedArray.push({
-                title: all_Comic[1][i],
-                author: comics.author,
-                hash: all_Comic[0][i],
-                exists: '復原'
-              });
-            } 
-          };
-          console.log(storedArray);
-          setCurrent(storedArray);
+          
+          for (let i = 0; i < storedArray.length; i++) {
+            let status = storedArray[i].exists === 1 ? '刪除' : '復原';  // 根据 exists 属性决定要添加的状态
+            modifiedArray.push({
+              title: storedArray[i].title,
+              author: storedArray[i].author,
+              hash: storedArray[i].comicHash,
+              exists: status
+            });
+          }
+          console.log(modifiedArray);
+          setCurrent(modifiedArray);
         }
       } catch (error) {
         console.error(error);
@@ -60,7 +54,7 @@ const ComicManagement = ({ contractAddress }) => {
 
   // 漫畫刪除 或 復原函數
   const handleToggle = async (comicId) => {
-    const comic = current[comicId]; // 使用傳遞進來的索引值來訪問章節資料
+    const comic = current[comicId];
     const operationValue = comic.exists;
     const comicHash = current[comicId].hash;
     disableAllButtons();
@@ -69,15 +63,20 @@ const ComicManagement = ({ contractAddress }) => {
       try{
         updateMessage("正在刪除漫畫中...請稍後。");
         await meta.toggleComicExistence(comicHash).send({ from: currentAccount });
+        await axios.put('http://localhost:5000/api/update/comicExist', {
+          comicHash: comicHash,
+          is_exist: 0,
+        });
+
         alert('漫畫刪除成功！');
         updateMessage("");
+        window.location.reload();
         const updatedComics = [...current];
         updatedComics[comicId].exists = '復原'; // 更新漫畫狀態
         setCurrent(updatedComics);
       } catch (error) {
         console.error('漫畫刪除時發生錯誤：', error);
         alert(error);
-        window.location.reload();
         updateMessage("");
       } finally {
         enableAllButtons();
@@ -86,15 +85,20 @@ const ComicManagement = ({ contractAddress }) => {
       try{
         updateMessage("正在復原漫畫中...請稍後。");
         await meta.toggleComicExistence(comicHash).send({ from: currentAccount });
+        await axios.put('http://localhost:5000/api/update/comicExist', {
+          comicHash: comicHash,
+          is_exist: 1,
+        });
+
         alert('漫畫復原成功！');
         updateMessage("");
+        window.location.reload();
         const updatedComics = [...current];
         updatedComics[comicId].exists = '刪除'; // 更新漫畫狀態
         setCurrent(updatedComics);
       } catch (error) {
         console.error('漫畫復原時發生錯誤：', error);
         alert(error);
-        window.location.reload();
         updateMessage("");
       } finally {
         enableAllButtons();
@@ -143,7 +147,6 @@ const ComicManagement = ({ contractAddress }) => {
       } catch (error) {
         console.error('管理者新增時發生錯誤：', error);
         alert(error);
-        //window.location.reload();
         updateMessageAccount("");
       } finally {
         enableAllButtons();
@@ -173,7 +176,6 @@ const ComicManagement = ({ contractAddress }) => {
       } catch (error) {
         console.error('管理者刪除時發生錯誤：', error);
         alert(error);
-        //window.location.reload();
         updateMessageAccount("");
       } finally {
         enableAllButtons();
@@ -222,11 +224,9 @@ const ComicManagement = ({ contractAddress }) => {
                       <td className='comic-management-title'>{comic.title}</td>
                       <td>{comic.author}</td>
                       <td>{comic.hash}</td>
-
                       <td>
                         <button onClick={() => handleToggle(index)} className="btn" value={comic.exists}>{comic.exists}</button>
                       </td>
-                    
                     </tr>
                   ))}
                 </tbody>
