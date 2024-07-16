@@ -615,14 +615,14 @@ a:link{
   font-weight: bold;
 }
 
-.table {
+/* .table {
   width: 100%;
   min-width: 900px; 
   height: 10%;
   border-collapse: collapse;
-}
+} */
 
-.table th, .table td {
+/* .table th, .table td {
   padding: 8px;
   text-align: left;
 }
@@ -641,7 +641,7 @@ a:link{
 
 .table tbody tr {
   height: 120px; 
-}
+} */
 
 .chapter-selection img {
   width: 100%;
@@ -1095,6 +1095,10 @@ a:link{
     
   }
 
+  .text-section{
+    margin-left: 10%!important;
+  }
+
 }
 
 .carousel-control-prev {
@@ -1135,3 +1139,81 @@ a:link{
 .card-img-top{
   border-radius: 5px;
 }
+
+/* category */
+
+.dropdown-menu {
+  border: 3px #000 solid;
+  border-color: black !important;
+}
+
+/* comicDetail */
+
+.comicDetail .btn{
+  background-color: #fff;
+  border-radius: 0;
+  color: #000;
+  border: 2px solid black;
+  box-shadow: #000 -5px 5px;
+}
+
+/* .text-section{
+  margin-left: 10%;
+} */
+
+.comicDetail .btn-section{
+  margin: 0;
+}
+
+@media only screen and (max-width: 768px) {
+  .comicDetail .btn-section{
+    width: 40%;
+  }
+
+  .comicDetail .custom-button{
+    width: 150px;
+  }
+
+  .chapter-table{
+    margin: 0!important;
+  }
+
+  .chapter-table .btn{
+    width: 80px!important;
+  }
+
+}
+
+/* .chapter-table{
+  margin-left: 8%;
+} */
+
+/* .chapter-title-section{
+  padding-left: 10%;
+} */
+
+/* .chapter-title-section hr{
+  width: 90%;
+} */
+
+.chapter-table table {
+  /* width: 80%;  */
+  margin: 0 auto;
+}
+
+.chapter-table td{
+  padding: 1.5% 0;
+  border-bottom: none;
+  vertical-align: middle;
+  font-size: 16px;
+}
+
+.chapter-table .btn{
+  width: 50%;
+  background-color: #F6B93B;
+  border-radius: 0;
+  color: #000;
+  border: 2px solid black;
+  box-shadow: none!important;
+}
+

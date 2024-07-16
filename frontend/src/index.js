@@ -9,6 +9,8 @@ import Home from './routes/Home';
 import HomePage from './routes/homePage';
 import Navbar from "./components/Navbar";
 import Navigation from "./components/navigation";
+import Category from './routes/category';
+import ComicDetail from './routes/comicDetail';
 import Reader from './routes/reader';
 import Creator from './routes/creator';
 import Dual from './routes/dual';
@@ -220,6 +222,12 @@ const router = createBrowserRouter([
       },{
         path: "/homePage",
         element: <HomePage />,
+      },{
+        path: "/category",
+        element: <Category />,
+      },{
+        path: "/comicDetail",
+        element: <ComicDetail />,
       }
     ],
   },
