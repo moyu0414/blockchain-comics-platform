@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Carousel, Card, Col, Row, Button, Dropdown, Figure, Table } from 'react-bootstrap';
+import { Container, Carousel, Card, Col, Row, Button, Dropdown, Figure, Table, ButtonGroup, ButtonToolbar, Pagination } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
 import BootstrapTable from 'react-bootstrap-table-next';
@@ -21,16 +21,101 @@ function ComicDetail() {
         { title: '漫畫 1', author: '作者 1', chapter: '第 10 章', description: '這是漫畫 1 的描述' }
     ];
 
-    const [isFavorited, setIsFavorited] = useState(false); // 初始状态为未收藏
+    const [isFavorited, setIsFavorited] = useState(false); // 初始狀態為為收藏
 
     const handleFavoriteClick = () => {
-        setIsFavorited(!isFavorited); // 切换收藏状态
+        setIsFavorited(!isFavorited); // 切換收藏狀態
     };
 
     const chapters = [
-        {title: '章節 1章節 1章節 1章節 1', chapterPrice: '0.01', isBuying: '購買'},
-        {title: '章節 2', chapterPrice: '0.02', isBuying: '購買'}
-    ]
+        { title: '章節 1章節 1章節 1章節 1', chapterPrice: '0.01', isBuying: '購買' },
+        { title: '章節 2', chapterPrice: '0.02', isBuying: '購買' },
+        // 添加更多章節來測試分頁功能
+        { title: '章節 3', chapterPrice: '0.03', isBuying: '購買' },
+        { title: '章節 4', chapterPrice: '0.04', isBuying: '購買' },
+        { title: '章節 5', chapterPrice: '0.05', isBuying: '購買' },
+        { title: '章節 6', chapterPrice: '0.06', isBuying: '購買' },
+        { title: '章節 7', chapterPrice: '0.03', isBuying: '購買' },
+        { title: '章節 8', chapterPrice: '0.04', isBuying: '購買' },
+        { title: '章節 9', chapterPrice: '0.05', isBuying: '購買' },
+        { title: '章節 10', chapterPrice: '0.6', isBuying: '購買' },
+        { title: '章節 11', chapterPrice: '0.01', isBuying: '購買' },
+        { title: '章節 12', chapterPrice: '0.03', isBuying: '購買' }
+    ];
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10; // 每頁顯示的章節數量
+    const totalPages = Math.ceil(chapters.length / itemsPerPage);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
+
+    // 計算當前頁面的章節切片的起始索引
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const currentChapters = chapters.slice(startIndex, startIndex + itemsPerPage);
+
+    const getPageItems = () => {
+        const pageItems = [];
+        const maxPagesToShow = 5; // 顯示的最大頁碼數量
+    
+        if (totalPages <= maxPagesToShow) {
+            // 如果總頁數小於等於最大顯示頁碼數，則顯示所有頁碼
+            for (let i = 1; i <= totalPages; i++) {
+                pageItems.push(
+                    <Pagination.Item key={i} active={i === currentPage} onClick={() => handlePageChange(i)}>
+                        {i}
+                    </Pagination.Item>
+                );
+            }
+        } else {
+            // 計算中間的頁碼範圍
+            const middlePages = Math.floor(maxPagesToShow / 2);
+            let startPage = Math.max(2, currentPage - middlePages);
+            let endPage = Math.min(totalPages - 1, currentPage + middlePages);
+    
+            if (currentPage - startPage <= middlePages) {
+                endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 2);
+            }
+    
+            if (endPage - currentPage <= middlePages) {
+                startPage = Math.max(2, endPage - maxPagesToShow + 2);
+            }
+    
+            // 第一頁
+            pageItems.push(
+                <Pagination.Item key={1} active={currentPage === 1} onClick={() => handlePageChange(1)}>
+                    1
+                </Pagination.Item>
+            );
+    
+            if (startPage > 2) {
+                pageItems.push(<Pagination.Ellipsis key="ellipsis-start" />);
+            }
+    
+            // 中間的頁碼
+            for (let i = startPage; i <= endPage; i++) {
+                pageItems.push(
+                    <Pagination.Item key={i} active={i === currentPage} onClick={() => handlePageChange(i)}>
+                        {i}
+                    </Pagination.Item>
+                );
+            }
+    
+            if (endPage < totalPages - 1) {
+                pageItems.push(<Pagination.Ellipsis key="ellipsis-end" />);
+            }
+    
+            // 最後一頁
+            pageItems.push(
+                <Pagination.Item key={totalPages} active={currentPage === totalPages} onClick={() => handlePageChange(totalPages)}>
+                    {totalPages}
+                </Pagination.Item>
+            );
+        }
+    
+        return pageItems;
+    };
 
     return (
         
@@ -91,13 +176,13 @@ function ComicDetail() {
                     <hr/>
                 </Col>
             </Row>
-            <Row className='pb-5 justify-content-center'>
+            <Row className='justify-content-center'>
                 <Col className='d-flex justify-content-center chapter-table'>
                     <Table size="sm">
                         <tbody>
-                            {chapters.map((chapter, index) => (
+                            {currentChapters.map((chapter, index) => (
                                 <tr key={index}>
-                                    <td className='text-center fw-bold'>第 {index + 1} 章</td>
+                                    <td className='text-center fw-bold'>第 {startIndex + index + 1} 章</td>
                                     <td className='text-center'>{chapter.title}</td>
                                     <td className='text-center'>{chapter.chapterPrice}</td>
                                     <td className='text-center'>
@@ -107,6 +192,23 @@ function ComicDetail() {
                             ))}
                         </tbody>
                     </Table>
+                </Col>
+            </Row>
+            <Row className='pt-2 pb-5 justify-content-center table-button'>
+                <Col className='d-flex justify-content-center'>
+                    <ButtonToolbar aria-label="Toolbar with pagination">
+                        <Pagination>
+                            <Pagination.Prev 
+                                onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} 
+                                className='pagination-button'
+                            />
+                            {getPageItems()}
+                            <Pagination.Next 
+                                onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages} 
+                                className='pagination-button'
+                            />
+                        </Pagination>
+                    </ButtonToolbar>
                 </Col>
             </Row>
             <Row>

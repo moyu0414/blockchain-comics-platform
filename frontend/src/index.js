@@ -13,6 +13,9 @@ import Category from './routes/category';
 import ComicDetail from './routes/comicDetail';
 import Reader from './routes/reader';
 import Creator from './routes/creator';
+import CreatorPage from './routes/creatorPage';
+import CreatorNft from './routes/creatorNft';
+import Analysis from './routes/analysis';
 import Dual from './routes/dual';
 import CreateWork from './routes/createWork';
 import EditWork from './routes/editWork';
@@ -124,8 +127,7 @@ const AppLayout = () => {
 
   return (
     <>
-      {/* <Navigation/> */}
-      {isLoggedIn && <Navbar accounts={accounts} setAccounts={setAccounts} />}
+      {isLoggedIn && <Navigation accounts={accounts} setAccounts={setAccounts}/>}
       <Outlet />
     </>
   );
@@ -228,6 +230,15 @@ const router = createBrowserRouter([
       },{
         path: "/comicDetail",
         element: <ComicDetail />,
+      },{
+        path: "/creatorPage",
+        element: <CreatorPage />,
+      },{
+        path: "/analysis",
+        element: <Analysis />,
+      },{
+        path: "/creatorNft",
+        element: <CreatorNft />,
       }
     ],
   },
