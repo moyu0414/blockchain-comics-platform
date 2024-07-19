@@ -67,11 +67,13 @@ const HomePage = ({ contractAddress }) => {
                     if (firstItem) {
                         return (
                             <Carousel.Item key={category}>
-                                <img
-                                    className="d-block mx-auto img-fluid"
-                                    src={firstItem.image}
-                                    alt={`Slide for ${category}`}
-                                />
+                                <div className="carousel-image-container embed-responsive embed-responsive-16by9">
+                                    <img
+                                        className="d-block mx-auto img-fluid"
+                                        src={firstItem.image}
+                                        alt={`Slide for ${category}`}
+                                    />
+                                </div>
                                 <Carousel.Caption className="carousel-caption-custom">
                                     <h3>{firstItem.title}</h3>
                                     <p>{firstItem.text}</p>
@@ -116,8 +118,8 @@ const HomePage = ({ contractAddress }) => {
                                         <Card>
                                             <Card.Img variant="top" src={data.image} />
                                             <Card.Body>
-                                                <Card.Title>{data.title}</Card.Title>
-                                                <Card.Text>{data.text}</Card.Text>
+                                                <Card.Title className='fw-bold'>{data.title}</Card.Title>
+                                                <Card.Text className='text-secondary'>{data.text}</Card.Text>
                                             </Card.Body>
                                         </Card>
                                     </Col>
@@ -139,8 +141,8 @@ const HomePage = ({ contractAddress }) => {
                                 <Card>
                                     <Card.Img variant="top" src={data.image} />
                                     <Card.Body>
-                                        <Card.Title>{data.title}</Card.Title>
-                                        <Card.Text>{data.text}</Card.Text>
+                                        <Card.Title className='fw-bold'>{data.title}</Card.Title>
+                                        <Card.Text className='text-secondary'>{data.text}</Card.Text>
                                     </Card.Body>
                                 </Card>
                             </Col>

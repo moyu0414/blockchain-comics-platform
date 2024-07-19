@@ -9,8 +9,13 @@ import Home from './routes/Home';
 import HomePage from './routes/homePage';
 import Navbar from "./components/Navbar";
 import Navigation from "./components/navigation";
+import Category from './routes/category';
+import ComicDetail from './routes/comicDetail';
 import Reader from './routes/reader';
 import Creator from './routes/creator';
+import CreatorPage from './routes/creatorPage';
+import CreatorNft from './routes/creatorNft';
+import Analysis from './routes/analysis';
 import Dual from './routes/dual';
 import CreateWork from './routes/createWork';
 import EditWork from './routes/editWork';
@@ -23,14 +28,19 @@ import TransactionHistory from './routes/transactionHistory';
 import PurchaseHistory from './routes/purchaseHistory';
 import ComicManagement from './routes/comicManagement';
 import AccountManagement from './routes/accountManagement';
-import MintNFT from './routes/mintNFT';
 import Web3 from 'web3';
 import comicData from "./contracts/ComicPlatform.json"
+import { Buffer } from 'buffer';
+import bs58 from 'bs58';
 import axios from 'axios';
 
 let DBComicDatas = [];
 let DBChapterDatas = [];
+let DBPurchasedDatas = [];
 let comicDatas = [];
+let initialData = [];
+let purchaseData = [];
+let num = 1;
 
 const AppLayout = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -72,8 +82,7 @@ const AppLayout = () => {
           const meta = await contractInstance.methods;
 
           sortByTimestamp(DBComicDatas);
-
-          let comicHash, id, temp_title, comicAuthor, comicDescription, comicCategory, comicExists, filename, protoFilename;
+          let comicHash, id, temp_title, comicAuthor, comicDescription, comicCategory, comicExists, filename;
           for (var i = 0; i < DBComicDatas.length; i++) {
             let id = 'Comic' + (i + 1) ;
             comicHash = DBComicDatas[i].comic_id;
@@ -83,9 +92,8 @@ const AppLayout = () => {
             comicCategory = DBComicDatas[i].category;
             comicExists = DBComicDatas[i].is_exist;
             filename = DBComicDatas[i].filename;
-            protoFilename = DBComicDatas[i].protoFilename;
 
-            comicDatas.push({comicID: id, title: temp_title, author: comicAuthor, description: comicDescription, category: comicCategory, exists: comicExists, filename: filename, comicHash: comicHash, protoFilename: protoFilename});
+            comicDatas.push({comicID: id, title: temp_title, author: comicAuthor, description: comicDescription, category: comicCategory, exists: comicExists, filename: filename, comicHash: comicHash});
           }
           console.log("comicDatas：" , comicDatas);
           //儲存comicDatas資料至各分頁
@@ -119,8 +127,7 @@ const AppLayout = () => {
 
   return (
     <>
-      {/* <Navigation/> */}
-      {isLoggedIn && <Navbar accounts={accounts} setAccounts={setAccounts} />}
+      {isLoggedIn && <Navigation accounts={accounts} setAccounts={setAccounts}/>}
       <Outlet />
     </>
   );
@@ -216,10 +223,22 @@ const router = createBrowserRouter([
         element: <AccountManagement />,
       },{
         path: "/homePage",
-        element: <HomePage contractAddress={comicData.address} />,
+        element: <HomePage />,
       },{
-        path: "/mintNFT",
-        element: <MintNFT />,
+        path: "/category",
+        element: <Category />,
+      },{
+        path: "/comicDetail",
+        element: <ComicDetail />,
+      },{
+        path: "/creatorPage",
+        element: <CreatorPage />,
+      },{
+        path: "/analysis",
+        element: <Analysis />,
+      },{
+        path: "/creatorNft",
+        element: <CreatorNft />,
       }
     ],
   },

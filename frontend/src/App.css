@@ -153,104 +153,6 @@ span {
   padding: 20px;
 }
 
-
-
-
-.navbar-left-top {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1000; /* 可以根据需要调整 z-index */
-}
-
-.navbar .log-in-area .log-in-btn{
-  margin-left: 95%;
-  font-size: 18px;
-  width: 150px;
-  height: 55px;
-  border: none;
-  border-radius: 8px;
-  background-color: #0FC2C0;
-  color: #ffffff;
-  /* margin-left: 16px; */
-  text-decoration: none;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.login-account{
-  margin-left: 95%;
-}
-
-.navbar .log-in-area .log-in-btn:hover{
-  background-color: #008F8C;
-  color: white;
-  border: none;
-}
-
-.show-account{
-  display: inline-block;
-  margin-right: 6%;
-  color: #008F8C;
-}
-
-.reload-btn{
-  display: inline-block;
-  font-size: 18px;
-  width: 180px;
-  height: 50px;
-  border: none;
-  border-radius: 8px;
-  background-color: #0FC2C0;
-  color: #ffffff;
-  text-decoration: none;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-/* 新增以下樣式 */
-.log-in-area {
-  display: flex;
-  align-items: center;
-}
-
-.eth-balance {
-  margin-right: 6%;
-  color: #008F8C;
-}
-
-.reload-btn:hover{
-  background-color: #008F8C;
-  color: white;
-  border: none;
-}
-
-.navbar .log-in-area .install-link{
-  margin-left: 95%;
-  font-size: 16px;
-  width: 50px;
-  height: auto;
-  padding: 15px;
-  border: none;
-  border-radius: 8px;
-  background-color: #007bff;
-  text-decoration: none;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.navbar .log-in-area .install-link:hover{
-  margin-left: 90%;
-  background-color: #0056b3;
-  color: white;
-  border: none;
-}
-
-
-
-
-
-
 /* 身分選擇頁面 */
 .button-container {
   display: flex;
@@ -615,34 +517,6 @@ a:link{
   font-weight: bold;
 }
 
-.table {
-  width: 100%;
-  min-width: 900px; 
-  height: 10%;
-  border-collapse: collapse;
-}
-
-.table th, .table td {
-  padding: 8px;
-  text-align: left;
-}
-
-.table th {
-  font-size: 24px;
-  border-bottom: 2px solid #ddd;
-  color: #0FC2C0;
-}
-
-.table td {
-  font-size: 18px;
-  border-bottom: 1px solid #ddd;
-  vertical-align: middle;
-}
-
-.table tbody tr {
-  height: 120px; 
-}
-
 .chapter-selection img {
   width: 100%;
 }
@@ -692,15 +566,6 @@ a:link{
   padding: 20px;
   border-radius: 5px;
   color: #333;
-}
-
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #fff;
-  padding: 10px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .nav-menu {
@@ -791,23 +656,6 @@ a:link{
   white-space: nowrap;
 }
 
-.log-in-area {
-  margin-left: 30%;
-  white-space: nowrap
-}
-
-.log-in-btn {
-  background-color: #fff;
-  color: #0FC2C0;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 5px;
-}
-
-.log-in-btn:hover {
-  background-color: #e0e0e0;
-}
 
 .install-link {
   color: #fff;
@@ -1033,9 +881,24 @@ a:link{
   padding: 15px;
 }
 
-.carousel-item img {
+/* .carousel-item img {
   border-radius: 30px;
   width: 90%;
+} */
+
+.carousel-image-container {
+  width: 90%;
+  max-width: 1200px;
+  max-height: 600px;
+  overflow: hidden;
+  border-radius: 30px;
+  margin: 0 auto; /* 居中 */
+}
+
+.carousel-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 讓圖片適應容器，並保持比例 */
 }
 
 .carousel-indicators {
@@ -1080,8 +943,8 @@ a:link{
 
   .carousel-caption {
     font-size: 14px; /* 在手機尺寸下減少字體大小 */
-    max-height: 80px; /* 減少最大高度以適應小螢幕 */
-    width: 85%;
+    max-height: 150px; /* 減少最大高度以適應小螢幕 */
+    width: 84.7%;
     left: 7.5%;
   }
 
@@ -1093,6 +956,10 @@ a:link{
   .custom-button{
     width: 80px;
     
+  }
+
+  .text-section{
+    margin-left: 10%!important;
   }
 
 }
@@ -1134,4 +1001,287 @@ a:link{
 
 .card-img-top{
   border-radius: 5px;
+}
+
+/* category */
+
+.dropdown-menu {
+  border: 3px #000 solid;
+  border-color: black !important;
+}
+
+/* comicDetail */
+
+.comicDetail .btn{
+  background-color: #fff;
+  border-radius: 0;
+  color: #000;
+  border: 2px solid black;
+  box-shadow: #000 -5px 5px;
+}
+
+.comicDetail .btn-section{
+  margin: 0;
+}
+
+@media only screen and (max-width: 768px) {
+  .comicDetail .btn-section{
+    width: 40%;
+  }
+
+  .comicDetail .custom-button{
+    width: 150px;
+  }
+
+  .chapter-table{
+    margin: 0!important;
+  }
+
+  .chapter-table .btn{
+    width: 80px!important;
+  }
+
+}
+
+.chapter-table table {
+  margin: 0 auto;
+}
+
+.chapter-table td{
+  padding: 1.5% 0;
+  border-bottom: none;
+  vertical-align: middle;
+  font-size: 16px;
+}
+
+.chapter-table .btn{
+  width: 50%;
+  background-color: #F6B93B;
+  border-radius: 0;
+  color: #000;
+  border: 2px solid black;
+  box-shadow: none!important;
+}
+
+.table-button .btn{
+  padding: 0 2%;
+  border: 2px #F6B93B solid;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  box-shadow: none!important;
+}
+
+.table-button .btn:hover{
+  background-color: #F6B93B;
+}
+
+.table-button .btn:click{
+  background-color: #F6B93B;
+}
+
+.page-link{
+  color: #F6B93B;
+}
+
+.page-link:hover{
+  color: #F6B93B;
+}
+
+.page-link:focus{
+  color: #F6B93B;
+}
+
+.active>.page-link, .page-link.active{
+  background-color: #F6B93B;
+  border: 1px #F6B93B solid;
+}
+
+.page-link span{
+  margin: 0 5px;
+}
+
+/* creatorPage */
+.creatorPage .btn{
+  color: #000;
+  padding: 0 2%;
+  background-color: #F6B93B;
+  border: 2px #F6B93B solid;
+  font-size: 16px;
+  box-shadow: rgba(246, 185, 59, 0.42) 5px 5px;
+  border-radius: 8px;
+}
+
+.creatorPage .btn-section{
+  padding-right: 10%;
+}
+
+/* analysis */
+
+.analysis h1{
+  font-size: 56px;
+  color: #FBC604;
+  text-shadow:
+    -1px -1px 0 #000,  
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000; 
+  letter-spacing: 0.2em; 
+  word-spacing: 0.3em;
+}
+
+.analysis thead th {
+  font-weight: 900;
+  padding: 1% 0;
+  border: none !important;
+  background-color: rgba(251, 198, 4, 0.4);
+}
+
+/* creatorNft */
+
+.simple-effet-image {
+  padding: 20px;
+}
+
+.effect-image-1 {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 40px 40px;
+}
+
+.effect-image-1 img {
+  width: 100%;
+  height: auto;
+  border-radius: 40px 40px 0 0;
+  border: 2px solid #000;
+  border-bottom: 1px solid #000;
+}
+
+.simple-text {
+  background-color: rgba(6, 157, 103, 0.89); 
+  text-align: center;
+  padding: 10px 0;
+  color: #fff;
+  border: 2px solid #000; /* 將邊框設置回來 */
+  border-top: 1px solid #000;
+  border-radius: 0 0 40px 40px; /* 調整與效果圖片一致的圓角 */
+}
+
+.creatorNft thead th {
+  font-weight: 900;
+  padding: 1% 0;
+  border: none !important;
+  background-color: rgba(6, 157, 103, 0.46);
+}
+
+.creatorNft .table-button .btn{
+  padding: 0 2%;
+  border: 2px rgba(6, 157, 103, 0.89) solid;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  box-shadow: none!important;
+}
+
+.creatorNft .table-button .btn:hover{
+  background-color: rgba(6, 157, 103, 0.89);
+}
+
+.creatorNft .table-button .btn:click{
+  background-color: rgba(6, 157, 103, 0.89);
+}
+
+.creatorNft .page-link{
+  color: rgba(6, 157, 103, 0.89);
+}
+
+.creatorNft .active>.page-link, .page-link.active{
+  color: #fff;
+  background-color: rgba(6, 157, 103, 0.89);
+  border: 1px rgba(6, 157, 103, 0.89) solid;
+}
+
+/* navigation */
+
+.navigation {
+  background-color: #F3FCF3;
+  padding: 0.8% 10%;
+}
+
+.log-in-area {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  width: 82%;
+}
+
+.log-in-btn{
+  background-color: #F6B93B;
+  border: 1px #000 solid;
+}
+
+.log-in-area .btn {
+  margin: 0 1%;
+}
+
+.login{
+  width: 100%;
+}
+
+.login div, .login .btn{
+  margin: 0 2%;
+}
+
+.navbar-nav .nav-link.active, .navbar-nav .nav-link.show{
+  color: #008F8C;
+}
+
+.nav-link.active{
+  color: #008F8C;
+}
+
+.nav-link.active:hover{
+  color: #008F8C;
+}
+
+.nav-link.active:click{
+  color: #008F8C;
+}
+
+.nav-link.active:focus{
+  color: #008F8C;
+}
+
+.show-account, .eth-balance{
+  color: #008F8C;
+}
+
+@media only screen and (max-width: 1400px) {
+  .offcanvas{
+    background-color: #F3FCF3;
+  }
+
+  .log-in-area {
+    width: 100%;
+    height: 100px;
+    padding-top: 10%;
+  }
+
+  .log-in-area div, .log-in-area .btn{
+    margin: 2% 1%;
+  }
+
+  .login{
+    height: 100px;
+  }
+
+  .log-in-area .login {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .log-in-area .btn{
+    width: 95%;
+  }
 }
