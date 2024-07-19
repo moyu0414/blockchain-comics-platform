@@ -26,12 +26,18 @@ const EditWork = (props) => {
   const [chapter, setChapter] = useState([]);  // 原始 chapter
   const [newComic, setNewComic] = useState({category:'',  title: '', description: '', imgURL: ''});
   const [newChapter, setNewChapter] = useState({chapterTitle: '', price: '', chapterHash: '', imgURL: ''});
+  const [coverFile, setCoverFile] = useState('');
+  const [promoPreviewImageUrl, setPromoPreviewImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [grading, setGrading] = useState([
-    "戀愛漫畫",
-    "科幻漫畫",
-    "推理漫畫",
-    "校園漫畫",
+    "戀愛",
+    "懸疑",
+    "恐怖",
+    "冒險",
+    "古風",
+    "玄幻",
+    "武俠",
+    "搞笑"
   ]);
   let temp = [];
   let chapterInfo = [];
@@ -98,8 +104,12 @@ const EditWork = (props) => {
       }
       disableButton();
       updateMessage("正在編輯漫畫資料中...請稍後。")
-
-      if (comic[0].category == newComic.category && comic[0].title == newComic.title && comic[0].description == newComic.description && !file) {
+      
+      if (comic[0].category === newComic.category &&
+        comic[0].title === newComic.title &&
+        comic[0].description === newComic.description &&
+        !file && !coverFile
+      ) {
         alert('目前您未編輯任何東西!');
         updateMessage("");
         enableButton();
@@ -117,6 +127,14 @@ const EditWork = (props) => {
           if (file) { // 有重新上傳圖片，重新產生新的fileName
             formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
           }
+          if (coverFile) {
+            formData.append('coverFile', coverFile);
+            const protoFilename = `promoCover.${getFileExtension(coverFile.name)}`;
+            formData.append('protoFilename', protoFilename);
+            console.log(protoFilename);
+          } else {
+            formData.append('protoFilename', '');
+          };
           await axios.put('http://localhost:5000/api/update/comicData', formData);
   
           alert('漫畫編輯成功！');
@@ -136,7 +154,14 @@ const EditWork = (props) => {
         if (file) { // 有重新上傳圖片，重新產生新的fileName
           formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
         }
-
+        if (coverFile) {
+          formData.append('coverFile', coverFile);
+          const protoFilename = `promoCover.${getFileExtension(coverFile.name)}`;
+          formData.append('protoFilename', protoFilename);
+          console.log(protoFilename);
+        } else {
+          formData.append('protoFilename', '');
+        };
         await axios.put('http://localhost:5000/api/update/comicData', formData);
 
         alert('漫畫編輯成功！');
@@ -274,6 +299,18 @@ const EditWork = (props) => {
     setPreviewImageUrls(prevUrls => [...prevUrls, ...urls]);  // 添加新預覽 URL 到舊預覽 URL 列表中
   };
 
+  const createPromoCover = (event) => {
+    const file = event.target.files[0];
+    if (validateFileType(file)) {
+      previewPromoCover(file);
+      setCoverFile(file);
+    } else {
+      alert("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
+      console.log("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
+      return -1;
+    }
+  };
+
   // 驗證檔案類型是否符合要求
   const validateFileType = (file) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
@@ -288,6 +325,15 @@ const EditWork = (props) => {
       setPreviewImageUrl(reader.result);
     };
   }; 
+
+  // 預覽圖片
+  const previewPromoCover = (file) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      setPromoPreviewImageUrl(reader.result);
+    };
+  };
 
   // 允許使用者刪除不需要的文件預覽
   const handleRemoveFile = (index) => {
@@ -355,7 +401,11 @@ const EditWork = (props) => {
       console.log(temp);
       setComic(temp);
       let imgURL = "http://localhost:5000/api/comicIMG/" + temp[0].filename;
-      setNewComic({category:temp[0].category,  title: temp[0].title, description: temp[0].description, imgURL: imgURL});
+      let coverImg = '';
+      if (temp[0].protoFilename) {
+        coverImg = `http://localhost:5000/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
+      }
+      setNewComic({category:temp[0].category,  title: temp[0].title, description: temp[0].description, imgURL: imgURL, coverImg: coverImg});
     
       if (location.state.chapterID) {
         setComicHash(temp[0].comicHash);
@@ -370,40 +420,48 @@ const EditWork = (props) => {
   // 处理生成合并图片并进行翻页
   const handleGeneratePages = async () => {
     return new Promise((resolve, reject) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const totalFiles = file.length;  // 计算总共需要合并的图片数量
-      canvas.width = file.length * 1200; // 调整 canvas 的宽度和高度，根据需要
-      canvas.height = 1600;
-      // 遍历图片数组绘制到 canvas 上
-      let xOffset = 0;
-      const promises = file.map((file, index) => {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.onload = () => {
-            ctx.drawImage(img, xOffset, 0, 1200, 1600);  // 绘制每张图片
-            xOffset += 1200;  // 图片间距，根据实际需要调整
-            resolve();
-          };
-          img.src = URL.createObjectURL(file); // 使用文件对象的 URL 绘制到 canvas
+      console.log('aaa');
+      if (file.length == 1) {
+        console.log(file);
+        mergedFile = file[0];
+        const reader = new FileReader();
+        reader.readAsArrayBuffer(file[0]);
+        resolve();
+      } else {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = file.length * 1200; // 调整 canvas 的宽度和高度，根据需要
+        canvas.height = 1600;
+        // 遍历图片数组绘制到 canvas 上
+        let xOffset = 0;
+        const promises = file.map((file, index) => {
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+              ctx.drawImage(img, xOffset, 0, 1200, 1600);  // 绘制每张图片
+              xOffset += 1200;  // 图片间距，根据实际需要调整
+              resolve();
+            };
+            img.src = URL.createObjectURL(file); // 使用文件对象的 URL 绘制到 canvas
+          });
         });
-      });
-      Promise.all(promises).then(() => {
-        // 导出合并后的图片
-        canvas.toBlob((blob) => {
-          const extension = getFileExtension(file[0].name); // 获取第一个文件的扩展名
-          const fileName = `mergedImages_page.${extension}`;
-          mergedFile = new File([blob], fileName, { type: 'image/jpeg' }); // 创建合并后的文件对象
+        Promise.all(promises).then(() => {
+          // 导出合并后的图片
+          canvas.toBlob((blob) => {
+            const extension = getFileExtension(file[0].name); // 获取第一个文件的扩展名
+            const fileName = `mergedImages_page.${extension}`;
+            mergedFile = new File([blob], fileName, { type: 'image/jpeg' }); // 创建合并后的文件对象
 
-          // 创建下载链接并触发下载
-          //const downloadLink = document.createElement('a');
-          //downloadLink.href = URL.createObjectURL(mergedFile);
-          //downloadLink.download = fileName;
-          //downloadLink.click();
+            // 创建下载链接并触发下载
+            //const downloadLink = document.createElement('a');
+            //downloadLink.href = URL.createObjectURL(mergedFile);
+            //downloadLink.download = fileName;
+            //downloadLink.click();
 
-          resolve(); // 完成 handleGeneratePages 的 Promise
-        }, 'image/jpeg');
-      });
+            resolve(); // 完成 handleGeneratePages 的 Promise
+          }, 'image/jpeg');
+        });
+      };
     });
   };
 
@@ -549,7 +607,7 @@ const EditWork = (props) => {
                       <img
                         src={newComic.imgURL}
                         alt="Preview"
-                        style={{ width: '150px', paddingBottom: '3%', marginRight: '50px'}}
+                        style={{ width: '50%', paddingBottom: '3%' }}
                       />
                     </div>
                     <div>更改後的圖片封面
@@ -558,10 +616,43 @@ const EditWork = (props) => {
                         <img
                           src={previewImageUrl}
                           alt="Preview"
-                          style={{ width: '150px', paddingBottom: '3%' }}
+                          style={{ width: '50%', paddingBottom: '3%' }}
                         />
                       )}
                     </div>
+                </div>
+                <label htmlFor="image">上傳橫向封面(推廣頁)，如不需變更封面，則無需上傳圖檔</label>
+                <input
+                  type="file"
+                  onChange={createPromoCover}
+                />
+                <div style={{ display: 'flex' }}>
+                  {newComic.coverImg ? (
+                    <div style={{ marginRight: '170px' }}>
+                      <div>更改前的橫向封面(推廣頁)</div>
+                      <img
+                        src={newComic.coverImg}
+                        alt="Preview"
+                        style={{ width: '50%', paddingBottom: '3%', marginRight: '50px' }}
+                      />
+                    </div>
+                  ) : (
+                    <div style={{ marginRight: '170px' }}>
+                      <div>更改前的橫向封面(推廣頁)</div>
+                        <h3>目前無上傳橫向封面</h3><br />
+                    </div>
+                  )}
+                  <div>
+                    <div>更改後的橫向封面(推廣頁)</div>
+                    <br />
+                    {promoPreviewImageUrl && (
+                      <img
+                        src={promoPreviewImageUrl}
+                        alt="Promo Cover Preview"
+                        style={{ width: '50%', paddingBottom: '3%' }}
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="text-red-500 text-center">{message}</div>
                 <button onClick={editComic} id="list-button">提交</button>
