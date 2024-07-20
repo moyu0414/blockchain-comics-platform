@@ -241,6 +241,12 @@ const router = createBrowserRouter([
       },{
         path: "/mintNFT",
         element: <MintNFT />,
+      },{
+        path: "/manageComic",
+        element: <ManageComic />,
+      },{
+        path: "/bookcase",
+        element: <Bookcase />,
       }
     ],
   },

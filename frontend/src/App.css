@@ -881,32 +881,28 @@ a:link{
   padding: 15px;
 }
 
-/* .carousel-item img {
-  border-radius: 30px;
-  width: 90%;
-} */
-
 .carousel-image-container {
-  width: 90%;
-  max-width: 1200px;
-  max-height: 600px;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 21 / 9; /* 設定橫向比例 */
   overflow: hidden;
+  background-color: #fff; /* 可以根據需要設置背景色 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
   border-radius: 30px;
-  margin: 0 auto; /* 居中 */
 }
 
 .carousel-image-container img {
-  width: 100%;
+  width: 90%;
   height: 100%;
-  object-fit: cover; /* 讓圖片適應容器，並保持比例 */
+  border-radius: 30px; /* 添加圓角 */
+  object-fit: cover; /* 使圖片覆蓋容器並保持比例 */
+  object-position: 10% 20%;
 }
 
-.carousel-indicators {
-  position: absolute;
-  bottom: -50px; /* 距離底部的距離 */
-  left: 0;
-  right: 0;
-  text-align: center;
+.carousel-indicators{
+  bottom: -45px;
 }
 
 .carousel-indicators [data-bs-target] {
@@ -943,9 +939,9 @@ a:link{
 
   .carousel-caption {
     font-size: 14px; /* 在手機尺寸下減少字體大小 */
-    max-height: 150px; /* 減少最大高度以適應小螢幕 */
-    width: 84.7%;
-    left: 7.5%;
+    max-height: 100px; /* 減少最大高度以適應小螢幕 */
+    width: 92.5%;
+    left: 4%;
   }
 
   .btn-section{
@@ -960,6 +956,13 @@ a:link{
 
   .text-section{
     margin-left: 10%!important;
+  }
+
+  .carousel-image-container img {
+    border-radius: 30px !important;
+    width: 100%;
+    max-height: 300px; /* 根據需要調整 */
+    object-fit: cover; /* 保持比例 */
   }
 
 }
