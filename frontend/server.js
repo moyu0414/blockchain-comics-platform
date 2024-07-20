@@ -61,26 +61,35 @@ const upload = multer({ storage: storage });
 
 
 // 异步函数，用于重命名文件并将其移动到上传目录
-async function renameFilename(file, comic_id, type) {
-  const timestamp = Date.now().toString();
-  const hashValue = await calculateHash(file.path);
-  const fileExtension = getFileExtension(file.originalname);
-  // 创建漫画文件夹路径
+async function renameFilename(file, comic_id, type, protoFilename, coverFile) {
   const comicFolder = path.join('uploads', comic_id);
   const specificFolder = path.join(comicFolder, type === 'comicIMG' ? 'cover' : 'chapters');
   try {
-      // 确保文件夹存在，如果不存在则创建
-      await fsPromises.mkdir(comicFolder, { recursive: true });
-      await fsPromises.mkdir(specificFolder, { recursive: true });
-      // 构建文件名和文件路径
+    await fsPromises.mkdir(comicFolder, { recursive: true });
+    await fsPromises.mkdir(specificFolder, { recursive: true });
+    // 如果有 protoFilename 和 coverFile，則處理 protoFilename 的重命名
+    if (coverFile) {
+      const protoFilePath = path.join(specificFolder, protoFilename);
+      try {
+        await fsPromises.access(protoFilePath);
+        await fsPromises.unlink(protoFilePath); // 刪除已存在的 protoFilename
+      } catch (error) {
+        // 當 protoFilename 不存在時，access 會拋出錯誤，這裡可以忽略
+      }
+      await fsPromises.rename(coverFile.path, protoFilePath);
+    } 
+    if (file) {
+      const timestamp = Date.now().toString();
+      const hashValue = await calculateHash(file.path);
+      const fileExtension = getFileExtension(file.originalname);
       const filename = `${timestamp}_${hashValue}.${fileExtension}`;
       const filePath = path.join(specificFolder, filename);
-      // 移动文件到上传目录并重命名
       await fsPromises.rename(file.path, filePath);
-      return filename; // 返回相对于uploads文件夹的文件路径
+      return filename;
+    }
   } catch (error) {
-      console.error('Error moving file or creating directory:', error);
-      throw error; // 抛出错误，由调用者处理
+    console.error('Error moving file or creating directory:', error);
+    throw error;
   }
 }
 
@@ -286,18 +295,44 @@ app.get('/api/reading/records', (req, res) => {
 });
 
 
+app.get('/api/comicDetail', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const comicHash = req.query.comicHash;
+  const query = `
+    SELECT chapters.title, chapters.price, records.buyer AS isBuying, comics.comic_id AS comicHash, chapters.chapter_id AS chapterHash, chapters.filename, comics.creator
+    FROM chapters
+    LEFT JOIN records ON chapters.chapter_id = records.chapter_id AND records.buyer = ?
+    INNER JOIN comics ON chapters.comic_id = comics.comic_id
+    WHERE comics.comic_id = ? AND comics.is_exist = 1
+  `;
+  pool.query(query, [currentAccount, comicHash], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching chapter records: ', error);
+      return res.status(500).json({ message: 'Error fetching chapter records' });
+    }
+    res.json(results);
+  });
+});
+
+
 // 新增一筆 comics 資料、添加漫画信息到数据库的路由
-app.post('/api/add/comics', upload.single('comicIMG'),async (req, res) => {
-  const file = req.file;
+app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {
+  const file = req.files['comicIMG'] ? req.files['comicIMG'][0] : null;
+  const coverFile = req.files['coverFile'] ? req.files['coverFile'][0] : null;
   if (!file) {
-    return res.status(400).json({ error: 'No file uploaded' });
+    return res.status(400).json({ error: 'Main comic image file must be uploaded' });
   }
   try {
-    const { creator, title, description, category, is_exist, comic_id } = req.body;
-    const filename = await renameFilename(file, comic_id, 'comicIMG');
+    const { creator, title, description, category, is_exist, comic_id, protoFilename } = req.body;
+    let filename;
+    if (coverFile) {
+      filename = await renameFilename(file, comic_id, 'comicIMG', protoFilename, coverFile);
+    } else {
+      filename = await renameFilename(file, comic_id, 'comicIMG');
+    }
     pool.query(
-      'INSERT INTO comics (comic_id, creator, title, description, category, is_exist, filename) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [comic_id, creator, title, description, category, is_exist, filename],
+      'INSERT INTO comics (comic_id, creator, title, description, category, is_exist, filename, protoFilename) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [comic_id, creator, title, description, category, is_exist, filename, protoFilename],
       (error, results, fields) => {
         if (error) {
           console.error('Error inserting into comics: ', error);
@@ -311,6 +346,7 @@ app.post('/api/add/comics', upload.single('comicIMG'),async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 
 // 新增一筆 chapters 資料、添加漫画信息到数据库的路由
@@ -399,20 +435,47 @@ app.get('/api/chapterIMG/:filename',async (req, res) => {
 });
 
 
+// 根据 protoFilename 获取漫画图片的路由
+app.get('/api/coverFile/:filename/:protoFilename', async (req, res) => {
+  const { filename, protoFilename } = req.params;
+  try {
+    const [results] = await query('SELECT * FROM comics WHERE filename = ? AND protoFilename = ?', [filename, protoFilename]);
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Comic image not found.' });
+    }
+    const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
+    const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', protoFilename);
+    const image = await fsPromises.readFile(imagePath);
+    res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
+    res.send(image);
+  } catch (error) {
+    console.error('Error fetching comic image:', error);
+    res.status(500).json({ message: 'Error fetching comic image' });
+  }
+});
+
+
+
 // 編輯漫畫資料的請求、添加漫畫信息到數據庫的路由
-app.put('/api/update/comicData', upload.single('comicIMG'), async (req, res) => {
-  const { id, title, description, category, fileName } = req.body;
-  const file = req.file;
+app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {
+  const { id, title, description, category, fileName, protoFilename } = req.body;
+  const file = req.files['comicIMG'] ? req.files['comicIMG'][0] : null;
+  const coverFile = req.files['coverFile'] ? req.files['coverFile'][0] : null;
   let filenameToUpdate = '';
   try {
-    if (file) {
+    if (file && coverFile) {
+      filenameToUpdate = await renameFilename(file, id, 'comicIMG', protoFilename, coverFile);
+    } else if (file) {
       filenameToUpdate = await renameFilename(file, id, 'comicIMG');
+    } else if (coverFile) {
+      filenameToUpdate = fileName;
+      await renameFilename('', id, 'comicIMG', protoFilename, coverFile);
     } else {
       filenameToUpdate = fileName;
     }
-    const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ?, filename = ? WHERE comic_id = ?`;
+    const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ?, filename = ?, protoFilename = ? WHERE comic_id = ?`;
     await new Promise((resolve, reject) => {
-      pool.query(updateQuery, [title, description, category, filenameToUpdate, id], (error, results, fields) => {
+      pool.query(updateQuery, [title, description, category, filenameToUpdate, protoFilename, id], (error, results, fields) => {
         if (error) {
           reject(error);
           return;
@@ -435,7 +498,7 @@ app.put('/api/update/comicData', upload.single('comicIMG'), async (req, res) => 
 app.put('/api/update/chapterData', upload.single('chapterIMG'), async (req, res) => {
   const { comic_id, chapter_id, price, title, fileName } = req.body;
   const file = req.file;
-  let filenameToUpdate = ''; // 初始化 filenameToUpdate 变量
+  let filenameToUpdate = '';
   try {
     if (file) {
       filenameToUpdate = await renameFilename(file, comic_id, 'chapterIMG');
