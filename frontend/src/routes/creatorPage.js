@@ -18,14 +18,14 @@ const CustomToggle = React.forwardRef(({ onClick }, ref) => (
 
 function CreatorPage() {
     const cardData = [
-        { title: '漫畫 1', image: 'https://via.placeholder.com/150' },
-        { title: '漫畫 2', image: 'https://via.placeholder.com/150' },
-        { title: '漫畫 3', image: 'https://via.placeholder.com/150' },
-        { title: '漫畫 4', image: 'https://via.placeholder.com/150' },
-        { title: '漫畫 5', image: 'https://via.placeholder.com/150' },
-        { title: '漫畫 6', image: 'https://via.placeholder.com/150' },
-        { title: '漫畫 7', image: 'https://via.placeholder.com/150' },
-        { title: '漫畫 8', image: 'https://via.placeholder.com/150' }
+        { title: '漫畫 1', image: 'https://via.placeholder.com/150x200' },
+        { title: '漫畫 2', image: 'https://via.placeholder.com/150x200' },
+        { title: '漫畫 3', image: 'https://via.placeholder.com/150x200' },
+        { title: '漫畫 4', image: 'https://via.placeholder.com/150x200' },
+        { title: '漫畫 5', image: 'https://via.placeholder.com/150x200' },
+        { title: '漫畫 6', image: 'https://via.placeholder.com/150x200' },
+        { title: '漫畫 7', image: 'https://via.placeholder.com/150x200' },
+        { title: '漫畫 8', image: 'https://via.placeholder.com/150x200' }
     ];
 
     const buttonData = [

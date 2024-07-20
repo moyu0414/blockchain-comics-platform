@@ -11,10 +11,12 @@ import Navbar from "./components/Navbar";
 import Navigation from "./components/navigation";
 import Category from './routes/category';
 import ComicDetail from './routes/comicDetail';
+import ManageComic from './routes/manageComic';
 import Reader from './routes/reader';
 import Creator from './routes/creator';
 import CreatorPage from './routes/creatorPage';
 import CreatorNft from './routes/creatorNft';
+import Bookcase from './routes/bookcase';
 import Analysis from './routes/analysis';
 import Dual from './routes/dual';
 import CreateWork from './routes/createWork';
@@ -239,6 +241,12 @@ const router = createBrowserRouter([
       },{
         path: "/creatorNft",
         element: <CreatorNft />,
+      },{
+        path: "/manageComic",
+        element: <ManageComic />,
+      },{
+        path: "/bookcase",
+        element: <Bookcase />,
       }
     ],
   },

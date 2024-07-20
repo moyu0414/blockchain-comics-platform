@@ -60,7 +60,7 @@ const HomePage = ({ contractAddress }) => {
     return (
         <Container className='homepage'>
 
-            <Carousel>
+            <Carousel className='pt-4'>
                 {promoPosition.map(category => {
                     // max(前4個類型)，取第1個輪播
                     const firstItem = current.find(data => data.category === category);

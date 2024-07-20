@@ -3,7 +3,7 @@ import { Container, Carousel, Card, Col, Row, Button, Dropdown, Navbar, Nav, Nav
 import Web3 from 'web3';
 import { Link, useNavigate } from "react-router-dom";
 import { SidebarData } from "./SidebarData";
-import { Search } from 'react-bootstrap-icons';
+import { Search, Person } from 'react-bootstrap-icons';
 
 function Navigation() {
 
@@ -190,8 +190,9 @@ function Navigation() {
                                 <Col className={`log-in-area ${expanded ? 'vertical-layout' : 'horizontal-layout'}`}>
                                     {!isLogged && isMetamaskInstalled && (
                                         <Button className="log-in-btn" onClick={connectAccount}>
+                                            <Person className="me-2" size={28} />
                                             登入
-                                        </Button>
+                                    </Button>
                                     )}
                                     {!isMetamaskInstalled && (
                                         <a
