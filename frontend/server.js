@@ -295,6 +295,26 @@ app.get('/api/reading/records', (req, res) => {
 });
 
 
+app.get('/api/comicDetail', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const comicHash = req.query.comicHash;
+  const query = `
+    SELECT chapters.title, chapters.price, records.buyer AS isBuying, comics.comic_id AS comicHash, chapters.chapter_id AS chapterHash, chapters.filename, comics.creator
+    FROM chapters
+    LEFT JOIN records ON chapters.chapter_id = records.chapter_id AND records.buyer = ?
+    INNER JOIN comics ON chapters.comic_id = comics.comic_id
+    WHERE comics.comic_id = ? AND comics.is_exist = 1
+  `;
+  pool.query(query, [currentAccount, comicHash], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching chapter records: ', error);
+      return res.status(500).json({ message: 'Error fetching chapter records' });
+    }
+    res.json(results);
+  });
+});
+
+
 // 新增一筆 comics 資料、添加漫画信息到数据库的路由
 app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {
   const file = req.files['comicIMG'] ? req.files['comicIMG'][0] : null;

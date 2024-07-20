@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Container, Carousel, Card, Col, Row, Button } from 'react-bootstrap';
-import axios from 'axios';
 import './bootstrap.min.css';
 
 const HomePage = ({ contractAddress }) => {
     const [current, setCurrent] = useState([]);
     const [promoPosition, setPromoPosition] = useState([]);
-    const [currentCategory, setCurrentCategory] = useState('');
-    const filteredData = current.filter(data => data.category === currentCategory);
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const fetchedData = [];
-
+    
     const initData = async () => {
         try {
             const storedArray = JSON.parse(storedArrayJSON);
@@ -18,7 +16,11 @@ const HomePage = ({ contractAddress }) => {
                 if (storedArray[i].exists == 1) {
                     const filename = storedArray[i].filename;
                     const image = "http://localhost:5000/api/comicIMG/" + filename;
-                    fetchedData.push({ comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, image: image});
+                    let protoFilename;
+                    if (storedArray[i].protoFilename) {
+                        protoFilename = `http://localhost:5000/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
+                    }
+                    fetchedData.push({ comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, image: image, protoFilename: protoFilename});
                 }
             };
             setCurrent(fetchedData);
@@ -47,14 +49,6 @@ const HomePage = ({ contractAddress }) => {
         '戀愛', '懸疑', '恐怖', '冒險',
         '古風', '玄幻', '武俠', '搞笑',
     ];
-
-    const handleCategoryClick = (category) => {
-        if (category === currentCategory) {  // 如果點擊的是當前已選中的類型，則取消選擇
-            setCurrentCategory('');
-        } else {
-            setCurrentCategory(category);
-        }
-    };
     
 
     return (
@@ -65,23 +59,26 @@ const HomePage = ({ contractAddress }) => {
                     // max(前4個類型)，取第1個輪播
                     const firstItem = current.find(data => data.category === category);
                     if (firstItem) {
-                        return (
-                            <Carousel.Item key={category}>
+                    const imageUrl = firstItem.protoFilename ? firstItem.protoFilename : firstItem.image;
+                    return (
+                        <Carousel.Item key={category}>
+                            <Link to={`/comicDetail/${firstItem.comicID}`}>
                                 <div className="carousel-image-container embed-responsive embed-responsive-16by9">
                                     <img
-                                        className="d-block mx-auto img-fluid"
-                                        src={firstItem.image}
-                                        alt={`Slide for ${category}`}
+                                    className="d-block mx-auto img-fluid"
+                                    src={imageUrl}
+                                    alt={`Slide for ${category}`}
                                     />
                                 </div>
                                 <Carousel.Caption className="carousel-caption-custom">
                                     <h3>{firstItem.title}</h3>
                                     <p>{firstItem.text}</p>
                                 </Carousel.Caption>
-                            </Carousel.Item>
-                        );
+                            </Link>
+                        </Carousel.Item>
+                    );
                     } else {
-                        return null; // 如果沒有找到符合的項目，返回空
+                    return null; // 如果沒有找到符合的項目，返回空
                     }
                 })}
             </Carousel>
@@ -92,43 +89,18 @@ const HomePage = ({ contractAddress }) => {
                         <Button 
                             variant="outline-dark"
                             className="custom-button"
-                            onClick={() => handleCategoryClick(label)}
                         >
-                            {label}
+                            <Link 
+                                to={"/category"}
+                                state={{ category: label }}
+                                className="custom-link"
+                            >
+                                {label}
+                            </Link>
                         </Button>
                     </Col>
                 ))}
             </Row>
-
-            {currentCategory && (
-                <>
-                    {filteredData.length === 0 ? (
-                        <>
-                            <h3 className="fw-bold">目前沒有{currentCategory}類型的漫畫。</h3>
-                            <br />
-                        </>
-                    ) : (
-                        <>
-                            <Row>
-                                <h3 className="fw-bold">{currentCategory}漫畫</h3>
-                            </Row>
-                            <Row xs={1} md={2} className="g-4 pb-5">
-                                {filteredData.map((data, idx) => (
-                                    <Col key={idx} xs={6} md={3} className="pt-3">
-                                        <Card>
-                                            <Card.Img variant="top" src={data.image} />
-                                            <Card.Body>
-                                                <Card.Title className='fw-bold'>{data.title}</Card.Title>
-                                                <Card.Text className='text-secondary'>{data.text}</Card.Text>
-                                            </Card.Body>
-                                        </Card>
-                                    </Col>
-                                ))}
-                            </Row>
-                        </>
-                    )}
-                </>
-            )}
 
             {promoPosition.map(category => (
                 <div key={category}>
@@ -139,7 +111,9 @@ const HomePage = ({ contractAddress }) => {
                         {current.filter(data => data.category === category).map((data, idx) => (
                             <Col key={idx} xs={6} md={3} className="pt-3">
                                 <Card>
-                                    <Card.Img variant="top" src={data.image} />
+                                    <Link to={`/comicDetail/${data.comicID}`}>
+                                        <Card.Img variant="top" src={data.image} />
+                                    </Link>
                                     <Card.Body>
                                         <Card.Title className='fw-bold'>{data.title}</Card.Title>
                                         <Card.Text className='text-secondary'>{data.text}</Card.Text>

@@ -75,8 +75,8 @@ const CreateWork = (props) => {
       console.log("author：" + currentAccount);
       console.log("description：" + formParams.description);
       console.log("level：" + formParams.category);
-      console.log(file);
-      console.log(coverFile);
+      //console.log(file);
+      //console.log(coverFile);
      
       await contract.methods.uploadComic(hashValue, formParams.title).send({ from: currentAccount });
 
@@ -363,9 +363,7 @@ const CreateWork = (props) => {
 // 处理生成合并图片并进行翻页
 const handleGeneratePages = async () => {
   return new Promise((resolve, reject) => {
-    console.log('aaa');
     if (file.length == 1) {
-      console.log(file);
       mergedFile = file[0];
       const reader = new FileReader();
       reader.readAsArrayBuffer(file[0]);

@@ -124,19 +124,40 @@ const SelectChapter = () => {
 
   const setButtonStatus = () => {
     const buttons = document.querySelectorAll(".btn");
-    buttons.forEach((button, index) => {
-      const operationValue = chapters[index].isBuying;
-      if (operationValue === '閱讀') {
-        button.disabled = false;
-        button.style.backgroundColor = "#0FC2C0";
-        button.style.opacity = 1;
+    if (temp_chapter.length === 1) {
+      const operationValue = temp_chapter[0].isBuying;
+      if (operationValue == '閱讀') {
+        buttons.forEach(button => {
+          button.disabled = false;
+          button.style.backgroundColor = "#0FC2C0";
+          button.style.opacity = 1;
+        });
       } else {
-        button.disabled = true;
-        button.style.backgroundColor = "grey";
-        button.style.opacity = 0.3;
+        buttons.forEach(button => {
+          button.disabled = true;
+          button.style.backgroundColor = "grey";
+          button.style.opacity = 0.3;
+        });
       }
-    });
+    } else {
+      buttons.forEach((button, index) => {
+        if (index < temp_chapter.length) {
+          const operationValue = temp_chapter[index].isBuying;
+          if (operationValue == '閱讀') {
+            button.disabled = false;
+            button.style.backgroundColor = "#0FC2C0";
+            button.style.opacity = 1;
+          } else {
+            button.disabled = true;
+            button.style.backgroundColor = "grey";
+            button.style.opacity = 0.3;
+          }
+        }
+      });
+    }
   };
+  
+  
 
   // 章節購買 或 閱讀函數
   const handlePurchase = async (chapterId) => {

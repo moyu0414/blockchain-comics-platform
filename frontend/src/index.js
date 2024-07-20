@@ -28,19 +28,14 @@ import TransactionHistory from './routes/transactionHistory';
 import PurchaseHistory from './routes/purchaseHistory';
 import ComicManagement from './routes/comicManagement';
 import AccountManagement from './routes/accountManagement';
+import MintNFT from './routes/mintNFT';
 import Web3 from 'web3';
 import comicData from "./contracts/ComicPlatform.json"
-import { Buffer } from 'buffer';
-import bs58 from 'bs58';
 import axios from 'axios';
 
 let DBComicDatas = [];
 let DBChapterDatas = [];
-let DBPurchasedDatas = [];
 let comicDatas = [];
-let initialData = [];
-let purchaseData = [];
-let num = 1;
 
 const AppLayout = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -82,7 +77,8 @@ const AppLayout = () => {
           const meta = await contractInstance.methods;
 
           sortByTimestamp(DBComicDatas);
-          let comicHash, id, temp_title, comicAuthor, comicDescription, comicCategory, comicExists, filename;
+
+          let comicHash, id, temp_title, comicAuthor, comicDescription, comicCategory, comicExists, filename, protoFilename;
           for (var i = 0; i < DBComicDatas.length; i++) {
             let id = 'Comic' + (i + 1) ;
             comicHash = DBComicDatas[i].comic_id;
@@ -92,8 +88,9 @@ const AppLayout = () => {
             comicCategory = DBComicDatas[i].category;
             comicExists = DBComicDatas[i].is_exist;
             filename = DBComicDatas[i].filename;
+            protoFilename = DBComicDatas[i].protoFilename;
 
-            comicDatas.push({comicID: id, title: temp_title, author: comicAuthor, description: comicDescription, category: comicCategory, exists: comicExists, filename: filename, comicHash: comicHash});
+            comicDatas.push({comicID: id, title: temp_title, author: comicAuthor, description: comicDescription, category: comicCategory, exists: comicExists, filename: filename, comicHash: comicHash, protoFilename: protoFilename});
           }
           console.log("comicDatas：" , comicDatas);
           //儲存comicDatas資料至各分頁
@@ -223,12 +220,12 @@ const router = createBrowserRouter([
         element: <AccountManagement />,
       },{
         path: "/homePage",
-        element: <HomePage />,
+        element: <HomePage contractAddress={comicData.address} />,
       },{
         path: "/category",
         element: <Category />,
       },{
-        path: "/comicDetail",
+        path: "/comicDetail/:comicID",
         element: <ComicDetail />,
       },{
         path: "/creatorPage",
@@ -239,6 +236,9 @@ const router = createBrowserRouter([
       },{
         path: "/creatorNft",
         element: <CreatorNft />,
+      },{
+        path: "/mintNFT",
+        element: <MintNFT />,
       }
     ],
   },
