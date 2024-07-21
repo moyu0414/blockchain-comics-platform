@@ -80,6 +80,7 @@ const CreateWork = (props) => {
      
       await contract.methods.uploadComic(hashValue, formParams.title).send({ from: currentAccount });
 
+      const timestamp = Date.now();
       const formData = new FormData();
       formData.append('comicIMG', file); // 使用正确的字段名，这里是 'comicIMG'
       formData.append('creator', currentAccount);
@@ -88,9 +89,10 @@ const CreateWork = (props) => {
       formData.append('category', formParams.category);
       formData.append('is_exist', 1);
       formData.append('comic_id', hashValue);
+      formData.append('timestamp', timestamp);
       if (coverFile.length != 0) {
         formData.append('coverFile', coverFile);
-        const protoFilename = `promoCover.${getFileExtension(coverFile.name)}`;
+        const protoFilename = "promoCover.jpg";
         formData.append('protoFilename', protoFilename);
       } else {
         formData.append('protoFilename', '');
@@ -156,12 +158,14 @@ const CreateWork = (props) => {
 
       await contract.methods.addChapter(comicHash, chapterHash, formParams_1.title, price_temp).send({ from: currentAccount });
 
+      const timestamp = Date.now();
       const formData = new FormData();
       formData.append('chapterIMG', mergedFile); // 使用正确的字段名，这里是 'chapterIMG'
       formData.append('comic_id', comicHash);
       formData.append('price', formParams_1.price);
       formData.append('title', formParams_1.title);
       formData.append('chapter_hash', chapterHash);
+      formData.append('timestamp', timestamp);
       
       try {
         const response = await axios.post('http://localhost:5000/api/add/chapters', formData, {

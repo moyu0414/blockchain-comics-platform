@@ -299,7 +299,7 @@ app.get('/api/comicDetail', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const comicHash = req.query.comicHash;
   const query = `
-    SELECT chapters.title, chapters.price, records.buyer AS isBuying, comics.comic_id AS comicHash, chapters.chapter_id AS chapterHash, chapters.filename, comics.creator
+    SELECT chapters.title, chapters.price, records.buyer AS isBuying, comics.comic_id AS comicHash, chapters.chapter_id AS chapterHash, chapters.create_timestamp, comics.creator
     FROM chapters
     LEFT JOIN records ON chapters.chapter_id = records.chapter_id AND records.buyer = ?
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
@@ -315,6 +315,31 @@ app.get('/api/comicDetail', (req, res) => {
 });
 
 
+app.get('/api/bookcase', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const query = `
+    SELECT comics.title, comics.filename, comics.create_timestamp, COALESCE(ranked_records.purchase_date, '') AS purchase_date
+    FROM comics
+    LEFT JOIN (
+      SELECT records.comic_id, MAX(records.purchase_date) AS purchase_date
+      FROM records
+      WHERE records.buyer = ?
+      GROUP BY records.comic_id
+    ) AS ranked_records ON comics.comic_id = ranked_records.comic_id
+    WHERE comics.is_exist = 1
+    ORDER BY comics.create_timestamp ASC
+  `;
+  pool.query(query, [currentAccount], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching chapter records: ', error);
+      return res.status(500).json({ message: 'Error fetching chapter records' });
+    }
+    res.json(results);
+  });
+});
+
+
+
 // 新增一筆 comics 資料、添加漫画信息到数据库的路由
 app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {
   const file = req.files['comicIMG'] ? req.files['comicIMG'][0] : null;
@@ -323,16 +348,18 @@ app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverF
     return res.status(400).json({ error: 'Main comic image file must be uploaded' });
   }
   try {
-    const { creator, title, description, category, is_exist, comic_id, protoFilename } = req.body;
-    let filename;
+    const { creator, title, description, category, is_exist, comic_id, protoFilename, timestamp } = req.body;
+    let filename, protoFile;
     if (coverFile) {
+      protoFile = 1;
       filename = await renameFilename(file, comic_id, 'comicIMG', protoFilename, coverFile);
     } else {
+      protoFile = 0;
       filename = await renameFilename(file, comic_id, 'comicIMG');
     }
     pool.query(
-      'INSERT INTO comics (comic_id, creator, title, description, category, is_exist, filename, protoFilename) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [comic_id, creator, title, description, category, is_exist, filename, protoFilename],
+      'INSERT INTO comics (comic_id, creator, title, description, category, is_exist, filename, protoFilename, create_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [comic_id, creator, title, description, category, is_exist, filename, protoFile, timestamp],
       (error, results, fields) => {
         if (error) {
           console.error('Error inserting into comics: ', error);
@@ -356,11 +383,11 @@ app.post('/api/add/chapters', upload.single('chapterIMG'),async (req, res) => {
     return res.status(400).json({ error: 'No file uploaded' });
   }
   try {
-    const { chapter_hash, comic_id, price, title} = req.body;
+    const { chapter_hash, comic_id, price, title, timestamp} = req.body;
     const filename = await renameFilename(file, comic_id, 'chapterIMG');
     pool.query(
-      'INSERT INTO chapters (chapter_id, comic_id, price, title, filename) VALUES (?, ?, ?, ?, ?)',
-      [chapter_hash, comic_id, price, title, filename],
+      'INSERT INTO chapters (chapter_id, comic_id, price, title, filename, create_timestamp) VALUES (?, ?, ?, ?, ?, ?)',
+      [chapter_hash, comic_id, price, title, filename, timestamp],
       (error, results, fields) => {
           if (error) {
               console.error('Error inserting into chapters: ', error);
@@ -444,7 +471,7 @@ app.get('/api/coverFile/:filename/:protoFilename', async (req, res) => {
       return res.status(404).json({ message: 'Comic image not found.' });
     }
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
-    const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', protoFilename);
+    const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', 'promoCover.jpg');
     const image = await fsPromises.readFile(imagePath);
     res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
     res.send(image);
@@ -461,28 +488,43 @@ app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'c
   const { id, title, description, category, fileName, protoFilename } = req.body;
   const file = req.files['comicIMG'] ? req.files['comicIMG'][0] : null;
   const coverFile = req.files['coverFile'] ? req.files['coverFile'][0] : null;
-  let filenameToUpdate = '';
+  let filenameToUpdate, protoFile;
   try {
     if (file && coverFile) {
+      protoFile = 1;
       filenameToUpdate = await renameFilename(file, id, 'comicIMG', protoFilename, coverFile);
     } else if (file) {
       filenameToUpdate = await renameFilename(file, id, 'comicIMG');
     } else if (coverFile) {
+      protoFile = 1;
       filenameToUpdate = fileName;
       await renameFilename('', id, 'comicIMG', protoFilename, coverFile);
     } else {
       filenameToUpdate = fileName;
     }
-    const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ?, filename = ?, protoFilename = ? WHERE comic_id = ?`;
-    await new Promise((resolve, reject) => {
-      pool.query(updateQuery, [title, description, category, filenameToUpdate, protoFilename, id], (error, results, fields) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(results);
+    if (coverFile) {
+      const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ?, filename = ?, protoFilename = ? WHERE comic_id = ?`;
+      await new Promise((resolve, reject) => {
+        pool.query(updateQuery, [title, description, category, filenameToUpdate, protoFile, id], (error, results, fields) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve(results);
+        });
       });
-    });
+    } else{
+      const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ?, filename = ? WHERE comic_id = ?`;
+      await new Promise((resolve, reject) => {
+        pool.query(updateQuery, [title, description, category, filenameToUpdate, id], (error, results, fields) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve(results);
+        });
+      });
+    }
     if (file) {
       await deleteFile(`uploads/${id}/cover/${fileName}`);
     }

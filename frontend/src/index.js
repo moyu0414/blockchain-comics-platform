@@ -79,8 +79,7 @@ const AppLayout = () => {
           const meta = await contractInstance.methods;
 
           sortByTimestamp(DBComicDatas);
-
-          let comicHash, id, temp_title, comicAuthor, comicDescription, comicCategory, comicExists, filename, protoFilename;
+          let comicHash, id, temp_title, comicAuthor, comicDescription, comicCategory, comicExists, filename, protoFilename, timestamp;
           for (var i = 0; i < DBComicDatas.length; i++) {
             let id = 'Comic' + (i + 1) ;
             comicHash = DBComicDatas[i].comic_id;
@@ -91,8 +90,9 @@ const AppLayout = () => {
             comicExists = DBComicDatas[i].is_exist;
             filename = DBComicDatas[i].filename;
             protoFilename = DBComicDatas[i].protoFilename;
+            timestamp = DBComicDatas[i].create_timestamp
 
-            comicDatas.push({comicID: id, title: temp_title, author: comicAuthor, description: comicDescription, category: comicCategory, exists: comicExists, filename: filename, comicHash: comicHash, protoFilename: protoFilename});
+            comicDatas.push({comicID: id, title: temp_title, author: comicAuthor, description: comicDescription, category: comicCategory, exists: comicExists, filename: filename, comicHash: comicHash, protoFilename: protoFilename, timestamp: timestamp});
           }
           console.log("comicDatas：" , comicDatas);
           //儲存comicDatas資料至各分頁
@@ -100,15 +100,6 @@ const AppLayout = () => {
           //要刪除可以用下列的程式
           //localStorage.removeItem('web3Instance', 'contractInstance', 'comicDatas');
 
-          await axios.get('http://localhost:5000/api/chapters')
-          .then(response => {
-            //console.log("DB Chapter Data：" , response.data);
-            DBChapterDatas = response.data;
-          })
-          .catch(error => {
-            console.error('Error fetching comics: ', error);
-          });
-          sortByTimestamp(DBChapterDatas);
         } catch (error) {
           console.error(error);
         }
@@ -149,21 +140,20 @@ function formatTime(date) {
 };
 
 
-// 排序函数，根据时间戳部分进行比较
-function sortByTimestamp(Array) {
-  return Array.sort((a, b) => {
-    const timestampA = parseInt(a.filename.split('-')[0]);
-    const timestampB = parseInt(b.filename.split('-')[0]);
-    return timestampA - timestampB;  // 升序排序
-  });
-}
-
-
 function sortByDatetime(array) {
   return array.sort((a, b) => {
     const datetimeA = new Date(a.purchase_date);
     const datetimeB = new Date(b.purchase_date);
     return datetimeA - datetimeB;  // 升序排序
+  });
+}
+
+
+function sortByTimestamp(array) {
+  return array.sort((a, b) => {
+    const timestampA = parseInt(a.create_timestamp);
+    const timestampB = parseInt(b.create_timestamp);
+    return timestampA - timestampB; // 升序排序
   });
 }
 

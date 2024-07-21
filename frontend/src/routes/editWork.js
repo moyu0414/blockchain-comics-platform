@@ -145,6 +145,7 @@ const EditWork = (props) => {
           updateMessage("");
         }
       } else {
+        console.log(comic[0].comicHash);
         const formData = new FormData();
         formData.append('id', comic[0].comicHash);
         formData.append('title', newComic.title);

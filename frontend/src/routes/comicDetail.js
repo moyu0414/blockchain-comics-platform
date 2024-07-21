@@ -70,7 +70,6 @@ function ComicDetail() {
                     break;
                 }
             }
-            console.log(fetchedData);
             setSimilComic(fetchedData);
 
             // 章節購買者
@@ -93,7 +92,7 @@ function ComicDetail() {
                         chapters[i].isBuying = '購買';
                     }
                 }
-                console.log(chapters);
+                //console.log(chapters);
                 setChapters(chapters);
 
                 let lastChapterInfo = chapters[chapters.length - 1];
@@ -101,7 +100,7 @@ function ComicDetail() {
                     return {...comic, chapter: lastChapterInfo.title};
                 });
                 setComic(updatedComic);
-                console.log(updatedComic);
+                //console.log(updatedComic);
             } catch (error) {
                 console.error('Error fetching records:', error);
             }
@@ -137,8 +136,6 @@ function ComicDetail() {
     // 計算當前頁面的章節切片的起始索引
     const startIndex = (currentPage - 1) * itemsPerPage;
     const currentChapters = chapters.slice(startIndex, startIndex + itemsPerPage);
-    console.log(chapters);
-    console.log(currentChapters);
 
     const getPageItems = () => {
         const pageItems = [];
@@ -207,13 +204,13 @@ function ComicDetail() {
             {!loading &&
                 <Container className='comicDetail'>
                     <Row className="pt-5">
-                        <Figure>
-                            <Figure.Image
-                                className="d-block mx-auto img-fluid"
-                                alt="800x400"
-                                src={comic[0].protoFilename}
+                        <div className="d-block mx-auto img-fluid carousel-image-container">
+                            <img
+                            className="d-block mx-auto img-fluid"
+                            src={comic[0].protoFilename}
+                            alt="800x400"
                             />
-                        </Figure>
+                        </div>
                     </Row>
                     <Row className="pt-2 pb-3 btn-container justify-content-center">
                         {buttonData.map((label, idx) => (
