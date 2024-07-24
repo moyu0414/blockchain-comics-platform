@@ -94,7 +94,7 @@ const ChapterManagement = () => {
                 編輯漫畫
               </Link>
             </Button>
-            <Button>
+            <Button style={{ marginRight: '15px' }}>
              <Link
                 to={"/createWork"}
                 //state={{ showChapterForm: true, comicHash: comic.length > 0 ? comic[0].hash : null }}
@@ -102,6 +102,15 @@ const ChapterManagement = () => {
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 新增章節
+              </Link>
+            </Button>
+            <Button>
+             <Link
+                to={"/mintNFT"}
+                state={{ comicID: comic.length > 0 ? comic[0].comicID: null }}
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                鑄造NFT
               </Link>
             </Button>
           </div>

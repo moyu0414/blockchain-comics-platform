@@ -5,7 +5,7 @@ import { Button } from 'react-bootstrap';
 import $ from 'jquery';
 
 
-const CreatorPage = () => {
+const Creator = () => {
   const [imgURL, setImgURL] = useState([]);
   const [loading, setLoading] = useState(true);
   const [being, setBeing] = useState(false);
@@ -81,4 +81,4 @@ const CreatorPage = () => {
   );
 };
 
-export default CreatorPage;
+export default Creator;

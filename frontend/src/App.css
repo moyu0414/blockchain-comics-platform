@@ -153,104 +153,6 @@ span {
   padding: 20px;
 }
 
-
-
-
-.navbar-left-top {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1000; /* 可以根据需要调整 z-index */
-}
-
-.navbar .log-in-area .log-in-btn{
-  margin-left: 95%;
-  font-size: 18px;
-  width: 150px;
-  height: 55px;
-  border: none;
-  border-radius: 8px;
-  background-color: #0FC2C0;
-  color: #ffffff;
-  /* margin-left: 16px; */
-  text-decoration: none;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.login-account{
-  margin-left: 95%;
-}
-
-.navbar .log-in-area .log-in-btn:hover{
-  background-color: #008F8C;
-  color: white;
-  border: none;
-}
-
-.show-account{
-  display: inline-block;
-  margin-right: 6%;
-  color: #008F8C;
-}
-
-.reload-btn{
-  display: inline-block;
-  font-size: 18px;
-  width: 180px;
-  height: 50px;
-  border: none;
-  border-radius: 8px;
-  background-color: #0FC2C0;
-  color: #ffffff;
-  text-decoration: none;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-/* 新增以下樣式 */
-.log-in-area {
-  display: flex;
-  align-items: center;
-}
-
-.eth-balance {
-  margin-right: 6%;
-  color: #008F8C;
-}
-
-.reload-btn:hover{
-  background-color: #008F8C;
-  color: white;
-  border: none;
-}
-
-.navbar .log-in-area .install-link{
-  margin-left: 95%;
-  font-size: 16px;
-  width: 50px;
-  height: auto;
-  padding: 15px;
-  border: none;
-  border-radius: 8px;
-  background-color: #007bff;
-  text-decoration: none;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.navbar .log-in-area .install-link:hover{
-  margin-left: 90%;
-  background-color: #0056b3;
-  color: white;
-  border: none;
-}
-
-
-
-
-
-
 /* 身分選擇頁面 */
 .button-container {
   display: flex;
@@ -502,6 +404,40 @@ a:link{
   border-color: #007bff; 
 }
 
+.image-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.image-item {
+  position: relative;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.preview-image {
+  width: 150px;
+  height: auto;
+}
+
+.remove-button {
+  max-width: 10px;
+  height: 15px;
+  position: absolute;
+  right: 0px;
+  border: none;
+  cursor: pointer;
+}
+
+.MdClose-button {
+  size: 20px;
+  color: black;
+  position: absolute;
+  top: 0px;
+  right: 2px;
+}
+
 
 
 /* 作品管理 */
@@ -581,34 +517,6 @@ a:link{
   font-weight: bold;
 }
 
-.table {
-  width: 100%;
-  min-width: 900px; 
-  height: 10%;
-  border-collapse: collapse;
-}
-
-.table th, .table td {
-  padding: 8px;
-  text-align: left;
-}
-
-.table th {
-  font-size: 24px;
-  border-bottom: 2px solid #ddd;
-  color: #0FC2C0;
-}
-
-.table td {
-  font-size: 18px;
-  border-bottom: 1px solid #ddd;
-  vertical-align: middle;
-}
-
-.table tbody tr {
-  height: 120px; 
-}
-
 .chapter-selection img {
   width: 100%;
 }
@@ -660,15 +568,6 @@ a:link{
   color: #333;
 }
 
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #fff;
-  padding: 10px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
 .nav-menu {
   display: flex;
   align-items: center;
@@ -710,6 +609,18 @@ a:link{
   color: #008F8C;
 }
 
+.nav-link{
+  font-size: 20px;
+  font-weight: bold; 
+  color: #0FC2C0;
+  text-decoration: none;
+  padding: 10px;
+}
+
+.nav-link:hover{
+  color: #008F8C;
+}
+
 .dropdown-container {
   position: fixed;
   top: 8%;
@@ -745,23 +656,6 @@ a:link{
   white-space: nowrap;
 }
 
-.log-in-area {
-  margin-left: 30%;
-  white-space: nowrap
-}
-
-.log-in-btn {
-  background-color: #fff;
-  color: #0FC2C0;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 5px;
-}
-
-.log-in-btn:hover {
-  background-color: #e0e0e0;
-}
 
 .install-link {
   color: #fff;
@@ -979,4 +873,465 @@ a:link{
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+
+/* homepage */
+.carousel-item {
+  padding: 15px;
+}
+
+.carousel-image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 21 / 9; /* 設定橫向比例 */
+  overflow: hidden;
+  background-color: #fff; /* 可以根據需要設置背景色 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 30px;
+}
+
+.carousel-image-container img {
+  width: 90%;
+  height: 100%;
+  border-radius: 30px; /* 添加圓角 */
+  object-fit: cover; /* 使圖片覆蓋容器並保持比例 */
+  object-position: 10% 20%;
+}
+
+.carousel-indicators{
+  bottom: -45px;
+}
+
+.carousel-indicators [data-bs-target] {
+  width: 15px; /* 圓形直徑 */
+  height: 15px; /* 圓形直徑 */
+  border-radius: 50%; /* 讓指示器變成圓形 */
+  background-color: #000; /* 指示器圓形背景顏色 */
+  margin: 0 5px; /* 指示器之間的間距 */
+  opacity: 0.5; /* 指示器透明度 */
+  transition: opacity 0.6s ease; /* 指示器透明度變化的過渡效果 */
+}
+
+.carousel-indicators [data-bs-target].active {
+  opacity: 1; /* 選中狀態的指示器透明度 */
+  background-color: rgba(6, 157, 103); /* 選中狀態的指示器背景顏色 */
+}
+
+.carousel-caption {
+  left: 6%;
+  right: 0;
+  bottom: 15px;
+  width: 88%;
+  height: 180px;
+  max-height: 180px;
+  background: linear-gradient(90deg, rgba(2, 55, 36, 0.16) 0%, rgba(6, 157, 103, 0.57) 100%); /* 漸層背景色 */
+  color: #fff; /* 文字顏色 */
+  border-radius: 30px; /* 圓角 */
+}
+
+@media only screen and (max-width: 768px) {
+  .carousel-item img {
+    height: auto;
+  }
+
+  .carousel-caption {
+    font-size: 14px; /* 在手機尺寸下減少字體大小 */
+    max-height: 100px; /* 減少最大高度以適應小螢幕 */
+    width: 92.5%;
+    left: 4%;
+  }
+
+  .btn-section{
+    width: 20%;
+    margin: 0 1%;
+  }
+
+  .custom-button{
+    width: 80px;
+    
+  }
+
+  .text-section{
+    margin-left: 10%!important;
+  }
+
+  .carousel-image-container img {
+    border-radius: 30px !important;
+    width: 100%;
+    max-height: 300px; /* 根據需要調整 */
+    object-fit: cover; /* 保持比例 */
+  }
+
+}
+
+.carousel-control-prev {
+  left: 50px;
+  margin: 0 -25px;
+}
+
+.carousel-control-next {
+  right: 70px;
+  margin: 0 -25px;
+}
+
+.homepage .btn{
+  background-color: #fff;
+  border-radius: 0;
+  color: #000;
+  border: 2px solid black;
+  box-shadow: #000 -5px 5px;
+}
+
+.homepage .btn:hover{
+  background-color: #F6B93B;
+  color: #000;
+}
+
+.custom-button {
+  margin: 0.5rem;
+}
+
+.btn-section{
+  margin: 0 2%;
+}
+
+.card{
+  border: none;
+}
+
+.card-img-top{
+  border-radius: 5px;
+}
+
+/* category */
+
+.dropdown-menu {
+  border: 3px #000 solid;
+  border-color: black !important;
+}
+
+/* comicDetail */
+
+.comicDetail .btn{
+  background-color: #fff;
+  border-radius: 0;
+  color: #000;
+  border: 2px solid black;
+  box-shadow: #000 -5px 5px;
+}
+
+.comicDetail .btn-section{
+  margin: 0;
+}
+
+@media only screen and (max-width: 768px) {
+  .comicDetail .btn-section{
+    width: 40%;
+  }
+
+  .comicDetail .custom-button{
+    width: 150px;
+  }
+
+  .chapter-table{
+    margin: 0!important;
+  }
+
+  .chapter-table .btn{
+    width: 80px!important;
+  }
+
+}
+
+.chapter-table table {
+  margin: 0 auto;
+}
+
+.chapter-table td{
+  padding: 1.5% 0;
+  border-bottom: none;
+  vertical-align: middle;
+  font-size: 16px;
+}
+
+.chapter-table .btn{
+  width: 50%;
+  background-color: #F6B93B;
+  border-radius: 0;
+  color: #000;
+  border: 2px solid black;
+  box-shadow: none!important;
+}
+
+.table-button .btn{
+  padding: 0 2%;
+  border: 2px #F6B93B solid;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  box-shadow: none!important;
+}
+
+.table-button .btn:hover{
+  background-color: #F6B93B;
+}
+
+.table-button .btn:click{
+  background-color: #F6B93B;
+}
+
+.page-link{
+  color: #F6B93B;
+}
+
+.page-link:hover{
+  color: #F6B93B;
+}
+
+.page-link:focus{
+  color: #F6B93B;
+}
+
+.active>.page-link, .page-link.active{
+  background-color: #F6B93B;
+  border: 1px #F6B93B solid;
+}
+
+.page-link span{
+  margin: 0 5px;
+}
+
+/* creatorPage */
+.creatorPage .btn{
+  color: #000;
+  padding: 0 2%;
+  background-color: #F6B93B;
+  border: 2px #F6B93B solid;
+  font-size: 16px;
+  box-shadow: rgba(246, 185, 59, 0.42) 5px 5px;
+  border-radius: 8px;
+}
+
+.creatorPage .btn-section{
+  padding-right: 10%;
+}
+
+/* analysis */
+
+.analysis h1{
+  font-size: 56px;
+  color: #FBC604;
+  text-shadow:
+    -1px -1px 0 #000,  
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000; 
+  letter-spacing: 0.2em; 
+  word-spacing: 0.3em;
+}
+
+.analysis thead th {
+  font-weight: 900;
+  padding: 1% 0;
+  border: none !important;
+  background-color: rgba(251, 198, 4, 0.4);
+}
+
+/* creatorNft */
+
+.simple-effet-image {
+  padding: 20px;
+}
+
+.effect-image-1 {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 40px 40px;
+}
+
+.effect-image-1 img {
+  width: 100%;
+  height: auto;
+  border-radius: 40px 40px 0 0;
+  border: 2px solid #000;
+  border-bottom: 1px solid #000;
+}
+
+.simple-text {
+  background-color: rgba(6, 157, 103, 0.89); 
+  text-align: center;
+  padding: 10px 0;
+  color: #fff;
+  border: 2px solid #000; /* 將邊框設置回來 */
+  border-top: 1px solid #000;
+  border-radius: 0 0 40px 40px; /* 調整與效果圖片一致的圓角 */
+}
+
+.creatorNft thead th {
+  font-weight: 900;
+  padding: 1% 0;
+  border: none !important;
+  background-color: rgba(6, 157, 103, 0.46);
+}
+
+.creatorNft .table-button .btn{
+  padding: 0 2%;
+  border: 2px rgba(6, 157, 103, 0.89) solid;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  box-shadow: none!important;
+}
+
+.creatorNft .table-button .btn:hover{
+  background-color: rgba(6, 157, 103, 0.89);
+}
+
+.creatorNft .table-button .btn:click{
+  background-color: rgba(6, 157, 103, 0.89);
+}
+
+.creatorNft .page-link{
+  color: rgba(6, 157, 103, 0.89);
+}
+
+.creatorNft .active>.page-link, .page-link.active{
+  color: #fff;
+  background-color: rgba(6, 157, 103, 0.89);
+  border: 1px rgba(6, 157, 103, 0.89) solid;
+}
+
+/* navigation */
+
+.navigation {
+  background-color: #F3FCF3;
+  padding: 0.8% 10%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.log-in-area {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  width: 82%;
+}
+
+.log-in-btn{
+  background-color: #F6B93B;
+  border: 1px #000 solid;
+  color: #000;
+  font-weight: bold;
+}
+
+.log-in-area .btn {
+  margin: 0 1%;
+}
+
+.login{
+  width: 100%;
+}
+
+.login div, .login .btn{
+  margin: 0 2%;
+}
+
+.navbar-nav .nav-link.active, .navbar-nav .nav-link.show{
+  color: #008F8C;
+}
+
+.nav-link.active{
+  color: #008F8C;
+}
+
+.nav-link.active:hover{
+  color: #008F8C;
+}
+
+.nav-link.active:click{
+  color: #008F8C;
+}
+
+.nav-link.active:focus{
+  color: #008F8C;
+}
+
+.show-account, .eth-balance{
+  color: #008F8C;
+}
+
+@media only screen and (max-width: 1400px) {
+  .offcanvas{
+    background-color: #F3FCF3;
+  }
+
+  .log-in-area {
+    width: 100%;
+    height: 100px;
+    padding-top: 10%;
+  }
+
+  .log-in-area div, .log-in-area .btn{
+    margin: 2% 1%;
+  }
+
+  .login{
+    height: 100px;
+  }
+
+  .log-in-area .login {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .log-in-area .btn{
+    width: 95%;
+  }
+}
+
+/* manageComic */
+.manageComic .card {
+  flex-direction: row;
+  background-color: rgba(255, 217, 139, 0.5);
+  border: 0;
+  box-shadow: 0 7px 7px rgba(0, 0, 0, 0.18);
+  margin: 3em auto;
+}
+
+.manageComic .card img {
+  max-width: 20%;
+  margin: 1%;
+  padding: 0.5em;
+  border-radius: 0.7em;
+}
+
+.manageComic .card-body{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.manageComic .card-body div{
+  margin: 1% 0 ;
+}
+
+.manageComic .card-title{
+  font-size: 32px;
+}
+
+.manageComic .btn{
+  width: 20%;
+  margin-right: 5%;
+  background-color: rgba(6, 157, 103, 0.89);
+  box-shadow: 5px 5px rgba(6, 157, 103, 0.42);
+  border-radius: 8px;
+}
+
+@media only screen and (max-width: 768px) {
+  .manageComic  .text-section{
+    margin-left: 0!important;
+  }
 }

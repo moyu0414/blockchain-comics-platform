@@ -6,9 +6,18 @@ import {
   Outlet,
 } from "react-router-dom";
 import Home from './routes/Home';
+import HomePage from './routes/homePage';
 import Navbar from "./components/Navbar";
+import Navigation from "./components/navigation";
+import Category from './routes/category';
+import ComicDetail from './routes/comicDetail';
+import ManageComic from './routes/manageComic';
 import Reader from './routes/reader';
 import Creator from './routes/creator';
+import CreatorPage from './routes/creatorPage';
+import CreatorNft from './routes/creatorNft';
+import Bookcase from './routes/bookcase';
+import Analysis from './routes/analysis';
 import Dual from './routes/dual';
 import CreateWork from './routes/createWork';
 import EditWork from './routes/editWork';
@@ -21,19 +30,14 @@ import TransactionHistory from './routes/transactionHistory';
 import PurchaseHistory from './routes/purchaseHistory';
 import ComicManagement from './routes/comicManagement';
 import AccountManagement from './routes/accountManagement';
+import MintNFT from './routes/mintNFT';
 import Web3 from 'web3';
 import comicData from "./contracts/ComicPlatform.json"
-import { Buffer } from 'buffer';
-import bs58 from 'bs58';
 import axios from 'axios';
 
 let DBComicDatas = [];
 let DBChapterDatas = [];
-let DBPurchasedDatas = [];
 let comicDatas = [];
-let initialData = [];
-let purchaseData = [];
-let num = 1;
 
 const AppLayout = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -75,7 +79,7 @@ const AppLayout = () => {
           const meta = await contractInstance.methods;
 
           sortByTimestamp(DBComicDatas);
-          let comicHash, id, temp_title, comicAuthor, comicDescription, comicCategory, comicExists, filename;
+          let comicHash, id, temp_title, comicAuthor, comicDescription, comicCategory, comicExists, filename, protoFilename, timestamp;
           for (var i = 0; i < DBComicDatas.length; i++) {
             let id = 'Comic' + (i + 1) ;
             comicHash = DBComicDatas[i].comic_id;
@@ -85,8 +89,10 @@ const AppLayout = () => {
             comicCategory = DBComicDatas[i].category;
             comicExists = DBComicDatas[i].is_exist;
             filename = DBComicDatas[i].filename;
+            protoFilename = DBComicDatas[i].protoFilename;
+            timestamp = DBComicDatas[i].create_timestamp
 
-            comicDatas.push({comicID: id, title: temp_title, author: comicAuthor, description: comicDescription, category: comicCategory, exists: comicExists, filename: filename, comicHash: comicHash});
+            comicDatas.push({comicID: id, title: temp_title, author: comicAuthor, description: comicDescription, category: comicCategory, exists: comicExists, filename: filename, comicHash: comicHash, protoFilename: protoFilename, timestamp: timestamp});
           }
           console.log("comicDatas：" , comicDatas);
           //儲存comicDatas資料至各分頁
@@ -94,15 +100,6 @@ const AppLayout = () => {
           //要刪除可以用下列的程式
           //localStorage.removeItem('web3Instance', 'contractInstance', 'comicDatas');
 
-          await axios.get('http://localhost:5000/api/chapters')
-          .then(response => {
-            //console.log("DB Chapter Data：" , response.data);
-            DBChapterDatas = response.data;
-          })
-          .catch(error => {
-            console.error('Error fetching comics: ', error);
-          });
-          sortByTimestamp(DBChapterDatas);
         } catch (error) {
           console.error(error);
         }
@@ -120,7 +117,7 @@ const AppLayout = () => {
 
   return (
     <>
-      {isLoggedIn && <Navbar accounts={accounts} setAccounts={setAccounts} />}
+      {isLoggedIn && <Navigation accounts={accounts} setAccounts={setAccounts}/>}
       <Outlet />
     </>
   );
@@ -143,21 +140,20 @@ function formatTime(date) {
 };
 
 
-// 排序函数，根据时间戳部分进行比较
-function sortByTimestamp(Array) {
-  return Array.sort((a, b) => {
-    const timestampA = parseInt(a.filename.split('-')[0]);
-    const timestampB = parseInt(b.filename.split('-')[0]);
-    return timestampA - timestampB;  // 升序排序
-  });
-}
-
-
 function sortByDatetime(array) {
   return array.sort((a, b) => {
     const datetimeA = new Date(a.purchase_date);
     const datetimeB = new Date(b.purchase_date);
     return datetimeA - datetimeB;  // 升序排序
+  });
+}
+
+
+function sortByTimestamp(array) {
+  return array.sort((a, b) => {
+    const timestampA = parseInt(a.create_timestamp);
+    const timestampB = parseInt(b.create_timestamp);
+    return timestampA - timestampB; // 升序排序
   });
 }
 
@@ -214,6 +210,33 @@ const router = createBrowserRouter([
       },{
         path: "/accountManagement",
         element: <AccountManagement />,
+      },{
+        path: "/homePage",
+        element: <HomePage contractAddress={comicData.address} />,
+      },{
+        path: "/category",
+        element: <Category />,
+      },{
+        path: "/comicDetail/:comicID",
+        element: <ComicDetail />,
+      },{
+        path: "/creatorPage",
+        element: <CreatorPage />,
+      },{
+        path: "/analysis",
+        element: <Analysis />,
+      },{
+        path: "/creatorNft",
+        element: <CreatorNft />,
+      },{
+        path: "/mintNFT",
+        element: <MintNFT />,
+      },{
+        path: "/manageComic",
+        element: <ManageComic />,
+      },{
+        path: "/bookcase",
+        element: <Bookcase />,
       }
     ],
   },

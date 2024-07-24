@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { uploadFileToIPFS } from "../pinata";
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
-import bs58 from 'bs58';
 import { useLocation } from 'react-router-dom';
-import { getIpfsHashFromBytes32, sortByTimestamp } from '../index';
+import { sortByTimestamp } from '../index';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
+import { MdClose, MdDragHandle } from 'react-icons/md';  // 導入小叉叉圖標和拖曳圖標
+import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';  // 拖放功能，讓使用者可以拖曳圖片來重新排列它們的順序。
 
 const EditWork = (props) => {
   const [web3, setWeb3] = useState(null);
@@ -16,26 +16,32 @@ const EditWork = (props) => {
   const [stepCompleted, setStepCompleted] = useState(false);
   const [showChapterForm, setShowChapterForm] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState(null);
+  const [previewImageUrls, setPreviewImageUrls] = useState([]); // 多個圖片預覽
   const [comicHash, setComicHash] = useState('');
-  const [chapterHash, setChapterHash] = useState('');
   const location = useLocation();
-  const [hashValue, setHashValue] = useState('');
-  const [file, setFile] = useState('');
+  const [file, setFiles] = useState('');
   const [chapterID, setChapterID] = useState('');
   const currentAccount = localStorage.getItem("currentAccount");
   const [comic, setComic] = useState([]);
-  const [chapter, setChapter] = useState([]);
+  const [chapter, setChapter] = useState([]);  // 原始 chapter
   const [newComic, setNewComic] = useState({category:'',  title: '', description: '', imgURL: ''});
   const [newChapter, setNewChapter] = useState({chapterTitle: '', price: '', chapterHash: '', imgURL: ''});
+  const [coverFile, setCoverFile] = useState('');
+  const [promoPreviewImageUrl, setPromoPreviewImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [grading, setGrading] = useState([
-    "戀愛漫畫",
-    "科幻漫畫",
-    "推理漫畫",
-    "校園漫畫",
+    "戀愛",
+    "懸疑",
+    "恐怖",
+    "冒險",
+    "古風",
+    "玄幻",
+    "武俠",
+    "搞笑"
   ]);
   let temp = [];
   let chapterInfo = [];
+  let mergedFile = '';
   
   // 連接到 Web3 的函數
   async function connectToWeb3(){
@@ -46,17 +52,16 @@ const EditWork = (props) => {
         const contractInstance = new web3.eth.Contract(comicData.abi, comicData.address);
         setContract(contractInstance);
 
-        await axios.get('http://localhost:5000/api/chapters')
-        .then(response => {
-          for (var i = 0; i < response.data.length; i++) {
-            if (response.data[i].comic_id == temp[0].comicHash){
-              chapterInfo.push(response.data[i]);
+        try {  // 這本漫畫得所有章節
+          const response = await axios.get('http://localhost:5000/api/chapters', {
+            params: {
+              comicHash: temp[0].comicHash
             }
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching comics: ', error);
-        });
+          });
+          chapterInfo = response.data;
+        } catch (error) {
+          console.error('Error fetching records:', error);
+        }
         sortByTimestamp(chapterInfo);
         console.log(chapterInfo);
 
@@ -67,15 +72,14 @@ const EditWork = (props) => {
               let price = chapterInfo[i].price;
               let imgURL = "http://localhost:5000/api/chapterIMG/" + chapterInfo[i].filename;
               setNewChapter({
-                chapterTitle: chapterInfo[i].title,
+                chapterTitle: chapterInfo[i].chapterTitle,
                 price: price,
-                chapterHash: chapterInfo[i].chapter_id,
                 imgURL: imgURL
               });
               setChapter({
-                chapterTitle: chapterInfo[i].title,
+                chapterTitle: chapterInfo[i].chapterTitle,
                 price: price,
-                chapterHash: chapterInfo[i].chapter_id,
+                chapterHash: chapterInfo[i].chapterHash,
                 imgURL: imgURL,
                 filename: chapterInfo[i].filename
               })
@@ -94,15 +98,18 @@ const EditWork = (props) => {
   const editComic = async (e) => {
     e.preventDefault();
     try {
-      setComicHash(hashValue);
       const fillFile = await checkFile();
       if(fillFile === -1){
         return;
       }
       disableButton();
       updateMessage("正在編輯漫畫資料中...請稍後。")
-
-      if (comic[0].category == newComic.category && comic[0].title == newComic.title && comic[0].description == newComic.description && !file) {
+      
+      if (comic[0].category === newComic.category &&
+        comic[0].title === newComic.title &&
+        comic[0].description === newComic.description &&
+        !file && !coverFile
+      ) {
         alert('目前您未編輯任何東西!');
         updateMessage("");
         enableButton();
@@ -120,6 +127,14 @@ const EditWork = (props) => {
           if (file) { // 有重新上傳圖片，重新產生新的fileName
             formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
           }
+          if (coverFile) {
+            formData.append('coverFile', coverFile);
+            const protoFilename = `promoCover.${getFileExtension(coverFile.name)}`;
+            formData.append('protoFilename', protoFilename);
+            console.log(protoFilename);
+          } else {
+            formData.append('protoFilename', '');
+          };
           await axios.put('http://localhost:5000/api/update/comicData', formData);
   
           alert('漫畫編輯成功！');
@@ -130,6 +145,7 @@ const EditWork = (props) => {
           updateMessage("");
         }
       } else {
+        console.log(comic[0].comicHash);
         const formData = new FormData();
         formData.append('id', comic[0].comicHash);
         formData.append('title', newComic.title);
@@ -139,6 +155,14 @@ const EditWork = (props) => {
         if (file) { // 有重新上傳圖片，重新產生新的fileName
           formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
         }
+        if (coverFile) {
+          formData.append('coverFile', coverFile);
+          const protoFilename = `promoCover.${getFileExtension(coverFile.name)}`;
+          formData.append('protoFilename', protoFilename);
+          console.log(protoFilename);
+        } else {
+          formData.append('protoFilename', '');
+        };
         await axios.put('http://localhost:5000/api/update/comicData', formData);
 
         alert('漫畫編輯成功！');
@@ -155,7 +179,9 @@ const EditWork = (props) => {
 
   // 章節編輯函數
   const editChapter = async (e) => {
-    e.preventDefault();
+    if (e) {
+      e.preventDefault();
+    }
     try {
       const fillFile = await checkFile();
       if(fillFile === -1){
@@ -180,12 +206,14 @@ const EditWork = (props) => {
           await contract.methods.editChapter(comic[0].comicHash, chapter.chapterHash, newChapter.chapterTitle, price_temp).send({ from: currentAccount });
 
           const formData = new FormData();
-          formData.append('id', chapter.chapterHash);
+          formData.append('comic_id', comic[0].comicHash);
+          formData.append('chapter_id', chapter.chapterHash);
           formData.append('price', newChapter.price);
           formData.append('title', newChapter.chapterTitle);
           formData.append('fileName', chapter.filename);
           if (file) {
-            formData.append('chapterIMG', file);  // 使用正确的字段名，这里是 'chapterIMG'
+            await handleGeneratePages();  // 等待合併圖片操作完成
+            formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
           }
           await axios.put('http://localhost:5000/api/update/chapterData', formData);
 
@@ -198,12 +226,14 @@ const EditWork = (props) => {
         }
       }else {
         const formData = new FormData();
-        formData.append('id', chapter.chapterHash);
+        formData.append('comic_id', comic[0].comicHash);
+        formData.append('chapter_id', chapter.chapterHash);
         formData.append('price', newChapter.price);
         formData.append('title', newChapter.chapterTitle);
         formData.append('fileName', chapter.filename);
         if (file) {
-          formData.append('chapterIMG', file);  // 使用正确的字段名，这里是 'chapterIMG'
+          await handleGeneratePages();  // 等待合併圖片操作完成
+          formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
         }
         await axios.put('http://localhost:5000/api/update/chapterData', formData);
 
@@ -211,8 +241,6 @@ const EditWork = (props) => {
         window.location.href = `/chapterManagement/${comic[0].comicID}`;
       };
       console.log("comicHash：" + comicHash);
-      console.log("oldChapterHash：" + newChapter.chapterHash);
-      console.log("newChapter_Hash：" + hashValue);
       console.log("chapterTitle：" + newChapter.chapterTitle);
       console.log("price：" + newChapter.price);
     } catch (error) {
@@ -237,28 +265,51 @@ const EditWork = (props) => {
       listButton.style.opacity = 1;
   }
 
+  // 處理單張圖片，資料驗證、預覽
   const handleFileInputChange = (event) => {
     const file = event.target.files[0];
-    //setSelectedFile(file);
-    setFile(file);
     if (validateFileType(file)) {
       previewImage(file);
     } else {
-      alert("Invalid file type. Please upload an image in JPG, JPEG or PNG  format.");
-      console.log("Invalid file type. Please upload an image in JPG, JPEG or PNG format.");
+      alert("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
+      console.log("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
       return -1;
     }
+    setFiles(file);
     const reader = new FileReader();
-    reader.onload = handleFileReaderLoad;
     reader.readAsArrayBuffer(file);
   };
 
-  const handleFileReaderLoad = (event) => {  // 圖片轉為一 hash 值
-    const fileBuffer = event.target.result;
-    const hash = CryptoJS.SHA256(CryptoJS.lib.WordArray.create(fileBuffer));  // 計算 SHA-256 hash
-    const hashValue = "0x" + hash.toString(CryptoJS.enc.Hex);
-    console.log(hashValue);
-    setHashValue(hashValue);
+  // 處理多張圖片，資料驗證、預覽
+  const handleMultiFileInputChange = (event) => {
+    const files = event.target.files;
+    const fileArray = Array.from(files);
+    fileArray.forEach(file => {
+      if (validateFileType(file)) {
+        previewImage(file);
+      } else {
+        alert("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
+        console.log("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
+        return -1;
+      }
+    });
+    const urls = fileArray.map(file => {
+      return URL.createObjectURL(file);  // 创建预览 URL
+    });
+    setFiles(prevFiles => [...prevFiles, ...fileArray]);  // 添增新文件到舊文件列表中
+    setPreviewImageUrls(prevUrls => [...prevUrls, ...urls]);  // 添加新預覽 URL 到舊預覽 URL 列表中
+  };
+
+  const createPromoCover = (event) => {
+    const file = event.target.files[0];
+    if (validateFileType(file)) {
+      previewPromoCover(file);
+      setCoverFile(file);
+    } else {
+      alert("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
+      console.log("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
+      return -1;
+    }
   };
 
   // 驗證檔案類型是否符合要求
@@ -275,6 +326,39 @@ const EditWork = (props) => {
       setPreviewImageUrl(reader.result);
     };
   }; 
+
+  // 預覽圖片
+  const previewPromoCover = (file) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      setPromoPreviewImageUrl(reader.result);
+    };
+  };
+
+  // 允許使用者刪除不需要的文件預覽
+  const handleRemoveFile = (index) => {
+    const newFiles = [...file];
+    const newUrls = [...previewImageUrls];
+    newFiles.splice(index, 1);
+    newUrls.splice(index, 1);
+    setFiles(newFiles);
+    setPreviewImageUrls(newUrls);
+  };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) {
+      return;
+    }
+    const items = [...file];
+    const urls = [...previewImageUrls];
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    const [reorderedUrl] = urls.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    urls.splice(result.destination.index, 0, reorderedUrl);
+    setFiles(items);
+    setPreviewImageUrls(urls);
+  };
 
   // 漫畫類型取值
   function ChoseLevel(e){
@@ -303,12 +387,6 @@ const EditWork = (props) => {
   };
 
   useEffect(() => {
-    if (chapterID == '') {
-      connectToWeb3();
-    }
-  }, [chapterID]);
-
-  useEffect(() => {
     // 检查是否传递了参数并设置 showChapterForm 状态
     if (location.state) {
       console.log("Location state:", location.state);
@@ -324,15 +402,74 @@ const EditWork = (props) => {
       console.log(temp);
       setComic(temp);
       let imgURL = "http://localhost:5000/api/comicIMG/" + temp[0].filename;
-      setNewComic({category:temp[0].category,  title: temp[0].title, description: temp[0].description, imgURL: imgURL});
+      let coverImg = '';
+      if (temp[0].protoFilename) {
+        coverImg = `http://localhost:5000/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
+      }
+      setNewComic({category:temp[0].category,  title: temp[0].title, description: temp[0].description, imgURL: imgURL, coverImg: coverImg});
     
       if (location.state.chapterID) {
         setComicHash(temp[0].comicHash);
         setChapterID(location.state.chapterID);
       };
+      connectToWeb3();
       setLoading(true);
     }
   }, [location]);
+
+
+  // 处理生成合并图片并进行翻页
+  const handleGeneratePages = async () => {
+    return new Promise((resolve, reject) => {
+      console.log('aaa');
+      if (file.length == 1) {
+        console.log(file);
+        mergedFile = file[0];
+        const reader = new FileReader();
+        reader.readAsArrayBuffer(file[0]);
+        resolve();
+      } else {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = file.length * 1200; // 调整 canvas 的宽度和高度，根据需要
+        canvas.height = 1600;
+        // 遍历图片数组绘制到 canvas 上
+        let xOffset = 0;
+        const promises = file.map((file, index) => {
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+              ctx.drawImage(img, xOffset, 0, 1200, 1600);  // 绘制每张图片
+              xOffset += 1200;  // 图片间距，根据实际需要调整
+              resolve();
+            };
+            img.src = URL.createObjectURL(file); // 使用文件对象的 URL 绘制到 canvas
+          });
+        });
+        Promise.all(promises).then(() => {
+          // 导出合并后的图片
+          canvas.toBlob((blob) => {
+            const extension = getFileExtension(file[0].name); // 获取第一个文件的扩展名
+            const fileName = `mergedImages_page.${extension}`;
+            mergedFile = new File([blob], fileName, { type: 'image/jpeg' }); // 创建合并后的文件对象
+
+            // 创建下载链接并触发下载
+            //const downloadLink = document.createElement('a');
+            //downloadLink.href = URL.createObjectURL(mergedFile);
+            //downloadLink.download = fileName;
+            //downloadLink.click();
+
+            resolve(); // 完成 handleGeneratePages 的 Promise
+          }, 'image/jpeg');
+        });
+      };
+    });
+  };
+
+  // 获取文件扩展名的函数
+  const getFileExtension = (filename) => {
+    return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2);
+  };
 
 
   return (
@@ -378,7 +515,8 @@ const EditWork = (props) => {
                 <label htmlFor="image">本章作品上傳，如不需變更章節內容，則無需上傳圖檔</label>
                 <input
                   type="file"
-                  onChange={handleFileInputChange}
+                  onChange={handleMultiFileInputChange}
+                  multiple  // 允许多个文件选择
                 />
                 <div style={{display: 'flex'}}>
                   <div style={{marginRight: '170px'}}>更改前的章節內容
@@ -391,14 +529,47 @@ const EditWork = (props) => {
                   </div>
                   <div>更改後的章節內容
                     <br />
-                    {previewImageUrl && (
-                      <img
-                        src={previewImageUrl}
-                        alt="Preview"
-                        style={{ width: '150px', paddingBottom: '3%' }}
-                      />
-                    )}
-                    </div>
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                      <Droppable droppableId="droppable">
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className="image-list"
+                          >
+                            {previewImageUrls.map((url, index) => (
+                              <Draggable key={index} draggableId={`draggable-${index}`} index={index}>
+                                {(provided) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    className="image-item"
+                                  >
+                                    <img
+                                      src={url}
+                                      alt={`Preview ${index}`}
+                                      className="preview-image"
+                                    />
+                                    <button
+                                      onClick={() => handleRemoveFile(index)}
+                                      style={{backgroundColor: 'white'}}
+                                      className="remove-button"
+                                    >
+                                      <MdClose 
+                                    className="MdClose-button"/>  {/* 小叉叉图标 */}
+                                    </button>
+                                    <MdDragHandle style={{ position: 'absolute', bottom: '5px', right: '5px', cursor: 'grab' }} />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </DragDropContext>
+                  </div>
                 </div>
                 <div className="text-red-500 text-center">{message}</div>
                 <button onClick={editChapter} id="list-button">提交</button>
@@ -437,7 +608,7 @@ const EditWork = (props) => {
                       <img
                         src={newComic.imgURL}
                         alt="Preview"
-                        style={{ width: '150px', paddingBottom: '3%', marginRight: '50px'}}
+                        style={{ width: '50%', paddingBottom: '3%' }}
                       />
                     </div>
                     <div>更改後的圖片封面
@@ -446,10 +617,43 @@ const EditWork = (props) => {
                         <img
                           src={previewImageUrl}
                           alt="Preview"
-                          style={{ width: '150px', paddingBottom: '3%' }}
+                          style={{ width: '50%', paddingBottom: '3%' }}
                         />
                       )}
                     </div>
+                </div>
+                <label htmlFor="image">上傳橫向封面(推廣頁)，如不需變更封面，則無需上傳圖檔</label>
+                <input
+                  type="file"
+                  onChange={createPromoCover}
+                />
+                <div style={{ display: 'flex' }}>
+                  {newComic.coverImg ? (
+                    <div style={{ marginRight: '170px' }}>
+                      <div>更改前的橫向封面(推廣頁)</div>
+                      <img
+                        src={newComic.coverImg}
+                        alt="Preview"
+                        style={{ width: '50%', paddingBottom: '3%', marginRight: '50px' }}
+                      />
+                    </div>
+                  ) : (
+                    <div style={{ marginRight: '170px' }}>
+                      <div>更改前的橫向封面(推廣頁)</div>
+                        <h3>目前無上傳橫向封面</h3><br />
+                    </div>
+                  )}
+                  <div>
+                    <div>更改後的橫向封面(推廣頁)</div>
+                    <br />
+                    {promoPreviewImageUrl && (
+                      <img
+                        src={promoPreviewImageUrl}
+                        alt="Promo Cover Preview"
+                        style={{ width: '50%', paddingBottom: '3%' }}
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="text-red-500 text-center">{message}</div>
                 <button onClick={editComic} id="list-button">提交</button>
