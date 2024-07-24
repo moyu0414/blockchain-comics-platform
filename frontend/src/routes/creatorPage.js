@@ -53,7 +53,7 @@ function CreatorPage() {
     }, []);
 
     const buttonData = [
-        '收益分析', 'NFT專區', '管理漫畫', 
+        '收益分析', '已發行NFT', '管理漫畫', '鑄造NFT', '新增漫畫',
     ];
 
     const pathMap = {
@@ -77,10 +77,10 @@ function CreatorPage() {
             <h3><center>創作者專區</center></h3>
             <Row className="pt-2 pb-3 btn-container justify-content-center w-100">
                 {buttonData.map((label, idx) => (
-                    <Col key={idx} xs={2} md={3} lg={1} className="pb-3 btn-section">
-                    <Link to={pathMap[label]}>
-                        <Button variant="outline-dark" className="custom-button">{label}</Button>
-                    </Link>
+                    <Col key={idx} xs={6} sm={6} md={3} lg={1} className="pb-3 btn-section">
+                        <Link to={pathMap[label]}>
+                            <Button variant="outline-dark" className="custom-button">{label}</Button>
+                        </Link>
                     </Col>
                 ))}
             </Row>

@@ -32,7 +32,7 @@ const pool = mysql.createPool({
     database: '113-113410',
     port: 3306,
     waitForConnections: true,
-    connectionLimit: 10,  // 設定連線池大小，預設為10
+    connectionLimit: 10000,  // 設定連線池大小，預設為10
     connectTimeout: 10000, // 增加連接超時時間為 10 秒
 });
 

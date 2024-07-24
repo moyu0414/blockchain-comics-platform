@@ -54,7 +54,7 @@ const HomePage = ({ contractAddress }) => {
     
 
     return (
-        <Container className='homepage'>
+        <Container className='homepage pt-4'>
 
             <Carousel>
                 {promoPosition.map(category => {

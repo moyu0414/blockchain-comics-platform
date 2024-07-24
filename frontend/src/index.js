@@ -21,6 +21,8 @@ import Analysis from './routes/analysis';
 import Dual from './routes/dual';
 import CreateWork from './routes/createWork';
 import EditWork from './routes/editWork';
+import EditChapter from './routes/editChapter';
+import DeleteChapter from './routes/deleteChapter';
 import WorkManagement from './routes/workManagement';
 import ChapterManagement from './routes/chapterManagement';
 import SelectChapter from './routes/selectChapter';
@@ -31,6 +33,8 @@ import PurchaseHistory from './routes/purchaseHistory';
 import ComicManagement from './routes/comicManagement';
 import AccountManagement from './routes/accountManagement';
 import MintNFT from './routes/mintNFT';
+import NftMarket from './routes/nftMarket';
+import NftDetail from './routes/nftDetail';
 import Web3 from 'web3';
 import comicData from "./contracts/ComicPlatform.json"
 import axios from 'axios';
@@ -237,6 +241,18 @@ const router = createBrowserRouter([
       },{
         path: "/bookcase",
         element: <Bookcase />,
+      },{
+        path: "/editChapter",
+        element: <EditChapter />,
+      },{
+        path: "/deleteChapter",
+        element: <DeleteChapter />,
+      },{
+        path: "/nftMarket",
+        element: <NftMarket />,
+      },{
+        path: "/nftDetail",
+        element: <NftDetail />,
       }
     ],
   },

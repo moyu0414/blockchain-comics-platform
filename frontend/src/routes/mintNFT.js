@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Form, Row, Col, Button, ProgressBar } from 'react-bootstrap';
+import { CardImage } from 'react-bootstrap-icons';
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
@@ -123,6 +125,12 @@ const MintNFT = (props) => {
     }
   }, [location]);
 
+  const [grading, setGrading] = useState([
+    "素材使用",
+    "會員標章",
+    "智慧財產"
+  ]);
+
 
   return (
     <div className="upload-form">
@@ -144,7 +152,7 @@ const MintNFT = (props) => {
           <div className="step-title">鑄造NFT</div>
         </div>
       </div>
-      {loading ? (
+      {/* {loading ? ( */}
         <div>
           <div style={{ float: 'left', width: '45%', marginRight: '5%' }}>
             <label htmlFor="category">漫畫類型：{newComic.category}</label>
@@ -200,11 +208,84 @@ const MintNFT = (props) => {
           <div className="text-red-500 text-center">{message}</div>
           <button onClick={createNFT} id="list-button">提交</button>
         </div>
-        ) : (
-          <div className="loading-container">
-            <div>資料未載入成功，請重新刷新...</div>
-          </div>
-        )}
+        {/* ) : ( */}
+        <Form.Group>
+          <Form.Label className="upload-block">
+            <CardImage size={48} />
+            <h5>選取圖片</h5>
+            <Form.Control
+              type="file"
+              style={{ display: 'none' }} // 隱藏實際的檔案上傳按鈕
+            />
+          </Form.Label>
+        </Form.Group>
+
+        <Form.Group as={Row} className='mt-4 mb-2'>
+          <Form.Label >
+              NFT名稱
+          </Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="請輸入NFT名稱"
+            // value={newChapter.chapterTitle}
+            // onChange={}
+          />
+        </Form.Group>
+
+        <Form.Group as={Row} className='mb-2'>
+          <Form.Label>
+          NFT價格
+          </Form.Label>
+            <Form.Control
+              type="number"
+              placeholder="Min 0.01 ETH"
+              step="0.01"
+              // value={newChapter.price}
+              // onChange={(e) => setNewChapter({ ...newChapter, price: e.target.value })}
+            />
+        </Form.Group>
+
+        <Form.Group as={Row} className='mb-2'>
+          <Form.Label>
+            漫畫類別
+          </Form.Label>
+            <Form.Control
+              as="select"
+              className="form-select"
+              // value={newComic.category}
+              // onChange={ChoseLevel}
+            >
+              <option>請選擇NFT類型</option>
+              {grading.map((name, index) => (
+                <option key={index}>{name}</option>
+              ))}
+            </Form.Control>
+        </Form.Group>
+
+        <Form.Group className='mb-4'>
+          <Form.Label>NFT敘述</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={5}
+              // value={newComic.description}
+              // onChange={(e) => setNewComic({ ...newComic, description: e.target.value })}
+            />
+        </Form.Group>
+
+        <Form.Group as={Row} className='mb-2'>
+          <Form.Label>
+          發行數量
+          </Form.Label>
+            <Form.Control
+              type="number"
+              // value={newChapter.price}
+              // onChange={(e) => setNewChapter({ ...newChapter, price: e.target.value })}
+            />
+        </Form.Group>
+        <Button id="list-button">
+          確定鑄造
+        </Button>
+        {/* )} */}
       </div>
   );
 };

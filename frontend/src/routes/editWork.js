@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Form, Row, Col, Button, ProgressBar } from 'react-bootstrap';
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
@@ -492,42 +493,64 @@ const EditWork = (props) => {
           <div className="step-title">編輯章節</div>
         </div>
       </div>
-      {loading ? (
+        {loading ? (
         <>
           {showChapterForm ? (
-              <div>
-                <label htmlFor="name">本章名稱</label>
-                <input
-                  type="text"
-                  value={newChapter.chapterTitle}
-                  placeholder="請輸入章節名稱"
-                  onChange={(e) => setNewChapter({ ...newChapter, chapterTitle: e.target.value })}
-                />
+            <Form>
 
-                <label htmlFor="price">本章價格 (ETH)</label>
-                <input
+                <Form.Group as={Row} className='mb-3 label-container'>
+                <Form.Label column sm={3} className='label-style col-form-label label-section'>
+                    本章名稱
+                </Form.Label>
+                <Col sm={9}>
+                  <Form.Control
+                    type="text"
+                    value={newChapter.chapterTitle}
+                    placeholder="請輸入章節名稱"
+                    onChange={(e) => setNewChapter({ ...newChapter, chapterTitle: e.target.value })}
+                  />
+                </Col>
+              </Form.Group>
+
+              <Form.Group as={Row} className='mb-3 label-container'>
+              <Form.Label column sm={3} className='label-style col-form-label label-section'>
+                本章價格
+              </Form.Label>
+              <Col sm={9}>
+                <Form.Control
                   type="number"
                   value={newChapter.price}
                   placeholder="Min 0.01 ETH"
                   step="0.01"
                   onChange={(e) => setNewChapter({ ...newChapter, price: e.target.value })}
                 />
-                <label htmlFor="image">本章作品上傳，如不需變更章節內容，則無需上傳圖檔</label>
-                <input
+              </Col>
+            </Form.Group>
+
+
+              <Form.Group className='mb-4'>
+                <Form.Label className='label-style mb-3 col-form-label'>本章作品上傳</Form.Label>
+                <Form.Control
                   type="file"
                   onChange={handleMultiFileInputChange}
-                  multiple  // 允许多个文件选择
+                  multiple
                 />
-                <div style={{display: 'flex'}}>
-                  <div style={{marginRight: '170px'}}>更改前的章節內容
+                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                  <div style={{ flex: '1 1 45%', textAlign: 'left', marginRight: '10px' }}>
+                    <div>更改前的章節內容</div>
                     <br />
-                    <img
-                      src={newChapter.imgURL}
-                      alt="Preview"
-                      style={{ width: '150px', paddingBottom: '3%', marginRight: '50px'}}
-                    />
+                    {newChapter.imgURL ? (
+                      <img
+                        src={newChapter.imgURL}
+                        alt="Preview"
+                        style={{ width: '80%', height: '40vh', paddingBottom: '3%' }}
+                      />
+                    ) : (
+                      <p>目前無上傳章節內容</p>
+                    )}
                   </div>
-                  <div>更改後的章節內容
+                  <div style={{ flex: '1 1 45%', textAlign: 'right' }}>
+                    <div>更改後的章節內容</div>
                     <br />
                     <DragDropContext onDragEnd={handleDragEnd}>
                       <Droppable droppableId="droppable">
@@ -536,6 +559,7 @@ const EditWork = (props) => {
                             ref={provided.innerRef}
                             {...provided.droppableProps}
                             className="image-list"
+                            style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'flex-end' }}
                           >
                             {previewImageUrls.map((url, index) => (
                               <Draggable key={index} draggableId={`draggable-${index}`} index={index}>
@@ -545,21 +569,24 @@ const EditWork = (props) => {
                                     {...provided.draggableProps}
                                     {...provided.dragHandleProps}
                                     className="image-item"
+                                    style={{ position: 'relative' }}
                                   >
                                     <img
                                       src={url}
                                       alt={`Preview ${index}`}
                                       className="preview-image"
+                                      style={{ width: '100px', height: 'auto', paddingBottom: '3%' }}
                                     />
                                     <button
                                       onClick={() => handleRemoveFile(index)}
-                                      style={{backgroundColor: 'white'}}
+                                      style={{ backgroundColor: 'white', position: 'absolute', top: '5px', right: '5px' }}
                                       className="remove-button"
                                     >
-                                      <MdClose 
-                                    className="MdClose-button"/>  {/* 小叉叉图标 */}
+                                      <MdClose className="MdClose-button" />
                                     </button>
-                                    <MdDragHandle style={{ position: 'absolute', bottom: '5px', right: '5px', cursor: 'grab' }} />
+                                    <MdDragHandle
+                                      style={{ position: 'absolute', bottom: '5px', right: '5px', cursor: 'grab' }}
+                                    />
                                   </div>
                                 )}
                               </Draggable>
@@ -571,93 +598,134 @@ const EditWork = (props) => {
                     </DragDropContext>
                   </div>
                 </div>
-                <div className="text-red-500 text-center">{message}</div>
-                <button onClick={editChapter} id="list-button">提交</button>
-              </div>
+              </Form.Group>
+              
+              <div className="text-red-500 text-center">{message}</div>
+              <Button onClick={editChapter} id="list-button">
+                提交
+              </Button>
+            </Form>
           ) : (
-              <div>
-                <label htmlFor="category">漫畫類型</label>
-                <select value={newComic.category} onChange={ChoseLevel}>
-                  <option>請選擇類型</option>
+            <Form>
+
+              <Form.Group as={Row} className='mb-3 label-container'>
+                <Form.Label column sm={3} className='label-style label-section'>
+                  漫畫名稱
+                </Form.Label>
+                <Col sm={9}>
+                  <Form.Control
+                    type="text"
+                    value={newComic.title}
+                    onChange={(e) => setNewComic({ ...newComic, title: e.target.value })}
+                  />
+                </Col>
+              </Form.Group>
+
+              <Form.Group as={Row} className='mb-3 label-container'>
+              <Form.Label column sm={3} className='label-style label-section'>
+                漫畫類別
+              </Form.Label>
+              <Col sm={9}>
+                <Form.Control
+                  as="select"
+                  className="form-select"
+                  value={newComic.category}
+                  onChange={ChoseLevel}
+                >
+                  <option>請選擇漫畫類型</option>
                   {grading.map((name, index) => (
                     <option key={index}>{name}</option>
                   ))}
-                </select>
-                <p></p>
-                <label htmlFor="title">作品名稱</label>
-                <input
-                  type="text"
-                  value={newComic.title}
-                  onChange={(e) => setNewComic({ ...newComic, title: e.target.value })}
-                />
-                <label htmlFor="description">作品簡介</label>
-                <textarea
-                  cols="30"
-                  rows="5"
+                </Form.Control>
+              </Col>
+            </Form.Group>
+
+
+            <Form.Group className='pb-4'>
+              <Form.Label className='label-style mb-3 col-form-label'>漫畫簡介</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={5}
                   value={newComic.description}
                   onChange={(e) => setNewComic({ ...newComic, description: e.target.value })}
-                ></textarea>
-                <label htmlFor="image">上傳漫畫封面，如不需變更封面，則無需上傳圖檔</label>
-                <input
+                />
+            </Form.Group>
+
+
+              <Form.Group className='pb-5'>
+                <Form.Label className='label-style mb-1 col-form-label'>漫畫封面</Form.Label>
+                <p>如不需變更封面，則無需上傳圖檔</p>
+                <Form.Control
                   type="file"
                   onChange={handleFileInputChange}
                 />
-                <div style={{display: 'flex'}}>
-                    <div style={{marginRight: '170px'}}>更改前的圖片封面
-                      <br />
+                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                  <div style={{ flex: '1 1 45%', marginRight: '20px', textAlign: 'left' }}>
+                    <div>更改前的圖片封面</div>
+                    <br />
+                    <img
+                      src={newComic.imgURL}
+                      alt="Preview"
+                      style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
+                    />
+                  </div>
+                  <div style={{ flex: '1 1 45%', textAlign: 'right' }}>
+                    <div>更改後的圖片封面</div>
+                    <br />
+                    {previewImageUrl && (
                       <img
-                        src={newComic.imgURL}
+                        src={previewImageUrl}
                         alt="Preview"
-                        style={{ width: '50%', paddingBottom: '3%' }}
+                        style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
                       />
-                    </div>
-                    <div>更改後的圖片封面
-                      <br />
-                      {previewImageUrl && (
-                        <img
-                          src={previewImageUrl}
-                          alt="Preview"
-                          style={{ width: '50%', paddingBottom: '3%' }}
-                        />
-                      )}
-                    </div>
+                    )}
+                  </div>
                 </div>
-                <label htmlFor="image">上傳橫向封面(推廣頁)，如不需變更封面，則無需上傳圖檔</label>
-                <input
+              </Form.Group>
+              
+              <Form.Group className='pb-4'>
+                <Form.Label className='label-style mb-1 col-form-label'>漫畫橫向封面</Form.Label>
+                <p>如不需變更封面，則無需上傳圖檔</p>
+                <Form.Control
                   type="file"
                   onChange={createPromoCover}
                 />
-                <div style={{ display: 'flex' }}>
-                  {newComic.coverImg ? (
-                    <div style={{ marginRight: '170px' }}>
-                      <div>更改前的橫向封面(推廣頁)</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                  <div style={{ flex: '1 1 45%', textAlign: 'left' }}>
+                    <div>更改前的橫向封面(推廣頁)</div>
+                    <br />
+                    {newComic.coverImg ? (
                       <img
                         src={newComic.coverImg}
                         alt="Preview"
-                        style={{ width: '50%', paddingBottom: '3%', marginRight: '50px' }}
+                        style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
                       />
-                    </div>
-                  ) : (
-                    <div style={{ marginRight: '170px' }}>
-                      <div>更改前的橫向封面(推廣頁)</div>
-                        <h3>目前無上傳橫向封面</h3><br />
-                    </div>
-                  )}
-                  <div>
+                    ) : (
+                      <div>
+                        <h3>目前無上傳橫向封面</h3>
+                        <br />
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ flex: '1 1 45%', textAlign: 'right' }}>
                     <div>更改後的橫向封面(推廣頁)</div>
                     <br />
                     {promoPreviewImageUrl && (
                       <img
                         src={promoPreviewImageUrl}
                         alt="Promo Cover Preview"
-                        style={{ width: '50%', paddingBottom: '3%' }}
+                        style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
                       />
                     )}
                   </div>
                 </div>
-                <div className="text-red-500 text-center">{message}</div>
-                <button onClick={editComic} id="list-button">提交</button>
-              </div>
+                </Form.Group>
+              
+              <div className="text-red-500 text-center">{message}</div>
+              <Button onClick={editComic} id="list-button">
+                提交
+              </Button>
+            </Form>
           )}
         </>
       ) : (

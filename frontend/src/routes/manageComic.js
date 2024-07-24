@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Card, Button } from 'react-bootstrap';
+import { Container, Card, Button, Row,Col } from 'react-bootstrap';
 import './bootstrap.min.css';
 
 function ManageComic() {
@@ -38,7 +38,7 @@ function ManageComic() {
     }, [currentAccount]);
 
     const buttonData = [
-        '新增', '編輯', '刪除', '詳情'
+        '新增章節', '編輯漫畫', '編輯章節', '刪除', '詳情'
     ];
 
     const pathMap = {
@@ -55,17 +55,24 @@ function ManageComic() {
                 <Container className='manageComic pt-4'>
                     {comic.map((comic, index) => (
                         <Card className={`mt-4`} key={index}>
-                            <Card.Img variant="top" src={comic.image}  alt="..." />
+                            {/* <Card.Img variant="top" src={comic.image}  alt="..." /> */}
+                            <div className="image-container">
+                                <Card.Img variant="top" src={comic.image} alt="..." />
+                            </div>
                             <Card.Body >
                                 <div className="text-section">
-                                <Card.Title>{comic.title}</Card.Title>
+                                    <Card.Title>{comic.title}</Card.Title>
                                 </div>
                                 <div className="cta-section">
-                                    {buttonData.map((label, idx) => (
-                                        <Link key={idx} to={typeof pathMap[label] === 'function' ? pathMap[label](comic.comicID) : pathMap[label]}>
-                                            <Button>{label}</Button>
-                                        </Link>
-                                    ))}
+                                    <Row>
+                                        {buttonData.map((label, idx) => (
+                                            <Col xs={6} sm={4} md={4} lg={2} key={idx}>
+                                                <Link to={typeof pathMap[label] === 'function' ? pathMap[label](comic.comicID) : pathMap[label]}>
+                                                    <Button className="cta-button">{label}</Button>
+                                                </Link>
+                                            </Col>
+                                        ))}
+                                    </Row>
                                 </div>
                             </Card.Body>
                         </Card>

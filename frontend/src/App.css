@@ -255,6 +255,28 @@ span {
   border: none;
 }
 
+@media only screen and (max-width: 768px) {
+  .upload-form{
+    padding: 8% 5%;
+  }
+
+  .label-style{
+    width: 30%!important;
+    margin-bottom: 4%;
+  }
+
+  .label-container input, .label-container select{
+    width: 100%!important;
+  }
+
+  .step-item .step-line::after{
+    left: 55%!important;
+    padding-left: 10%;
+  }
+
+}
+
+
 
 /* 搜尋框 */
 .search-input {
@@ -329,7 +351,7 @@ a:link{
   flex-direction: column;
   justify-content: start;
   align-items: center;
-  color: #007bff; 
+  color: #28a745; 
 }
 
 .step-item-gray {
@@ -347,7 +369,7 @@ a:link{
 }
 
 .step-item .step-line .dot {
-  border: 4px solid #007bff;
+  border: 4px solid #28a745;;
   border-radius: 50%;
   width: 60px;
   height: 60px;
@@ -374,12 +396,12 @@ a:link{
   left: 50%;
   transform: translateX(-50%);
   height: 2px;
-  background-color: #007bff; 
+  background-color: #28a745; 
   z-index: -1;
 }
 
 .step-item.step-completed .step-line::after {
-  background-color: #007bff; 
+  background-color: #28a745; 
 }
 
 .step-item-gray .step-line::after {
@@ -387,7 +409,7 @@ a:link{
 }
 
 .step-item-gray.step-completed .step-line::after {
-  background-color: #007bff; 
+  background-color: #28a745; 
 }
 
 
@@ -397,11 +419,11 @@ a:link{
 
 
 .step-item.step-completed {
-  color: #007bff; 
+  color: #28a745; 
 }
 
 .step-item.step-completed .step-line .dot {
-  border-color: #007bff; 
+  border-color: #28a745; 
 }
 
 .image-list {
@@ -438,7 +460,106 @@ a:link{
   right: 2px;
 }
 
+.file-upload {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 45vh; /* 設置高度，使其內容能夠垂直居中 */
+  text-align: center;
+  padding: 10px;
+  margin: 2% 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
 
+.file-upload-long{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 60vh; /* 設置高度，使其內容能夠垂直居中 */
+  text-align: center;
+  padding: 10px;
+  margin: 2% 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.file-upload .btn{
+  height: 45px;
+  margin: 0;
+}
+
+.file-upload .hidden{
+  color: #857A7A;
+}
+
+.file-upload #start {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px; 
+}
+
+#start svg {
+  color: #857A7A; 
+}
+
+.label-style{
+  width: 20%;
+  text-align: center;
+  background-color: rgba(6, 157, 103, 0.89);
+  border-radius: 8px;
+  color: #fff;
+  height: 40px;
+}
+
+.label-container{
+  margin-left: 0.1%;
+}
+
+.label-container input, 
+.label-container select {
+  width: 105%;
+}
+
+.label-section{
+  padding-left: 2%;
+}
+
+#file-upload-btn{
+  background-color: #28a745;
+  border: 1px solid #ccc;
+}
+
+#file-upload-btn:hover{
+  background-color:#218838;
+}
+
+#list-button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 30%;
+  background-color: #fff;
+  border-radius: 0;
+  color: #000;
+  border: 2px solid black;
+  box-shadow: #000 -5px 5px;
+  margin-left: auto; /* 向右對齊 */
+  margin-right: 0; /* 確保右邊距為0 */
+}
+
+#list-button:hover{
+  background-color: #F6B93B;
+}
 
 /* 作品管理 */
 .work-management-page {
@@ -945,13 +1066,12 @@ a:link{
   }
 
   .btn-section{
-    width: 20%;
+    width: 25%;
     margin: 0 1%;
   }
 
   .custom-button{
-    width: 80px;
-    
+    width: 100px;
   }
 
   .text-section{
@@ -1113,6 +1233,14 @@ a:link{
   font-size: 16px;
   box-shadow: rgba(246, 185, 59, 0.42) 5px 5px;
   border-radius: 8px;
+}
+
+.creatorPage .btn:click{
+  background-color: #FBC604;
+}
+
+.creatorPage .btn:focus{
+  background-color: #FBC604;
 }
 
 .creatorPage .btn-section{
@@ -1301,10 +1429,15 @@ a:link{
   margin: 3em auto;
 }
 
-.manageComic .card img {
-  max-width: 20%;
-  margin: 1%;
+.manageComic .image-container {
+  flex: 0 0 auto;
+  width: 20%;
   padding: 0.5em;
+}
+
+.manageComic .image-container img {
+  width: 100%;
+  height: auto;
   border-radius: 0.7em;
 }
 
@@ -1322,16 +1455,60 @@ a:link{
   font-size: 32px;
 }
 
-.manageComic .btn{
-  width: 20%;
-  margin-right: 5%;
+.manageComic .cta-button {
+  width: 100%;
   background-color: rgba(6, 157, 103, 0.89);
   box-shadow: 5px 5px rgba(6, 157, 103, 0.42);
   border-radius: 8px;
+}
+
+.manageComic .cta-button:focus {
+  background-color: rgba(6, 157, 103);
 }
 
 @media only screen and (max-width: 768px) {
   .manageComic  .text-section{
     margin-left: 0!important;
   }
+
+  .manageComic .image-container {
+    width: 100%;
+    max-width: 150px; /* 設定圖片的最大寬度 */
+    margin: 0 auto; /* 中央對齊 */
+  }
+
+  .manageComic .cta-button{
+    width: 100px;
+    margin-bottom: 5%;
+  }
+}
+
+.deleteChapter .btn{
+  background-color: rgba(6, 157, 103, 0.89);
+  box-shadow: 5px 5px rgba(6, 157, 103, 0.42);
+  border-radius: 8px;
+}
+
+/* mintNFT */
+.upload-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ccc;
+  padding: 20px;
+  height: 40vh;
+  cursor: pointer;
+  text-align: center;
+  background-color: #f8f9fa;
+}
+
+.upload-block svg{
+  color: #9ea0a0;
+  margin-bottom: 10px;
+}
+
+.upload-block h5{
+  color: #9ea0a0;
+  font-weight: bold;
 }
