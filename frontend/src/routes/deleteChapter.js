@@ -9,7 +9,6 @@ import { sortByTimestamp } from '../index';
 
 function DeleteChapter() {
     const [comic, setComic] = useState([]);
-    const [similComic, setSimilComic] = useState([]);
     const [chapters, setChapters] = useState([]);
     const { comicID } = useParams();
     const [loading, setLoading] = useState(true);
@@ -52,25 +51,6 @@ function DeleteChapter() {
                 }
             }
             setComic(temp);
-
-            for (let i = 0; i < storedArray.length; i++) {
-                // 類似漫畫 依據類型跟同作者取前4本
-                if ((storedArray[i].category == temp[0].category || storedArray[i].author == temp[0].author) && storedArray[i].comicID != comicID) {
-                    const image = `http://localhost:5000/api/comicIMG/${storedArray[i].filename}`;
-                    fetchedData.push({
-                        comicID: storedArray[i].comicID,
-                        title: storedArray[i].title,
-                        description: storedArray[i].description,
-                        author: storedArray[i].author,
-                        category: storedArray[i].category,
-                        image: image,
-                    });
-                }
-                if (fetchedData.length == 4) {
-                    break;
-                }
-            }
-            setSimilComic(fetchedData);
 
             // 章節購買者
             try {

@@ -29,6 +29,8 @@ const MintNFT = (props) => {
         setWeb3(web3);
         const contractInstance = new web3.eth.Contract(comicData.abi, comicData.address);
         setContract(contractInstance);
+        console.log(contractInstance);
+
       } catch (error) {
         console.error(error);
       }
