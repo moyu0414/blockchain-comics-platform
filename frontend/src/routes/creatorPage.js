@@ -53,13 +53,14 @@ function CreatorPage() {
     }, []);
 
     const buttonData = [
-        '收益分析', '已發行NFT', '管理漫畫', '鑄造NFT', '新增漫畫',
+        '收益分析', '已發行NFT', '管理漫畫', '新增漫畫',
     ];
 
     const pathMap = {
         '收益分析': '/analysis',
-        'NFT專區': '/creatorNft',
-        '管理漫畫': '/manageComic'
+        '已發行NFT': '/creatorNft',
+        '管理漫畫': '/manageComic',
+        '新增漫畫': '/createWork'
     };
     
 

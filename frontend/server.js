@@ -339,6 +339,24 @@ app.get('/api/bookcase', (req, res) => {
 });
 
 
+app.get('/api/editWork/chapters', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const comicHash = req.query.comicHash;
+  const query = `
+    SELECT chapters.title, chapters.price, comics.comic_id AS comicHash, chapters.chapter_id AS chapterHash, chapters.create_timestamp, chapters.filename
+    FROM chapters
+    INNER JOIN comics ON chapters.comic_id = comics.comic_id
+    WHERE comics.comic_id = ? AND comics.creator = ? AND comics.is_exist = 1
+  `;
+  pool.query(query, [comicHash, currentAccount], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching chapter records: ', error);
+      return res.status(500).json({ message: 'Error fetching chapter records' });
+    }
+    res.json(results);
+  });
+});
+
 
 // 新增一筆 comics 資料、添加漫画信息到数据库的路由
 app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {

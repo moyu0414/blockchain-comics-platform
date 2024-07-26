@@ -9,7 +9,6 @@ import { sortByTimestamp } from '../index';
 
 function EditChapter() {
     const [comic, setComic] = useState([]);
-    const [similComic, setSimilComic] = useState([]);
     const [chapters, setChapters] = useState([]);
     const { comicID } = useParams();
     const [loading, setLoading] = useState(true);
@@ -53,26 +52,6 @@ function EditChapter() {
             }
             setComic(temp);
 
-            for (let i = 0; i < storedArray.length; i++) {
-                // 類似漫畫 依據類型跟同作者取前4本
-                if ((storedArray[i].category == temp[0].category || storedArray[i].author == temp[0].author) && storedArray[i].comicID != comicID) {
-                    const image = `http://localhost:5000/api/comicIMG/${storedArray[i].filename}`;
-                    fetchedData.push({
-                        comicID: storedArray[i].comicID,
-                        title: storedArray[i].title,
-                        description: storedArray[i].description,
-                        author: storedArray[i].author,
-                        category: storedArray[i].category,
-                        image: image,
-                    });
-                }
-                if (fetchedData.length == 4) {
-                    break;
-                }
-            }
-            setSimilComic(fetchedData);
-
-            // 章節購買者
             try {
                 const response = await axios.get('http://localhost:5000/api/comicDetail', {
                     params: {
@@ -84,23 +63,17 @@ function EditChapter() {
                 sortByTimestamp(chapters);
 
                 for (let i = 0; i < chapters.length; i++) {
-                    if (chapters[i].creator == currentAccount) {
-                        chapters[i].isBuying = '閱讀';
-                    } else if (chapters[i].isBuying !== null) {
-                        chapters[i].isBuying = '閱讀';
-                    } else {
-                        chapters[i].isBuying = '購買';
-                    }
+                    if (currentAccount == chapters[i].creator){
+                        let id = 'Chapter' + (i+1);
+                        chapterInfo.push({
+                          title: chapters[i].title,
+                          price: chapters[i].price,
+                          chapterID: id
+                        });
+                      }
                 }
-                //console.log(chapters);
-                setChapters(chapters);
-
-                let lastChapterInfo = chapters[chapters.length - 1];
-                let updatedComic = temp.map(comic => {
-                    return {...comic, chapter: lastChapterInfo.title};
-                });
-                setComic(updatedComic);
-                //console.log(updatedComic);
+                setChapters(chapterInfo);
+                console.log(chapterInfo);
             } catch (error) {
                 console.error('Error fetching records:', error);
             }
@@ -112,11 +85,9 @@ function EditChapter() {
 
     useEffect(() => {
         initData();
-    }, [comicID]);
+    }, [comicID, currentAccount]);
 
     
-    const [isFavorited, setIsFavorited] = useState(false); // 初始狀態為為收藏
-
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // 每頁顯示的章節數量
     const totalPages = Math.ceil(chapters.length / itemsPerPage);
@@ -193,24 +164,22 @@ function EditChapter() {
 
     return (
         <div>
-            {/* {!loading && */}
+            {!loading &&
                 <Container className='comicDetail'>
                     {/* 此處會放上該漫畫的封面+名稱供預覽 跟創作者頁面creatorPage的一樣*/}
-                    <Row xs={1} md={2} className="g-4 pb-5">
-                        {comic.map((data, idx) => (
-                            <Col key={idx} xs={4} md={3} className="pt-3">
-                            <Link to={`/comicDetail/${data.comicID}`}>
-                                <Card>
-                                    <Card.Img variant="top" src={data.image} />
-                                    <Card.Body>
-                                        <Card.Title className='text-center'>{data.title}</Card.Title>
-                                    </Card.Body>
-                                </Card>
-                            </Link>
-                            </Col>
-                        ))}
+                    <Row className="pt-5">
+                        <Link to={`/comicDetail/${comic[0].comicID}`}>
+                            <div className="d-block mx-auto img-fluid carousel-image-container">
+                                <img
+                                className="d-block mx-auto img-fluid"
+                                src={comic[0].protoFilename}
+                                alt="800x400"
+                                />
+                            </div>
+                            <h4 className='text-center pt-3'>{comic[0].title}</h4>
+                        </Link>
                     </Row>
-                    <Row className='pt-5 chapter-title-section'>
+                    <Row className='pt-4 chapter-title-section'>
                         <Col className=''>
                             <div className='d-flex justify-content-between align-items-center'>
                                 <h3 className='fw-bold mb-0'>章節目錄</h3>
@@ -227,8 +196,18 @@ function EditChapter() {
                                         <tr key={index}>
                                             <td className='text-center fw-bold'>第 {startIndex + index + 1} 章</td>
                                             <td className='text-center'>{chapter.title}</td>
+                                            <td className='text-center'>{chapter.price}</td>
                                             <td className='text-center'>
-                                                <button className="btn">編輯</button>
+                                                <Link
+                                                    to={"/editWork"}
+                                                    state={{
+                                                        showChapterForm: true,
+                                                        comicID: comic.length > 0 ? comic[0].comicID : null,
+                                                        chapterID: chapters.length > 0 ? chapter.chapterID : null
+                                                    }}
+                                                >
+                                                    <button className="btn">編輯</button>
+                                                </Link>
                                             </td>
                                         </tr>
                                     ))}
@@ -255,12 +234,12 @@ function EditChapter() {
                     </Row>
                     
                 </Container>
-            {/* }
+            }
             {loading &&  
                 <div className="loading-container">
                     <div>頁面加載中，請稍後...</div>
                 </div>
-            } */}
+            }
         </div>
     );
 }
