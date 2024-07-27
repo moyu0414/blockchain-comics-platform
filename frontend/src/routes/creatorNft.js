@@ -131,7 +131,7 @@ function CreatorNft() {
                         <thead>
                             <tr>
                                 <th className='text-center fw-bold'>日期</th>
-                                <th className='text-center fw-bold'>交易日期</th>
+                                <th className='text-center fw-bold'>交易序號</th>
                                 <th className='text-center fw-bold'>收益</th>
                             </tr>
                         </thead>

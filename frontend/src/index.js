@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { createRoot } from "react-dom/client";
 import {
   createBrowserRouter,
-  RouterProvider,
-  Outlet,
+  RouterProvider
 } from "react-router-dom";
 import Home from './routes/Home';
 import HomePage from './routes/homePage';
@@ -11,11 +11,13 @@ import Navbar from "./components/Navbar";
 import Navigation from "./components/navigation";
 import Category from './routes/category';
 import ComicDetail from './routes/comicDetail';
+import ComicRead from './routes/comicRead';
 import ManageComic from './routes/manageComic';
 import Reader from './routes/reader';
 import Creator from './routes/creator';
 import CreatorPage from './routes/creatorPage';
 import CreatorNft from './routes/creatorNft';
+import ReaderPage from './routes/readerPage';
 import Bookcase from './routes/bookcase';
 import Analysis from './routes/analysis';
 import Dual from './routes/dual';
@@ -49,6 +51,8 @@ const AppLayout = () => {
   const [web3Instance, setWeb3Instance] = useState(null);
   const [contractInstance, setContractInstance] = useState(null);
   const currentAccount = localStorage.getItem("currentAccount");
+  const location = useLocation();
+  const shouldShowNavbar = location.pathname !== '/comicRead'; // 根據你的路由配置來設置
 
   // 處理登錄狀態的函數
   const handleLogin = () => {
@@ -121,11 +125,23 @@ const AppLayout = () => {
 
   return (
     <>
-      {isLoggedIn && <Navigation accounts={accounts} setAccounts={setAccounts}/>}
+      {isLoggedIn && shouldShowNavbar && <Navigation accounts={accounts} setAccounts={setAccounts}/>}
       <Outlet />
     </>
   );
 };
+
+const Root = () => (
+  <Router>
+    <Routes>
+      <Route path="/" element={<AppLayout />}>
+        {/* 定義其他路由 */}
+        <Route path="/comicRead" element={<ComicRead />} />
+        {/* 其他頁面路由 */}
+      </Route>
+    </Routes>
+  </Router>
+);
 
 //日期轉換格式 yyyy/mm/dd
 function formatDate(date) {
@@ -253,6 +269,12 @@ const router = createBrowserRouter([
       },{
         path: "/nftDetail",
         element: <NftDetail />,
+      },{
+        path: "/readerPage",
+        element: <ReaderPage />,
+      },{
+        path: "/comicRead",
+        element: <ComicRead />,
       }
     ],
   },
@@ -263,5 +285,4 @@ createRoot(document.getElementById("root")).render(
   <RouterProvider router={router} />
 );
 
-
-export {formatDate, formatTime, sortByTimestamp, sortByDatetime};
+export { formatDate, formatTime, sortByTimestamp, sortByDatetime };

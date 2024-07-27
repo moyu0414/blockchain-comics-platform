@@ -1017,9 +1017,9 @@ a:link{
 .carousel-image-container img {
   width: 90%;
   height: 100%;
-  border-radius: 30px; /* 添加圓角 */
   object-fit: cover; /* 使圖片覆蓋容器並保持比例 */
   object-position: 10% 20%;
+  border-radius: 30px;
 }
 
 .carousel-indicators{
@@ -1075,14 +1075,19 @@ a:link{
   }
 
   .text-section{
-    margin-left: 10%!important;
+    margin-left: 4%!important;
+  }
+
+  .text-section-right{
+    margin-right: 4%!important;
   }
 
   .carousel-image-container img {
-    border-radius: 30px !important;
     width: 100%;
     max-height: 300px; /* 根據需要調整 */
     object-fit: cover; /* 保持比例 */
+    margin: 0;
+    border-radius: 30px;
   }
 
 }
@@ -1164,6 +1169,10 @@ a:link{
     width: 80px!important;
   }
 
+  .nft-price{
+    width: 100%!important;
+  }
+
 }
 
 .chapter-table table {
@@ -1223,6 +1232,8 @@ a:link{
 .page-link span{
   margin: 0 5px;
 }
+
+
 
 /* creatorPage */
 .creatorPage .btn{
@@ -1511,4 +1522,249 @@ a:link{
 .upload-block h5{
   color: #9ea0a0;
   font-weight: bold;
+}
+
+/* nftDetail */
+.text-section{
+  margin-left: 8%;
+}
+
+.text-section-right{
+  margin-right: 8%;
+  display: flex;
+  justify-content: end;
+}
+
+.text-section h3{
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.nft-price{
+  width: 60%;
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  background-color: #FBC604;
+  border-radius: 0;
+  color: #000;
+  border: 2px solid black;
+  box-shadow: #000 3px 3px;
+}
+
+/* readerPage */
+.readerPage .btn{
+  width: 15vh;  
+  height: 15vh; 
+  border-radius: 12px;
+  background-color: rgba(217, 217, 217, 0.37);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  color: #524C4C; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  border: none; 
+  flex-direction: column; 
+  text-align: center;  
+  padding: 10px; 
+}
+
+.readerPage span{
+  margin: 0;
+}
+
+.readerPage .icon-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.icon-label svg {
+  margin-bottom: 8px;
+  font-size: 24px;
+}
+
+
+@media only screen and (max-width: 768px) {
+
+  .readerPage .btn{
+    width: 12vh;
+    height: 12vh;
+  }
+
+}
+
+/* comicRead */
+.comic-custom-navbar {
+  background-color: rgba(35, 38, 36, 0.95);
+  height: 100px;
+  width: 100%; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed; 
+  top: 0; 
+  left: 0;
+  z-index: 1000; 
+  transition: top 0.3s; 
+}
+
+.comic-custom-navbar .navbar-brand:focus, .comic-custom-navbar .navbar-brand:hover {
+  color: #fff;
+}
+
+.navbar-left {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+  padding-left: 3%;
+}
+
+.navbar-center {
+  flex: 2;
+  text-align: center;
+  color: white; 
+}
+
+.navbar-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 3%;
+}
+
+.icon {
+  color: white;
+  cursor: pointer; 
+}
+
+.banner-image {
+  width: 70%; 
+  margin: 0 auto;
+}
+
+.banner-image img {
+  width: 100%; 
+  height: auto; 
+}
+
+.icon-bar {
+  background-color: rgba(35, 38, 36, 0.95); 
+  width: 100%; 
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  bottom: 0; 
+  left: 0; 
+  z-index: 999; 
+  transition: bottom 0.3s; 
+}
+
+.icon-bar .icon {
+  margin: 0 15px; 
+  color: white; 
+  font-size: 1.5rem; 
+  cursor: pointer;
+}
+
+.show {
+  bottom: 0; 
+}
+
+.hide {
+  top: -400px;
+  bottom: -100px;
+}
+
+.comic-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; 
+}
+
+.overlay-content {
+  width: 80%;
+  max-width: 800px;
+  height: 80vh;
+  background: #F6B93B;
+  border-radius: 32px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.overlay-header {
+  height: 150px; 
+  background: #F6B93B;
+  color: #000;
+  padding: 10px 20px; 
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; 
+}
+
+/* 關閉按鈕 */
+.overlay-close {
+  position: absolute;
+  top: 20px;
+  right: 3%;
+  background-color: #fff; 
+  border: 2px solid #000; 
+  border-radius: 50%; 
+  width: 36px; 
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 5px; 
+}
+
+.overlay-divider {
+  background-color: #000;
+  height: 3px;
+}
+
+/* 彈出視窗下半部 */
+.overlay-body {
+  background-color: #FDF3DE!important;
+  flex: 1; 
+  padding: 20px;
+}
+
+/* 文字樣式 */
+.overlay-comic-title{
+  margin-top: 10px;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.overlay-author-title {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 767px) {
+  .custom-navbar {
+    height: auto;
+  }
+
+  .banner-image {
+    width: 100%; 
+  }
 }

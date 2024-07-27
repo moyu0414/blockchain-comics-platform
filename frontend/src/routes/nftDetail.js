@@ -135,20 +135,30 @@ function NftDetail() {
                             <img
                             className="d-block mx-auto img-fluid"
                             // src={comic[0].protoFilename}
-                            src='https://via.placeholder.com/120x60?text=Image'
+                            src='https://images.pexels.com/photos/7809122/pexels-photo-7809122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
                             alt="800x400"
                             />
                         </div>
                     </Row>
                     <Row>
-                        <Col className="text-section">
+                        <Col className="text-section d-flex align-items-center">
                             {comic.map((comic, index) => (
-                                <React.Fragment >
+                                <React.Fragment key={index}>
                                     <h3 className="fw-bold">{comic.title}</h3>
                                     <p className="text-secondary">{comic.author}</p>
                                     <p className="text-secondary">{comic.description}</p>
                                 </React.Fragment>
                             ))}
+                        </Col>
+                    </Row>
+                    <Row className="d-flex justify-content-between align-items-center">
+                        <Col xs={8} className="text-section ">
+                            <h3 className="fw-bold">春風化雨二創授權</h3>
+                            <p className="text-secondary">作者：作者君</p>
+                            <p className="text-secondary">敘述敘述敘述敘述敘述敘述敘述敘述</p>
+                        </Col>
+                        <Col className="text-end text-section-right">
+                            <p className="text-large nft-price">$50</p>
                         </Col>
                     </Row>
                     <Row className="pt-5">
@@ -160,6 +170,12 @@ function NftDetail() {
                                 <li>授權的敘述</li>
                                 <li>授權的敘述</li>
                             </ul>
+                        </Col>
+                    </Row>
+                    <Row className="pt-5">
+                        <Col className="text-section">
+                            <h3 className="fw-bold">授權說明</h3>
+                            <p>授權的說明</p>
                         </Col>
                     </Row>
                 </Container>
