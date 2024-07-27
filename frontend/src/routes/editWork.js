@@ -543,7 +543,14 @@ const EditWork = (props) => {
 
 
               <Form.Group className='mb-4'>
-                <Form.Label className='label-style mb-3 col-form-label'>本章作品上傳</Form.Label>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Form.Label className='label-style mb-1 col-form-label'>
+                      本章作品上傳
+                    </Form.Label>
+                    <h6 style={{ marginLeft: '10px' }}>
+                      如不需變更內容，則無需上傳圖檔
+                    </h6>
+                  </div>
                 <Form.Control
                   type="file"
                   onChange={handleMultiFileInputChange}
@@ -715,8 +722,14 @@ const EditWork = (props) => {
               </Form.Group>
               
               <Form.Group className='pb-4'>
-                <Form.Label className='label-style mb-1 col-form-label'>漫畫橫向封面</Form.Label>
-                <p>如不需變更封面，則無需上傳圖檔</p>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Form.Label className='label-style mb-1 col-form-label'>
+                      漫畫橫向封面  
+                    </Form.Label>
+                    <h6 style={{ marginLeft: '10px' }}>
+                      如不需變更封面，則無需上傳圖檔
+                    </h6>
+                  </div>
                 <Form.Control
                   type="file"
                   onChange={createPromoCover}

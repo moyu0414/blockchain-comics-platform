@@ -245,7 +245,7 @@ const router = createBrowserRouter([
         path: "/editChapter/:comicID",
         element: <EditChapter />,
       },{
-        path: "/deleteChapter",
+        path: "/deleteChapter/:comicID",
         element: <DeleteChapter />,
       },{
         path: "/nftMarket",

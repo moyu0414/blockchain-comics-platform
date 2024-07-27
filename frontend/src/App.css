@@ -1247,6 +1247,22 @@ a:link{
   padding-right: 10%;
 }
 
+.position-relative {
+  position: relative; /* 确保相对定位，以便 overlay 使用绝对定位 */
+}
+
+.category-overlay {
+  position: absolute; /* 绝对定位 */
+  bottom: 0px;
+  right: 0px;
+  background: rgba(0, 0, 0, 0.4); /* 半透明背景 */
+  color: #fff; /* 白色文字 */
+  padding: 5px 10px; /* 内边距 */
+  border-radius: 5px; /* 圆角边框 */
+  font-size: 0.9rem; /* 字体大小 */
+  z-index: 1; /* 确保悬浮在图片上方 */
+}
+
 /* analysis */
 
 .analysis h1{

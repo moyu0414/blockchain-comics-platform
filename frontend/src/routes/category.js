@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Container, Carousel, Card, Col, Row, Button, Dropdown } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel } from 'react-bootstrap-icons';
+import axios from 'axios';
 
 const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     <div
@@ -18,11 +19,15 @@ const CustomToggle = React.forwardRef(({ onClick }, ref) => (
 ));
 
 function Category() {
-    const location = useLocation();
     const [currentCategory, setCurrentCategory] = useState('');
     const [current, setCurrent] = useState([]);
     const [promoPosition, setPromoPosition] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [filter, setFilter] = useState(null);
     const storedArrayJSON = localStorage.getItem('comicDatas');
+    const currentAccount = localStorage.getItem("currentAccount");
+    let savedCurrentCategory = localStorage.getItem('currentCategory');
+    let savedFilter = localStorage.getItem('filter');
     const fetchedData = [];
     
     const initData = async () => {
@@ -32,7 +37,7 @@ function Category() {
                 if (storedArray[i].exists == 1 && storedArray[i].category == currentCategory) {
                     const filename = storedArray[i].filename;
                     const image = "http://localhost:5000/api/comicIMG/" + filename;
-                    fetchedData.push({ comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, image: image});
+                    fetchedData.push({ comicHash: storedArray[i].comicHash, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, image: image});
                 }
             };
             setCurrent(fetchedData);
@@ -46,31 +51,118 @@ function Category() {
                 }
             });
             const sortPromo = Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a]);
-            setPromoPosition(sortPromo.slice(0, 8));  // / 推廣位只選取前四個類型來顯示
+            setPromoPosition(sortPromo.slice(0, 8));
             console.log(fetchedData);
         } catch (error) {
             console.error('Error initializing contract:', error);
         }
     };
 
-    useEffect(() => {
-        initData();
-    }, [currentCategory]);
-
     const buttonData = [
         '戀愛', '懸疑', '恐怖', '冒險',
         '古風', '玄幻', '武俠', '搞笑',
     ];
-    
+
     useEffect(() => {
-        if (location.state) {
-          console.log("Location state:", location.state);
-          setCurrentCategory(location.state.category)
+        if (savedCurrentCategory) {
+            setCurrentCategory(savedCurrentCategory);
         };
-      }, [location]);
+        if (savedFilter) {
+            setFilter(savedFilter);
+        }
+        initData();
+        console.log('11');
+    }, [currentCategory]);
+
+    useEffect(() => {
+        console.log('22');
+        console.log(filter);
+        if (filter) {
+            handleCategoryChange(filter);
+        }
+    }, [filter]);
+
 
     const handleCategoryClick = (category) => {
         setCurrentCategory(category);
+        setSelectedCategory(null);
+        localStorage.setItem('currentCategory', category);
+        localStorage.setItem('filter', '');
+    };
+
+    const handleCategoryChange = (filters) => {
+        setSelectedCategory(filters);
+        setFilter(filters);
+        console.log(filters);
+        localStorage.setItem('filter', filters);
+        // 调用更新函数
+        if (filters === '新發布') {
+            updateComic();
+        } else if (filters === '最近更新') {
+            updateChapter();
+        }
+    };
+
+    const updateComic = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/category/updateComic', {
+                params: {
+                    currentCategory: currentCategory
+                }
+            });
+            let comics = response.data;
+            comics.forEach(comic => {
+                comic.create_timestamp = Number(comic.create_timestamp);
+            });
+            const timestampMap = new Map(comics.map(comic => [comic.comicHash, comic.create_timestamp]));
+            
+            let sortedComics;
+            if (fetchedData.length !== 0) {
+                sortedComics = sortComics(fetchedData, timestampMap);
+            } else {
+                sortedComics = sortComics(current, timestampMap);
+            }
+            setCurrent(sortedComics);
+            setSelectedCategory('新發布');
+        } catch (error) {
+            console.error('Error fetching records:', error);
+        }
+    };
+
+    const updateChapter = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/category/updateChapter', {
+                params: {
+                    currentCategory: currentCategory
+                }
+            });
+            let chapters = response.data;
+            chapters.forEach(chapter => {
+                chapter.create_timestamp = Number(chapter.create_timestamp);
+            });
+            const timestampMap = new Map(chapters.map(chapter => [chapter.comicHash, chapter.create_timestamp]));
+    
+            let sortedComics;
+            if (fetchedData.length !== 0) {
+                sortedComics = sortComics(fetchedData, timestampMap);
+            } else {
+                sortedComics = sortComics(current, timestampMap);
+            }
+            setCurrent(sortedComics);
+            setSelectedCategory('最近更新');
+        } catch (error) {
+            console.error('Error fetching records:', error);
+        }
+    };
+
+    const sortComics = (data, timestampMap) => {
+        if (!data || !timestampMap) return [];
+    
+        return [...data].sort((a, b) => {
+            const timestampA = timestampMap.get(a.comicHash);
+            const timestampB = timestampMap.get(b.comicHash);
+            return timestampB - timestampA;
+        });
     };
 
 
@@ -87,18 +179,24 @@ function Category() {
                 <Col>
                     <h3 className="fw-bold">{currentCategory}漫畫</h3>
                 </Col>
+                <Col>
+                    {selectedCategory && <h3>{selectedCategory}</h3>}
+                </Col>
                 <Col xs="auto">
                     <Dropdown>
                         <Dropdown.Toggle as={CustomToggle} />
                         <Dropdown.Menu>
-                            <Dropdown.Item href="#">人氣排序</Dropdown.Item>
-                            <Dropdown.Item href="#">愛心排序</Dropdown.Item>
-                            <Dropdown.Item href="#">新發布</Dropdown.Item>
-                            <Dropdown.Item href="#">最近更新</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleCategoryChange('人氣排序')}>人氣排序</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleCategoryChange('愛心排序')}>愛心排序</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleCategoryChange('新發布')}>新發布</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleCategoryChange('最近更新')}>最近更新</Dropdown.Item>
                         </Dropdown.Menu>
                     </Dropdown>
                 </Col>
             </Row>
+
+
+
             <Row xs={1} md={2} className="g-4 pb-5">
                 {promoPosition.length === 0 ? (
                     <>

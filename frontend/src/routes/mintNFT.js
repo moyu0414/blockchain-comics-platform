@@ -19,6 +19,8 @@ const MintNFT = (props) => {
   const [newComic, setNewComic] = useState({category:'',  title: '', description: '', imgURL: ''});
   const [NFTData, setNFTData] = useState({price:'', description: '', comicHash:''});
   const [loading, setLoading] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [showDescription, setShowDescription] = useState(false);
   let temp = [];
   
   // 連接到 Web3 的函數
@@ -122,6 +124,7 @@ const MintNFT = (props) => {
       }
       setNewComic({category:temp[0].category,  title: temp[0].title, description: temp[0].description, imgURL: imgURL, coverImg: coverImg});
       setNFTData({comicHash: temp[0].comicHash})
+      setShowChapterForm(location.state.showChapterForm)
       connectToWeb3();
       setLoading(true);
     }
@@ -132,6 +135,23 @@ const MintNFT = (props) => {
     "會員標章",
     "智慧財產"
   ]);
+
+  const handleCategoryChange = (event) => {
+    const { value, checked } = event.target;
+    setSelectedCategories(prevState => {
+      const updatedCategories = checked
+        ? [...prevState, value]
+        : prevState.filter(category => category !== value);
+
+      if (updatedCategories.includes('其他：自行創建')) {
+        setShowDescription(true);
+      } else {
+        setShowDescription(false);
+      }
+
+      return updatedCategories;
+    });
+  };
 
 
   return (
@@ -155,73 +175,89 @@ const MintNFT = (props) => {
         </div>
       </div>
       {/* {loading ? ( */}
-        <div>
-          <div style={{ float: 'left', width: '45%', marginRight: '5%' }}>
-            <label htmlFor="category">漫畫類型：{newComic.category}</label>
-            <br />
-            <label htmlFor="title">作品名稱：{newComic.title}</label>
-            <br />
-            <label htmlFor="description">作品簡介：{newComic.description}</label>
-            <br />
-            <label htmlFor="image">漫畫封面：</label>
-            <div style={{ display: 'flex' }}>
-              <img
-                src={newComic.imgURL}
-                alt="Preview"
-                style={{ width: '80%', paddingBottom: '3%' }}
-              />
-            </div>
-            <br />
-            <label htmlFor="image">橫向封面(推廣頁)：</label>
-            <div style={{ display: 'flex' }}>
-              {newComic.coverImg ? (
-                <img
-                  src={newComic.coverImg}
-                  alt="Preview"
-                  style={{ width: '80%', paddingBottom: '3%' }}
-                />
-              ) : (
-                <div>
-                  目前無上傳橫向封面
-                </div>
-              )}
-            </div>
-          </div>
 
-          <div style={{ float: 'left', width: '45%', marginLeft: '5%' }}>
-            <label htmlFor="category">NFT價格：</label>
-            <input
-              type="number"
-              placeholder="Min 0.01 ETH"
-              step="0.01"
-              style={{ width: '80%' }}
-              onChange={(e) => setNFTData({ ...NFTData, price: e.target.value })}
-            />
-            <br />
-            <label htmlFor="description">作品描述：</label>
-            <textarea
-              cols="30"
-              rows="10"
-              style={{ width: '80%' }}
-              onChange={(e) => setNFTData({ ...NFTData, description: e.target.value })}
-            ></textarea>
-          </div>
-          <div style={{ clear: 'both' }}></div>
-          <div className="text-red-500 text-center">{message}</div>
-          <button onClick={createNFT} id="list-button">提交</button>
-        </div>
-        {/* ) : ( */}
-        <Form.Group>
-          <Form.Label className="upload-block">
-            <CardImage size={48} />
-            <h5>選取圖片</h5>
-            <Form.Control
-              type="file"
-              style={{ display: 'none' }} // 隱藏實際的檔案上傳按鈕
-            />
+
+
+
+
+      <Form.Group as={Row} className='mb-1'>
+        <div style={{ display: 'flex' }}>
+          <Form.Label className='label-style col-form-label'>
+            漫畫名稱
           </Form.Label>
-        </Form.Group>
+          <Form.Control
+            type="text"
+            value={newComic.title}
+            style={{ marginLeft: '10px' }}
+          />
+        </div>
+      </Form.Group>
 
+      <Form.Group as={Row} className='mb-3'>
+        <div style={{ display: 'flex' }}>
+          <Form.Label className='label-style mb-1 col-form-label'>
+            漫畫類別
+          </Form.Label>
+          <Form.Control
+            className="form-select"
+            value={newComic.category}
+            style={{ marginLeft: '10px' }}
+          >
+          </Form.Control>
+        </div>
+      </Form.Group>
+
+      <Form.Group className='pb-3'>
+        <div style={{ display: 'flex'}}>
+          <Form.Label className='label-style col-form-label'>
+            漫畫簡介
+          </Form.Label>
+          <Form.Control
+            as="textarea"
+            rows={5}
+            value={newComic.description}
+            style={{ marginLeft: '10px' }}
+          />
+        </div>
+      </Form.Group>
+
+      <Form.Group className='pb-3'>
+        <div style={{ display: 'flex' }}>
+          <Form.Label className='label-style mb-1 col-form-label' htmlFor="image">
+            漫畫封面
+          </Form.Label>
+          <img
+            src={newComic.imgURL}
+            alt="Preview"
+            style={{ width: '60%', maxWidth: '300px', paddingBottom: '3%', marginLeft: '10px' }}
+          />
+        </div>
+      </Form.Group>
+        
+      <Form.Group className='pb-4'>
+        <div style={{ display: 'flex' }}>
+          <Form.Label className='label-style mb-1 col-form-label'>漫畫橫向封面</Form.Label>
+          {newComic.coverImg ? (
+            <img
+              src={newComic.coverImg}
+              alt="Preview"
+              style={{ width: '60%', maxWidth: '300px', paddingBottom: '3%', marginLeft: '10px' }}
+            />
+          ) : (
+            <div>
+              <h3>目前無上傳橫向封面</h3>
+              <br />
+            </div>
+          )}
+        </div>
+      </Form.Group>
+
+
+
+
+
+
+        {/* ) : ( */}
         <Form.Group as={Row} className='mt-4 mb-2'>
           <Form.Label >
               NFT名稱
@@ -247,32 +283,57 @@ const MintNFT = (props) => {
             />
         </Form.Group>
 
-        <Form.Group as={Row} className='mb-2'>
-          <Form.Label>
-            漫畫類別
-          </Form.Label>
-            <Form.Control
-              as="select"
-              className="form-select"
-              // value={newComic.category}
-              // onChange={ChoseLevel}
-            >
-              <option>請選擇NFT類型</option>
+        <Form>
+          <Form.Group as={Row} className='mb-2'>
+            <div style={{ display: 'flex' }}>
+              <Form.Label>
+                IP種類
+              </Form.Label>
+              <Button id="list-button">IP種類對照表</Button>
+            </div>
+            <Col>
               {grading.map((name, index) => (
-                <option key={index}>{name}</option>
+                <Form.Check
+                  key={index}
+                  type="checkbox"
+                  id={`category-${index}`}
+                  label={name}
+                  value={name}
+                  onChange={handleCategoryChange}
+                  checked={selectedCategories.includes(name)}
+                />
               ))}
-            </Form.Control>
-        </Form.Group>
+              <Form.Check
+                type="checkbox"
+                id="category-other"
+                label="其他：自行創建"
+                value="其他：自行創建"
+                onChange={handleCategoryChange}
+                checked={selectedCategories.includes('其他：自行創建')}
+              />
+            </Col>
+          </Form.Group>
 
-        <Form.Group className='mb-4'>
-          <Form.Label>NFT敘述</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={5}
-              // value={newComic.description}
-              // onChange={(e) => setNewComic({ ...newComic, description: e.target.value })}
-            />
-        </Form.Group>
+          {showDescription && (
+            <Form.Group className='mb-4'>
+              <Form.Label>IP名稱</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="請輸入IP名稱"
+                  // value={newComic.description}
+                  // onChange={(e) => setNewComic({ ...newComic, description: e.target.value })}
+                />
+              <Form.Label>IP敘述</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={5}
+                placeholder="請描述IP的使用權限、範圍等"
+                // value={newComic.description}
+                // onChange={(e) => setNewComic({ ...newComic, description: e.target.value })}
+              />
+            </Form.Group>
+          )}
+        </Form>
 
         <Form.Group as={Row} className='mb-2'>
           <Form.Label>
@@ -280,6 +341,8 @@ const MintNFT = (props) => {
           </Form.Label>
             <Form.Control
               type="number"
+              placeholder="Min 1 Qty"
+              step="1"
               // value={newChapter.price}
               // onChange={(e) => setNewChapter({ ...newChapter, price: e.target.value })}
             />

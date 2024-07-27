@@ -52,7 +52,6 @@ function DeleteChapter() {
             }
             setComic(temp);
 
-            // 章節購買者
             try {
                 const response = await axios.get('http://localhost:5000/api/comicDetail', {
                     params: {
@@ -64,23 +63,17 @@ function DeleteChapter() {
                 sortByTimestamp(chapters);
 
                 for (let i = 0; i < chapters.length; i++) {
-                    if (chapters[i].creator == currentAccount) {
-                        chapters[i].isBuying = '閱讀';
-                    } else if (chapters[i].isBuying !== null) {
-                        chapters[i].isBuying = '閱讀';
-                    } else {
-                        chapters[i].isBuying = '購買';
-                    }
+                    if (currentAccount == chapters[i].creator){
+                        let id = 'Chapter' + (i+1);
+                        chapterInfo.push({
+                          title: chapters[i].title,
+                          price: chapters[i].price,
+                          chapterID: id
+                        });
+                      }
                 }
-                //console.log(chapters);
-                setChapters(chapters);
-
-                let lastChapterInfo = chapters[chapters.length - 1];
-                let updatedComic = temp.map(comic => {
-                    return {...comic, chapter: lastChapterInfo.title};
-                });
-                setComic(updatedComic);
-                //console.log(updatedComic);
+                setChapters(chapterInfo);
+                console.log(chapterInfo);
             } catch (error) {
                 console.error('Error fetching records:', error);
             }
@@ -92,11 +85,9 @@ function DeleteChapter() {
 
     useEffect(() => {
         initData();
-    }, [comicID]);
+    }, [comicID, currentAccount]);
 
     
-    const [isFavorited, setIsFavorited] = useState(false); // 初始狀態為為收藏
-
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // 每頁顯示的章節數量
     const totalPages = Math.ceil(chapters.length / itemsPerPage);
@@ -173,28 +164,26 @@ function DeleteChapter() {
 
     return (
         <div>
-            {/* {!loading && */}
-                <Container className='deleteChapter'>
+            {!loading &&
+                <Container className='comicDetail'>
                     {/* 此處會放上該漫畫的封面+名稱供預覽 跟創作者頁面creatorPage的一樣*/}
-                    <Row xs={1} md={2} className="g-4 pb-5">
-                        {comic.map((data, idx) => (
-                            <Col key={idx} xs={4} md={3} className="pt-3">
-                            <Link to={`/comicDetail/${data.comicID}`}>
-                                <Card>
-                                    <Card.Img variant="top" src={data.image} />
-                                    <Card.Body>
-                                        <Card.Title className='text-center'>{data.title}</Card.Title>
-                                    </Card.Body>
-                                </Card>
-                            </Link>
-                            </Col>
-                        ))}
+                    <Row className="pt-5">
+                        <Link to={`/comicDetail/${comic[0].comicID}`}>
+                            <div className="d-block mx-auto img-fluid carousel-image-container">
+                                <img
+                                className="d-block mx-auto img-fluid"
+                                src={comic[0].protoFilename}
+                                alt="800x400"
+                                />
+                            </div>
+                            <h4 className='text-center pt-3'>{comic[0].title}</h4>
+                        </Link>
                     </Row>
-                    <Row className='pt-5 chapter-title-section'>
+                    <Row className='pt-4 chapter-title-section'>
                         <Col className=''>
                             <div className='d-flex justify-content-between align-items-center'>
                                 <h3 className='fw-bold mb-0'>章節目錄</h3>
-                                <p className='text-end mb-0'>查看全部章節</p>
+                                <button className="btn">刪除本漫畫</button>
                             </div>
                             <hr/>
                         </Col>
@@ -207,6 +196,7 @@ function DeleteChapter() {
                                         <tr key={index}>
                                             <td className='text-center fw-bold'>第 {startIndex + index + 1} 章</td>
                                             <td className='text-center'>{chapter.title}</td>
+                                            <td className='text-center'>{chapter.price}</td>
                                             <td className='text-center'>
                                                 <button className="btn">刪除</button>
                                             </td>
@@ -235,12 +225,12 @@ function DeleteChapter() {
                     </Row>
                     
                 </Container>
-            {/* }
+            }
             {loading &&  
                 <div className="loading-container">
                     <div>頁面加載中，請稍後...</div>
                 </div>
-            } */}
+            }
         </div>
     );
 }

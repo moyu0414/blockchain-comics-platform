@@ -54,13 +54,16 @@ function ManageComic() {
             pathname: '/createWork',
             state: (comicHash) => ({ showChapterForm: true, comicHash }) // 动态设置状态
         },
-        '鑄造NFT': '',
+        '鑄造NFT': {
+            pathname: '/mintNFT',
+            state: (comicID) => ({ showChapterForm: true, comicID }) // 动态设置状态
+        },
         '編輯漫畫': {
             pathname: '/editWork',
             state: (comicID) => ({ showChapterForm: false, comicID }) // 动态设置状态
         },
         '編輯章節': (comicID) => ({ pathname: `/editChapter/${comicID}` }),
-        '刪除': '',
+        '刪除': (comicID) => ({ pathname: `/deleteChapter/${comicID}` }),
         '詳情': (comicID) => ({ pathname: `/comicDetail/${comicID}` })
     };
 
@@ -90,6 +93,8 @@ function ManageComic() {
                                                 }
                                                 state={label === '新增章節'
                                                     ? pathMap[label].state(comic.comicHash) // 设置状态
+                                                    : label === '鑄造NFT'
+                                                    ? pathMap[label].state(comic.comicID) // 设置状态
                                                     : label === '編輯漫畫'
                                                     ? pathMap[label].state(comic.comicID) // 设置状态
                                                     : undefined
