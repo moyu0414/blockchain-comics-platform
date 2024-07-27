@@ -51,6 +51,10 @@ const HomePage = ({ contractAddress }) => {
         '戀愛', '懸疑', '恐怖', '冒險',
         '古風', '玄幻', '武俠', '搞笑',
     ];
+
+    const handleCategoryClick = (category) => {
+        localStorage.setItem('currentCategory', category);
+    };
     
 
     return (
@@ -91,6 +95,7 @@ const HomePage = ({ contractAddress }) => {
                         <Button 
                             variant="outline-dark"
                             className="custom-button"
+                            onClick={() => handleCategoryClick(label)}
                         >
                             <Link 
                                 to={"/category"}

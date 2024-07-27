@@ -339,6 +339,94 @@ app.get('/api/bookcase', (req, res) => {
 });
 
 
+app.get('/api/editWork/chapters', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const comicHash = req.query.comicHash;
+  const query = `
+    SELECT chapters.title, chapters.price, comics.comic_id AS comicHash, chapters.chapter_id AS chapterHash, chapters.create_timestamp, chapters.filename
+    FROM chapters
+    INNER JOIN comics ON chapters.comic_id = comics.comic_id
+    WHERE comics.comic_id = ? AND comics.creator = ? AND comics.is_exist = 1
+  `;
+  pool.query(query, [comicHash, currentAccount], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching chapter records: ', error);
+      return res.status(500).json({ message: 'Error fetching chapter records' });
+    }
+    res.json(results);
+  });
+});
+
+
+app.get('/api/creatorPage/updateChapter', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const query = `
+    SELECT comicHash, create_timestamp
+    FROM (
+      SELECT
+        comics.comic_id AS comicHash,
+        chapters.create_timestamp,
+        ROW_NUMBER() OVER (PARTITION BY comics.comic_id ORDER BY chapters.create_timestamp DESC) AS rn
+      FROM chapters
+      INNER JOIN comics ON chapters.comic_id = comics.comic_id
+      WHERE comics.creator = ? AND comics.is_exist = 1
+    ) AS subquery
+    WHERE rn = 1
+    ORDER BY create_timestamp DESC
+  `;
+  pool.query(query, [currentAccount], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching chapter records: ', error);
+      return res.status(500).json({ message: 'Error fetching chapter records' });
+    }
+    res.json(results);
+  });
+});
+
+
+app.get('/api/category/updateChapter', (req, res) => {
+  const currentCategory = req.query.currentCategory;
+  const query = `
+    SELECT comicHash, create_timestamp
+    FROM (
+      SELECT
+        comics.comic_id AS comicHash,
+        chapters.create_timestamp,
+        ROW_NUMBER() OVER (PARTITION BY comics.comic_id ORDER BY chapters.create_timestamp DESC) AS rn
+      FROM chapters
+      INNER JOIN comics ON chapters.comic_id = comics.comic_id
+      WHERE comics.category = ? AND comics.is_exist = 1
+    ) AS subquery
+    WHERE rn = 1
+    ORDER BY create_timestamp DESC
+  `;
+  pool.query(query, [currentCategory], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching chapter records: ', error);
+      return res.status(500).json({ message: 'Error fetching chapter records' });
+    }
+    res.json(results);
+  });
+});
+
+
+app.get('/api/category/updateComic', (req, res) => {
+  const currentCategory = req.query.currentCategory;
+  const query = `
+      SELECT comic_id AS comicHash, create_timestamp
+      FROM comics
+      WHERE category = ? AND is_exist = 1
+      ORDER BY create_timestamp DESC
+  `;
+  pool.query(query, [currentCategory], (error, results, fields) => {
+      if (error) {
+          console.error('Error fetching comic records: ', error);
+          return res.status(500).json({ message: 'Error fetching comic records' });
+      }
+      res.json(results);
+  });
+});
+
 
 // 新增一筆 comics 資料、添加漫画信息到数据库的路由
 app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {

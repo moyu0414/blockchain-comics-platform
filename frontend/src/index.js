@@ -258,10 +258,10 @@ const router = createBrowserRouter([
         path: "/bookcase",
         element: <Bookcase />,
       },{
-        path: "/editChapter",
+        path: "/editChapter/:comicID",
         element: <EditChapter />,
       },{
-        path: "/deleteChapter",
+        path: "/deleteChapter/:comicID",
         element: <DeleteChapter />,
       },{
         path: "/nftMarket",

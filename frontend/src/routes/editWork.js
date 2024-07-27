@@ -53,39 +53,38 @@ const EditWork = (props) => {
         const contractInstance = new web3.eth.Contract(comicData.abi, comicData.address);
         setContract(contractInstance);
 
-        try {  // 這本漫畫得所有章節
-          const response = await axios.get('http://localhost:5000/api/chapters', {
-            params: {
-              comicHash: temp[0].comicHash
-            }
+        try {
+          const response = await axios.get('http://localhost:5000/api/editWork/chapters', {
+              params: {
+              comicHash: temp[0].comicHash,
+              currentAccount: currentAccount
+              }
           });
-          chapterInfo = response.data;
-        } catch (error) {
-          console.error('Error fetching records:', error);
-        }
-        sortByTimestamp(chapterInfo);
-        console.log(chapterInfo);
-
-        for (var i = 0; i < chapterInfo.length; i++) {
-          if (temp[0].author == currentAccount) {
-            let id = 'Chapter' + (i+1);
-            if (id == location.state.chapterID) {
-              let price = chapterInfo[i].price;
-              let imgURL = "http://localhost:5000/api/chapterIMG/" + chapterInfo[i].filename;
-              setNewChapter({
-                chapterTitle: chapterInfo[i].chapterTitle,
-                price: price,
-                imgURL: imgURL
-              });
-              setChapter({
-                chapterTitle: chapterInfo[i].chapterTitle,
-                price: price,
-                chapterHash: chapterInfo[i].chapterHash,
-                imgURL: imgURL,
-                filename: chapterInfo[i].filename
-              })
-            }
+          let chapters = response.data;
+          sortByTimestamp(chapters);
+          //console.log(chapters);
+          
+          for (var i = 0; i < chapters.length; i++) {
+              let id = 'Chapter' + (i+1);
+              if (id == location.state.chapterID) {
+                let price = chapters[i].price;
+                let imgURL = "http://localhost:5000/api/chapterIMG/" + chapters[i].filename;
+                setNewChapter({
+                  chapterTitle: chapters[i].title,
+                  price: price,
+                  imgURL: imgURL
+                });
+                setChapter({
+                  chapterTitle: chapters[i].title,
+                  price: price,
+                  chapterHash: chapters[i].chapterHash,
+                  imgURL: imgURL,
+                  filename: chapters[i].filename
+                })
+              }
           }
+        } catch (error) {
+            console.error('Error fetching records:', error);
         }
       } catch (error) {
         console.error(error);
@@ -139,7 +138,7 @@ const EditWork = (props) => {
           await axios.put('http://localhost:5000/api/update/comicData', formData);
   
           alert('漫畫編輯成功！');
-          window.location.replace("/creator");
+          window.location.replace("/manageComic");
         } catch (error) {
           alert('漫畫編輯失敗!');
           enableButton();
@@ -167,7 +166,7 @@ const EditWork = (props) => {
         await axios.put('http://localhost:5000/api/update/comicData', formData);
 
         alert('漫畫編輯成功！');
-        window.location.replace("/creator");
+        window.location.replace("/manageComic");
       };
     } catch (error) {
       console.error('漫畫編輯時發生錯誤：', error);
@@ -195,7 +194,7 @@ const EditWork = (props) => {
       disableButton();
       updateMessage("正在編輯章節資料中...請稍後。")
 
-      if (chapter.price == newChapter.price && chapter.chapterTitle == newChapter.chapterTitle && !file) {
+      if (chapter.price == newChapter.price && chapter.chapterTitle == newChapter.chapterTitle && file.length === 0) {
         alert('目前您未編輯任何東西!');
         updateMessage("");
         enableButton();
@@ -219,7 +218,7 @@ const EditWork = (props) => {
           await axios.put('http://localhost:5000/api/update/chapterData', formData);
 
           alert('章節編輯成功！');
-          window.location.href = `/chapterManagement/${comic[0].comicID}`;
+          window.location.href = "/manageComic";
         } catch (error) {
           alert('章節編輯失敗!');
           enableButton();
@@ -239,7 +238,7 @@ const EditWork = (props) => {
         await axios.put('http://localhost:5000/api/update/chapterData', formData);
 
         alert('章節編輯成功！');
-        window.location.href = `/chapterManagement/${comic[0].comicID}`;
+        window.location.href = "/manageComic";
       };
       console.log("comicHash：" + comicHash);
       console.log("chapterTitle：" + newChapter.chapterTitle);
@@ -269,6 +268,9 @@ const EditWork = (props) => {
   // 處理單張圖片，資料驗證、預覽
   const handleFileInputChange = (event) => {
     const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
     if (validateFileType(file)) {
       previewImage(file);
     } else {
@@ -285,6 +287,7 @@ const EditWork = (props) => {
   const handleMultiFileInputChange = (event) => {
     const files = event.target.files;
     const fileArray = Array.from(files);
+    const urls = fileArray.map(file => URL.createObjectURL(file)); // 创建预览 URL
     fileArray.forEach(file => {
       if (validateFileType(file)) {
         previewImage(file);
@@ -294,15 +297,16 @@ const EditWork = (props) => {
         return -1;
       }
     });
-    const urls = fileArray.map(file => {
-      return URL.createObjectURL(file);  // 创建预览 URL
-    });
-    setFiles(prevFiles => [...prevFiles, ...fileArray]);  // 添增新文件到舊文件列表中
-    setPreviewImageUrls(prevUrls => [...prevUrls, ...urls]);  // 添加新預覽 URL 到舊預覽 URL 列表中
+    setFiles(prevFiles => [...prevFiles, ...fileArray]);  // 添加新文件到旧文件列表中
+    setPreviewImageUrls(prevUrls => [...prevUrls, ...urls]);  // 添加新预览 URL 到旧预览 URL 列表中
   };
+  
 
   const createPromoCover = (event) => {
     const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
     if (validateFileType(file)) {
       previewPromoCover(file);
       setCoverFile(file);
@@ -335,6 +339,17 @@ const EditWork = (props) => {
     reader.onloadend = () => {
       setPromoPreviewImageUrl(reader.result);
     };
+  };
+
+  // 处理单张图片的删除
+  const handleRemoveCover = () => {
+    setFiles(null);
+    setPreviewImageUrl(null);
+  };
+
+  const handleRemovePromo = () => {
+    setCoverFile(null);
+    setPromoPreviewImageUrl(null);
   };
 
   // 允許使用者刪除不需要的文件預覽
@@ -400,7 +415,7 @@ const EditWork = (props) => {
           temp.push(storedArray[i]);
         };
       };
-      console.log(temp);
+      //console.log(temp);
       setComic(temp);
       let imgURL = "http://localhost:5000/api/comicIMG/" + temp[0].filename;
       let coverImg = '';
@@ -416,13 +431,12 @@ const EditWork = (props) => {
       connectToWeb3();
       setLoading(true);
     }
-  }, [location]);
+  }, [currentAccount]);
 
 
   // 处理生成合并图片并进行翻页
   const handleGeneratePages = async () => {
     return new Promise((resolve, reject) => {
-      console.log('aaa');
       if (file.length == 1) {
         console.log(file);
         mergedFile = file[0];
@@ -529,7 +543,14 @@ const EditWork = (props) => {
 
 
               <Form.Group className='mb-4'>
-                <Form.Label className='label-style mb-3 col-form-label'>本章作品上傳</Form.Label>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Form.Label className='label-style mb-1 col-form-label'>
+                      本章作品上傳
+                    </Form.Label>
+                    <h6 style={{ marginLeft: '10px' }}>
+                      如不需變更內容，則無需上傳圖檔
+                    </h6>
+                  </div>
                 <Form.Control
                   type="file"
                   onChange={handleMultiFileInputChange}
@@ -543,7 +564,7 @@ const EditWork = (props) => {
                       <img
                         src={newChapter.imgURL}
                         alt="Preview"
-                        style={{ width: '80%', height: '40vh', paddingBottom: '3%' }}
+                        style={{ width: '80%', paddingBottom: '3%' }}
                       />
                     ) : (
                       <p>目前無上傳章節內容</p>
@@ -575,10 +596,11 @@ const EditWork = (props) => {
                                       src={url}
                                       alt={`Preview ${index}`}
                                       className="preview-image"
-                                      style={{ width: '100px', height: 'auto', paddingBottom: '3%' }}
+                                      style={{ width: '80%', height: 'auto', paddingBottom: '3%' }}
                                     />
                                     <button
                                       onClick={() => handleRemoveFile(index)}
+                                      type="button"
                                       style={{ backgroundColor: 'white', position: 'absolute', top: '5px', right: '5px' }}
                                       className="remove-button"
                                     >
@@ -653,8 +675,14 @@ const EditWork = (props) => {
 
 
               <Form.Group className='pb-5'>
-                <Form.Label className='label-style mb-1 col-form-label'>漫畫封面</Form.Label>
-                <p>如不需變更封面，則無需上傳圖檔</p>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Form.Label className='label-style mb-1 col-form-label' htmlFor="image">
+                      漫畫封面
+                    </Form.Label>
+                    <h6 style={{ marginLeft: '10px' }}>
+                      如不需變更封面，則無需上傳圖檔
+                    </h6>
+                  </div>
                 <Form.Control
                   type="file"
                   onChange={handleFileInputChange}
@@ -673,19 +701,35 @@ const EditWork = (props) => {
                     <div>更改後的圖片封面</div>
                     <br />
                     {previewImageUrl && (
-                      <img
-                        src={previewImageUrl}
-                        alt="Preview"
-                        style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
-                      />
+                      <div style={{ position: 'relative', display: 'inline-block' }}>
+                        <img
+                          src={previewImageUrl}
+                          alt="Preview"
+                          style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
+                        />
+                        <button
+                          onClick={handleRemoveCover}
+                          type="button"
+                          style={{ backgroundColor: 'white', position: 'absolute', top: '5px', right: '5px' }}
+                          className="remove-button"
+                        >
+                          <MdClose className="MdClose-button" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
               </Form.Group>
               
               <Form.Group className='pb-4'>
-                <Form.Label className='label-style mb-1 col-form-label'>漫畫橫向封面</Form.Label>
-                <p>如不需變更封面，則無需上傳圖檔</p>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Form.Label className='label-style mb-1 col-form-label'>
+                      漫畫橫向封面  
+                    </Form.Label>
+                    <h6 style={{ marginLeft: '10px' }}>
+                      如不需變更封面，則無需上傳圖檔
+                    </h6>
+                  </div>
                 <Form.Control
                   type="file"
                   onChange={createPromoCover}
@@ -711,11 +755,21 @@ const EditWork = (props) => {
                     <div>更改後的橫向封面(推廣頁)</div>
                     <br />
                     {promoPreviewImageUrl && (
-                      <img
-                        src={promoPreviewImageUrl}
-                        alt="Promo Cover Preview"
-                        style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
-                      />
+                      <div style={{ position: 'relative', display: 'inline-block' }}>
+                        <img
+                          src={promoPreviewImageUrl}
+                          alt="Promo Cover Preview"
+                          style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
+                        />
+                        <button
+                          onClick={handleRemovePromo}
+                          type="button"
+                          style={{ backgroundColor: 'white', position: 'absolute', top: '5px', right: '5px' }}
+                          className="remove-button"
+                        >
+                          <MdClose className="MdClose-button" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

@@ -182,7 +182,7 @@ const CreateWork = (props) => {
         enableButton();
         updateMessage("");
         updateFormParams_1({title: '', price: ''});
-        window.location.replace("/creator");
+        window.location.replace("/manageComic");
       } catch (error) {
         console.error('章節內容添加至資料庫時發生錯誤：', error);
       }
@@ -212,6 +212,9 @@ const CreateWork = (props) => {
   // 處理單張圖片，資料驗證、預覽
   const handleFileInputChange = (event) => {
     const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
     if (validateFileType(file)) {
       previewImage(file);
     } else {
@@ -275,6 +278,9 @@ const CreateWork = (props) => {
   
   const createPromoCover = (event) => {
     const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
     if (validateFileType(file)) {
       previewPromoCover(file);
       setCoverFile(file);
@@ -475,27 +481,25 @@ const getFileExtension = (filename) => {
               </Col>
             </Form.Group>
 
-            <Form.Group>
-              <Form.Label className='label-style col-form-label'>本章作品上傳</Form.Label>
-              <Form.Control
-                type="file"
-                onChange={handleMultiFileInputChange}
-                multiple
-              />
-            </Form.Group>
-
             <Form.Group controlId="file-upload" className='pt-4'>
-              <Form.Label className='label-style col-form-label' htmlFor="image">上傳漫畫</Form.Label>
+              <div style={{ display: 'flex' }}>
+                <Form.Label
+                  className='label-style col-form-label'
+                  htmlFor="image"
+                  style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}
+                >
+                  本章作品上傳
+                </Form.Label>
+                <Form.Control
+                  type="file"
+                  onChange={handleMultiFileInputChange}
+                  multiple
+                  style={{ flex: 1 }} // 使文件输入框占据剩余空间
+                />
+              </div>
               <div className='file-upload-long' style={{ display: 'flex', flexDirection: 'column' }}>
-                  <Form.Control
-                    type="file"
-                    onChange={handleMultiFileInputChange}
-                    multiple
-                  />
-                  <br/>
                   <div id="start" style={{ display: 'block' }}>
-                    
-                    {previewImageUrls ? (
+                    {previewImageUrls.length > 0 ? (
                         <DragDropContext onDragEnd={handleDragEnd}>
                           <Droppable droppableId="droppable">
                             {(provided) => (
@@ -544,7 +548,6 @@ const getFileExtension = (filename) => {
 
                   </div>
               </div>
-              
             </Form.Group>
 
             
@@ -600,22 +603,25 @@ const getFileExtension = (filename) => {
             </Form.Group>
 
             <Form.Group controlId="file-upload" className='pt-4'>
-            <Form.Label className='label-style col-form-label' htmlFor="image">漫畫封面</Form.Label>
+            <div style={{ display: 'flex' }}>
+              <Form.Label className='label-style col-form-label' htmlFor="image" style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}>
+                漫畫封面
+              </Form.Label>
+              <Form.Control
+                type="file"
+                name="fileUpload"
+                accept="image/*"
+                style={{ flex: 1 }}
+                onChange={handleFileInputChange}
+              />
+            </div>
             <div className='file-upload' style={{ display: 'flex', flexDirection: 'column' }}>
-                <Form.Control
-                  type="file"
-                  name="fileUpload"
-                  accept="image/*"
-                  style={{ display: 'block', width: '100%', marginBottom: '1rem' }}
-                  onChange={handleFileInputChange}
-                />
-                <br/>
                 <div id="start" style={{ display: 'block' }}>
                   {previewImageUrl ? (
                     <img
                       src={previewImageUrl}
                       alt="Preview"
-                      style={{ width: '30%' }}
+                      style={{ width: '50%' }}
                     />
                   ) : (
                     <>
@@ -625,21 +631,23 @@ const getFileExtension = (filename) => {
                   )}
                 </div>
             </div>
-              
             </Form.Group>
             
 
             <Form.Group controlId="file-upload" className='pt-4 pb-3'>
-            <Form.Label className='label-style col-form-label' htmlFor="image">漫畫橫向封面</Form.Label>
+            <div style={{ display: 'flex' }}>
+              <Form.Label className='label-style col-form-label' htmlFor="image" style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}>
+                漫畫橫向封面
+              </Form.Label>
+              <Form.Control
+                type="file"
+                name="fileUpload"
+                accept="image/*"
+                style={{ flex: 1, marginBottom: '1rem' }}
+                onChange={createPromoCover}
+              />
+            </div>
             <div className='file-upload' style={{ display: 'flex', flexDirection: 'column' }}>
-                <Form.Control
-                  type="file"
-                  name="fileUpload"
-                  accept="image/*"
-                  style={{ display: 'block', width: '100%', marginBottom: '1rem' }}
-                  onChange={createPromoCover}
-                />
-                <br/>
                 <div id="start" style={{ display: 'block' }}>
                   {promoPreviewImageUrl ? (
                     <img

@@ -188,6 +188,23 @@ const MintNFT = (props) => {
 
 
 
+  const handleCategoryChange = (event) => {
+    const { value, checked } = event.target;
+    setSelectedCategories(prevState => {
+      const updatedCategories = checked
+        ? [...prevState, value]
+        : prevState.filter(category => category !== value);
+
+      if (updatedCategories.includes('其他：自行創建')) {
+        setShowDescription(true);
+      } else {
+        setShowDescription(false);
+      }
+
+      return updatedCategories;
+    });
+  };
+
 
   return (
     <div className="upload-form">
