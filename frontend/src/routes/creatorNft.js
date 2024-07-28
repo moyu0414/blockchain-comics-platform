@@ -1,17 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Carousel, Card, Col, Row, Button, Dropdown, Figure, Table, ButtonGroup, ButtonToolbar, Pagination } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
 import BootstrapTable from 'react-bootstrap-table-next';
+import { Link } from "react-router-dom";
+import Web3 from 'web3';
+import comicData from '../contracts/ComicPlatform.json';
 
 function CreatorNft() {
+    const [comic, setComic] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const currentAccount = localStorage.getItem("currentAccount");
+    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArray = JSON.parse(storedArrayJSON);
+    let records = [];
+    let temp = [];
 
-    const images = [
-        "https://via.placeholder.com/120x60?text=Image",
-        "https://via.placeholder.com/120x60?text=Image",
-        "https://via.placeholder.com/120x60?text=Image",
-        "https://via.placeholder.com/120x60?text=Image"
-    ];
+    const initData = async () => {
+        const web3 = new Web3(window.ethereum);
+        const contract = new web3.eth.Contract(comicData.abi, comicData.address);
+        //console.log(contract);
+        const totCount = await contract.methods.tokenCounter().call();
+        for (let i = 0; i < totCount.toString(); i++) {
+            const data = await contract.methods.nfts(i).call();
+            if (data.minter.toLowerCase() === currentAccount) {
+                let price = data.price.toString() / 1e18;
+                let tokenId = `tokenId${data.tokenId.toString()}`;
+                records.push({
+                    tokenId: tokenId,
+                    comicHash: data.comicHash,
+                    forSale: data.forSale,
+                    price: price,
+                    royalty: data.royalty.toString()
+                })
+            }
+        }
+        console.log(records);
+        
+        for (let i = 0; i < storedArray.length; i++) {
+            if (storedArray[i].exists === 1) {
+                const image = `http://localhost:5000/api/comicIMG/${storedArray[i].filename}`;
+                let protoFilename;
+                if (storedArray[i].protoFilename) {
+                    protoFilename = `http://localhost:5000/api/coverFile/${storedArray[i].filename}/${storedArray[i].protoFilename}`;
+                } else {
+                    protoFilename = image
+                }
+                if (storedArray[i].author === currentAccount) {
+                    const record = records.find(record => record.comicHash === storedArray[i].comicHash);
+                    if (record) {
+                      temp.push({
+                        title: storedArray[i].title,
+                        image: protoFilename,
+                        tokenId: record.tokenId
+                      });
+                    }
+                }
+            }
+        }
+        console.log(temp);
+        setComic(temp);
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        initData();
+    }, [currentAccount]);
+
+
+
+
 
     const incomes = [
         { date: '2024/7/11', time: '尚未確定放甚麼內容', price: '0.02'},
@@ -105,66 +163,76 @@ function CreatorNft() {
     };
 
     return (
-        
-        <Container className='creatorNft'>
-            <Row className='pt-5'>
-                <h3 className="fw-bold">已發布NFT</h3>
-            </Row>
-            <Row className='pt-1 pb-5'>
-                {images.map((src, index) => (
-                <Col xs={4} md={3} className="pt-3">
-                    <Card className="effect-image-1">
-                        <Card.Img variant="top" src={src} alt={`image-${index + 1}`} />
-                        <Card.Body className="simple-text">
-                            <Card.Text>名稱名稱</Card.Text>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                ))}
-            </Row>
-            <Row>
-                <h3 className="fw-bold">NFT交易情形</h3>
-            </Row>
-            <Row className='justify-content-center'>
-                <Col className='d-flex justify-content-center chapter-table pt-3'>
-                    <Table size="sm">
-                        <thead>
-                            <tr>
-                                <th className='text-center fw-bold'>日期</th>
-                                <th className='text-center fw-bold'>交易序號</th>
-                                <th className='text-center fw-bold'>收益</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {currentIncome.map((income, index) => (
-                                <tr key={index}>
-                                    <td className='text-center'>{income.date}</td>
-                                    <td className='text-center'>{income.time}</td>
-                                    <td className='text-center'>{income.price}</td>
+        <>
+        {!loading &&
+            <Container className='creatorNft'>
+                <Row className='pt-5'>
+                    <h3 className="fw-bold">已發布NFT</h3>
+                </Row>
+                <Row className='pt-1 pb-5'>
+                    {comic.map((data, index) => (
+                        <Col xs={4} md={3} className="pt-3" key={index}>
+                            <Link to={`/nftDetail/${data.tokenId}`}>
+                                <Card className="effect-image-1">
+                                    <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
+                                    <Card.Body className="simple-text">
+                                    <Card.Text>{data.title}</Card.Text>
+                                    </Card.Body>
+                                </Card>
+                            </Link>
+                        </Col>
+                    ))}
+                </Row>
+                <Row>
+                    <h3 className="fw-bold">NFT交易情形</h3>
+                </Row>
+                <Row className='justify-content-center'>
+                    <Col className='d-flex justify-content-center chapter-table pt-3'>
+                        <Table size="sm">
+                            <thead>
+                                <tr>
+                                    <th className='text-center fw-bold'>日期</th>
+                                    <th className='text-center fw-bold'>交易序號</th>
+                                    <th className='text-center fw-bold'>收益</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </Table>
-                </Col>
-            </Row>
-            <Row className='pt-2 pb-5 justify-content-center table-button'>
-                <Col className='d-flex justify-content-center'>
-                    <ButtonToolbar aria-label="Toolbar with pagination">
-                        <Pagination>
-                            <Pagination.Prev 
-                                onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} 
-                                className='pagination-button'
-                            />
-                            {getPageItems()}
-                            <Pagination.Next 
-                                onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages} 
-                                className='pagination-button'
-                            />
-                        </Pagination>
-                    </ButtonToolbar>
-                </Col>
-            </Row>
-        </Container>
+                            </thead>
+                            <tbody>
+                                {currentIncome.map((income, index) => (
+                                    <tr key={index}>
+                                        <td className='text-center'>{income.date}</td>
+                                        <td className='text-center'>{income.time}</td>
+                                        <td className='text-center'>{income.price}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    </Col>
+                </Row>
+                <Row className='pt-2 pb-5 justify-content-center table-button'>
+                    <Col className='d-flex justify-content-center'>
+                        <ButtonToolbar aria-label="Toolbar with pagination">
+                            <Pagination>
+                                <Pagination.Prev 
+                                    onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} 
+                                    className='pagination-button'
+                                />
+                                {getPageItems()}
+                                <Pagination.Next 
+                                    onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages} 
+                                    className='pagination-button'
+                                />
+                            </Pagination>
+                        </ButtonToolbar>
+                    </Col>
+                </Row>
+            </Container>
+        }
+        {loading &&  
+            <div className="loading-container">
+                <div>頁面加載中，請稍後...</div>
+            </div>
+        }
+        </>
     );
 }
 

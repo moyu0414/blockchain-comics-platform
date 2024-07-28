@@ -71,12 +71,9 @@ function Category() {
             setFilter(savedFilter);
         }
         initData();
-        console.log('11');
     }, [currentCategory]);
 
     useEffect(() => {
-        console.log('22');
-        console.log(filter);
         if (filter) {
             handleCategoryChange(filter);
         }
@@ -93,13 +90,31 @@ function Category() {
     const handleCategoryChange = (filters) => {
         setSelectedCategory(filters);
         setFilter(filters);
-        console.log(filters);
         localStorage.setItem('filter', filters);
         // 调用更新函数
-        if (filters === '新發布') {
+        if (filters === '愛心排序') {  // 收藏數量
+            updateFavorite();
+        } else if (filters === '新發布') {
             updateComic();
         } else if (filters === '最近更新') {
             updateChapter();
+        }
+    };
+
+    const updateFavorite = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/category/updateFavorite', {
+                params: {
+                    currentCategory: currentCategory
+                }
+            });
+            let comics = response.data;
+            console.log(comics);
+
+            //setCurrent(sortedComics);
+            setSelectedCategory('愛心排序');
+        } catch (error) {
+            console.error('Error fetching records:', error);
         }
     };
 

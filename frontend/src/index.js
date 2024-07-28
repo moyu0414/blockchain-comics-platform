@@ -178,6 +178,48 @@ function sortByTimestamp(array) {
 }
 
 
+async function getTransactionTimestamp(transactionHash) {
+  try {
+      const web3 = new Web3(window.ethereum);
+      const transaction = await web3.eth.getTransaction(transactionHash);
+      const block = await web3.eth.getBlock(transaction.blockHash);
+      const timestamp = parseInt(block.timestamp.toString()) * 1000; // 转换为毫秒
+      const date = new Date(timestamp);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      return formattedDate;
+  } catch (error) {
+      console.error('获取交易时间失败:', error);
+      throw error;
+  }
+}
+
+
+const disableAllButtons = () => {
+  const buttons = document.querySelectorAll(".btn");
+  buttons.forEach(button => {
+    button.disabled = true;
+    button.style.backgroundColor = "grey";
+    button.style.opacity = 0.3;
+  });
+};
+
+
+const enableAllButtons = () => {
+  const buttons = document.querySelectorAll(".btn");
+  buttons.forEach(button => {
+    button.disabled = false;
+    button.style.backgroundColor = "#F6B93B";
+    button.style.opacity = 1;
+  });
+};
+
+
 const router = createBrowserRouter([
   {
     element: <AppLayout />,
@@ -267,13 +309,13 @@ const router = createBrowserRouter([
         path: "/nftMarket",
         element: <NftMarket />,
       },{
-        path: "/nftDetail",
+        path: "/nftDetail/:tokenId",
         element: <NftDetail />,
       },{
         path: "/readerPage",
         element: <ReaderPage />,
       },{
-        path: "/comicRead",
+        path: "/comicRead/:comicID/:chapterID",
         element: <ComicRead />,
       }
     ],
@@ -285,4 +327,4 @@ createRoot(document.getElementById("root")).render(
   <RouterProvider router={router} />
 );
 
-export { formatDate, formatTime, sortByTimestamp, sortByDatetime };
+export { formatDate, formatTime, sortByTimestamp, sortByDatetime, getTransactionTimestamp, disableAllButtons, enableAllButtons };

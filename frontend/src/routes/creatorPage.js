@@ -28,7 +28,7 @@ function CreatorPage() {
 
     const initData = async () => {
         try {
-            const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
+            const storedArray = JSON.parse(storedArrayJSON);
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists === 1) {
                     const filename = storedArray[i].filename;

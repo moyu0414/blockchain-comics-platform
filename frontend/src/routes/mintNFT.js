@@ -17,7 +17,7 @@ const MintNFT = (props) => {
   const currentAccount = localStorage.getItem("currentAccount");
   const [comic, setComic] = useState([]);
   const [newComic, setNewComic] = useState({category:'',  title: '', description: '', imgURL: ''});
-  const [NFTData, setNFTData] = useState({price:'', description: '', comicHash:''});
+  const [NFTData, setNFTData] = useState({price:'', description: '',quantity: '',royalty: '', comicHash:''});
   const [loading, setLoading] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showDescription, setShowDescription] = useState(false);
@@ -62,7 +62,7 @@ const MintNFT = (props) => {
     }
   };
 
-  // 漫畫編輯函數
+  // 鑄造NFT函數
   const createNFT = async (e) => {
     e.preventDefault();
     try {
@@ -75,23 +75,26 @@ const MintNFT = (props) => {
       }
       let price_temp = parseFloat(NFTData.price);
       price_temp = web3.utils.toWei(price_temp, 'ether');
-      if (price_temp < 10000000000000000) {
-        alert('價格至少0.01 ETH!');
+      if (price_temp < 10000000000000000 || NFTData.quantity <= 0 || NFTData.royalty < 1 || NFTData.royalty > 10) {
+        alert('請填寫正確數量!');
         return;
       }
+
       disableButton();
       updateMessage("正在鑄造NFT中...請稍後。")
 
-      console.log("comicHash：" + NFTData.comicHash);
       console.log("price：" + NFTData.price);
       console.log("description：" + NFTData.description);
+      console.log("royalty：" + NFTData.royalty);
+      console.log("quantity：" + NFTData.quantity);
+      console.log("comicHash：" + NFTData.comicHash);
      
-      await contract.methods.mintNFT(price_temp, NFTData.description, NFTData.comicHash).send({ from: currentAccount });
+      await contract.methods._mintNFT(price_temp, NFTData.description, NFTData.royalty, NFTData.quantity , NFTData.comicHash).send({ from: currentAccount });
 
       alert('鑄造NFT成功！');
       enableButton();
       updateMessage("");
-      window.location.replace(`/chapterManagement/${location.state.comicID}`);
+      window.location.replace("/manageComic");
     } catch (error) {
       console.error('鑄造NFT時發生錯誤：', error);
       alert('鑄造NFT時發生錯誤!' + error);
@@ -116,13 +119,13 @@ const MintNFT = (props) => {
   }
 
   async function checkFile() {
-    const {price, description} = NFTData;
+    const {price, description, quantity, royalty} = NFTData;
     // 檔案不可為空
-    if( !price || !description)  // || 其中一個為true，即為true
-    {
-      updateMessage("請填寫所有欄位！")
+    if (!price || !description || !quantity || !royalty) {
+      updateMessage("請填寫所有欄位！");
       return -1;
     }
+    return 0;
   };
 
   useEffect(() => {
@@ -150,6 +153,22 @@ const MintNFT = (props) => {
       setLoading(true);
     }
   }, [location]);
+
+  useEffect(() => {
+    const combinedDescription = selectedCategories
+      .filter(category => category !== '其他：自行創建')
+      .map(category => `${category}: ${inputValues[category] || ''}`)
+      .join('\n');
+
+    const otherDescription = showDescription
+      ? `${inputValues['其他：IP名稱'] || ''}: ${inputValues['其他：IP敘述'] || ''}`
+      : '';
+
+    setNFTData(prevData => ({
+      ...prevData,
+      description: `${combinedDescription}\n${otherDescription}`
+    }));
+  }, [inputValues, selectedCategories, showDescription]);
 
   const handleCategoryChange = (e) => {
     const { value, checked } = e.target;
@@ -180,29 +199,7 @@ const MintNFT = (props) => {
 
   const handleInputChange = (e, category) => {
     const { value } = e.target;
-    setInputValues(prevValues => ({
-        ...prevValues,
-        [category]: value
-    }));
-  };
-
-
-
-  const handleCategoryChange = (event) => {
-    const { value, checked } = event.target;
-    setSelectedCategories(prevState => {
-      const updatedCategories = checked
-        ? [...prevState, value]
-        : prevState.filter(category => category !== value);
-
-      if (updatedCategories.includes('其他：自行創建')) {
-        setShowDescription(true);
-      } else {
-        setShowDescription(false);
-      }
-
-      return updatedCategories;
-    });
+    setInputValues(prevValues => ({...prevValues, [category]: value}));
   };
 
 
@@ -227,10 +224,6 @@ const MintNFT = (props) => {
         </div>
       </div>
       {/* {loading ? ( */}
-
-
-
-
 
       <Form.Group as={Row} className='mb-1'>
         <div style={{ display: 'flex' }}>
@@ -304,35 +297,19 @@ const MintNFT = (props) => {
         </div>
       </Form.Group>
 
-
-
-
-
-
         {/* ) : ( */}
-        <Form.Group as={Row} className='mt-4 mb-2'>
-          <Form.Label >
-              NFT名稱
-          </Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="請輸入NFT名稱"
-            // value={newChapter.chapterTitle}
-            // onChange={}
-          />
-        </Form.Group>
-
         <Form.Group as={Row} className='mb-2'>
           <Form.Label>
-          NFT價格
+            NFT價格
           </Form.Label>
-            <Form.Control
-              type="number"
-              placeholder="Min 0.01 ETH"
-              step="0.01"
-              // value={newChapter.price}
-              // onChange={(e) => setNewChapter({ ...newChapter, price: e.target.value })}
-            />
+          <Form.Control
+            type="number"
+            placeholder="Min 0.01 ETH"
+            step="0.01"
+            min="0.01"
+            value={NFTData.price}
+            onChange={(e) => setNFTData({ ...NFTData, price: e.target.value })}
+          />
         </Form.Group>
 
         <Form>
@@ -343,8 +320,6 @@ const MintNFT = (props) => {
               </Form.Label>
               <Button id="list-button">IP種類對照表</Button>
             </div>
-
-
 
             <Col>
               {grading.map((name, index) => (
@@ -370,42 +345,38 @@ const MintNFT = (props) => {
           </Form.Group>
           
           {selectedCategories.map(category => (
-              category !== '其他：自行創建' && (
-                  <Form.Group className='mb-4' key={category}>
-                      <Form.Label>{category} 權限範圍</Form.Label>
-                      <Form.Control
-                          type="text"
-                          placeholder={`请確認或修改 ${category} 權限範圍`}
-                          value={inputValues[category] || ''}
-                          onChange={(e) => handleInputChange(e, category)}
-                      />
-                  </Form.Group>
-              )
+            category !== '其他：自行創建' && (
+              <Form.Group className='mb-4' key={category}>
+                <Form.Label>{category} 權限範圍</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder={`请確認或修改 ${category} 權限範圍`}
+                  value={inputValues[category] || ''}
+                  onChange={(e) => handleInputChange(e, category)}
+                />
+              </Form.Group>
+            )
           ))}
 
-          {showDescription && (
-              <Form.Group className='mb-4'>
-                  <Form.Label>其他：IP名稱</Form.Label>
-                  <Form.Control
-                      type="text"
-                      placeholder="請輸入IP名稱"
-                      // 可以使用类似于 setNewComic({ ...newComic, description: e.target.value }) 来管理输入值
-                  />
-                  <Form.Label>其他：IP敘述</Form.Label>
-                  <Form.Control
-                      as="textarea"
-                      rows={5}
-                      placeholder="請描述IP的使用權限、範圍等"
-                      // 可以使用类似于 setNewComic({ ...newComic, description: e.target.value }) 来管理输入值
-                  />
-              </Form.Group>
-          )}
-
-
-
-
-
-
+        {showDescription && (
+          <Form.Group className='mb-4'>
+            <Form.Label>其他：IP名稱</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="請輸入IP名稱"
+              value={inputValues['其他：IP名稱'] || ''}
+              onChange={(e) => handleInputChange(e, '其他：IP名稱')}
+            />
+            <Form.Label>其他：IP敘述</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={5}
+              placeholder="請描述IP的使用權限、範圍等"
+              value={inputValues['其他：IP敘述'] || ''}
+              onChange={(e) => handleInputChange(e, '其他：IP敘述')}
+            />
+          </Form.Group>
+        )}
         </Form>
 
         <Form.Group as={Row} className='mb-2'>
@@ -416,15 +387,31 @@ const MintNFT = (props) => {
               type="number"
               placeholder="Min 1 Qty"
               step="1"
-              // value={newChapter.price}
-              // onChange={(e) => setNewChapter({ ...newChapter, price: e.target.value })}
+              min="1"
+              value={NFTData.quantity}
+              onChange={(e) => setNFTData({ ...NFTData, quantity: e.target.value })}
             />
         </Form.Group>
-        <Button id="list-button">
-          確定鑄造
-        </Button>
+
+        <Form.Group as={Row} className='mt-4 mb-2'>
+          <Form.Label >
+            抽成比例(上限10%)，單位：％
+          </Form.Label>
+          <Form.Control
+              type="number"
+              placeholder="Min 1"
+              step="1"
+              min="1"
+              max="10"
+              value={NFTData.royalty}
+              onChange={(e) => setNFTData({ ...NFTData, royalty: e.target.value })}
+            />
+        </Form.Group>
+        <div className="text-red-500 text-center">{message}</div>
+        <Button onClick={createNFT} id="list-button">確定鑄造</Button>
+
         {/* )} */}
-      </div>
+    </div>
   );
 };
 

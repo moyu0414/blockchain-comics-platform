@@ -2,33 +2,31 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from "react-router-dom";
 import { Navbar, Container, Row, Col, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
 import { ChevronLeft, List, ChevronDoubleLeft, ChevronRight, ChevronDoubleRight } from 'react-bootstrap-icons';
-import { sortByTimestamp } from '../index';
+import comicData from '../contracts/ComicPlatform.json';
+import Web3 from 'web3';
 import axios from 'axios';
+import { sortByTimestamp, getTransactionTimestamp, disableAllButtons, enableAllButtons } from '../index';
 
 const ComicRead = () => {
-    
+    const [web3, setWeb3] = useState(null);
+    const [web3Instance, setWeb3Instance] = useState(''); 
     const [showNavbar, setShowNavbar] = useState(true);
     const [showIconBar, setShowIconBar] = useState(true);
     const [lastScrollTop, setLastScrollTop] = useState(0);
     const [showOverlay, setShowOverlay] = useState(false);
     const [comic, setComic] = useState([]);
     const [similComic, setSimilComic] = useState([]);
-    const [chapters, setChapters] = useState([]);
-    const { comicID } = useParams();
+    const [allChapters, setAllChapters] = useState([]);
+    const [chapter, setChapter] = useState([]);
+    const { comicID, chapterID } = useParams();
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10; // 每頁顯示的章節數量
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const fetchedData = [];
     let temp = [];
-    let chapterInfo = [];
-
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10; // 每頁顯示的章節數量
-    const totalPages = Math.ceil(chapters.length / itemsPerPage);
-
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const currentChapters = chapters.slice(startIndex, startIndex + itemsPerPage);
-    
+    let read = [];
 
     const handleScroll = () => {
         const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -73,90 +71,64 @@ const ComicRead = () => {
 
     const initData = async () => {
         try {
-            const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
-            for (let i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].exists === 1) {
-                    const filename = storedArray[i].filename;
-                    const image = `http://localhost:5000/api/comicIMG/${filename}`;
-                    let protoFilename;
-                    if (storedArray[i].protoFilename) {
-                        protoFilename = `http://localhost:5000/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
-                    } else {
-                        protoFilename = image
-                    }
-                    if (storedArray[i].comicID === comicID) {
-                        let author;
-                        if (storedArray[i].author == currentAccount) {
-                            author = '您是本作品的創作者!';
-                        } else {
-                            author = storedArray[i].author;
-                        }
-                        temp.push({
-                            comicHash: storedArray[i].comicHash,
-                            comicID: storedArray[i].comicID,
-                            title: storedArray[i].title,
-                            description: storedArray[i].description,
-                            author: author,
-                            category: storedArray[i].category,
-                            protoFilename: protoFilename,
-                        });
-                    }
-                }
-            }
+            const web3 = new Web3(window.ethereum);
+            setWeb3(web3);
+            const contractInstance = new web3.eth.Contract(comicData.abi, comicData.address);
+            setWeb3Instance(contractInstance);
+
+            const storedArray = JSON.parse(storedArrayJSON);
+            for (var i = 0; i < storedArray.length; i++) {
+              if(storedArray[i].comicID == comicID){
+                temp.push(storedArray[i]);
+              };
+            };
             setComic(temp);
-
-            for (let i = 0; i < storedArray.length; i++) {
-                // 類似漫畫 依據類型跟同作者取前4本
-                if ((storedArray[i].category == temp[0].category || storedArray[i].author == temp[0].author) && storedArray[i].comicID != comicID) {
-                    const image = `http://localhost:5000/api/comicIMG/${storedArray[i].filename}`;
-                    fetchedData.push({
-                        comicID: storedArray[i].comicID,
-                        title: storedArray[i].title,
-                        description: storedArray[i].description,
-                        author: storedArray[i].author,
-                        category: storedArray[i].category,
-                        image: image,
-                    });
-                }
-                if (fetchedData.length == 4) {
-                    break;
-                }
-            }
-            setSimilComic(fetchedData);
-
-            // 章節購買者
+            //console.log(temp);
+            // 本漫畫的所有章節是否購買
             try {
-                const response = await axios.get('http://localhost:5000/api/comicDetail', {
+                const response = await axios.get('http://localhost:5000/api/comicRead', {
                     params: {
                     comicHash: temp[0].comicHash,
                     currentAccount: currentAccount
                     }
                 });
-                let chapters = response.data;
-                sortByTimestamp(chapters);
+                let records = response.data;
+                sortByTimestamp(records);
+                //console.log(records);
 
-                for (let i = 0; i < chapters.length; i++) {
-                    if (chapters[i].creator == currentAccount) {
-                        chapters[i].isBuying = '閱讀';
-                    } else if (chapters[i].isBuying !== null) {
-                        chapters[i].isBuying = '閱讀';
+                records = records.map((chapter, index) => {
+                    let isBuying;
+                    if (chapter.creator === currentAccount) {
+                        isBuying = '閱讀';
                     } else {
-                        chapters[i].isBuying = '購買';
+                        isBuying = chapter.isBuying
+                    }
+                    return {
+                        ...chapter,
+                        chapterID: `chapter${index + 1}`,
+                        isBuying
+                    };
+                });
+                console.log(records);
+                setAllChapters(records);
+
+                for (var i = 0; i < records.length; i++) {
+                    if (records[i].chapterID === chapterID && records[i].isBuying === '閱讀') {
+                        let url = "http://localhost:5000/api/chapterIMG/" + records[i].filename;
+                        read.push({
+                        chapterTitle: records[i].chapterTitle,
+                        chapterID: chapterID,
+                        num: (i+1),
+                        image: url
+                        });
                     }
                 }
-                //console.log(chapters);
-                setChapters(chapters);
-
-                let lastChapterInfo = chapters[chapters.length - 1];
-                let updatedComic = temp.map(comic => {
-                    return {...comic, chapter: lastChapterInfo.title};
-                });
-                setComic(updatedComic);
-                //console.log(updatedComic);
+                console.log(read);
+                setChapter(read);
+                setLoading(false);
             } catch (error) {
                 console.error('Error fetching records:', error);
             }
-            setLoading(false);
         } catch (error) {
             console.error('Error initializing contract:', error);
         }
@@ -164,7 +136,11 @@ const ComicRead = () => {
 
     useEffect(() => {
         initData();
-    }, [comicID]);
+    }, [comicID, chapterID]);
+
+    const totalPages = Math.ceil(allChapters.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const currentChapters = allChapters.slice(startIndex, startIndex + itemsPerPage);
 
     const getPageItems = () => {
         const pageItems = [];
@@ -228,78 +204,164 @@ const ComicRead = () => {
         return pageItems;
     };
 
+    // 章節購買 或 閱讀函數
+    const handlePurchase = async (chapterId) => {
+        const chapter = currentChapters[chapterId]; // 使用傳遞進來的索引值來訪問章節資料
+        const operationValue = chapter.isBuying;
+
+        if (operationValue === '閱讀') {
+        window.location.href = `/comicRead/${comicID}/${chapter.chapterID}`;
+        } else {
+        try {
+            disableAllButtons();
+            let balance = await web3.eth.getBalance(currentAccount);
+            balance = balance.toString() / 1e18;
+            let price = chapter.chapterPrice;
+            if (balance > price) {
+                const comicHash = comic[0].comicHash;
+                const chapterHash = chapter.chapterHash;
+                console.log(comicHash);
+                console.log(chapterHash);
+                console.log(price);
+                price = web3.utils.toWei(price, 'ether');
+
+                let gasEstimate = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, price/10).estimateGas({
+                    from: currentAccount,
+                    value: price,
+                });
+                const transaction = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, gasEstimate).send({
+                    from: currentAccount,
+                    value: price,
+                    gas: gasEstimate
+                });
+                const transactionHash = transaction.transactionHash;
+                let Timestamp = await getTransactionTimestamp(transactionHash);
+
+                const author = comic[0].author === '您是本作品的創作者!' ? currentAccount : comic[0].author;
+                const formData = new FormData();
+                formData.append('hash', transactionHash);
+                formData.append('comic_id', comicHash);
+                formData.append('chapter_id', chapterHash);
+                formData.append('buyer', currentAccount);
+                formData.append('creator', author);
+                formData.append('purchase_date', Timestamp);
+                formData.append('price', chapter.chapterPrice);
+                try {
+                    const response = await axios.post('http://localhost:5000/api/add/records', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                    });
+                    alert('章節購買成功！');
+                    const updatedChapters = [...currentChapters];
+                    updatedChapters[chapterId].isBuying = '閱讀'; // 更新章節的購買狀態
+                    setAllChapters(updatedChapters);
+                } catch (error) {
+                    console.error('購買紀錄添加至資料庫時發生錯誤：', error);
+                }
+            } else {
+                console.log('餘額不足');
+                alert('餘額不足');
+            }
+        } catch (error) {
+            console.error('章節購買時發生錯誤：', error);
+            alert(error);
+            window.location.reload();
+        } finally {
+            enableAllButtons();
+        }
+        }
+    };
+
+
     return (
         <>
-            <Navbar className={`comic-custom-navbar ${showNavbar ? 'show' : 'hide'}`} expand="lg">
-                <Navbar.Brand href="#" className="navbar-left">
-                    <ChevronLeft className="icon" size={36} />
-                </Navbar.Brand>
-                <Navbar.Brand className="navbar-center">
-                    第一章 漫畫
-                </Navbar.Brand>
-                <div className="navbar-right">
-                    <List className="icon" size={36} onClick={handleListClick} />
+        {!loading && (
+            <>
+                <Navbar className={`comic-custom-navbar ${showNavbar ? 'show' : 'hide'}`} expand="lg">
+                    <Navbar.Brand href="#" className="navbar-left">
+                        <Link to={`/comicDetail/${comicID}`}>
+                            <ChevronLeft className="icon" size={36} />
+                        </Link>
+                    </Navbar.Brand>
+                    <Navbar.Brand className="navbar-center">
+                        第{chapter[0]?.num}章： {chapter[0]?.chapterTitle}
+                    </Navbar.Brand>
+                    <div className="navbar-right">
+                        <List className="icon" size={36} onClick={handleListClick} />
+                    </div>
+                </Navbar>
+                {chapter.map((chapter, index) => (
+                    <div key={index} className="banner-image">
+                        <img src={chapter.image} alt="Long Banner" />
+                    </div>
+                ))}
+                <div className={`icon-bar ${showIconBar ? 'show' : 'hide'}`}>
+                    <ChevronDoubleLeft className="icon" />
+                    <ChevronLeft className="icon" />
+                    <ChevronRight className="icon" />
+                    <ChevronDoubleRight className="icon" />
                 </div>
-            </Navbar>
-            <div className="banner-image">
-                <img src='https://via.placeholder.com/600x1200?text=Image' alt="Long Banner" />
-            </div>
-            <div className={`icon-bar ${showIconBar ? 'show' : 'hide'}`}>
-                <ChevronDoubleLeft className="icon" />
-                <ChevronLeft className="icon" />
-                <ChevronRight className="icon" />
-                <ChevronDoubleRight className="icon" />
-            </div>
 
-            {showOverlay && (
-                <div className="comic-overlay">
-                    <div className="overlay-content">
-                        <div className="overlay-header">
-                            <div className="overlay-comic-title">漫畫名稱</div>
-                            <div className="overlay-author-title">作者名稱</div>
-                            <button className="overlay-close" onClick={handleCloseOverlay}>✕</button>
-                        </div>
-                        <div className="overlay-divider"></div>
-                        <div className="overlay-body">
-                            <Row className='justify-content-center'>
-                                <Col className='d-flex justify-content-center chapter-table'>
-                                    <Table size="sm">
-                                        <tbody>
-                                            {currentChapters.map((chapter, index) => (
-                                                <tr key={index}>
-                                                    <td className='text-center fw-bold'>第 {startIndex + index + 1} 章</td>
-                                                    <td className='text-center'>{chapter.title}</td>
-                                                    <td className='text-center'>
-                                                        <button className="btn">編輯</button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </Table>
-                                </Col>
-                            </Row>
-                            <Row className='pt-2 pb-5 justify-content-center table-button'>
-                                <Col className='d-flex justify-content-center'>
-                                    <ButtonToolbar aria-label="Toolbar with pagination">
-                                        <Pagination>
-                                            <Pagination.Prev 
-                                                onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} 
-                                                className='pagination-button'
-                                            />
-                                            {getPageItems()}
-                                            <Pagination.Next 
-                                                onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages} 
-                                                className='pagination-button'
-                                            />
-                                        </Pagination>
-                                    </ButtonToolbar>
-                                </Col>
-                            </Row>
+                {showOverlay && (
+                    <div className="comic-overlay">
+                        <div className="overlay-content">
+                            <div className="overlay-header">
+                                <div className="overlay-comic-title">{currentChapters[0]?.comicTitle}</div>
+                                <div className="overlay-author-title">{currentChapters[0]?.creator}</div>
+                                <button className="overlay-close" onClick={handleCloseOverlay}>✕</button>
+                            </div>
+                            <div className="overlay-divider"></div>
+                            <div className="overlay-body">
+                                <Row className='justify-content-center'>
+                                    <Col className='d-flex justify-content-center chapter-table'>
+                                        <Table size="sm">
+                                            <tbody>
+                                                {currentChapters.map((chapter, index) => (
+                                                    <tr key={index}>
+                                                        <td className='text-center fw-bold'>第 {startIndex + index + 1} 章</td>
+                                                        <td className='text-center'>{chapter.chapterTitle}</td>
+                                                        <td className='text-center'>
+                                                            <button onClick={() => handlePurchase(index)} className="btn">{chapter.isBuying}</button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </Table>
+                                    </Col>
+                                </Row>
+                                <Row className='pt-2 pb-5 justify-content-center table-button'>
+                                    <Col className='d-flex justify-content-center'>
+                                        <ButtonToolbar aria-label="Toolbar with pagination">
+                                            <Pagination>
+                                                <Pagination.Prev 
+                                                    onClick={() => handlePageChange(currentPage - 1)} 
+                                                    disabled={currentPage <= 1} 
+                                                    className='pagination-button'
+                                                />
+                                                {getPageItems()}
+                                                <Pagination.Next 
+                                                    onClick={() => handlePageChange(currentPage + 1)} 
+                                                    disabled={currentPage >= totalPages} 
+                                                    className='pagination-button'
+                                                />
+                                            </Pagination>
+                                        </ButtonToolbar>
+                                    </Col>
+                                </Row>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </>
+                )}
+            </>
+        )}
+
+        {loading &&  
+            <div className="loading-container">
+                <div>頁面加載中，請稍後...</div>
+            </div>
+        }
+    </>
     );
 };
 

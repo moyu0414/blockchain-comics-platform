@@ -485,7 +485,6 @@ const getFileExtension = (filename) => {
               <div style={{ display: 'flex' }}>
                 <Form.Label
                   className='label-style col-form-label'
-                  htmlFor="image"
                   style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}
                 >
                   本章作品上傳
@@ -542,7 +541,9 @@ const getFileExtension = (filename) => {
                     ) : (
                       <>
                         <CardImage size={48} />
-                        <div id="notimage2" className="hidden">上傳本章漫畫內容</div>
+                        <div id="notimage2" className="hidden">
+                          上傳本章漫畫內容<br /><br />條漫：請上傳1整章圖檔<br />寬度：1200px、長度不限<br /><br />頁漫：請上傳多張圖檔<br />寬度：1200/張、長度：1600px
+                        </div>
                       </>
                     )}
 
@@ -604,7 +605,7 @@ const getFileExtension = (filename) => {
 
             <Form.Group controlId="file-upload" className='pt-4'>
             <div style={{ display: 'flex' }}>
-              <Form.Label className='label-style col-form-label' htmlFor="image" style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}>
+              <Form.Label className='label-style col-form-label' style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}>
                 漫畫封面
               </Form.Label>
               <Form.Control
@@ -636,7 +637,7 @@ const getFileExtension = (filename) => {
 
             <Form.Group controlId="file-upload" className='pt-4 pb-3'>
             <div style={{ display: 'flex' }}>
-              <Form.Label className='label-style col-form-label' htmlFor="image" style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}>
+              <Form.Label className='label-style col-form-label' style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}>
                 漫畫橫向封面
               </Form.Label>
               <Form.Control

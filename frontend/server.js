@@ -428,6 +428,111 @@ app.get('/api/category/updateComic', (req, res) => {
 });
 
 
+app.get('/api/category/updateFavorite', (req, res) => {
+  const currentCategory = req.query.currentCategory;
+  const query = `
+    SELECT user.address, user.collect, comics.comic_id
+    FROM user
+    INNER JOIN comics ON user.address = comics.creator
+    WHERE comics.category = ? AND comics.is_exist = 1
+  `;
+  pool.query(query, [currentCategory], (error, results) => {
+    if (error) {
+      console.error('Error fetching comic records: ', error);
+      return res.status(500).json({ message: 'Error fetching comic records' });
+    }
+    const comicFavoritedCounts = {};
+    const allComicIds = new Set();  // 用于存储所有 comic_id
+    results.forEach(row => {
+      const { collect, comic_id } = row;
+      allComicIds.add(comic_id);
+      let collectObj;
+      try {
+        collectObj = collect;
+        if (typeof collectObj !== 'object' || collectObj === null) {
+          collectObj = {};
+        }
+      } catch (e) {
+        console.error('Error parsing collect data: ', e);
+        collectObj = {};
+      }
+      if (Object.keys(collectObj).includes(comic_id)) {
+        if (!comicFavoritedCounts[comic_id]) {
+          comicFavoritedCounts[comic_id] = 0;
+        }
+        comicFavoritedCounts[comic_id]++;
+      }
+    });
+    const resultArray = Array.from(allComicIds).map(comic_id => ({
+      comic_id,
+      count: comicFavoritedCounts[comic_id] || 0
+    }));
+    res.json(resultArray);
+  });
+});
+
+
+app.get('/api/comicDetail/isFavorited', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const comicHash = req.query.comicHash;
+  const query = `
+    SELECT collect
+    FROM user
+    WHERE address = ?
+  `;
+  pool.query(query, [currentAccount], (error, results) => {
+    if (error) {
+      console.error('Error fetching user collect data: ', error);
+      return res.status(500).json({ message: 'Error fetching user collect data' });
+    }
+    let collect;
+    try {
+      collect = results[0].collect;
+      if (typeof collect !== 'object' || collect === null) {
+        collect = {};
+      }
+    } catch (e) {
+      console.error('Error parsing collect data: ', e);
+      return res.status(500).json({ message: 'Error parsing collect data' });
+    }
+    const isFavorited = collect.hasOwnProperty(comicHash) && collect[comicHash] === true;
+    res.json({ isFavorited });
+  });
+});
+
+
+app.get('/api/comicRead', (req, res) => {
+  const comicHash = req.query.comicHash;
+  const currentAccount = req.query.currentAccount;
+  const query = `
+    SELECT 
+      comics.title AS comicTitle,
+      chapters.chapter_id AS chapterHash,
+      chapters.title AS chapterTitle,
+      chapters.filename,
+      comics.creator,
+      chapters.create_timestamp,
+      chapters.price AS chapterPrice,
+      IF(records.buyer IS NOT NULL, '閱讀', '購買') AS isBuying
+    FROM chapters
+    INNER JOIN comics ON chapters.comic_id = comics.comic_id
+    LEFT JOIN records ON chapters.chapter_id = records.chapter_id AND records.buyer = ?
+    WHERE comics.comic_id = ?
+    AND comics.is_exist = 1
+  `;
+  pool.query(query, [currentAccount, comicHash], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching chapters and comics info: ', error);
+      return res.status(500).json({ message: 'Error fetching chapters and comics info' });
+    }
+    if (results.length === 0) {
+      return res.json([]);
+    }
+    res.json(results);
+  });
+});
+
+
 // 新增一筆 comics 資料、添加漫画信息到数据库的路由
 app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {
   const file = req.files['comicIMG'] ? req.files['comicIMG'][0] : null;
@@ -673,6 +778,50 @@ app.put('/api/update/comicExist', async (req, res) => {
     res.status(200).json({ message: 'comicExist updated successfully' });
   } catch (error) {
     console.error('Error updating comicExist:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
+app.put('/api/update/comicDetail/favorite', async (req, res) => {
+  const { currentAccount, comicHash, bool } = req.query;
+  if (!currentAccount || !comicHash || bool === undefined) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+  try {
+    // 查询当前用户的 collect 数据
+    const getCollectQuery = `SELECT collect FROM user WHERE address = ?`;
+    const [results] = await new Promise((resolve, reject) => {
+      pool.query(getCollectQuery, [currentAccount], (error, results) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(results);
+      });
+    });
+    let collect = results.collect ? results.collect : {};
+    // 更新 collect 数据，只留存"收藏"的資料
+    if (bool == 'true') {
+      collect[comicHash] = true;
+    } else {
+      delete collect[comicHash];
+    }
+    // 将更新后的 collect 对象存回数据库
+    const updateQuery = `UPDATE user SET collect = ? WHERE address = ?`;
+    await new Promise((resolve, reject) => {
+      pool.query(updateQuery, [JSON.stringify(collect), currentAccount], (error, results) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(results);
+      });
+    });
+    res.status(200).json({ message: 'Comic detail updated successfully' });
+  } catch (error) {
+    console.error('Error updating comic detail:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
