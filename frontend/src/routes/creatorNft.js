@@ -175,8 +175,10 @@ function CreatorNft() {
                             <Link to={`/nftDetail/${data.tokenId}`}>
                                 <Card className="effect-image-1">
                                     <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
+                                    
                                     <Card.Body className="simple-text">
                                     <Card.Text>{data.title}</Card.Text>
+                                    <Card.Text>標題</Card.Text>
                                     </Card.Body>
                                 </Card>
                             </Link>

@@ -16,6 +16,7 @@ import ManageComic from './routes/manageComic';
 import Reader from './routes/reader';
 import Creator from './routes/creator';
 import CreatorPage from './routes/creatorPage';
+import CollectionPage from './routes/collectionPage';
 import CreatorNft from './routes/creatorNft';
 import ReaderPage from './routes/readerPage';
 import Bookcase from './routes/bookcase';
@@ -317,6 +318,9 @@ const router = createBrowserRouter([
       },{
         path: "/comicRead/:comicID/:chapterID",
         element: <ComicRead />,
+      },{
+        path: "/collectionPage",
+        element: <CollectionPage />,
       }
     ],
   },
