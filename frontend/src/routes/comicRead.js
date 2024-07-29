@@ -273,95 +273,106 @@ const ComicRead = () => {
         }
     };
 
+    useEffect(() => {
+        // 設置頁面特定的 padding-bottom
+        document.body.classList.add('no-padding-bottom');
+        return () => {
+          // 清除特定頁面的 padding-bottom
+        document.body.classList.remove('no-padding-bottom');
+        };
+    }, []);
+
 
     return (
         <>
         {!loading && (
             <>
-                <Navbar className={`comic-custom-navbar ${showNavbar ? 'show' : 'hide'}`} expand="lg">
-                    <Navbar.Brand href="#" className="navbar-left">
-                        <Link to={`/comicDetail/${comicID}`}>
-                            <ChevronLeft className="icon" size={36} />
-                        </Link>
-                    </Navbar.Brand>
-                    <Navbar.Brand className="navbar-center">
-                        第{chapter[0]?.num}章： {chapter[0]?.chapterTitle}
-                    </Navbar.Brand>
-                    <div className="navbar-right">
-                        <List className="icon" size={36} onClick={handleListClick} />
+                <div className='no-padding-bottom'>
+                    <Navbar className={`comic-custom-navbar ${showNavbar ? 'show' : 'hide'}`} expand="lg">
+                        <Navbar.Brand href="#" className="navbar-left">
+                            <Link to={`/comicDetail/${comicID}`}>
+                                <ChevronLeft className="icon" size={36} />
+                            </Link>
+                        </Navbar.Brand>
+                        <Navbar.Brand className="navbar-center">
+                            第{chapter[0]?.num}章： {chapter[0]?.chapterTitle}
+                        </Navbar.Brand>
+                        <div className="navbar-right">
+                            <List className="icon" size={36} onClick={handleListClick} />
+                        </div>
+                    </Navbar>
+                    {chapter.map((chapter, index) => (
+                        <div key={index} className="banner-image">
+                            <img src={chapter.image} alt="Long Banner" />
+                        </div>
+                    ))}
+                    <div className={`icon-bar ${showIconBar ? 'show' : 'hide'}`}>
+                        <ChevronDoubleLeft className="icon" />
+                        <ChevronLeft className="icon" />
+                        <ChevronRight className="icon" />
+                        <ChevronDoubleRight className="icon" />
                     </div>
-                </Navbar>
-                {chapter.map((chapter, index) => (
-                    <div key={index} className="banner-image">
-                        <img src={chapter.image} alt="Long Banner" />
-                    </div>
-                ))}
-                <div className={`icon-bar ${showIconBar ? 'show' : 'hide'}`}>
-                    <ChevronDoubleLeft className="icon" />
-                    <ChevronLeft className="icon" />
-                    <ChevronRight className="icon" />
-                    <ChevronDoubleRight className="icon" />
-                </div>
-
-                {showOverlay && (
-                    <div className="comic-overlay">
-                        <div className="overlay-content">
-                            <div className="overlay-header">
-                                <div className="overlay-comic-title">{currentChapters[0]?.comicTitle}</div>
-                                <div className="overlay-author-title">{currentChapters[0]?.creator}</div>
-                                <button className="overlay-close" onClick={handleCloseOverlay}>✕</button>
-                            </div>
-                            <div className="overlay-divider"></div>
-                            <div className="overlay-body">
-                                <Row className='justify-content-center'>
-                                    <Col className='d-flex justify-content-center chapter-table'>
-                                        <Table size="sm">
-                                            <tbody>
-                                                {currentChapters.map((chapter, index) => (
-                                                    <tr key={index}>
-                                                        <td className='text-center fw-bold'>第 {startIndex + index + 1} 章</td>
-                                                        <td className='text-center'>{chapter.chapterTitle}</td>
-                                                        <td className='text-center'>
-                                                            <button onClick={() => handlePurchase(index)} className="btn">{chapter.isBuying}</button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </Table>
-                                    </Col>
-                                </Row>
-                                <Row className='pt-2 pb-5 justify-content-center table-button'>
-                                    <Col className='d-flex justify-content-center'>
-                                        <ButtonToolbar aria-label="Toolbar with pagination">
-                                            <Pagination>
-                                                <Pagination.Prev 
-                                                    onClick={() => handlePageChange(currentPage - 1)} 
-                                                    disabled={currentPage <= 1} 
-                                                    className='pagination-button'
-                                                />
-                                                {getPageItems()}
-                                                <Pagination.Next 
-                                                    onClick={() => handlePageChange(currentPage + 1)} 
-                                                    disabled={currentPage >= totalPages} 
-                                                    className='pagination-button'
-                                                />
-                                            </Pagination>
-                                        </ButtonToolbar>
-                                    </Col>
-                                </Row>
+        
+                    {showOverlay && (
+                        <div className="comic-overlay">
+                            <div className="overlay-content">
+                                <div className="overlay-header">
+                                    <div className="overlay-comic-title">{currentChapters[0]?.comicTitle}</div>
+                                    <div className="overlay-author-title">{currentChapters[0]?.creator}</div>
+                                    <button className="overlay-close" onClick={handleCloseOverlay}>✕</button>
+                                </div>
+                                <div className="overlay-divider"></div>
+                                <div className="overlay-body">
+                                    <Row className='justify-content-center'>
+                                        <Col className='d-flex justify-content-center chapter-table'>
+                                            <Table size="sm">
+                                                <tbody>
+                                                    {currentChapters.map((chapter, index) => (
+                                                        <tr key={index}>
+                                                            <td className='text-center fw-bold'>第 {startIndex + index + 1} 章</td>
+                                                            <td className='text-center'>{chapter.chapterTitle}</td>
+                                                            <td className='text-center'>
+                                                                <button onClick={() => handlePurchase(index)} className="btn">{chapter.isBuying}</button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                        </Col>
+                                    </Row>
+                                    <Row className='pt-2 pb-5 justify-content-center table-button'>
+                                        <Col className='d-flex justify-content-center'>
+                                            <ButtonToolbar aria-label="Toolbar with pagination">
+                                                <Pagination>
+                                                    <Pagination.Prev 
+                                                        onClick={() => handlePageChange(currentPage - 1)} 
+                                                        disabled={currentPage <= 1} 
+                                                        className='pagination-button'
+                                                    />
+                                                    {getPageItems()}
+                                                    <Pagination.Next 
+                                                        onClick={() => handlePageChange(currentPage + 1)} 
+                                                        disabled={currentPage >= totalPages} 
+                                                        className='pagination-button'
+                                                    />
+                                                </Pagination>
+                                            </ButtonToolbar>
+                                        </Col>
+                                    </Row>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </>
         )}
-
+    
         {loading &&  
             <div className="loading-container">
                 <div>頁面加載中，請稍後...</div>
             </div>
         }
-    </>
+        </>
     );
 };
 

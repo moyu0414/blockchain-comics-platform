@@ -182,64 +182,64 @@ function Category() {
 
 
     return (
-        <Container className='homepage'>
-            <Row className="pt-5 pb-5 btn-container">
-                {buttonData.map((label, idx) => (
-                    <Col key={idx} xs={2} md={3} lg={1} className="pb-3 btn-section">
-                        <Button variant="outline-dark" className="custom-button" onClick={() => handleCategoryClick(label)}>{label}</Button>
+        <>
+            <Container className='homepage'>
+                <Row className="pt-5 pb-5 btn-container">
+                    {buttonData.map((label, idx) => (
+                        <Col key={idx} xs={2} md={3} lg={1} className="pb-3 btn-section">
+                            <Button variant="outline-dark" className="custom-button" onClick={() => handleCategoryClick(label)}>{label}</Button>
+                        </Col>
+                    ))}
+                </Row>
+                <Row className="align-items-center">
+                    <Col>
+                        <h3 className="fw-bold">{currentCategory}漫畫</h3>
                     </Col>
-                ))}
-            </Row>
-            <Row className="align-items-center">
-                <Col>
-                    <h3 className="fw-bold">{currentCategory}漫畫</h3>
-                </Col>
-                <Col>
-                    {selectedCategory && <h3>{selectedCategory}</h3>}
-                </Col>
-                <Col xs="auto">
-                    <Dropdown>
-                        <Dropdown.Toggle as={CustomToggle} />
-                        <Dropdown.Menu>
-                            <Dropdown.Item onClick={() => handleCategoryChange('人氣排序')}>人氣排序</Dropdown.Item>
-                            <Dropdown.Item onClick={() => handleCategoryChange('愛心排序')}>愛心排序</Dropdown.Item>
-                            <Dropdown.Item onClick={() => handleCategoryChange('新發布')}>新發布</Dropdown.Item>
-                            <Dropdown.Item onClick={() => handleCategoryChange('最近更新')}>最近更新</Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Dropdown>
-                </Col>
-            </Row>
-
-
-
-            <Row xs={1} md={2} className="g-4 pb-5">
-                {promoPosition.length === 0 ? (
-                    <>
-                        <h3 className="fw-bold">目前沒有{currentCategory}類型的漫畫。</h3>
-                        <br />
-                    </>
-                ) : (
-                    <>
-                        <Row xs={1} md={2} className="g-4 pb-5">
-                            {current.map((data, idx) => (
-                                <Col key={idx} xs={6} md={3} className="pt-3">
-                                    <Card>
-                                        <Link to={`/comicDetail/${current[idx].comicID}`}>
-                                            <Card.Img variant="top" src={data.image} />
-                                        </Link>
-
-                                        <Card.Body>
-                                            <Card.Title className='fw-bold'>{data.title}</Card.Title>
-                                            <Card.Text className='text-secondary'>{data.text}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            ))}
-                        </Row>
-                    </>
-                )}
-            </Row>
-        </Container>
+                    <Col>
+                        {selectedCategory && <h3>{selectedCategory}</h3>}
+                    </Col>
+                    <Col xs="auto">
+                        <Dropdown>
+                            <Dropdown.Toggle as={CustomToggle} />
+                            <Dropdown.Menu>
+                                <Dropdown.Item onClick={() => handleCategoryChange('人氣排序')}>人氣排序</Dropdown.Item>
+                                <Dropdown.Item onClick={() => handleCategoryChange('愛心排序')}>愛心排序</Dropdown.Item>
+                                <Dropdown.Item onClick={() => handleCategoryChange('新發布')}>新發布</Dropdown.Item>
+                                <Dropdown.Item onClick={() => handleCategoryChange('最近更新')}>最近更新</Dropdown.Item>
+                            </Dropdown.Menu>
+                        </Dropdown>
+                    </Col>
+                </Row>
+    
+                <Row xs={1} md={2} className="g-4 pb-5">
+                    {promoPosition.length === 0 ? (
+                        <>
+                            <h3 className="fw-bold">目前沒有{currentCategory}類型的漫畫。</h3>
+                            <br />
+                        </>
+                    ) : (
+                        <>
+                            <Row xs={1} md={2} className="g-4 pb-5">
+                                {current.map((data, idx) => (
+                                    <Col key={idx} xs={6} md={3} className="pt-3">
+                                        <Card>
+                                            <Link to={`/comicDetail/${current[idx].comicID}`}>
+                                                <Card.Img variant="top" src={data.image} />
+                                            </Link>
+    
+                                            <Card.Body>
+                                                <Card.Title className='fw-bold'>{data.title}</Card.Title>
+                                                <Card.Text className='text-secondary'>{data.text}</Card.Text>
+                                            </Card.Body>
+                                        </Card>
+                                    </Col>
+                                ))}
+                            </Row>
+                        </>
+                    )}
+                </Row>
+            </Container>
+        </>
     );
 }
 

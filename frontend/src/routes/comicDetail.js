@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from "react-router-dom";
-import { Container, Carousel, Card, Col, Row, Button, Dropdown, Figure, Table, ButtonGroup, ButtonToolbar, Pagination } from 'react-bootstrap';
+import { Container, Card, Col, Row, Button, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
 import BootstrapTable from 'react-bootstrap-table-next';
@@ -308,15 +308,15 @@ function ComicDetail() {
 
 
     return (
-        <div>
-            {!loading &&
+        <>
+            {!loading && (
                 <Container className='comicDetail'>
                     <Row className="pt-5">
                         <div className="d-block mx-auto img-fluid carousel-image-container">
                             <img
-                            className="d-block mx-auto img-fluid"
-                            src={comic[0].protoFilename}
-                            alt="800x400"
+                                className="d-block mx-auto img-fluid"
+                                src={comic[0].protoFilename}
+                                alt="800x400"
                             />
                         </div>
                     </Row>
@@ -359,12 +359,12 @@ function ComicDetail() {
                         </Col>
                     </Row>
                     <Row className='pt-5 chapter-title-section'>
-                        <Col className=''>
+                        <Col>
                             <div className='d-flex justify-content-between align-items-center'>
                                 <h3 className='fw-bold mb-0'>章節目錄</h3>
                                 <p className='text-end mb-0'>查看全部章節</p>
                             </div>
-                            <hr/>
+                            <hr />
                         </Col>
                     </Row>
                     <Row className='justify-content-center'>
@@ -409,26 +409,25 @@ function ComicDetail() {
                         {similComic.map((data, idx) => (
                             <Col key={idx} xs={6} md={3} className="pt-3">
                                 <Link to={`/comicDetail/${data.comicID}`}>
-                                <Card>
-                                    <Card.Img variant="top" src={data.image} />
-                                    <Card.Body>
-                                        <Card.Title>{data.title}</Card.Title>
-                                        <Card.Text>{data.description}</Card.Text>
-                                    </Card.Body>
-                                </Card>
+                                    <Card>
+                                        <Card.Img variant="top" src={data.image} />
+                                        <Card.Body>
+                                            <Card.Title>{data.title}</Card.Title>
+                                            <Card.Text>{data.description}</Card.Text>
+                                        </Card.Body>
+                                    </Card>
                                 </Link>
                             </Col>
                         ))}
                     </Row>
-                    
                 </Container>
-            }
-            {loading &&  
+            )}
+            {loading && (
                 <div className="loading-container">
                     <div>頁面加載中，請稍後...</div>
                 </div>
-            }
-        </div>
+            )}
+        </>
     );
 }
 

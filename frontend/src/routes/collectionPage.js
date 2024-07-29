@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Card, Col, Row, Button, Figure, Dropdown } from 'react-bootstrap';
+import { Container, Card, Col, Row } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel } from 'react-bootstrap-icons';
 import axios from 'axios';
@@ -44,25 +44,27 @@ function CollectionPage() {
 
 
     return (
-        <Container className='creatorPage'>
-            <Row xs={1} md={2} className="g-4 pb-5">
-                {comic.map((data, idx) => (
-                    <Col key={idx} xs={4} md={3} className="pt-3">
-                    <Link to={`/comicDetail/${data.comicID}`}>
-                        <Card>
-                            <div className="position-relative">
-                                <Card.Img variant="top" src={data.image} />
-                                <div className="category-overlay">{data.category}</div>
-                            </div>
-                            <Card.Body>
-                                <Card.Title className='text-center'>{data.title}</Card.Title>
-                            </Card.Body>
-                        </Card>
-                    </Link>
-                    </Col>
-                ))}
-            </Row>
-        </Container>
+        <>
+            <Container className='creatorPage'>
+                <Row xs={1} md={2} className="g-4 pb-5">
+                    {comic.map((data, idx) => (
+                        <Col key={idx} xs={4} md={3} className="pt-3">
+                            <Link to={`/comicDetail/${data.comicID}`}>
+                                <Card>
+                                    <div className="position-relative">
+                                        <Card.Img variant="top" src={data.image} />
+                                        <div className="category-overlay">{data.category}</div>
+                                    </div>
+                                    <Card.Body>
+                                        <Card.Title className='text-center'>{data.title}</Card.Title>
+                                    </Card.Body>
+                                </Card>
+                            </Link>
+                        </Col>
+                    ))}
+                </Row>
+            </Container>
+        </>
     );
 }
 

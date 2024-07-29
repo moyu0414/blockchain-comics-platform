@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Card, Button, Row,Col } from 'react-bootstrap';
-import { HouseDoor, Grid, Cart, Person, Book } from 'react-bootstrap-icons';
 import './bootstrap.min.css';
 
-function ManageComic() {
+function MessagePage() {
     const [comic, setComic] = useState([]);
     const [loading, setLoading] = useState(true);
     const storedArrayJSON = localStorage.getItem('comicDatas');
@@ -68,44 +67,34 @@ function ManageComic() {
         '詳情': (comicID) => ({ pathname: `/comicDetail/${comicID}` })
     };
 
+    const message =[
+        {
+            image: 'https://images.pexels.com/photos/7809122/pexels-photo-7809122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+            title: '更新通知！',
+            content: '您收藏的漫畫已更新，快來看看吧！'
+        },
+        {
+            image: 'https://images.pexels.com/photos/7809122/pexels-photo-7809122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+            title: '更新通知！',
+            content: '您收藏的漫畫已更新，快來看看吧！您收藏的漫畫已更新，快來看看吧！您收藏的漫畫已更新，快來看看吧！您收藏的漫畫已更新，快來看看吧！您收藏的漫畫已更新，快來看看吧！'
+        }
+    ]
+
     
     return (
         <div>
             {!loading &&
-                <Container className='manageComic pt-4'>
-                    {comic.map((comic, index) => (
+                <Container className='messagePage pt-4'>
+                    {message.map((message, index) => (
                         <Card className={`mt-4`} key={index}>
                             {/* <Card.Img variant="top" src={comic.image}  alt="..." /> */}
                             <div className="image-container">
-                                <Card.Img variant="top" src={comic.image} alt="..." />
+                                <Card.Img variant="top" src={message.image} alt="..." />
                             </div>
                             <Card.Body >
                                 <div className="text-section">
-                                    <Card.Title>{comic.title}</Card.Title>
-                                </div>
-                                <div className="cta-section">
-                                    <Row>
-                                        {buttonData.map((label, idx) => (
-                                            <Col xs={6} sm={4} md={4} lg={2} key={idx}>
-                                                <Link
-                                                to={typeof pathMap[label] === 'function'
-                                                    ? pathMap[label](comic.comicID) // 处理动态路径
-                                                    : pathMap[label].pathname
-                                                }
-                                                state={label === '新增章節'
-                                                    ? pathMap[label].state(comic.comicHash) // 设置状态
-                                                    : label === '鑄造NFT'
-                                                    ? pathMap[label].state(comic.comicID) // 设置状态
-                                                    : label === '編輯漫畫'
-                                                    ? pathMap[label].state(comic.comicID) // 设置状态
-                                                    : undefined
-                                                }
-                                                >
-                                                <Button className="cta-button">{label}</Button>
-                                                </Link>
-                                            </Col>
-                                            ))}
-                                    </Row>
+                                    <Card.Title>{message.title}</Card.Title>
+                                    <Card.Text>{message.content}</Card.Text>
                                 </div>
                             </Card.Body>
                         </Card>
@@ -121,4 +110,4 @@ function ManageComic() {
     );
 }
 
-export default ManageComic;
+export default MessagePage;

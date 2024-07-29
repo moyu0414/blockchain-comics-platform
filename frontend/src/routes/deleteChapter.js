@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from "react-router-dom";
-import { Container, Carousel, Card, Col, Row, Button, Dropdown, Figure, Table, ButtonGroup, ButtonToolbar, Pagination } from 'react-bootstrap';
+import { Container, Col, Row, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
 import './bootstrap.min.css';
-import { Heart, HeartFill } from 'react-bootstrap-icons';
+import { HouseDoor, Grid, Cart, Person, Book } from 'react-bootstrap-icons';
 import BootstrapTable from 'react-bootstrap-table-next';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
@@ -163,75 +163,86 @@ function DeleteChapter() {
     };
 
     return (
-        <div>
-            {!loading &&
-                <Container className='comicDetail'>
-                    {/* 此處會放上該漫畫的封面+名稱供預覽 跟創作者頁面creatorPage的一樣*/}
-                    <Row className="pt-5">
-                        <Link to={`/comicDetail/${comic[0].comicID}`}>
-                            <div className="d-block mx-auto img-fluid carousel-image-container">
-                                <img
-                                className="d-block mx-auto img-fluid"
-                                src={comic[0].protoFilename}
-                                alt="800x400"
-                                />
-                            </div>
-                            <h4 className='text-center pt-3'>{comic[0].title}</h4>
-                        </Link>
-                    </Row>
-                    <Row className='pt-4 chapter-title-section'>
-                        <Col className=''>
-                            <div className='d-flex justify-content-between align-items-center'>
-                                <h3 className='fw-bold mb-0'>章節目錄</h3>
-                                <button className="btn">刪除本漫畫</button>
-                            </div>
-                            <hr/>
-                        </Col>
-                    </Row>
-                    <Row className='justify-content-center'>
-                        <Col className='d-flex justify-content-center chapter-table'>
-                            <Table size="sm">
-                                <tbody>
-                                    {currentChapters.map((chapter, index) => (
-                                        <tr key={index}>
-                                            <td className='text-center fw-bold'>第 {startIndex + index + 1} 章</td>
-                                            <td className='text-center'>{chapter.title}</td>
-                                            <td className='text-center'>{chapter.price}</td>
-                                            <td className='text-center'>
-                                                <button className="btn">刪除</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </Table>
-                        </Col>
-                    </Row>
-                    <Row className='pt-2 pb-5 justify-content-center table-button'>
-                        <Col className='d-flex justify-content-center'>
-                            <ButtonToolbar aria-label="Toolbar with pagination">
-                                <Pagination>
-                                    <Pagination.Prev 
-                                        onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} 
-                                        className='pagination-button'
+        <>
+            <div>
+                {!loading &&
+                    <Container className='comicDetail'>
+                        {/* 此處會放上該漫畫的封面+名稱供預覽 跟創作者頁面creatorPage的一樣*/}
+                        <Row className="pt-5">
+                            <Link to={`/comicDetail/${comic[0].comicID}`}>
+                                <div className="d-block mx-auto img-fluid carousel-image-container">
+                                    <img
+                                    className="d-block mx-auto img-fluid"
+                                    src={comic[0].protoFilename}
+                                    alt="800x400"
                                     />
-                                    {getPageItems()}
-                                    <Pagination.Next 
-                                        onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages} 
-                                        className='pagination-button'
-                                    />
-                                </Pagination>
-                            </ButtonToolbar>
-                        </Col>
-                    </Row>
-                    
-                </Container>
-            }
-            {loading &&  
-                <div className="loading-container">
-                    <div>頁面加載中，請稍後...</div>
-                </div>
-            }
-        </div>
+                                </div>
+                                <h4 className='text-center pt-3'>{comic[0].title}</h4>
+                            </Link>
+                        </Row>
+                        <Row className='pt-4 chapter-title-section'>
+                            <Col className=''>
+                                <div className='d-flex justify-content-between align-items-center'>
+                                    <h3 className='fw-bold mb-0'>章節目錄</h3>
+                                    <p className='text-end mb-0'>查看全部章節</p>
+                                </div>
+                                <hr/>
+                            </Col>
+                        </Row>
+                        <Row className='justify-content-center'>
+                            <Col className='d-flex justify-content-center chapter-table'>
+                                <Table size="sm">
+                                    <tbody>
+                                        {currentChapters.map((chapter, index) => (
+                                            <tr key={index}>
+                                                <td className='text-center fw-bold'>第 {startIndex + index + 1} 章</td>
+                                                <td className='text-center'>{chapter.title}</td>
+                                                <td className='text-center'>{chapter.price}</td>
+                                                <td className='text-center'>
+                                                    <Link
+                                                        to={"/editWork"}
+                                                        state={{
+                                                            showChapterForm: true,
+                                                            comicID: comic.length > 0 ? comic[0].comicID : null,
+                                                            chapterID: chapters.length > 0 ? chapter.chapterID : null
+                                                        }}
+                                                    >
+                                                        <button className="btn">編輯</button>
+                                                    </Link>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            </Col>
+                        </Row>
+                        <Row className='pt-2 pb-5 justify-content-center table-button'>
+                            <Col className='d-flex justify-content-center'>
+                                <ButtonToolbar aria-label="Toolbar with pagination">
+                                    <Pagination>
+                                        <Pagination.Prev 
+                                            onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} 
+                                            className='pagination-button'
+                                        />
+                                        {getPageItems()}
+                                        <Pagination.Next 
+                                            onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages} 
+                                            className='pagination-button'
+                                        />
+                                    </Pagination>
+                                </ButtonToolbar>
+                            </Col>
+                        </Row>
+                        
+                    </Container>
+                }
+                {loading &&  
+                    <div className="loading-container">
+                        <div>頁面加載中，請稍後...</div>
+                    </div>
+                }
+            </div>
+        </>
     );
 }
 

@@ -9,6 +9,7 @@ import Home from './routes/Home';
 import HomePage from './routes/homePage';
 import Navbar from "./components/Navbar";
 import Navigation from "./components/navigation";
+import BottomNavbar from "./components/bottomNavbar";
 import Category from './routes/category';
 import ComicDetail from './routes/comicDetail';
 import ComicRead from './routes/comicRead';
@@ -17,6 +18,7 @@ import Reader from './routes/reader';
 import Creator from './routes/creator';
 import CreatorPage from './routes/creatorPage';
 import CollectionPage from './routes/collectionPage';
+import CollectionNft from './routes/collectionNft';
 import CreatorNft from './routes/creatorNft';
 import ReaderPage from './routes/readerPage';
 import Bookcase from './routes/bookcase';
@@ -36,6 +38,7 @@ import PurchaseHistory from './routes/purchaseHistory';
 import ComicManagement from './routes/comicManagement';
 import AccountManagement from './routes/accountManagement';
 import MintNFT from './routes/mintNFT';
+import MessagePage from './routes/messagePage';
 import NftMarket from './routes/nftMarket';
 import NftDetail from './routes/nftDetail';
 import Web3 from 'web3';
@@ -53,7 +56,7 @@ const AppLayout = () => {
   const [contractInstance, setContractInstance] = useState(null);
   const currentAccount = localStorage.getItem("currentAccount");
   const location = useLocation();
-  const shouldShowNavbar = location.pathname !== '/comicRead'; // 根據你的路由配置來設置
+  const isComicReadPage = location.pathname.startsWith('/comicRead/');
 
   // 處理登錄狀態的函數
   const handleLogin = () => {
@@ -126,23 +129,24 @@ const AppLayout = () => {
 
   return (
     <>
-      {isLoggedIn && shouldShowNavbar && <Navigation accounts={accounts} setAccounts={setAccounts}/>}
+      {isLoggedIn && !isComicReadPage && <Navigation accounts={accounts} setAccounts={setAccounts}/>}
       <Outlet />
+      {isLoggedIn && !isComicReadPage && <BottomNavbar />}
     </>
   );
 };
 
-const Root = () => (
-  <Router>
-    <Routes>
-      <Route path="/" element={<AppLayout />}>
-        {/* 定義其他路由 */}
-        <Route path="/comicRead" element={<ComicRead />} />
-        {/* 其他頁面路由 */}
-      </Route>
-    </Routes>
-  </Router>
-);
+// const Root = () => (
+//   <Router>
+//     <Routes>
+//       <Route path="/" element={<AppLayout />}>
+//         {/* 定義其他路由 */}
+//         <Route path="/comicRead" element={<ComicRead />} />
+//         {/* 其他頁面路由 */}
+//       </Route>
+//     </Routes>
+//   </Router>
+// );
 
 //日期轉換格式 yyyy/mm/dd
 function formatDate(date) {
@@ -321,6 +325,12 @@ const router = createBrowserRouter([
       },{
         path: "/collectionPage",
         element: <CollectionPage />,
+      },{
+        path: "/messagePage",
+        element: <MessagePage />,
+      },{
+        path: "/collectionNft",
+        element: <CollectionNft />,
       }
     ],
   },

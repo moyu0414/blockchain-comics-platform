@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Card, Col, Row, Button, Figure, Dropdown, Tabs, Tab } from 'react-bootstrap';
+import { Container, Card, Col, Row, Button, Figure, Dropdown } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel,Heart, FileEarmarkText, Envelope, CardImage, VectorPen } from 'react-bootstrap-icons';
 import axios from 'axios';
@@ -87,17 +87,6 @@ function ReaderPage() {
         'NFT專區': '/creatorNft',
         '管理漫畫': '/manageComic'
     };
-
-    const recentRead = [
-        { title: '最近閱讀漫畫 1', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 2', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 3', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 4', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 5', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 6', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 7', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 8', image: 'https://via.placeholder.com/150x200' }
-    ];
     
 
     return (
@@ -155,52 +144,6 @@ function ReaderPage() {
                     </Col>
                 ))}
             </Row>
-            <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" className="mb-3">
-                <Tab eventKey="home" title="最近閱讀">
-                    {isBuying &&
-                        <Row xs={1} md={2} className="g-4 pb-5">
-                            {recentRead.map((data, idx) => (
-                                <Col key={idx} xs={4} md={3} className="pt-3">
-                                    <Card>
-                                        <Card.Img variant="top" src={data.image} />
-                                        <Card.Body>
-                                            <Card.Title className='text-center'>{data.title}</Card.Title>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            ))}
-                        </Row>
-                    }
-                    {!isBuying &&
-                        <div className="loading-container">
-                            <div>目前無購買漫畫，請重新刷新...</div>
-                        </div>
-                    }
-                </Tab>
-                <Tab eventKey="profile" title="最近購買">
-                    {isBuying &&
-                        <Row xs={1} md={2} className="g-4 pb-5">
-                            {current.map((data, idx) => (
-                                <Col key={idx} xs={4} md={3} className="pt-3">
-                                    <Link to={`/comicDetail/${data.comicID}`}>
-                                    <Card>
-                                        <Card.Img variant="top" src={data.image} />
-                                        <Card.Body>
-                                            <Card.Title className='text-center'>{data.title}</Card.Title>
-                                        </Card.Body>
-                                    </Card>
-                                    </Link>
-                                </Col>
-                            ))}
-                        </Row>
-                    }
-                    {!isBuying &&
-                        <div className="loading-container">
-                            <div>目前無購買漫畫，請重新刷新...</div>
-                        </div>
-                    }
-                </Tab>
-            </Tabs>
         </Container>
     );
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Card, Col, Row, Button, Figure, Dropdown } from 'react-bootstrap';
 import './bootstrap.min.css';
-import { Funnel } from 'react-bootstrap-icons';
+import { Funnel} from 'react-bootstrap-icons';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
 
@@ -117,59 +117,61 @@ function CreatorPage() {
 
 
     return (
-        <Container className='creatorPage'>
-            <Row className="pt-5">
-                <Figure>
-                    <Figure.Image
-                        className="d-block mx-auto img-fluid rounded-circle"
-                        alt="400x400"
-                        src="https://via.placeholder.com/200x200?text=Banner Image"
-                    />
-                </Figure>
-            </Row>
-            <h3><center>創作者專區</center></h3>
-            <Row className="pt-2 pb-3 btn-container justify-content-center w-100">
-                {buttonData.map((label, idx) => (
-                    <Col key={idx} xs={6} sm={6} md={3} lg={1} className="pb-3 btn-section">
-                        <Link to={pathMap[label]}>
-                            <Button variant="outline-dark" className="custom-button">{label}</Button>
-                        </Link>
+        <>
+            <Container className='creatorPage'>
+                <Row className="pt-5">
+                    <Figure>
+                        <Figure.Image
+                            className="d-block mx-auto img-fluid rounded-circle"
+                            alt="400x400"
+                            src="https://via.placeholder.com/200x200?text=Banner Image"
+                        />
+                    </Figure>
+                </Row>
+                <h3><center>創作者專區</center></h3>
+                <Row className="pt-2 pb-3 btn-container justify-content-center w-100">
+                    {buttonData.map((label, idx) => (
+                        <Col key={idx} xs={6} sm={6} md={3} lg={1} className="pb-3 btn-section">
+                            <Link to={pathMap[label]}>
+                                <Button variant="outline-dark" className="custom-button">{label}</Button>
+                            </Link>
+                        </Col>
+                    ))}
+                </Row>
+                <Row className="align-items-center">
+                    <Col>
+                        <h3 className="fw-bold">{selectedCategory}</h3>
                     </Col>
-                ))}
-            </Row>
-            <Row className="align-items-center">
-                <Col>
-                    <h3 className="fw-bold">{selectedCategory}</h3>
-                </Col>
-                <Col xs="auto">
-                    <Dropdown>
-                        <Dropdown.Toggle as={CustomToggle} />
-                        <Dropdown.Menu>
-                            <Dropdown.Item onClick={comicCategory}>漫畫類型</Dropdown.Item>
-                            <Dropdown.Item onClick={popPurchase}>人氣購買</Dropdown.Item>
-                            <Dropdown.Item onClick={updateChapter}>最近更新</Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Dropdown>
-                </Col>
-            </Row>
-            <Row xs={1} md={2} className="g-4 pb-5">
-                {comic.map((data, idx) => (
-                    <Col key={idx} xs={4} md={3} className="pt-3">
-                    <Link to={`/comicDetail/${data.comicID}`}>
-                        <Card>
-                            <div className="position-relative">
-                                <Card.Img variant="top" src={data.image} />
-                                <div className="category-overlay">{data.category}</div>
-                            </div>
-                            <Card.Body>
-                                <Card.Title className='text-center'>{data.title}</Card.Title>
-                            </Card.Body>
-                        </Card>
-                    </Link>
+                    <Col xs="auto">
+                        <Dropdown>
+                            <Dropdown.Toggle as={CustomToggle} />
+                            <Dropdown.Menu>
+                                <Dropdown.Item onClick={comicCategory}>漫畫類型</Dropdown.Item>
+                                <Dropdown.Item onClick={popPurchase}>人氣購買</Dropdown.Item>
+                                <Dropdown.Item onClick={updateChapter}>最近更新</Dropdown.Item>
+                            </Dropdown.Menu>
+                        </Dropdown>
                     </Col>
-                ))}
-            </Row>
-        </Container>
+                </Row>
+                <Row xs={1} md={2} className="g-4 pb-5">
+                    {comic.map((data, idx) => (
+                        <Col key={idx} xs={4} md={3} className="pt-3">
+                            <Link to={`/comicDetail/${data.comicID}`}>
+                                <Card>
+                                    <div className="position-relative">
+                                        <Card.Img variant="top" src={data.image} />
+                                        <div className="category-overlay">{data.category}</div>
+                                    </div>
+                                    <Card.Body>
+                                        <Card.Title className='text-center'>{data.title}</Card.Title>
+                                    </Card.Body>
+                                </Card>
+                            </Link>
+                        </Col>
+                    ))}
+                </Row>
+            </Container>
+        </>
     );
 }
 

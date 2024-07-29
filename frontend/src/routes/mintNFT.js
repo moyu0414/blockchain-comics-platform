@@ -205,206 +205,206 @@ const MintNFT = (props) => {
 
   return (
     <div className="upload-form">
-      <div className="step-container">
-        <div className={`step-item ${stepCompleted && !showChapterForm ? 'step-completed' : ''}`}>
-          <div className="step-line">
-            <div className={`line ${stepCompleted ? 'bg-blue' : 'bg-gray'}`}></div>
-            <div className="dot">1</div>
-            <div className={`line ${stepCompleted ? 'bg-blue' : 'bg-gray'}`}></div>
-          </div>
-          <div className="step-title">漫畫資訊</div>
-        </div>
-        <div className={`step-item ${!showChapterForm && !stepCompleted ? 'step-item-gray' : ''}`}>
-          <div className="step-line">
-            <div className={`line ${!showChapterForm && !stepCompleted ? 'bg-gray' : 'bg-blue'}`}></div>
-            <div className="dot">2</div>
-            <div className={`line ${!showChapterForm && !stepCompleted ? 'bg-gray' : 'bg-blue'}`}></div>
-          </div>
-          <div className="step-title">鑄造NFT</div>
-        </div>
-      </div>
-      {/* {loading ? ( */}
-
-      <Form.Group as={Row} className='mb-1'>
-        <div style={{ display: 'flex' }}>
-          <Form.Label className='label-style col-form-label'>
-            漫畫名稱
-          </Form.Label>
-          <Form.Control
-            type="text"
-            value={newComic.title}
-            style={{ marginLeft: '10px' }}
-          />
-        </div>
-      </Form.Group>
-
-      <Form.Group as={Row} className='mb-3'>
-        <div style={{ display: 'flex' }}>
-          <Form.Label className='label-style mb-1 col-form-label'>
-            漫畫類別
-          </Form.Label>
-          <Form.Control
-            className="form-select"
-            value={newComic.category}
-            style={{ marginLeft: '10px' }}
-          >
-          </Form.Control>
-        </div>
-      </Form.Group>
-
-      <Form.Group className='pb-3'>
-        <div style={{ display: 'flex'}}>
-          <Form.Label className='label-style col-form-label'>
-            漫畫簡介
-          </Form.Label>
-          <Form.Control
-            as="textarea"
-            rows={5}
-            value={newComic.description}
-            style={{ marginLeft: '10px' }}
-          />
-        </div>
-      </Form.Group>
-
-      <Form.Group className='pb-3'>
-        <div style={{ display: 'flex' }}>
-          <Form.Label className='label-style mb-1 col-form-label' htmlFor="image">
-            漫畫封面
-          </Form.Label>
-          <img
-            src={newComic.imgURL}
-            alt="Preview"
-            style={{ width: '60%', maxWidth: '300px', paddingBottom: '3%', marginLeft: '10px' }}
-          />
-        </div>
-      </Form.Group>
-        
-      <Form.Group className='pb-4'>
-        <div style={{ display: 'flex' }}>
-          <Form.Label className='label-style mb-1 col-form-label'>漫畫橫向封面</Form.Label>
-          {newComic.coverImg ? (
-            <img
-              src={newComic.coverImg}
-              alt="Preview"
-              style={{ width: '60%', maxWidth: '300px', paddingBottom: '3%', marginLeft: '10px' }}
-            />
-          ) : (
-            <div>
-              <h3>目前無上傳橫向封面</h3>
-              <br />
+        <div className="step-container">
+            <div className={`step-item ${stepCompleted && !showChapterForm ? 'step-completed' : ''}`}>
+                <div className="step-line">
+                    <div className={`line ${stepCompleted ? 'bg-blue' : 'bg-gray'}`}></div>
+                    <div className="dot">1</div>
+                    <div className={`line ${stepCompleted ? 'bg-blue' : 'bg-gray'}`}></div>
+                </div>
+                <div className="step-title">漫畫資訊</div>
             </div>
-          )}
+            <div className={`step-item ${!showChapterForm && !stepCompleted ? 'step-item-gray' : ''}`}>
+                <div className="step-line">
+                    <div className={`line ${!showChapterForm && !stepCompleted ? 'bg-gray' : 'bg-blue'}`}></div>
+                    <div className="dot">2</div>
+                    <div className={`line ${!showChapterForm && !stepCompleted ? 'bg-gray' : 'bg-blue'}`}></div>
+                </div>
+                <div className="step-title">鑄造NFT</div>
+            </div>
         </div>
-      </Form.Group>
+        {/* {loading ? ( */}
+
+        <Form.Group as={Row} className='mb-1'>
+            <div style={{ display: 'flex' }}>
+                <Form.Label className='label-style col-form-label'>
+                    漫畫名稱
+                </Form.Label>
+                <Form.Control
+                    type="text"
+                    value={newComic.title}
+                    style={{ marginLeft: '10px' }}
+                />
+            </div>
+        </Form.Group>
+
+        <Form.Group as={Row} className='mb-3'>
+            <div style={{ display: 'flex' }}>
+                <Form.Label className='label-style mb-1 col-form-label'>
+                    漫畫類別
+                </Form.Label>
+                <Form.Control
+                    className="form-select"
+                    value={newComic.category}
+                    style={{ marginLeft: '10px' }}
+                >
+                </Form.Control>
+            </div>
+        </Form.Group>
+
+        <Form.Group className='pb-3'>
+            <div style={{ display: 'flex' }}>
+                <Form.Label className='label-style col-form-label'>
+                    漫畫簡介
+                </Form.Label>
+                <Form.Control
+                    as="textarea"
+                    rows={5}
+                    value={newComic.description}
+                    style={{ marginLeft: '10px' }}
+                />
+            </div>
+        </Form.Group>
+
+        <Form.Group className='pb-3'>
+            <div style={{ display: 'flex' }}>
+                <Form.Label className='label-style mb-1 col-form-label' htmlFor="image">
+                    漫畫封面
+                </Form.Label>
+                <img
+                    src={newComic.imgURL}
+                    alt="Preview"
+                    style={{ width: '60%', maxWidth: '300px', paddingBottom: '3%', marginLeft: '10px' }}
+                />
+            </div>
+        </Form.Group>
+
+        <Form.Group className='pb-4'>
+            <div style={{ display: 'flex' }}>
+                <Form.Label className='label-style mb-1 col-form-label'>漫畫橫向封面</Form.Label>
+                {newComic.coverImg ? (
+                    <img
+                        src={newComic.coverImg}
+                        alt="Preview"
+                        style={{ width: '60%', maxWidth: '300px', paddingBottom: '3%', marginLeft: '10px' }}
+                    />
+                ) : (
+                    <div>
+                        <h3>目前無上傳橫向封面</h3>
+                        <br />
+                    </div>
+                )}
+            </div>
+        </Form.Group>
 
         {/* ) : ( */}
         <Form.Group as={Row} className='mb-2'>
-          <Form.Label>
-            NFT價格
-          </Form.Label>
-          <Form.Control
-            type="number"
-            placeholder="Min 0.01 ETH"
-            step="0.01"
-            min="0.01"
-            value={NFTData.price}
-            onChange={(e) => setNFTData({ ...NFTData, price: e.target.value })}
-          />
+            <Form.Label>
+                NFT價格
+            </Form.Label>
+            <Form.Control
+                type="number"
+                placeholder="Min 0.01 ETH"
+                step="0.01"
+                min="0.01"
+                value={NFTData.price}
+                onChange={(e) => setNFTData({ ...NFTData, price: e.target.value })}
+            />
         </Form.Group>
 
         <Form>
-          <Form.Group as={Row} className='mb-2'>
-            <div style={{ display: 'flex' }}>
-              <Form.Label>
-                IP種類
-              </Form.Label>
-              <Button id="list-button">IP種類對照表</Button>
-            </div>
+            <Form.Group as={Row} className='mb-2'>
+                <div style={{ display: 'flex' }}>
+                    <Form.Label>
+                        IP種類
+                    </Form.Label>
+                    <Button id="list-button">IP種類對照表</Button>
+                </div>
 
-            <Col>
-              {grading.map((name, index) => (
-                  <Form.Check
-                      key={index}
-                      type="checkbox"
-                      id={`category-${index}`}
-                      label={name}
-                      value={name}
-                      onChange={handleCategoryChange}
-                      checked={selectedCategories.includes(name)}
-                  />
-              ))}
-              <Form.Check
-                  type="checkbox"
-                  id="category-other"
-                  label="其他：自行創建"
-                  value="其他：自行創建"
-                  onChange={handleCategoryChange}
-                  checked={selectedCategories.includes('其他：自行創建')}
-              />
-            </Col>
-          </Form.Group>
-          
-          {selectedCategories.map(category => (
-            category !== '其他：自行創建' && (
-              <Form.Group className='mb-4' key={category}>
-                <Form.Label>{category} 權限範圍</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder={`请確認或修改 ${category} 權限範圍`}
-                  value={inputValues[category] || ''}
-                  onChange={(e) => handleInputChange(e, category)}
-                />
-              </Form.Group>
-            )
-          ))}
+                <Col>
+                    {grading.map((name, index) => (
+                        <Form.Check
+                            key={index}
+                            type="checkbox"
+                            id={`category-${index}`}
+                            label={name}
+                            value={name}
+                            onChange={handleCategoryChange}
+                            checked={selectedCategories.includes(name)}
+                        />
+                    ))}
+                    <Form.Check
+                        type="checkbox"
+                        id="category-other"
+                        label="其他：自行創建"
+                        value="其他：自行創建"
+                        onChange={handleCategoryChange}
+                        checked={selectedCategories.includes('其他：自行創建')}
+                    />
+                </Col>
+            </Form.Group>
 
-        {showDescription && (
-          <Form.Group className='mb-4'>
-            <Form.Label>其他：IP名稱</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="請輸入IP名稱"
-              value={inputValues['其他：IP名稱'] || ''}
-              onChange={(e) => handleInputChange(e, '其他：IP名稱')}
-            />
-            <Form.Label>其他：IP敘述</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={5}
-              placeholder="請描述IP的使用權限、範圍等"
-              value={inputValues['其他：IP敘述'] || ''}
-              onChange={(e) => handleInputChange(e, '其他：IP敘述')}
-            />
-          </Form.Group>
-        )}
+            {selectedCategories.map(category => (
+                category !== '其他：自行創建' && (
+                    <Form.Group className='mb-4' key={category}>
+                        <Form.Label>{category} 權限範圍</Form.Label>
+                        <Form.Control
+                            type="text"
+                            placeholder={`请確認或修改 ${category} 權限範圍`}
+                            value={inputValues[category] || ''}
+                            onChange={(e) => handleInputChange(e, category)}
+                        />
+                    </Form.Group>
+                )
+            ))}
+
+            {showDescription && (
+                <Form.Group className='mb-4'>
+                    <Form.Label>其他：IP名稱</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="請輸入IP名稱"
+                        value={inputValues['其他：IP名稱'] || ''}
+                        onChange={(e) => handleInputChange(e, '其他：IP名稱')}
+                    />
+                    <Form.Label>其他：IP敘述</Form.Label>
+                    <Form.Control
+                        as="textarea"
+                        rows={5}
+                        placeholder="請描述IP的使用權限、範圍等"
+                        value={inputValues['其他：IP敘述'] || ''}
+                        onChange={(e) => handleInputChange(e, '其他：IP敘述')}
+                    />
+                </Form.Group>
+            )}
         </Form>
 
         <Form.Group as={Row} className='mb-2'>
-          <Form.Label>
-          發行數量
-          </Form.Label>
+            <Form.Label>
+                發行數量
+            </Form.Label>
             <Form.Control
-              type="number"
-              placeholder="Min 1 Qty"
-              step="1"
-              min="1"
-              value={NFTData.quantity}
-              onChange={(e) => setNFTData({ ...NFTData, quantity: e.target.value })}
+                type="number"
+                placeholder="Min 1 Qty"
+                step="1"
+                min="1"
+                value={NFTData.quantity}
+                onChange={(e) => setNFTData({ ...NFTData, quantity: e.target.value })}
             />
         </Form.Group>
 
         <Form.Group as={Row} className='mt-4 mb-2'>
-          <Form.Label >
-            抽成比例(上限10%)，單位：％
-          </Form.Label>
-          <Form.Control
-              type="number"
-              placeholder="Min 1"
-              step="1"
-              min="1"
-              max="10"
-              value={NFTData.royalty}
-              onChange={(e) => setNFTData({ ...NFTData, royalty: e.target.value })}
+            <Form.Label>
+                抽成比例(上限10%)，單位：％
+            </Form.Label>
+            <Form.Control
+                type="number"
+                placeholder="Min 1"
+                step="1"
+                min="1"
+                max="10"
+                value={NFTData.royalty}
+                onChange={(e) => setNFTData({ ...NFTData, royalty: e.target.value })}
             />
         </Form.Group>
         <div className="text-red-500 text-center">{message}</div>
@@ -412,7 +412,9 @@ const MintNFT = (props) => {
 
         {/* )} */}
     </div>
-  );
+    
+);
+
 };
 
 export default MintNFT;
