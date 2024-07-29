@@ -4,23 +4,37 @@ import { Container, Carousel, Card, Col, Row, Button, Dropdown, Figure, Table, B
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
 import BootstrapTable from 'react-bootstrap-table-next';
+import comicData from '../contracts/ComicPlatform.json';
+import Web3 from 'web3';
 import axios from 'axios';
-import { sortByTimestamp } from '../index';
+import { sortByTimestamp, getTransactionTimestamp, disableAllButtons, enableAllButtons } from '../index';
 
 function ComicDetail() {
+    const [web3, setWeb3] = useState(null);
+    const [web3Instance, setWeb3Instance] = useState('');
     const [comic, setComic] = useState([]);
     const [similComic, setSimilComic] = useState([]);
     const [chapters, setChapters] = useState([]);
     const { comicID } = useParams();
     const [loading, setLoading] = useState(true);
+    const [isFavorited, setIsFavorited] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const fetchedData = [];
+    const buttonData = [
+        '開始閱讀', '收藏'
+    ];
     let temp = [];
     let chapterInfo = [];
 
     const initData = async () => {
         try {
+            const web3 = new Web3(window.ethereum);
+            setWeb3(web3);
+            const contractInstance = new web3.eth.Contract(comicData.abi, comicData.address);
+            setWeb3Instance(contractInstance);
+
             const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists === 1) {
@@ -51,6 +65,7 @@ function ComicDetail() {
                     }
                 }
             }
+            //console.log(temp);
             setComic(temp);
 
             for (let i = 0; i < storedArray.length; i++) {
@@ -76,23 +91,29 @@ function ComicDetail() {
             try {
                 const response = await axios.get('http://localhost:5000/api/comicDetail', {
                     params: {
-                    comicHash: temp[0].comicHash,
-                    currentAccount: currentAccount
+                        comicHash: temp[0].comicHash,
+                        currentAccount: currentAccount
                     }
                 });
                 let chapters = response.data;
                 sortByTimestamp(chapters);
 
-                for (let i = 0; i < chapters.length; i++) {
-                    if (chapters[i].creator == currentAccount) {
-                        chapters[i].isBuying = '閱讀';
-                    } else if (chapters[i].isBuying !== null) {
-                        chapters[i].isBuying = '閱讀';
+                chapters = chapters.map((chapter, index) => {
+                    let isBuying;
+                    if (chapter.creator === currentAccount) {
+                        isBuying = '閱讀';
+                    } else if (chapter.isBuying !== null) {
+                        isBuying = '閱讀';
                     } else {
-                        chapters[i].isBuying = '購買';
+                        isBuying = '購買';
                     }
-                }
-                //console.log(chapters);
+                    return {
+                        ...chapter,
+                        chapterID: `chapter${index + 1}`,
+                        isBuying
+                    };
+                });
+                console.log(chapters);
                 setChapters(chapters);
 
                 let lastChapterInfo = chapters[chapters.length - 1];
@@ -101,6 +122,20 @@ function ComicDetail() {
                 });
                 setComic(updatedComic);
                 //console.log(updatedComic);
+            } catch (error) {
+                console.error('Error fetching records:', error);
+            }
+
+            // 資料庫查詢收藏狀態
+            try {
+                const response = await axios.get('http://localhost:5000/api/comicDetail/isFavorited', {
+                    params: {
+                        currentAccount: currentAccount,
+                        comicHash: temp[0].comicHash
+                    }
+                });
+                //console.log(response.data.isFavorited);
+                setIsFavorited(response.data.isFavorited);
             } catch (error) {
                 console.error('Error fetching records:', error);
             }
@@ -114,18 +149,21 @@ function ComicDetail() {
         initData();
     }, [comicID]);
 
-    const buttonData = [
-        '開始閱讀', '收藏'
-    ];
-
-    
-    const [isFavorited, setIsFavorited] = useState(false); // 初始狀態為為收藏
-
-    const handleFavoriteClick = () => {
+    const handleFavoriteClick = async () => {
         setIsFavorited(!isFavorited); // 切換收藏狀態
+        try {
+            const response = await axios.put('http://localhost:5000/api/update/comicDetail/favorite', null, {
+              params: {
+                currentAccount: currentAccount,
+                comicHash: comic[0].comicHash,
+                bool: !isFavorited
+              },
+            });
+        } catch (error) {
+            console.error('Error handleFavoriteClick', error);
+        }
     };
 
-    const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // 每頁顯示的章節數量
     const totalPages = Math.ceil(chapters.length / itemsPerPage);
 
@@ -199,6 +237,76 @@ function ComicDetail() {
         return pageItems;
     };
 
+    // 章節購買 或 閱讀函數
+    const handlePurchase = async (chapterId) => {
+        const chapter = currentChapters[chapterId]; // 使用傳遞進來的索引值來訪問章節資料
+        const operationValue = chapter.isBuying;
+
+        if (operationValue === '閱讀') {
+        window.location.href = `/comicRead/${comicID}/${chapter.chapterID}`;
+        } else {
+        try {
+            disableAllButtons();
+            let balance = await web3.eth.getBalance(currentAccount);
+            balance = balance.toString() / 1e18;
+            let price = chapter.price;
+            if (balance > price) {
+                const comicHash = comic[0].comicHash;
+                const chapterHash = chapter.chapterHash;
+                console.log(comicHash);
+                console.log(chapterHash);
+                console.log(price);
+                price = web3.utils.toWei(price, 'ether');
+
+                let gasEstimate = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, price/10).estimateGas({
+                    from: currentAccount,
+                    value: price,
+                });
+                const transaction = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, gasEstimate).send({
+                    from: currentAccount,
+                    value: price,
+                    gas: gasEstimate
+                });
+                const transactionHash = transaction.transactionHash;
+                let Timestamp = await getTransactionTimestamp(transactionHash);
+
+                const author = comic[0].author === '您是本作品的創作者!' ? currentAccount : comic[0].author;
+                const formData = new FormData();
+                formData.append('hash', transactionHash);
+                formData.append('comic_id', comicHash);
+                formData.append('chapter_id', chapterHash);
+                formData.append('buyer', currentAccount);
+                formData.append('creator', author);
+                formData.append('purchase_date', Timestamp);
+                formData.append('price', chapter.price);
+                try {
+                    const response = await axios.post('http://localhost:5000/api/add/records', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                    });
+                    alert('章節購買成功！');
+                    const updatedChapters = [...currentChapters];
+                    updatedChapters[chapterId].isBuying = '閱讀'; // 更新章節的購買狀態
+                    setChapters(updatedChapters);
+                } catch (error) {
+                    console.error('購買紀錄添加至資料庫時發生錯誤：', error);
+                }
+            } else {
+                console.log('餘額不足');
+                alert('餘額不足');
+            }
+        } catch (error) {
+            console.error('章節購買時發生錯誤：', error);
+            alert(error);
+            window.location.reload();
+        } finally {
+            enableAllButtons();
+        }
+        }
+    };
+
+
     return (
         <div>
             {!loading &&
@@ -269,7 +377,7 @@ function ComicDetail() {
                                             <td className='text-center'>{chapter.title}</td>
                                             <td className='text-center'>{chapter.price}</td>
                                             <td className='text-center'>
-                                                <button className="btn" value={chapter.isBuying}>{chapter.isBuying}</button>
+                                                <button onClick={() => handlePurchase(index)} className="btn" value={chapter.isBuying}>{chapter.isBuying}</button>
                                             </td>
                                         </tr>
                                     ))}

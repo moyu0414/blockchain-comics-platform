@@ -959,6 +959,13 @@ a:link{
   min-width: 1300px;
 }
 
+.purchaseHistory thead th {
+  font-weight: 900;
+  padding: 1% 0;
+  border: none !important;
+  background-color: rgba(251, 198, 4, 0.4);
+}
+
 /* 讀者 */
 .reader-container{
   margin-bottom: 6%;
@@ -1313,6 +1320,9 @@ a:link{
   border-radius: 40px 40px 0 0;
   border: 2px solid #000;
   border-bottom: 1px solid #000;
+  aspect-ratio: 3 / 2; /* 設定 3:2 比例 */
+  object-fit: cover; /* 保持比例，顯示中間部分 */
+  
 }
 
 .simple-text {
