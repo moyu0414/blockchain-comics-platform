@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from "react-router-dom";
 import { Container, Col, Row, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
-import './bootstrap.min.css';
-import { HouseDoor, Grid, Cart, Person, Book } from 'react-bootstrap-icons';
+import './bootstrap.min.css';import { HouseDoor, Grid, Cart, Person, Book } from 'react-bootstrap-icons';
 import BootstrapTable from 'react-bootstrap-table-next';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
@@ -184,7 +183,7 @@ function DeleteChapter() {
                             <Col className=''>
                                 <div className='d-flex justify-content-between align-items-center'>
                                     <h3 className='fw-bold mb-0'>章節目錄</h3>
-                                    <p className='text-end mb-0'>查看全部章節</p>
+                                    <p className='btn'>刪除本漫畫</p>
                                 </div>
                                 <hr/>
                             </Col>
@@ -199,16 +198,7 @@ function DeleteChapter() {
                                                 <td className='text-center'>{chapter.title}</td>
                                                 <td className='text-center'>{chapter.price}</td>
                                                 <td className='text-center'>
-                                                    <Link
-                                                        to={"/editWork"}
-                                                        state={{
-                                                            showChapterForm: true,
-                                                            comicID: comic.length > 0 ? comic[0].comicID : null,
-                                                            chapterID: chapters.length > 0 ? chapter.chapterID : null
-                                                        }}
-                                                    >
-                                                        <button className="btn">編輯</button>
-                                                    </Link>
+                                                    <button className="btn">刪除</button>
                                                 </td>
                                             </tr>
                                         ))}
