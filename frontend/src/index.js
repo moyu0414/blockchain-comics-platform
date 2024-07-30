@@ -22,6 +22,7 @@ import CollectionNft from './routes/collectionNft';
 import CreatorNft from './routes/creatorNft';
 import ReaderPage from './routes/readerPage';
 import Bookcase from './routes/bookcase';
+import BecomeWriter from './routes/becomeWriter';
 import Analysis from './routes/analysis';
 import Dual from './routes/dual';
 import CreateWork from './routes/createWork';
@@ -39,6 +40,9 @@ import ComicManagement from './routes/comicManagement';
 import AccountManagement from './routes/accountManagement';
 import MintNFT from './routes/mintNFT';
 import MessagePage from './routes/messagePage';
+import VerifyPage from './routes/verifyPage';
+import SearchPage from './routes/searchPage';
+import VerifySuccess from './routes/verifySuccess';
 import NftMarket from './routes/nftMarket';
 import NftDetail from './routes/nftDetail';
 import Web3 from 'web3';
@@ -331,7 +335,19 @@ const router = createBrowserRouter([
       },{
         path: "/collectionNft",
         element: <CollectionNft />,
-      }
+      },{
+        path: "/becomeWriter",
+        element: <BecomeWriter />,
+      },{
+        path: "/verifyPage",
+        element: <VerifyPage />,
+      },{
+        path: "/verifySuccess",
+        element: <VerifySuccess />,
+      },{
+        path: "/searchPage",
+        element: <SearchPage />,
+      },
     ],
   },
 ]);

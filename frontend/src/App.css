@@ -11,6 +11,12 @@ body{
   padding-bottom: 8%;
 }
 
+@media only screen and (max-width: 768px) {
+  body{
+    padding-bottom: 30%;
+  }
+}
+
 .no-padding-bottom {
   padding-bottom: 0!important;
 }
@@ -1974,4 +1980,198 @@ a:link{
     top: calc(50% - 40px); 
     width: 12%!important;
   }
+}
+
+/* becomeWriter */
+
+.becomeWriter {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 68.7vh; /* 使容器至少佔滿整個視窗高度 */
+}
+
+.becomeWriter h2{
+  color: rgba(6, 157, 103, 0.89);
+  font-size: 37px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.becomeWriter h3{
+  color: rgba(0, 0, 0, 0.82);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.becomeWriter h4{
+  color: rgba(0, 0, 0, 0.82);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.becomeWriter .btn{
+  margin-top: 2%;
+  width: 40%;
+  height: 45px;
+  background-color: #F6B93B;
+  color: rgba(0, 0, 0, 0.82);
+  font-weight: 900;
+  border: 1px #000 solid;
+  border-radius: 15px;
+}
+
+/* verifyPage */
+.verifyPage{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  min-height: 68.7vh;
+}
+
+.verifyPage .mail-btn{
+  border-radius:0;
+  background-color: #474646;
+}
+
+.verification{
+  margin-top:10%;
+}
+
+.verifyPage .verify-btn{
+  margin-top: 2%;
+  width: 40%;
+  height: 45px;
+  background-color: #F6B93B;
+  color: rgba(0, 0, 0, 0.82);
+  font-weight: 900;
+  border: 1px #000 solid;
+  border-radius: 15px;
+}
+
+.verification-code-inputs{
+  display: flex;
+  justify-content: start;
+}
+
+.verification-code-input{
+  text-align: center; 
+  font-size: 32px;
+  width: 15%;
+  height: 10vh;
+  border-radius: 5px;
+  display: inline-block;
+  margin: 0 1%;
+}
+
+.verification-btn-section{
+  display: flex;
+  justify-content: center;
+}
+
+/* verifySuccess */
+
+.verifySuccess {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 68.7vh; /* 使容器至少佔滿整個視窗高度 */
+}
+
+.verifySuccess h2{
+  color: rgba(6, 157, 103, 0.89);
+  font-size: 33px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.verifySuccess h4{
+  color: rgba(0, 0, 0, 0.82);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.verifySuccess .btn{
+  margin-top: 2%;
+  width: 50%;
+  height: 45px;
+  background-color: #F6B93B;
+  color: rgba(0, 0, 0, 0.82);
+  font-weight: 900;
+  border: 1px #000 solid;
+  border-radius: 15px;
+}
+
+/* searchPage */
+
+.searchPage h4{
+  font-weight: bold;
+  font-size: 20px;
+  color: #504949;
+}
+
+.searchPage .btn-section{
+  margin: 0;
+}
+
+.searchPage .btn{
+  background-color: rgba(6, 157, 103, 0.89);
+  width: 100%;
+  border: 3px #000 solid;
+}
+
+.searchPage .card {
+  position: relative; 
+}
+
+.searchPage .card .position-relative {
+  position: relative; 
+  width: 100%;
+  aspect-ratio: 21 / 9; 
+  overflow: hidden;
+  border-radius: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.3);
+}
+
+.position-relative img{
+  border-radius: 25px;
+}
+
+.searchPage .card .category-title {
+  position: absolute; 
+  bottom: 30px; 
+  left: 0; 
+  color: #fff;
+  padding: 10px; 
+  width: 100%; 
+  text-align: left;
+  font-size: 35px; 
+  font-weight: bold;
+}
+
+.searchPage .card .category-content {
+  position: absolute; 
+  bottom: 0;
+  left: 0;
+  color: #fff; 
+  padding: 10px;
+  width: 100%; 
+  text-align: left;
+  font-size: 16px; 
+  font-weight: bold;
+}
+
+.searchPage .card .category-overlay:first-of-type {
+  margin-bottom: 20px;
 }
