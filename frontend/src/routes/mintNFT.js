@@ -103,7 +103,6 @@ const MintNFT = (props) => {
     }
   };
 
-
   async function disableButton() {
     const listButton = document.getElementById("list-button")
     listButton.disabled = true
@@ -369,8 +368,7 @@ const MintNFT = (props) => {
                     />
                     <Form.Label>其他：IP敘述</Form.Label>
                     <Form.Control
-                        as="textarea"
-                        rows={5}
+                        type="text"
                         placeholder="請描述IP的使用權限、範圍等"
                         value={inputValues['其他：IP敘述'] || ''}
                         onChange={(e) => handleInputChange(e, '其他：IP敘述')}

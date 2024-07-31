@@ -86,13 +86,15 @@ function NftDetail() {
     }, [currentAccount]);
 
     const parseAuthorizations = (text) => {
-        const lines = text.trim().split('\n');
+        text = text.trim();
+        const lines = text.includes('\n') ? text.split('\n') : [text];
         return lines.map(line => {
-          const [name, description] = line.split(':');
-          return {
-            name: name.trim(),
-            description: description.trim(),
-          };
+            const [name, ...descriptionParts] = line.split(':');
+            const description = descriptionParts.join(':').trim();
+            return {
+                name: name.trim(),
+                description,
+            };
         });
     };
 

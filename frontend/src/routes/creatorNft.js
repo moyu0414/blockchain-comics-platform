@@ -18,27 +18,26 @@ function CreatorNft() {
     let allRecord = [];
     let currentComic = [];
     let purchased = [];
-    let CountComicHash = {};
+    let CountComicDetails = {};
     let comicStats = {};
 
     const initData = async () => {
         const web3 = new Web3(window.ethereum);
         const contract = new web3.eth.Contract(comicData.abi, comicData.address);
-        //console.log(contract);
         const totCount = await contract.methods.tokenCounter().call();
         
-
         // 获取 NFT 数据
         for (let i = 0; i < totCount; i++) {
             const data = await contract.methods.nfts(i).call();
             if (data.minter.toLowerCase() === currentAccount) {
                 let price = data.price.toString() / 1e18;
                 let tokenId = `tokenId${data.tokenId.toString()}`;
+                const keyData = `${data.comicHash}-${price}-${data.royalty}-${data.description || ""}`;
                 allRecord.push({
                     tokenId: tokenId,
                     comicHash: data.comicHash,
-                    forSale: data.forSale,
-                    royalty: data.royalty.toString()
+                    //royalty: data.royalty.toString(),
+                    keyData: keyData
                 });
                 if (!data.forSale) {  // 已售出的 NFT
                     purchased.push({
@@ -48,28 +47,33 @@ function CreatorNft() {
                         royalty: data.royalty.toString()
                     });
                 }
-                if (!comicStats[data.comicHash]) {
-                    comicStats[data.comicHash] = { tot: 0, sale: 0 };
+                const uniqueKey = `${data.comicHash}-${price}-${data.royalty}-${data.description || ""}`;
+                if (!comicStats[uniqueKey]) {
+                    comicStats[uniqueKey] = { tot: 0, sale: 0 };
                 }
-                comicStats[data.comicHash].tot += 1;
+                comicStats[uniqueKey].tot += 1;
                 if (!data.forSale) {
-                    comicStats[data.comicHash].sale += 1;
+                    comicStats[uniqueKey].sale += 1;
                 }
             }
         }
+        //console.log(allRecord);
+
         for (const data of allRecord) {
-            if (!CountComicHash[data.comicHash]) {
-                CountComicHash[data.comicHash] = true;
+            const key = data.keyData;
+            if (!CountComicDetails[key]) {
+                CountComicDetails[key] = true;
                 currentComic.push({
                     tokenId: data.tokenId,
                     comicHash: data.comicHash,
-                    forSale: data.forSale,
-                    royalty: data.royalty.toString(),
-                    totQty: comicStats[data.comicHash]?.tot || 0,
-                    saleQty: comicStats[data.comicHash]?.sale || 0
+                    //royalty: data.royalty.toString(),
+                    totQty: (comicStats[key]?.tot || 0),
+                    saleQty: (comicStats[key]?.sale || 0)
                 });
             }
         }
+        //console.log(currentComic);
+
         const comicMap = new Map(storedArray.map(comic => [comic.comicHash, comic]));
         for (const data of currentComic) {
             const comic = comicMap.get(data.comicHash);

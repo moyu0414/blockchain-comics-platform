@@ -26,8 +26,11 @@ function NftMarket() {
     let records = [];
     let temp = [];
     const comicHashMap = {};
+    const uniqueKeyData = new Set();  // 用于存储已处理的 keyData
     const addedOriginals = new Set();  // 使用 Set 来追蹤已经添加的原创的 comicHash
     let comicStats = {};
+    let CountComicDetails = {};
+
 
     const initData = async () => {
         const web3 = new Web3(window.ethereum);
@@ -37,19 +40,22 @@ function NftMarket() {
             const data = await contract.methods.nfts(i).call();
             let price = data.price.toString() / 1e18;
             let tokenId = `tokenId${data.tokenId.toString()}`;
+            const keyData = `${data.comicHash}-${price}-${data.royalty}-${data.description || ""}`;
             records.push({
                 tokenId: tokenId,
                 comicHash: data.comicHash,
                 description: data.description,
                 forSale: data.forSale,
                 price: price,
+                keyData: keyData
             });
-            if (!comicStats[data.comicHash]) {
-                comicStats[data.comicHash] = { tot: 0, sale: 0 };
+            const uniqueKey = `${data.comicHash}-${price}-${data.royalty}-${data.description || ""}`;
+            if (!comicStats[uniqueKey]) {
+                comicStats[uniqueKey] = { tot: 0, sale: 0 };
             }
-            comicStats[data.comicHash].tot += 1;
+            comicStats[uniqueKey].tot += 1;
             if (!data.forSale) {
-                comicStats[data.comicHash].sale += 1;
+                comicStats[uniqueKey].sale += 1;
             }
         }
         records.forEach(record => {
@@ -58,6 +64,7 @@ function NftMarket() {
             }
             comicHashMap[record.comicHash][record.forSale].push(record);
         });
+
         storedArray.forEach(stored => {
             if (stored.exists === 1) {
                 const image = `http://localhost:5000/api/comicIMG/${stored.filename}`;
@@ -76,22 +83,22 @@ function NftMarket() {
                             isFanCreation: "轉售",
                         });
                     });
-                    if (!addedOriginals.has(comicHash)) {
-                        const originalRecord = availableRecords.true[0]; // 只取第一个
-                        if (originalRecord) {
+                    availableRecords.true.forEach(record => {
+                        const { keyData, comicHash, description, tokenId } = record;
+                        if (!uniqueKeyData.has(keyData)) {
                             temp.push({
                                 title: stored.title,
-                                description: originalRecord.description,
+                                description: description,
                                 image: protoFilename,
-                                tokenId: originalRecord.tokenId,
-                                comicHash: originalRecord.comicHash,
+                                tokenId: tokenId,
+                                comicHash: comicHash,
                                 isFanCreation: "原創",
-                                totQty: comicStats[comicHash].tot,
-                                saleQty: comicStats[comicHash].sale
+                                totQty: comicStats[keyData]?.tot || 0,
+                                saleQty: comicStats[keyData]?.sale || 0
                             });
-                            addedOriginals.add(comicHash); // 标记已添加
+                            uniqueKeyData.add(keyData);  // 标记 keyData 已经处理
                         }
-                    }
+                    });
                 }
             }
         });
@@ -132,12 +139,13 @@ function NftMarket() {
     }, []);
 
     const parseAuthorizations = (text) => {
-        const lines = text.trim().split('\n');
+        text = text.trim();
+        const lines = text.includes('\n') ? text.split('\n') : [text];
         return lines.map(line => {
-          const [name] = line.split(':');
-          return {
-            name: name.trim(),
-          };
+            const [name] = line.split(':');
+            return {
+                name: name.trim(),
+            };
         });
     };
 
@@ -147,7 +155,7 @@ function NftMarket() {
 
     const filteredMaterials = Object.values(material).filter(data => {
         if (selectedGrading === '其他') {
-            return !data.names.some(name => grading.includes(name));
+            return data.names.some(name => !grading.includes(name));
         } else {
             return data.names.includes(selectedGrading);
         }

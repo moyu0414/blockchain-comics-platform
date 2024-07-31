@@ -83,9 +83,11 @@ function ReaderPage() {
     ];
 
     const pathMap = {
-        '收益分析': '/analysis',
-        'NFT專區': '/creatorNft',
-        '管理漫畫': '/manageComic'
+        '我的收藏': '/collectionPage',
+        '我的購買': '/purchaseHistory',
+        '我的訊息': '/messagePage',
+        'NFT收藏': '/collectionNft',
+        '成為作家': '/becomeWriter'
     };
     
 
