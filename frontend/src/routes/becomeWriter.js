@@ -3,6 +3,10 @@ import { Container, Row, Col, Button, Image } from 'react-bootstrap';
 import HandImage from '../image/hand.png';
 
 const BecomeWriter = () => {
+  const handleClick = () => {
+    window.location.replace("/verifyPage");
+  };
+
   return (
     <Container className='becomeWriter'>
       <Row className="justify-content-center text-center w-100">
@@ -20,7 +24,7 @@ const BecomeWriter = () => {
             <h4>為了保障我們的讀者與創作者</h4>
             <h4>我們需要進行一些驗證</h4>
           </div>
-          <Button variant="primary">開始驗證</Button>
+          <Button onClick={handleClick} variant="primary">開始驗證</Button>
         </Col>
       </Row>
     </Container>

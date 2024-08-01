@@ -141,14 +141,22 @@ function NftDetail() {
     const handlePurchase = async () => {
         if (NFT[0].owner !== '您擁有此NFT!' && NFT[0].author !== '您是本作品創作者!') {
             try {
-                let id = tokenId.replace("tokenId", "");
-                let price = web3.utils.toWei(NFT[0].price, 'ether');
-                await web3Instance.methods.purchaseNFT(id).send({from: currentAccount, value: price,});
-           
-                alert('NFT 購買成功！');
-                const updatedNFT = [...NFT];
-                updatedNFT[0].owner = '您擁有此NFT!'; // 更新購買狀態
-                setNFT(updatedNFT);
+                let balance = await web3.eth.getBalance(currentAccount);
+                balance = balance.toString() / 1e18;
+                let price = NFT[0].price;
+                if (balance > price) {
+                    let id = tokenId.replace("tokenId", "");
+                    price = web3.utils.toWei(price, 'ether');
+                    await web3Instance.methods.purchaseNFT(id).send({from: currentAccount, value: price,});
+            
+                    alert('NFT 購買成功！');
+                    const updatedNFT = [...NFT];
+                    updatedNFT[0].owner = '您擁有此NFT!'; // 更新購買狀態
+                    setNFT(updatedNFT);
+                } else {
+                    console.log('餘額不足');
+                    alert('餘額不足');
+                }
             } catch (error) {
                 console.error('購買NFT發生錯誤：', error);
                 alert(error);

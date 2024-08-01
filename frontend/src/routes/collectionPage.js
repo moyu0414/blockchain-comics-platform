@@ -7,6 +7,8 @@ import axios from 'axios';
 
 function CollectionPage() {
     const [comic, setComic] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [beingComic, setBeingComic] = useState(true);
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     let temp = [];
@@ -33,6 +35,10 @@ function CollectionPage() {
                 }));
                 console.log(temp);
                 setComic(temp);
+                if (temp.length === 0) {
+                    setBeingComic(false);
+                }
+                setLoading(false);
             } catch (error) {
                 console.error('Error initializing comic:', error);
             }
@@ -48,25 +54,39 @@ function CollectionPage() {
 
     return (
         <>
-            <Container className='creatorPage'>
-                <Row xs={1} md={2} className="g-4 pb-5">
-                    {comic.map((data, idx) => (
-                        <Col key={idx} xs={4} md={3} className="pt-3">
-                            <Link to={`/comicDetail/${data.comicID}`}>
-                                <Card>
-                                    <div className="position-relative">
-                                        <Card.Img variant="top" src={data.image} />
-                                        <div className="category-overlay">{data.category}</div>
-                                    </div>
-                                    <Card.Body>
-                                        <Card.Title className='text-center'>{data.title}</Card.Title>
-                                    </Card.Body>
-                                </Card>
-                            </Link>
-                        </Col>
-                    ))}
-                </Row>
-            </Container>
+            {!loading ? (
+                <Container className='creatorPage'>
+                    <Row className='pt-5'>
+                        <h3 className="fw-bold">已收藏漫畫</h3>
+                    </Row>
+                    {!beingComic &&  
+                        <Row className='pt-5 justify-content-center'>
+                            <h1 className="fw-bold text-center">目前尚未收藏漫畫!</h1>
+                        </Row>
+                    }
+                    <Row xs={1} md={2} className="g-4 pb-5">
+                        {comic.map((data, idx) => (
+                            <Col key={idx} xs={4} md={3} className="pt-3">
+                                <Link to={`/comicDetail/${data.comicID}`}>
+                                    <Card>
+                                        <div className="position-relative">
+                                            <Card.Img variant="top" src={data.image} />
+                                            <div className="category-overlay">{data.category}</div>
+                                        </div>
+                                        <Card.Body>
+                                            <Card.Title className='text-center'>{data.title}</Card.Title>
+                                        </Card.Body>
+                                    </Card>
+                                </Link>
+                            </Col>
+                        ))}
+                    </Row>
+                </Container>
+            ) : (
+                <div className="loading-container">
+                <div>頁面加載中，請稍後...</div>
+                </div>
+            )}
         </>
     );
 }

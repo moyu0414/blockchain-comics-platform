@@ -175,16 +175,8 @@ function Navigation() {
                             </Offcanvas.Header>
                             <Offcanvas.Body>
                                 <Nav className="me-auto">
-                                    <NavDropdown
-                                        title="創作者專區"
-                                        id={`offcanvasNavbarDropdown-expand-${expand}`}
-                                    >
-                                        <NavDropdown.Item href="#action3">Action</NavDropdown.Item>
-                                        <NavDropdown.Item href="#action4">Another action</NavDropdown.Item>
-                                        <NavDropdown.Divider />
-                                        <NavDropdown.Item href="#action5">Something else here</NavDropdown.Item>
-                                    </NavDropdown>
-                                    <Nav.Link href="#action1">我的訊息</Nav.Link>
+                                    <Nav.Link href="/creatorPage">創作者專區</Nav.Link>
+                                    <Nav.Link href="/readerPage">讀者專區</Nav.Link>
                                 </Nav>
                                 {/* 登入區塊 */}
                                 <Col className={`log-in-area ${expanded ? 'vertical-layout' : 'horizontal-layout'}`}>

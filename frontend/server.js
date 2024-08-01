@@ -203,7 +203,7 @@ app.get('/api/creator/records', (req, res) => {
 app.get('/api/reader/records', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const query = `
-    SELECT comics.title AS comicTitle, comics.comic_id AS comicHash, chapters.title AS chapterTitle
+    SELECT comics.title AS comicTitle, chapters.title AS chapterTitle, records.purchase_date, records.price
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
     INNER JOIN comics ON chapters.comic_id = comics.comic_id

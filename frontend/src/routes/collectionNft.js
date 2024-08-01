@@ -9,6 +9,7 @@ import comicData from '../contracts/ComicPlatform.json';
 function CollectionNft() {
     const [NFT, setNFT] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [beingNFT, setBeingNFT] = useState(true);
     const currentAccount = localStorage.getItem("currentAccount");
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
@@ -54,6 +55,9 @@ function CollectionNft() {
             }
             console.log(records);
             setNFT(records);
+            if (records.length === 0) {
+                setBeingNFT(false);
+            }
             setLoading(false);
         } catch (error) {
             console.error('Error fetching records:', error);
@@ -82,8 +86,13 @@ function CollectionNft() {
                 <>
                 <Container className='creatorNft'>
                     <Row className='pt-5'>
-                    <h3 className="fw-bold">已收藏NFT</h3>
+                        <h3 className="fw-bold">已收藏NFT</h3>
                     </Row>
+                    {!beingNFT &&  
+                        <Row className='pt-5 justify-content-center'>
+                            <h1 className="fw-bold text-center">目前尚未收藏NFT!</h1>
+                        </Row>
+                    }
                     <Row className='pt-1 pb-5'>
                         {NFT.map((data, index) => (
                             <Col xs={4} md={3} className="pt-3" key={index}>
