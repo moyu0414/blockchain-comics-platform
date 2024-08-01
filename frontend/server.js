@@ -316,15 +316,24 @@ app.get('/api/comicDetail', (req, res) => {
 app.get('/api/bookcase', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const query = `
-    SELECT comics.title, comics.filename, comics.create_timestamp, COALESCE(ranked_records.purchase_date, '') AS purchase_date
+    SELECT 
+      comics.comic_id AS comicHash, 
+      comics.title, 
+      comics.filename, 
+      comics.create_timestamp, 
+      ranked_records.purchase_date
     FROM comics
     LEFT JOIN (
-      SELECT records.comic_id, MAX(records.purchase_date) AS purchase_date
+      SELECT 
+        records.comic_id, 
+        MAX(records.purchase_date) AS purchase_date
       FROM records
       WHERE records.buyer = ?
       GROUP BY records.comic_id
-    ) AS ranked_records ON comics.comic_id = ranked_records.comic_id
+    ) AS ranked_records 
+    ON comics.comic_id = ranked_records.comic_id
     WHERE comics.is_exist = 1
+      AND ranked_records.purchase_date IS NOT NULL
     ORDER BY comics.create_timestamp ASC
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
@@ -429,7 +438,7 @@ app.get('/api/category/updateComic', (req, res) => {
 app.get('/api/category/updateFavorite', (req, res) => {
   const currentCategory = req.query.currentCategory;
   const query = `
-    SELECT user.address, user.collectComic, comics.comic_id
+    SELECT user.collectComic, comics.comic_id
     FROM user
     INNER JOIN comics ON user.address = comics.creator
     WHERE comics.category = ? AND comics.is_exist = 1

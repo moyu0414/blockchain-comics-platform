@@ -1782,6 +1782,26 @@ a:link{
   overflow: hidden; 
 }
 
+/* bookcase */
+.bookcase-overlay {
+  position: relative;
+  text-align: center;
+  bottom: 30px;
+  right: 0px;
+  background: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+  color: #fff; /* 白色文字 */
+  padding: 5px 10px; /* 内边距 */
+  font-size: 0.8rem; /* 字体大小 */
+  z-index: 1; /* 确保悬浮在图片上方 */
+}
+
+.bookcase-text {
+  position: relative;
+  text-align: center;
+  bottom: 30px;
+  right: 0px;
+}
+
 /* 關閉按鈕 */
 .overlay-close {
   position: absolute;

@@ -15,7 +15,6 @@ const ComicRead = () => {
     const [lastScrollTop, setLastScrollTop] = useState(0);
     const [showOverlay, setShowOverlay] = useState(false);
     const [comic, setComic] = useState([]);
-    const [similComic, setSimilComic] = useState([]);
     const [allChapters, setAllChapters] = useState([]);
     const [chapter, setChapter] = useState([]);
     const { comicID, chapterID } = useParams();
@@ -24,6 +23,10 @@ const ComicRead = () => {
     const itemsPerPage = 10; // 每頁顯示的章節數量
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
+    const [readingProgress, setReadingProgress] = useState(() => {
+        const savedProgress = localStorage.getItem('readingProgress');
+        return savedProgress ? JSON.parse(savedProgress) : {};
+    });
     const fetchedData = [];
     let temp = [];
     let read = [];
@@ -138,6 +141,11 @@ const ComicRead = () => {
 
     useEffect(() => {
         initData();
+        setReadingProgress((prevProgress) => {
+            const newProgress = { ...prevProgress, [comicID]: chapterID };
+            localStorage.setItem('readingProgress', JSON.stringify(newProgress));
+            return newProgress;
+        });
     }, [comicID, chapterID]);
 
     // 章節購買 或 閱讀函數
