@@ -9,6 +9,8 @@ function CreatorNft() {
     const [comic, setComic] = useState([]);
     const [saleNFT, setSaleNFT] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [beingNFT, setBeingNFT] = useState(true);
+    const [isSale, setIsSale] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // 每頁顯示的收益數量
     const currentAccount = localStorage.getItem("currentAccount");
@@ -18,27 +20,28 @@ function CreatorNft() {
     let allRecord = [];
     let currentComic = [];
     let purchased = [];
-    let CountComicHash = {};
+    let CountComicDetails = {};
     let comicStats = {};
 
     const initData = async () => {
         const web3 = new Web3(window.ethereum);
         const contract = new web3.eth.Contract(comicData.abi, comicData.address);
-        //console.log(contract);
         const totCount = await contract.methods.tokenCounter().call();
-        
-
         // 获取 NFT 数据
         for (let i = 0; i < totCount; i++) {
             const data = await contract.methods.nfts(i).call();
             if (data.minter.toLowerCase() === currentAccount) {
                 let price = data.price.toString() / 1e18;
                 let tokenId = `tokenId${data.tokenId.toString()}`;
+                const descTitle = parseAuthorizations(data.description);
+                const firstName = descTitle[0]?.name || '';
+                const keyData = `${data.comicHash}-${price}-${data.royalty}-${data.description || ""}`;
                 allRecord.push({
                     tokenId: tokenId,
                     comicHash: data.comicHash,
-                    forSale: data.forSale,
-                    royalty: data.royalty.toString()
+                    firstName: firstName,
+                    //royalty: data.royalty.toString(),
+                    keyData: keyData
                 });
                 if (!data.forSale) {  // 已售出的 NFT
                     purchased.push({
@@ -48,34 +51,44 @@ function CreatorNft() {
                         royalty: data.royalty.toString()
                     });
                 }
-                if (!comicStats[data.comicHash]) {
-                    comicStats[data.comicHash] = { tot: 0, sale: 0 };
+                const uniqueKey = `${data.comicHash}-${price}-${data.royalty}-${data.description || ""}`;
+                if (!comicStats[uniqueKey]) {
+                    comicStats[uniqueKey] = { tot: 0, sale: 0 };
                 }
-                comicStats[data.comicHash].tot += 1;
+                comicStats[uniqueKey].tot += 1;
                 if (!data.forSale) {
-                    comicStats[data.comicHash].sale += 1;
+                    comicStats[uniqueKey].sale += 1;
                 }
             }
         }
+        //console.log(allRecord);
+
         for (const data of allRecord) {
-            if (!CountComicHash[data.comicHash]) {
-                CountComicHash[data.comicHash] = true;
+            const key = data.keyData;
+            if (!CountComicDetails[key]) {
+                CountComicDetails[key] = true;
                 currentComic.push({
                     tokenId: data.tokenId,
                     comicHash: data.comicHash,
-                    forSale: data.forSale,
-                    royalty: data.royalty.toString(),
-                    totQty: comicStats[data.comicHash]?.tot || 0,
-                    saleQty: comicStats[data.comicHash]?.sale || 0
+                    firstName: data.firstName,
+                    //royalty: data.royalty.toString(),
+                    totQty: (comicStats[key]?.tot || 0),
+                    saleQty: (comicStats[key]?.sale || 0)
                 });
             }
         }
+        //console.log(currentComic);
+
         const comicMap = new Map(storedArray.map(comic => [comic.comicHash, comic]));
         for (const data of currentComic) {
             const comic = comicMap.get(data.comicHash);
             if (comic) {
                 data.title = comic.title;
-                data.image = `http://localhost:5000/api/coverFile/${comic.filename}/${comic.protoFilename || comic.filename}`;
+                const image = `http://localhost:5000/api/comicIMG/${comic.filename}`;
+                const protoFilename = comic.protoFilename
+                    ? `http://localhost:5000/api/coverFile/${comic.filename}/${comic.protoFilename}`
+                    : image;
+                data.image = protoFilename;
             }
         }
         for (const purchase of purchased) {
@@ -85,6 +98,11 @@ function CreatorNft() {
             }
         }
         console.log(currentComic);
+        if (currentComic.length === 0) {
+            setBeingNFT(false);
+        } else if (purchased.length === 0) {
+            setIsSale(false);
+        }
         setComic(currentComic);
         setSaleNFT(purchased);
         setLoading(false);
@@ -94,6 +112,16 @@ function CreatorNft() {
         initData();
     }, [currentAccount]);
 
+    const parseAuthorizations = (text) => {
+        text = text.trim();
+        const lines = text.includes('\n') ? text.split('\n') : [text];
+        return lines.map(line => {
+            const [name] = line.split(':');
+            return {
+                name: name.trim(),
+            };
+        });
+    };
 
     const totalPages = Math.ceil(saleNFT.length / itemsPerPage);
 
@@ -174,13 +202,19 @@ function CreatorNft() {
                     <Row className='pt-5'>
                         <h3 className="fw-bold">已發布NFT</h3>
                     </Row>
+                    {!beingNFT &&  
+                        <Row className='pt-5 justify-content-center'>
+                            <h1 className="fw-bold text-center">目前尚未鑄造NFT!</h1>
+                        </Row>
+                    }
                     <Row className='pt-1 pb-5'>
                         {comic.map((data, index) => (
                             <Col xs={4} md={3} className="pt-3" key={index}>
                                 <Link to={`/nftDetail/${data.tokenId}`}>
                                     <Card className="effect-image-1">
                                         <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                        <div className="nftMarket-overlay">{data.saleQty}/{data.totQty}</div>
+                                        <div className="nftMarket-overlay-owner">{data.saleQty}/{data.totQty}</div>
+                                        <div className="nftMarket-overlay">{data.firstName}</div>
                                         <Card.Body className="simple-text">
                                             <Card.Text>{data.title}</Card.Text>
                                         </Card.Body>
@@ -192,6 +226,11 @@ function CreatorNft() {
                     <Row>
                         <h3 className="fw-bold">NFT交易情形</h3>
                     </Row>
+                    {!isSale &&
+                        <Row className='pt-5 justify-content-center'>
+                            <h1 className="fw-bold text-center">目前無人購買NFT!</h1>
+                        </Row>
+                    }
                     <Row className='justify-content-center'>
                         <Col className='d-flex justify-content-center chapter-table pt-3'>
                             <Table size="sm">

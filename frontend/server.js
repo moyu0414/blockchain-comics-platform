@@ -178,7 +178,6 @@ app.get('/api/chapters', (req, res) => {
 });
 
 
-// 讀取創作者所有漫畫中，所有章節購買紀錄，下架不算：transactionHistory
 app.get('/api/creator/records', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const query = `
@@ -201,11 +200,10 @@ app.get('/api/creator/records', (req, res) => {
 });
 
 
-// 讀取讀者所有漫畫中，漫畫資訊，下架不算：reader
 app.get('/api/reader/records', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const query = `
-    SELECT comics.title AS comicTitle, comics.comic_id AS comicHash, chapters.title AS chapterTitle
+    SELECT comics.title AS comicTitle, chapters.title AS chapterTitle, records.purchase_date, records.price
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
@@ -318,15 +316,24 @@ app.get('/api/comicDetail', (req, res) => {
 app.get('/api/bookcase', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const query = `
-    SELECT comics.title, comics.filename, comics.create_timestamp, COALESCE(ranked_records.purchase_date, '') AS purchase_date
+    SELECT 
+      comics.comic_id AS comicHash, 
+      comics.title, 
+      comics.filename, 
+      comics.create_timestamp, 
+      ranked_records.purchase_date
     FROM comics
     LEFT JOIN (
-      SELECT records.comic_id, MAX(records.purchase_date) AS purchase_date
+      SELECT 
+        records.comic_id, 
+        MAX(records.purchase_date) AS purchase_date
       FROM records
       WHERE records.buyer = ?
       GROUP BY records.comic_id
-    ) AS ranked_records ON comics.comic_id = ranked_records.comic_id
+    ) AS ranked_records 
+    ON comics.comic_id = ranked_records.comic_id
     WHERE comics.is_exist = 1
+      AND ranked_records.purchase_date IS NOT NULL
     ORDER BY comics.create_timestamp ASC
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
@@ -431,7 +438,7 @@ app.get('/api/category/updateComic', (req, res) => {
 app.get('/api/category/updateFavorite', (req, res) => {
   const currentCategory = req.query.currentCategory;
   const query = `
-    SELECT user.address, user.collect, comics.comic_id
+    SELECT user.collectComic, comics.comic_id
     FROM user
     INNER JOIN comics ON user.address = comics.creator
     WHERE comics.category = ? AND comics.is_exist = 1
@@ -444,16 +451,16 @@ app.get('/api/category/updateFavorite', (req, res) => {
     const comicFavoritedCounts = {};
     const allComicIds = new Set();  // 用于存储所有 comic_id
     results.forEach(row => {
-      const { collect, comic_id } = row;
+      const { collectComic, comic_id } = row;
       allComicIds.add(comic_id);
       let collectObj;
       try {
-        collectObj = collect;
+        collectObj = collectComic;
         if (typeof collectObj !== 'object' || collectObj === null) {
           collectObj = {};
         }
       } catch (e) {
-        console.error('Error parsing collect data: ', e);
+        console.error('Error parsing collectComic data: ', e);
         collectObj = {};
       }
       if (Object.keys(collectObj).includes(comic_id)) {
@@ -475,28 +482,54 @@ app.get('/api/category/updateFavorite', (req, res) => {
 app.get('/api/comicDetail/isFavorited', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const comicHash = req.query.comicHash;
-  const query = `
-    SELECT collect
-    FROM user
-    WHERE address = ?
-  `;
-  pool.query(query, [currentAccount], (error, results) => {
+  let query;
+  let queryParams = [];
+  query = `SELECT collectComic FROM user WHERE address = ?`;
+  queryParams = [currentAccount];
+  pool.query(query, queryParams, (error, results) => {
     if (error) {
-      console.error('Error fetching user collect data: ', error);
-      return res.status(500).json({ message: 'Error fetching user collect data' });
+      console.error('Error fetching data: ', error);
+      return res.status(500).json({ message: 'Error fetching data' });
     }
-    let collect;
-    try {
-      collect = results[0].collect;
-      if (typeof collect !== 'object' || collect === null) {
-        collect = {};
+    if (comicHash) {
+      const collectComic = results[0]?.collectComic || {};
+      const isFavorited = collectComic[comicHash] === true;
+      return res.json({ isFavorited });
+    } else {
+      if (results.length === 0) {
+        return res.json({ collectComic: {} }); // 如果没有找到用户数据，返回空对象
       }
-    } catch (e) {
-      console.error('Error parsing collect data: ', e);
-      return res.status(500).json({ message: 'Error parsing collect data' });
+      const collectComic = results[0]?.collectComic || {};
+      return res.json({ collectComic });
     }
-    const isFavorited = collect.hasOwnProperty(comicHash) && collect[comicHash] === true;
-    res.json({ isFavorited });
+  });
+});
+
+
+app.get('/api/nftDetail/isFavorited', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const comicHash = req.query.comicHash;
+  let query;
+  let queryParams = [];
+  query = `SELECT collectNFT FROM user WHERE address = ?`;
+  queryParams = [currentAccount];
+  pool.query(query, queryParams, (error, results) => {
+    if (error) {
+      console.error('Error fetching data: ', error);
+      return res.status(500).json({ message: 'Error fetching data' });
+    }
+    if (comicHash) {
+      const collectNFT = results[0]?.collectNFT || {};
+      const isFavorited = collectNFT.hasOwnProperty(comicHash);
+      const value = isFavorited ? collectNFT[comicHash] : null;
+      return res.json({ isFavorited, value });
+    } else {
+      if (results.length === 0) {
+        return res.json({ collectNFT: {} }); // 如果没有找到用户数据，返回空对象
+      }
+      const collectNFT = results[0]?.collectNFT || {};
+      return res.json({ collectNFT });
+    }
   });
 });
 
@@ -790,8 +823,8 @@ app.put('/api/update/comicDetail/favorite', async (req, res) => {
     return res.status(400).json({ error: 'Missing required parameters' });
   }
   try {
-    // 查询当前用户的 collect 数据
-    const getCollectQuery = `SELECT collect FROM user WHERE address = ?`;
+    // 查询当前用户的 collectComic 数据
+    const getCollectQuery = `SELECT collectComic FROM user WHERE address = ?`;
     const [results] = await new Promise((resolve, reject) => {
       pool.query(getCollectQuery, [currentAccount], (error, results) => {
         if (error) {
@@ -801,17 +834,73 @@ app.put('/api/update/comicDetail/favorite', async (req, res) => {
         resolve(results);
       });
     });
-    let collect = results.collect ? results.collect : {};
-    // 更新 collect 数据，只留存"收藏"的資料
+    let collectComic = results.collectComic ? results.collectComic : {};
+    // 更新 collectComic 数据，只留存"收藏"的資料
     if (bool == 'true') {
-      collect[comicHash] = true;
+      collectComic[comicHash] = true;
     } else {
-      delete collect[comicHash];
+      delete collectComic[comicHash];
     }
-    // 将更新后的 collect 对象存回数据库
-    const updateQuery = `UPDATE user SET collect = ? WHERE address = ?`;
+    // 将更新后的 collectComic 对象存回数据库
+    const updateQuery = `UPDATE user SET collectComic = ? WHERE address = ?`;
     await new Promise((resolve, reject) => {
-      pool.query(updateQuery, [JSON.stringify(collect), currentAccount], (error, results) => {
+      pool.query(updateQuery, [JSON.stringify(collectComic), currentAccount], (error, results) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(results);
+      });
+    });
+    res.status(200).json({ message: 'Comic detail updated successfully' });
+  } catch (error) {
+    console.error('Error updating comic detail:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.put('/api/update/nftDetail/favorite', async (req, res) => {
+  const { currentAccount, comicHash, bool, data } = req.query;
+  if (!currentAccount || !comicHash || bool === undefined) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+  try {
+    // 查询当前用户的 collectNFT 数据
+    const getCollectQuery = `SELECT collectNFT FROM user WHERE address = ?`;
+    const [results] = await new Promise((resolve, reject) => {
+      pool.query(getCollectQuery, [currentAccount], (error, results) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(results);
+      });
+    });
+    let collectNFT = results.collectNFT ? results.collectNFT : {};
+    if (!Array.isArray(collectNFT[comicHash])) {
+      collectNFT[comicHash] = [];
+    }
+    if (bool === 'true') {
+      if (collectNFT[comicHash].length > 0) {
+        collectNFT[comicHash].push(data);
+      } else {
+        collectNFT[comicHash] = [data];
+      }
+    } else {
+      const index = collectNFT[comicHash].indexOf(data);
+      if (index > -1) {
+        if (collectNFT[comicHash].length === 1) {
+          delete collectNFT[comicHash];
+        } else {
+          collectNFT[comicHash].splice(index, 1);
+        }
+      }
+    }
+    // 将更新后的 collectNFT 对象存回数据库
+    const updateQuery = `UPDATE user SET collectNFT = ? WHERE address = ?`;
+    await new Promise((resolve, reject) => {
+      pool.query(updateQuery, [JSON.stringify(collectNFT), currentAccount], (error, results) => {
         if (error) {
           reject(error);
           return;

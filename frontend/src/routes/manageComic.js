@@ -7,6 +7,7 @@ import './bootstrap.min.css';
 function ManageComic() {
     const [comic, setComic] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [being, setBeing] = useState(true);
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     let temp = [];
@@ -27,7 +28,9 @@ function ManageComic() {
             }
             setComic(temp);
             console.log(temp);
-
+            if (temp.length === 0) {
+                setBeing(false);
+            }
             setLoading(false);
         } catch (error) {
             console.error('Error initializing contract:', error);
@@ -68,11 +71,22 @@ function ManageComic() {
         '詳情': (comicID) => ({ pathname: `/comicDetail/${comicID}` })
     };
 
+    const handleClick = () => {
+        window.location.replace("/createWork");
+    };
+
     
     return (
         <div>
             {!loading &&
                 <Container className='manageComic pt-4'>
+                    {!being &&  
+                        <Row className='pt-5 justify-content-center'>
+                            <h1 className="fw-bold text-center">目前尚未上傳漫畫!</h1>
+                            <h3 className="fw-bold text-center">點擊下方按鈕進行上傳</h3>
+                            <Button onClick={handleClick} className="fw-bold text-center">新增漫畫</Button>
+                        </Row>
+                    }
                     {comic.map((comic, index) => (
                         <Card className={`mt-4`} key={index}>
                             {/* <Card.Img variant="top" src={comic.image}  alt="..." /> */}

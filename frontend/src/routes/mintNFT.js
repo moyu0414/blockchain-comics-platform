@@ -103,7 +103,6 @@ const MintNFT = (props) => {
     }
   };
 
-
   async function disableButton() {
     const listButton = document.getElementById("list-button")
     listButton.disabled = true
@@ -316,7 +315,7 @@ const MintNFT = (props) => {
             <Form.Group as={Row} className='mb-2'>
                 <div style={{ display: 'flex' }}>
                     <Form.Label>
-                        IP種類
+                        IP種類<br />(您選的第一個IP權將作為宣傳主類)
                     </Form.Label>
                     <Button id="list-button">IP種類對照表</Button>
                 </div>
@@ -369,8 +368,7 @@ const MintNFT = (props) => {
                     />
                     <Form.Label>其他：IP敘述</Form.Label>
                     <Form.Control
-                        as="textarea"
-                        rows={5}
+                        type="text"
                         placeholder="請描述IP的使用權限、範圍等"
                         value={inputValues['其他：IP敘述'] || ''}
                         onChange={(e) => handleInputChange(e, '其他：IP敘述')}

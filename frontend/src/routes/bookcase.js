@@ -9,13 +9,15 @@ function Bookcase() {
     const [current, setCurrent] = useState([]);
     const [isBuying, setIsBuying] = useState(true);
     const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArray = JSON.parse(storedArrayJSON);
+    const readingProgress = localStorage.getItem("readingProgress");
+    const readingArray = readingProgress ? JSON.parse(readingProgress) : {}; 
     const currentAccount = localStorage.getItem("currentAccount");
     let bookcase = [];
     let fetchedData = [];
     
     const initData = async () => {
         try {
-            const storedArray = JSON.parse(storedArrayJSON);
             try {
                 const response = await axios.get('http://localhost:5000/api/bookcase', {
                     params: {
@@ -23,22 +25,27 @@ function Bookcase() {
                     }
                 });
                 bookcase = response.data;
-
-                for (var i = 0; i < bookcase.length; i++) {
-                    if (bookcase[i].purchase_date) {
-                        let comicID = "Comic" + (i+1);
-                        const filename = bookcase[i].filename;
-                        const image = "http://localhost:5000/api/comicIMG/" + filename;
-                        fetchedData.push({ comicID: comicID, title: bookcase[i].title, image: image, purchase_date: bookcase[i].purchase_date});
+                const comicMap = new Map(storedArray.map(comic => [comic.comicHash, comic]));
+                const readingMap = new Map(Object.entries(readingArray));
+                for (const data of bookcase) {
+                    const comic = comicMap.get(data.comicHash);
+                    if (comic) {
+                        const image = `http://localhost:5000/api/comicIMG/${comic.filename}`;
+                        data.comicID = comic.comicID;
+                        data.image = image;
+                        const readingValue = readingMap.get(comic.comicID);
+                        if (readingValue) {
+                            data.chapter = readingValue;
+                        }
                     }
                 }
-                sortByPurchase(fetchedData);
-                console.log(fetchedData);
-                setCurrent(fetchedData);
+                sortByPurchase(bookcase);
+                console.log(bookcase);
+                setCurrent(bookcase);
             } catch (error) {
                 console.error('Error fetching records:', error);
             }
-            if (fetchedData.length == 0) {
+            if (bookcase.length == 0) {
                 setIsBuying(false);
             }
         } catch (error) {
@@ -58,19 +65,7 @@ function Bookcase() {
         });
     }
 
-
-    const recentRead = [
-        { title: '最近閱讀漫畫 1', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 2', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 3', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 4', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 5', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 6', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 7', image: 'https://via.placeholder.com/150x200' },
-        { title: '最近閱讀漫畫 8', image: 'https://via.placeholder.com/150x200' }
-    ];
-
-
+    
     return (
         <>
             <Container className='creatorPage'>
@@ -83,14 +78,19 @@ function Bookcase() {
                     <Tab eventKey="home" title="最近閱讀">
                         {isBuying &&
                             <Row xs={1} md={2} className="g-4 pb-5">
-                                {recentRead.map((data, idx) => (
+                                {current
+                                    .filter(data => data.chapter) // 過濾出有 chapter 的數據
+                                    .map((data, idx) => (
                                     <Col key={idx} xs={4} md={3} className="pt-3">
+                                        <Link to={`/comicRead/${data.comicID}/${data.chapter}`}>
                                         <Card>
                                             <Card.Img variant="top" src={data.image} />
+                                            <div className="bookcase-overlay">{data.chapter}</div>
                                             <Card.Body>
-                                                <Card.Title className='text-center'>{data.title}</Card.Title>
+                                            <Card.Title className='bookcase-text'>{data.title}</Card.Title>
                                             </Card.Body>
                                         </Card>
+                                        </Link>
                                     </Col>
                                 ))}
                             </Row>
