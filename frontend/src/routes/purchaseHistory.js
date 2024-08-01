@@ -57,16 +57,6 @@ const PurchaseHistory = () => {
     // 計算當前頁面的收益切片的起始索引
     const startIndex = (currentPage - 1) * itemsPerPage;
     const currentIncome = creatorLogArray.slice(startIndex, startIndex + itemsPerPage);
-    let totalPrice = creatorLogArray.reduce((total, item) => {
-        let expenditure = parseFloat(item.expenditure);
-        total += expenditure;
-        return Number(total.toFixed(3));
-    }, 0); // 初始值为 0
-
-    if (totalPrice == 0) {
-        totalPrice = '目前無人購買'
-    }
-
 
     const getPageItems = () => {
         const pageItems = [];
@@ -152,7 +142,7 @@ const PurchaseHistory = () => {
                   <thead>
                     <tr>
                       <th className='text-center fw-bold'>交易日期</th>
-                      <th className='text-center fw-bold'>交易序號</th>
+                      <th className='text-center fw-bold'>漫畫 / 章節</th>
                       <th className='text-center fw-bold'>支出</th>
                     </tr>
                   </thead>

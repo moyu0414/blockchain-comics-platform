@@ -75,9 +75,12 @@ function NftMarket() {
                 if (comicHashMap[comicHash]) {
                     const availableRecords = comicHashMap[comicHash];
                     availableRecords.false.forEach(record => {
+                        const descTitle = parseAuthorizations(record.description);
+                        const firstName = descTitle[0]?.name || '';
                         temp.push({
                             title: stored.title,
                             description: record.description,
+                            firstName: firstName,
                             image: protoFilename,
                             tokenId: record.tokenId,
                             isFanCreation: "轉售",
@@ -86,9 +89,12 @@ function NftMarket() {
                     availableRecords.true.forEach(record => {
                         const { keyData, comicHash, description, tokenId } = record;
                         if (!uniqueKeyData.has(keyData)) {
+                            const descTitle = parseAuthorizations(record.description);
+                            const firstName = descTitle[0]?.name || '';
                             temp.push({
                                 title: stored.title,
                                 description: description,
+                                firstName: firstName,
                                 image: protoFilename,
                                 tokenId: tokenId,
                                 comicHash: comicHash,
@@ -102,7 +108,7 @@ function NftMarket() {
                 }
             }
         });
-        console.log(temp);
+        //console.log(temp);
         setComic(temp);
 
         const materialData = temp.flatMap(item => {
@@ -112,7 +118,7 @@ function NftMarket() {
                     tokenId: item.tokenId,
                     image: item.image,
                     title: item.title,
-                    name: auth.name
+                    name: auth.name,
                 }));
             }
             return [];
@@ -122,7 +128,7 @@ function NftMarket() {
                     tokenId: curr.tokenId,
                     image: curr.image,
                     title: curr.title,
-                    names: []
+                    names: [],
                 };
             }
             acc[curr.tokenId].names.push(curr.name);
@@ -182,7 +188,8 @@ function NftMarket() {
                             <Link to={`/nftDetail/${data.tokenId}`}>
                                 <Card className="effect-image-1">
                                     <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                    <div className="nftMarket-overlay">{data.saleQty}/{data.totQty}</div>
+                                    <div className="nftMarket-overlay-owner">{data.saleQty}/{data.totQty}</div>
+                                    <div className="nftMarket-overlay">{data.firstName}</div>
                                     <Card.Body className="simple-text">
                                         <Card.Text>{data.title}</Card.Text>
                                     </Card.Body>
@@ -241,7 +248,8 @@ function NftMarket() {
                                     <Link to={`/nftDetail/${data.tokenId}`}>
                                     <Card className="effect-image-1">
                                         <Card.Img src={data.image} alt={`image-${index + 1}`} />
-                                        <div className="nftMarket-overlay">持有者</div>
+                                        <div className="nftMarket-overlay-owner">持有者</div>
+                                        <div className="nftMarket-overlay">{data.firstName}</div>
                                         <Card.Body className="simple-text">
                                         <Card.Text>{data.title}</Card.Text>
                                         </Card.Body>
@@ -258,7 +266,8 @@ function NftMarket() {
                                     <Link to={`/nftDetail/${data.tokenId}`}>
                                     <Card className="effect-image-1">
                                         <Card.Img src={data.image} alt={`image-${index + 1}`} />
-                                        <div className="nftMarket-overlay">持有者</div>
+                                        <div className="nftMarket-overlay-owner">持有者</div>
+                                        <div className="nftMarket-overlay">{data.firstName}</div>
                                         <Card.Body className="simple-text">
                                         <Card.Text>{data.title}</Card.Text>
                                         </Card.Body>

@@ -315,7 +315,7 @@ const MintNFT = (props) => {
             <Form.Group as={Row} className='mb-2'>
                 <div style={{ display: 'flex' }}>
                     <Form.Label>
-                        IP種類
+                        IP種類<br />(您選的第一個IP權將作為宣傳主類)
                     </Form.Label>
                     <Button id="list-button">IP種類對照表</Button>
                 </div>

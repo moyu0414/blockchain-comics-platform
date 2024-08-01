@@ -1606,6 +1606,18 @@ a:link{
   z-index: 1; /* 确保悬浮在图片上方 */
 }
 
+.nftMarket-overlay-owner {
+  position: absolute; /* 绝对定位 */
+  bottom: 45px;
+  left: 0px;
+  background: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+  color: #fff; /* 白色文字 */
+  padding: 5px 10px; /* 内边距 */
+  border-radius: 0 50px 0 0; /* 調整與效果圖片一致的圓角 */
+  font-size: 0.9rem; /* 字体大小 */
+  z-index: 1; /* 确保悬浮在图片上方 */
+}
+
 /* readerPage */
 .readerPage .btn{
   width: 15vh;  

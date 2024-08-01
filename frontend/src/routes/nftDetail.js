@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from "react-router-dom";
-import { Container, Carousel, Card, Col, Row, ListGroup } from 'react-bootstrap';
+import { Container, Carousel, Card, Col, Row, ListGroup, Button } from 'react-bootstrap';
 import './bootstrap.min.css';
+import { Heart, HeartFill } from 'react-bootstrap-icons';
 import Web3 from 'web3';
+import axios from 'axios';
 import comicData from '../contracts/ComicPlatform.json';
 
 function NftDetail() {
@@ -12,9 +14,13 @@ function NftDetail() {
     const [IP, setIP] = useState([]);
     const { tokenId } = useParams();
     const [loading, setLoading] = useState(true);
+    const [isFavorited, setIsFavorited] = useState('');
     const currentAccount = localStorage.getItem("currentAccount");
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
+    const buttonData = [
+        `$ ${NFT[0]?.price}`, '收藏'
+    ];
     let records = [];
     let temp = [];
 
@@ -49,7 +55,7 @@ function NftDetail() {
             state: state,
             price: price,
         });
-        console.log(records);
+        //console.log(records);
 
         for (let i = 0; i < storedArray.length; i++) {
             if (storedArray[i].exists === 1) {
@@ -61,6 +67,7 @@ function NftDetail() {
                 const matchedRecord = records.find(record => record.comicHash === comicHash);
                 if (matchedRecord) {
                     temp.push({
+                        comicHash: comicHash,
                         title: storedArray[i].title,
                         image: protoFilename,
                         comicDesc: storedArray[i].description,
@@ -78,12 +85,45 @@ function NftDetail() {
         setNFT(temp);
         const authorizations = parseAuthorizations(temp[0].nftDesc);
         setIP(authorizations);
+
+        try {
+            const response = await axios.get('http://localhost:5000/api/nftDetail/isFavorited', {
+                params: {
+                    currentAccount: currentAccount,
+                    comicHash: temp[0].comicHash
+                }
+            });
+            if (Array.isArray(response.data.value) && response.data.value.includes(tokenId)) {
+                setIsFavorited(response.data.isFavorited);
+            }
+        } catch (error) {
+            console.error('Error fetching records:', error);
+        }
         setLoading(false);
     };
 
     useEffect(() => {
         initData();
     }, [currentAccount]);
+
+    const handleFavoriteClick = async () => {
+        setIsFavorited(!isFavorited); // 切換收藏狀態
+        let bool = !isFavorited;
+        let data = tokenId;
+        try {
+            const response = await axios.put('http://localhost:5000/api/update/nftDetail/favorite', null, {
+              params: {
+                currentAccount: currentAccount,
+                comicHash: NFT[0].comicHash,
+                bool: bool,
+                data: data
+              },
+            });
+            //console.log(response.data);
+        } catch (error) {
+            console.error('Error handleFavoriteClick', error);
+        }
+    };
 
     const parseAuthorizations = (text) => {
         text = text.trim();
@@ -132,6 +172,32 @@ function NftDetail() {
                             />
                         </div>
                     </Row>
+                    <Row className="pt-2 pb-3 btn-container justify-content-center">
+                        {buttonData.map((label, idx) => (
+                            <Col key={idx} xs={2} md={2} lg={2} className="pb-3 btn-section d-flex justify-content-center">
+                                <Button variant="outline-dark" className="custom-button" onClick={label === '收藏' ? handleFavoriteClick : handlePurchase}>
+                                    {label === '收藏' && (
+                                        <>
+                                            {isFavorited ? (
+                                                <HeartFill
+                                                    className="me-2"
+                                                    style={{ color: '#F6B93B', cursor: 'pointer' }}
+                                                    size={20}
+                                                />
+                                            ) : (
+                                                <Heart
+                                                    className="me-2"
+                                                    style={{ color: 'black', cursor: 'pointer' }}
+                                                    size={20}
+                                                />
+                                            )}
+                                        </>
+                                    )}
+                                    {label}
+                                </Button>
+                            </Col>
+                        ))}
+                    </Row>
                     <Row className="d-flex justify-content-between align-items-center">
                         <Col xs={8} className="text-section ">
                             {NFT.map((data, index) => (
@@ -144,11 +210,8 @@ function NftDetail() {
                                 </React.Fragment>
                             ))}
                         </Col>
-                        <Col className="text-end text-section-right">
-                            <button onClick={() => handlePurchase()} className="text-large nft-price">${NFT[0].price}</button>
-                        </Col>
                     </Row>
-                    <Row className="pt-5">
+                    <Row className="pt-1">
                         <Col className="text-section">
                             <h3 className="fw-bold">授權範圍</h3>
                             <ul>
@@ -160,7 +223,7 @@ function NftDetail() {
                             </ul>
                         </Col>
                     </Row>
-                    <Row className="pt-5">
+                    <Row className="pt-1">
                         <Col className="text-section">
                             <h3 className="fw-bold">授權說明</h3>
                                 {IP.map((item, index) => (

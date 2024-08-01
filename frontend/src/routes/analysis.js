@@ -140,7 +140,7 @@ function Analysis() {
                         <Table size="sm">
                             <thead>
                                 <tr>
-                                    <th className='text-center fw-bold'>日期</th>
+                                    <th className='text-center fw-bold'>交易日期</th>
                                     <th className='text-center fw-bold'>漫畫 / 章節</th>
                                     <th className='text-center fw-bold'>收益</th>
                                 </tr>

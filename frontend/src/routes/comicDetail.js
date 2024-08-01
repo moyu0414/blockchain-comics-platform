@@ -141,7 +141,7 @@ function ComicDetail() {
             }
             setLoading(false);
         } catch (error) {
-            console.error('Error initializing contract:', error);
+            console.error('Error initializing comic:', error);
         }
     };
 

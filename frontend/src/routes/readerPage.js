@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Card, Col, Row, Button, Figure, Dropdown } from 'react-bootstrap';
+import { Container, Col, Row, Button, Figure } from 'react-bootstrap';
 import './bootstrap.min.css';
-import { Funnel,Heart, FileEarmarkText, Envelope, CardImage, VectorPen } from 'react-bootstrap-icons';
-import axios from 'axios';
+import { Funnel, Heart, FileEarmarkText, Envelope, CardImage, VectorPen } from 'react-bootstrap-icons';
 
 const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     <div
@@ -19,63 +18,9 @@ const CustomToggle = React.forwardRef(({ onClick }, ref) => (
 ));
 
 function ReaderPage() {
-    const [current, setCurrent] = useState([]);
-    const [isBuying, setIsBuying] = useState(true);
-    const [comic, setComic] = useState([]);
-    const storedArrayJSON = localStorage.getItem('comicDatas');
-    const currentAccount = localStorage.getItem("currentAccount");
-    
-    let bookcase = [];
-    let fetchedData = [];
-    let temp = [];
-
-    const initData = async () => {
-        try {
-            const storedArray = JSON.parse(storedArrayJSON);
-            try {
-                const response = await axios.get('http://localhost:5000/api/bookcase', {
-                    params: {
-                    currentAccount: currentAccount
-                    }
-                });
-                bookcase = response.data;
-
-                for (var i = 0; i < bookcase.length; i++) {
-                    if (bookcase[i].purchase_date) {
-                        let comicID = "Comic" + (i+1);
-                        const filename = bookcase[i].filename;
-                        const image = "http://localhost:5000/api/comicIMG/" + filename;
-                        fetchedData.push({ comicID: comicID, title: bookcase[i].title, image: image, purchase_date: bookcase[i].purchase_date});
-                    }
-                }
-                sortByPurchase(fetchedData);
-                console.log(fetchedData);
-                setCurrent(fetchedData);
-            } catch (error) {
-                console.error('Error fetching records:', error);
-            }
-            if (fetchedData.length == 0) {
-                setIsBuying(false);
-            }
-        } catch (error) {
-            console.error('Error initializing data:', error);
-        }
-    };
-
-    useEffect(() => {
-        initData();
-    }, [currentAccount]);
-
-    function sortByPurchase(array) {
-        return array.sort((a, b) => {
-            const dateA = new Date(a.purchase_date);
-            const dateB = new Date(b.purchase_date);
-            return dateB.getTime() - dateA.getTime();  // 降序排序
-        });
-    }
-
     const buttonData = [
-        { label: '我的收藏', icon: <Heart /> },
+        { label: '我的書櫃', icon: <Heart /> },
+        { label: '漫畫收藏', icon: <Heart /> },
         { label: '我的購買', icon: <FileEarmarkText /> },
         { label: '我的訊息', icon: <Envelope /> },
         { label: 'NFT收藏', icon: <CardImage /> },
@@ -83,7 +28,8 @@ function ReaderPage() {
     ];
 
     const pathMap = {
-        '我的收藏': '/collectionPage',
+        '我的書櫃': '/bookcase',
+        '漫畫收藏': '/collectionPage',
         '我的購買': '/purchaseHistory',
         '我的訊息': '/messagePage',
         'NFT收藏': '/collectionNft',
@@ -114,35 +60,6 @@ function ReaderPage() {
                                 </div>
                             </Button>
                         </Link>
-                    </Col>
-                ))}
-            </Row>
-            <Row className="align-items-center">
-                <Col>
-                    <h3 className="fw-bold">我的書櫃</h3>
-                </Col>
-                <Col xs="auto">
-                    <Dropdown>
-                        <Dropdown.Toggle as={CustomToggle} />
-                        <Dropdown.Menu>
-                            <Dropdown.Item href="#">漫畫類型</Dropdown.Item>
-                            <Dropdown.Item href="#">人氣購買</Dropdown.Item>
-                            <Dropdown.Item href="#">最近更新</Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Dropdown>
-                </Col>
-            </Row>
-            <Row xs={1} md={2} className="g-4 pb-5">
-                {comic.map((data, idx) => (
-                    <Col key={idx} xs={4} md={3} className="pt-3">
-                    <Link to={`/comicDetail/${data.comicID}`}>
-                        <Card>
-                            <Card.Img variant="top" src={data.image} />
-                            <Card.Body>
-                                <Card.Title className='text-center'>{data.title}</Card.Title>
-                            </Card.Body>
-                        </Card>
-                    </Link>
                     </Col>
                 ))}
             </Row>

@@ -7,34 +7,37 @@ import axios from 'axios';
 
 function CollectionPage() {
     const [comic, setComic] = useState([]);
-    const [selectedCategory, setSelectedCategory] = useState('已經發布');
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     let temp = [];
 
     const initData = async () => {
         try {
-            const storedArray = JSON.parse(storedArrayJSON);
-            for (let i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].exists === 1) {
-                    const filename = storedArray[i].filename;
-                    const image = `http://localhost:5000/api/comicIMG/${filename}`;
-                    if (storedArray[i].author == currentAccount) {
-                        temp.push({
-                            comicHash: storedArray[i].comicHash,
-                            comicID: storedArray[i].comicID,
-                            title: storedArray[i].title,
-                            category: storedArray[i].category,
-                            image: image
-                        });
-                    }
+            const response = await axios.get('http://localhost:5000/api/comicDetail/isFavorited', {
+                params: {
+                    currentAccount: currentAccount,
                 }
-            }
-            console.log(temp);
-            setComic(temp);
+            });
+            //console.log(response.data);
 
+            const collectComicSet = new Set(Object.keys(response.data.collectComic));
+            try {
+                const storedArray = JSON.parse(storedArrayJSON);
+                const temp = storedArray
+                .filter(item => item.exists === 1 && collectComicSet.has(item.comicHash))
+                .map(item => ({
+                    comicID: item.comicID,
+                    title: item.title,
+                    category: item.category,
+                    image: `http://localhost:5000/api/comicIMG/${item.filename}`
+                }));
+                console.log(temp);
+                setComic(temp);
+            } catch (error) {
+                console.error('Error initializing comic:', error);
+            }
         } catch (error) {
-            console.error('Error initializing contract:', error);
+            console.error('Error fetching records:', error);
         }
     };
 
