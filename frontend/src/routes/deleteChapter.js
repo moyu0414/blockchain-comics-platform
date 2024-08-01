@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from "react-router-dom";
-import { Container, Col, Row, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
-import './bootstrap.min.css';import { HouseDoor, Grid, Cart, Person, Book } from 'react-bootstrap-icons';
-import BootstrapTable from 'react-bootstrap-table-next';
+import { Container, Col, Row, Table, ButtonToolbar, Pagination, Modal, Button } from 'react-bootstrap';
+import './bootstrap.min.css';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
 
@@ -14,77 +13,82 @@ function DeleteChapter() {
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const fetchedData = [];
+    const [show, setShow] = useState(false);
+    const [selectedChapter, setSelectedChapter] = useState(null);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [showFinal, setShowFinal] = useState(false);
+
     let temp = [];
     let chapterInfo = [];
 
-    const initData = async () => {
-        try {
-            const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
-            for (let i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].exists === 1) {
-                    const filename = storedArray[i].filename;
-                    const image = `http://localhost:5000/api/comicIMG/${filename}`;
-                    let protoFilename;
-                    if (storedArray[i].protoFilename) {
-                        protoFilename = `http://localhost:5000/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
-                    } else {
-                        protoFilename = image
-                    }
-                    if (storedArray[i].comicID === comicID) {
-                        let author;
-                        if (storedArray[i].author == currentAccount) {
-                            author = '您是本作品的創作者!';
-                        } else {
-                            author = storedArray[i].author;
-                        }
-                        temp.push({
-                            comicHash: storedArray[i].comicHash,
-                            comicID: storedArray[i].comicID,
-                            title: storedArray[i].title,
-                            description: storedArray[i].description,
-                            author: author,
-                            category: storedArray[i].category,
-                            protoFilename: protoFilename,
-                        });
-                    }
-                }
-            }
-            setComic(temp);
+    // const initData = async () => {
+    //     try {
+    //         const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
+    //         for (let i = 0; i < storedArray.length; i++) {
+    //             if (storedArray[i].exists === 1) {
+    //                 const filename = storedArray[i].filename;
+    //                 const image = `http://localhost:5000/api/comicIMG/${filename}`;
+    //                 let protoFilename;
+    //                 if (storedArray[i].protoFilename) {
+    //                     protoFilename = `http://localhost:5000/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
+    //                 } else {
+    //                     protoFilename = image
+    //                 }
+    //                 if (storedArray[i].comicID === comicID) {
+    //                     let author;
+    //                     if (storedArray[i].author == currentAccount) {
+    //                         author = '您是本作品的創作者!';
+    //                     } else {
+    //                         author = storedArray[i].author;
+    //                     }
+    //                     temp.push({
+    //                         comicHash: storedArray[i].comicHash,
+    //                         comicID: storedArray[i].comicID,
+    //                         title: storedArray[i].title,
+    //                         description: storedArray[i].description,
+    //                         author: author,
+    //                         category: storedArray[i].category,
+    //                         protoFilename: protoFilename,
+    //                     });
+    //                 }
+    //             }
+    //         }
+    //         setComic(temp);
 
-            try {
-                const response = await axios.get('http://localhost:5000/api/comicDetail', {
-                    params: {
-                    comicHash: temp[0].comicHash,
-                    currentAccount: currentAccount
-                    }
-                });
-                let chapters = response.data;
-                sortByTimestamp(chapters);
+    //         try {
+    //             const response = await axios.get('http://localhost:5000/api/comicDetail', {
+    //                 params: {
+    //                 comicHash: temp[0].comicHash,
+    //                 currentAccount: currentAccount
+    //                 }
+    //             });
+    //             let chapters = response.data;
+    //             sortByTimestamp(chapters);
 
-                for (let i = 0; i < chapters.length; i++) {
-                    if (currentAccount == chapters[i].creator){
-                        let id = 'Chapter' + (i+1);
-                        chapterInfo.push({
-                          title: chapters[i].title,
-                          price: chapters[i].price,
-                          chapterID: id
-                        });
-                      }
-                }
-                setChapters(chapterInfo);
-                console.log(chapterInfo);
-            } catch (error) {
-                console.error('Error fetching records:', error);
-            }
-            setLoading(false);
-        } catch (error) {
-            console.error('Error initializing contract:', error);
-        }
-    };
+    //             for (let i = 0; i < chapters.length; i++) {
+    //                 if (currentAccount == chapters[i].creator){
+    //                     let id = 'Chapter' + (i+1);
+    //                     chapterInfo.push({
+    //                         title: chapters[i].title,
+    //                         price: chapters[i].price,
+    //                         chapterID: id
+    //                     });
+    //                 }
+    //             }
+    //             setChapters(chapterInfo);
+    //             console.log(chapterInfo);
+    //         } catch (error) {
+    //             console.error('Error fetching records:', error);
+    //         }
+    //         setLoading(false);
+    //     } catch (error) {
+    //         console.error('Error initializing contract:', error);
+    //     }
+    // };
 
-    useEffect(() => {
-        initData();
-    }, [comicID, currentAccount]);
+    // useEffect(() => {
+    //     initData();
+    // }, [comicID, currentAccount]);
 
     
     const [currentPage, setCurrentPage] = useState(1);
@@ -161,6 +165,53 @@ function DeleteChapter() {
         return pageItems;
     };
 
+    const mockChapters = [
+        { title: '第一章', price: '100元' },
+        { title: '第二章', price: '150元' },
+        { title: '第三章', price: '200元' },
+    ];
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // 這裡應該是獲取實際數據的代碼
+                // 設置假資料以便測試
+                const mockChapters = [
+                    { title: '第一章', price: '100元' },
+                    { title: '第二章', price: '150元' },
+                    { title: '第三章', price: '200元' },
+                ];
+                setComic([{ title: '示例漫畫', protoFilename: 'path/to/image.jpg' }]);
+                setChapters(mockChapters);
+                setLoading(false);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [comicID, currentAccount]);
+
+    const handleClose = () => setShow(false);
+    const handleShow = (chapter) => {
+        setSelectedChapter(chapter);
+        setShow(true);
+    };
+
+    const handleConfirmClose = () => setShowConfirm(false);
+    const handleFinalClose = () => setShowFinal(false);
+
+    const handleConfirmShow = (chapter) => {
+        setSelectedChapter(chapter);
+        setShowConfirm(true);
+    };
+
+    const handleConfirm = () => {
+        setShowConfirm(false);
+        setShowFinal(true);
+    };
+
     return (
         <>
             <div>
@@ -188,7 +239,7 @@ function DeleteChapter() {
                                 <hr/>
                             </Col>
                         </Row>
-                        <Row className='justify-content-center'>
+                        {/* <Row className='justify-content-center'>
                             <Col className='d-flex justify-content-center chapter-table'>
                                 <Table size="sm">
                                     <tbody>
@@ -198,14 +249,76 @@ function DeleteChapter() {
                                                 <td className='text-center'>{chapter.title}</td>
                                                 <td className='text-center'>{chapter.price}</td>
                                                 <td className='text-center'>
-                                                    <button className="btn">刪除</button>
+                                                    <button 
+                                                        className="btn"
+                                                        onClick={() => handleShow(chapter)}
+                                                    >
+                                                        刪除
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </Table>
                             </Col>
+                        </Row> */}
+
+                        <Row className='justify-content-center'>
+                            <Col className='d-flex justify-content-center chapter-table'>
+                                <Table size="sm">
+                                    <tbody>
+                                    {mockChapters.length === 0 ? (
+                                        <tr>
+                                        <td colSpan="4" className='text-center'>沒有資料</td>
+                                        </tr>
+                                    ) : (
+                                        mockChapters.map((chapter, index) => (
+                                        <tr key={index}>
+                                            <td className='text-center fw-bold'>第 {startIndex + index + 1} 章</td>
+                                            <td className='text-center'>{chapter.title}</td>
+                                            <td className='text-center'>{chapter.price}</td>
+                                            <td className='text-center'>
+                                            <button 
+                                                className="btn"
+                                                onClick={() => handleConfirmShow(chapter)}
+                                            >
+                                                刪除
+                                            </button>
+                                            </td>
+                                        </tr>
+                                        ))
+                                    )}
+                                    </tbody>
+                                </Table>
+                            </Col>
                         </Row>
+
+                        <Modal show={show} onHide={handleClose} dialogClassName="custom-modal-content">
+                            <Modal.Body>
+                            <p>確定刪除</p>
+                            <p>第一章 章節名稱？</p>
+                            </Modal.Body>
+                            <Modal.Footer className="custom-modal-footer">
+                            <Button className="custom-modal-button" onClick={handleClose}>
+                                確定
+                            </Button>
+                            <Button className="custom-modal-button" onClick={handleClose}>
+                                取消
+                            </Button>
+                            </Modal.Footer>
+                        </Modal>
+
+                        <Modal show={showFinal} onHide={handleFinalClose} dialogClassName="custom-modal-content">
+                            <Modal.Body>
+                                <p>已成功刪除</p>
+                            </Modal.Body>
+                            <Modal.Footer className="custom-modal-footer">
+                                <Button className="custom-modal-button" onClick={handleFinalClose}>
+                                    確定
+                                </Button>
+                            </Modal.Footer>
+                        </Modal>
+
                         <Row className='pt-2 pb-5 justify-content-center table-button'>
                             <Col className='d-flex justify-content-center'>
                                 <ButtonToolbar aria-label="Toolbar with pagination">
@@ -223,7 +336,6 @@ function DeleteChapter() {
                                 </ButtonToolbar>
                             </Col>
                         </Row>
-                        
                     </Container>
                 }
                 {loading &&  

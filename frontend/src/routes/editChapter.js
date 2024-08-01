@@ -64,11 +64,11 @@ function EditChapter() {
                     if (currentAccount == chapters[i].creator){
                         let id = 'Chapter' + (i+1);
                         chapterInfo.push({
-                          title: chapters[i].title,
-                          price: chapters[i].price,
-                          chapterID: id
+                        title: chapters[i].title,
+                        price: chapters[i].price,
+                        chapterID: id
                         });
-                      }
+                    }
                 }
                 setChapters(chapterInfo);
                 console.log(chapterInfo);

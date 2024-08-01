@@ -20,6 +20,7 @@ import CreatorPage from './routes/creatorPage';
 import CollectionPage from './routes/collectionPage';
 import CollectionNft from './routes/collectionNft';
 import CreatorNft from './routes/creatorNft';
+import CreateSuccess from './routes/createSuccess';
 import ReaderPage from './routes/readerPage';
 import Bookcase from './routes/bookcase';
 import BecomeWriter from './routes/becomeWriter';
@@ -28,6 +29,7 @@ import Dual from './routes/dual';
 import CreateWork from './routes/createWork';
 import EditWork from './routes/editWork';
 import EditChapter from './routes/editChapter';
+import EditSuccess from './routes/editSuccess';
 import DeleteChapter from './routes/deleteChapter';
 import WorkManagement from './routes/workManagement';
 import ChapterManagement from './routes/chapterManagement';
@@ -61,6 +63,7 @@ const AppLayout = () => {
   const currentAccount = localStorage.getItem("currentAccount");
   const location = useLocation();
   const isComicReadPage = location.pathname.startsWith('/comicRead/');
+  const isSearchPage = location.pathname.startsWith('/searchPage');
 
   // 處理登錄狀態的函數
   const handleLogin = () => {
@@ -133,9 +136,9 @@ const AppLayout = () => {
 
   return (
     <>
-      {isLoggedIn && !isComicReadPage && <Navigation accounts={accounts} setAccounts={setAccounts}/>}
+      {isLoggedIn && !isSearchPage && !isComicReadPage && <Navigation accounts={accounts} setAccounts={setAccounts}/>}
       <Outlet />
-      {isLoggedIn && !isComicReadPage && <BottomNavbar />}
+      {isLoggedIn && !isSearchPage && !isComicReadPage && <BottomNavbar />}
     </>
   );
 };
@@ -347,7 +350,13 @@ const router = createBrowserRouter([
       },{
         path: "/searchPage",
         element: <SearchPage />,
-      },
+      },{
+        path: "/createSuccess",
+        element: <CreateSuccess />,
+      },{
+        path: "/editSuccess",
+        element: <EditSuccess />,
+      }
     ],
   },
 ]);
