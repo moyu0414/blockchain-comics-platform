@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Carousel, Card, Col, Row, Button, Dropdown } from 'react-bootstrap';
 import './bootstrap.min.css';
-import { Funnel } from 'react-bootstrap-icons';
+import { Funnel, HeartFill, CartFill } from 'react-bootstrap-icons';
 import axios from 'axios';
 
 const CustomToggle = React.forwardRef(({ onClick }, ref) => (
@@ -17,13 +17,14 @@ const CustomToggle = React.forwardRef(({ onClick }, ref) => (
         <Funnel size={36} />
     </div>
 ));
+let updatedFetchedData = [];
 
 function Category() {
     const [currentCategory, setCurrentCategory] = useState('');
     const [current, setCurrent] = useState([]);
     const [promoPosition, setPromoPosition] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
-    const [filter, setFilter] = useState(null);
+    const [loading, setLoading] = useState(true);
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     let savedCurrentCategory = localStorage.getItem('currentCategory');
@@ -40,8 +41,7 @@ function Category() {
                     fetchedData.push({ comicHash: storedArray[i].comicHash, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, image: image});
                 }
             };
-            setCurrent(fetchedData);
-
+            //setCurrent(fetchedData);
             const categoryCounts = {};
             fetchedData.forEach(data => {
                 if (categoryCounts[data.category]) {
@@ -51,8 +51,40 @@ function Category() {
                 }
             });
             const sortPromo = Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a]);
-            setPromoPosition(sortPromo.slice(0, 8));
-            console.log(fetchedData);
+            setPromoPosition(sortPromo);
+            //setPromoPosition(sortPromo.slice(0, 8));
+            //console.log(fetchedData);
+            try {
+                const response = await axios.get('http://localhost:5000/api/category/updateStats', {
+                    params: {
+                        currentCategory: currentCategory
+                    }
+                });
+                const comics = response.data;
+                const totalCountMap = comics.reduce((map, comic) => {
+                    map[comic.comic_id] = {
+                        totHearts: comic.totHearts, // 收藏数
+                        totBuy: comic.totBuy // 购买数
+                    };
+                    return map;
+                }, {});
+                updatedFetchedData = fetchedData.map(data => ({
+                    ...data,
+                    totHearts: totalCountMap[data.comicHash]?.totHearts || 0, // 如果没有找到对应的 comic_id，则为 0
+                    totBuy: totalCountMap[data.comicHash]?.totBuy || 0 // 如果没有找到对应的 comic_id，则为 0
+                }));
+                console.log(updatedFetchedData);
+                setCurrent(updatedFetchedData);
+                if (updatedFetchedData.length !== 0) {
+                    if (savedFilter) {
+                        handleCategoryChange(savedFilter);
+                    }
+                    setLoading(false);
+                }
+            } catch (error) {
+                console.error('Error fetching records:', error);
+            }
+
         } catch (error) {
             console.error('Error initializing contract:', error);
         }
@@ -67,18 +99,8 @@ function Category() {
         if (savedCurrentCategory) {
             setCurrentCategory(savedCurrentCategory);
         };
-        if (savedFilter) {
-            setFilter(savedFilter);
-        }
         initData();
     }, [currentCategory]);
-
-    useEffect(() => {
-        if (filter) {
-            handleCategoryChange(filter);
-        }
-    }, [filter]);
-
 
     const handleCategoryClick = (category) => {
         setCurrentCategory(category);
@@ -89,33 +111,30 @@ function Category() {
 
     const handleCategoryChange = (filters) => {
         setSelectedCategory(filters);
-        setFilter(filters);
         localStorage.setItem('filter', filters);
         // 调用更新函数
-        if (filters === '愛心排序') {  // 收藏數量
+        if (filters === '人氣排序') {  // 購買數量
+            updatePurchase();
+        } else if (filters === '愛心排序') {  // 收藏數量
             updateFavorite();
-        } else if (filters === '新發布') {
+        } else if (filters === '新發布') {  // 漫畫新發布
             updateComic();
-        } else if (filters === '最近更新') {
+        } else if (filters === '最近更新') {  // 章節更新
             updateChapter();
         }
     };
 
-    const updateFavorite = async () => {
-        try {
-            const response = await axios.get('http://localhost:5000/api/category/updateFavorite', {
-                params: {
-                    currentCategory: currentCategory
-                }
-            });
-            let comics = response.data;
-            console.log(comics);
+    const updatePurchase = async () => {
+        const sortedCurrent = [...updatedFetchedData].sort((a, b) => b.totBuy - a.totBuy);
+        setCurrent(sortedCurrent);
+        setSelectedCategory('人氣排序');
+    };
 
-            //setCurrent(sortedComics);
-            setSelectedCategory('愛心排序');
-        } catch (error) {
-            console.error('Error fetching records:', error);
-        }
+    const updateFavorite = async () => {
+        const sortedCurrent = [...updatedFetchedData].sort((a, b) => b.totHearts - a.totHearts);
+        console.log(sortedCurrent);
+        setCurrent(sortedCurrent);
+        setSelectedCategory('愛心排序');
     };
 
     const updateComic = async () => {
@@ -132,8 +151,8 @@ function Category() {
             const timestampMap = new Map(comics.map(comic => [comic.comicHash, comic.create_timestamp]));
             
             let sortedComics;
-            if (fetchedData.length !== 0) {
-                sortedComics = sortComics(fetchedData, timestampMap);
+            if (updatedFetchedData.length !== 0) {
+                sortedComics = sortComics(updatedFetchedData, timestampMap);
             } else {
                 sortedComics = sortComics(current, timestampMap);
             }
@@ -158,8 +177,8 @@ function Category() {
             const timestampMap = new Map(chapters.map(chapter => [chapter.comicHash, chapter.create_timestamp]));
     
             let sortedComics;
-            if (fetchedData.length !== 0) {
-                sortedComics = sortComics(fetchedData, timestampMap);
+            if (updatedFetchedData.length !== 0) {
+                sortedComics = sortComics(updatedFetchedData, timestampMap);
             } else {
                 sortedComics = sortComics(current, timestampMap);
             }
@@ -187,62 +206,76 @@ function Category() {
 
     return (
         <>
-            <Container className='homepage'>
-                <Row className="pt-5 pb-5 btn-container">
-                    {buttonData.map((label, idx) => (
-                        <Col key={idx} xs={1} md={3} lg={1} className="pb-3 btn-section">
-                            <Button variant="outline-dark" className="custom-button" onClick={() => handleCategoryClick(label)}>{label}</Button>
+            {!loading &&
+                <Container className='homepage'>
+                    <Row className="pt-5 pb-5 btn-container">
+                        {buttonData.map((label, idx) => (
+                            <Col key={idx} xs={2} md={3} lg={1} className="pb-3 btn-section">
+                                <Button variant="outline-dark" className="custom-button" onClick={() => handleCategoryClick(label)}>{label}</Button>
+                            </Col>
+                        ))}
+                    </Row>
+                    <Row className="align-items-center">
+                        <Col>
+                            <h3 className="fw-bold">{currentCategory}漫畫</h3>
                         </Col>
-                    ))}
-                </Row>
-                <Row className="align-items-center">
-                    <Col>
-                        <h3 className="fw-bold">{currentCategory}漫畫</h3>
-                    </Col>
-                    <Col>
-                        {selectedCategory && <h3>{selectedCategory}</h3>}
-                    </Col>
-                    <Col xs="auto">
-                        <Dropdown>
-                            <Dropdown.Toggle as={CustomToggle} />
-                            <Dropdown.Menu>
-                                <Dropdown.Item onClick={() => handleCategoryChange('人氣排序')}>人氣排序</Dropdown.Item>
-                                <Dropdown.Item onClick={() => handleCategoryChange('愛心排序')}>愛心排序</Dropdown.Item>
-                                <Dropdown.Item onClick={() => handleCategoryChange('新發布')}>新發布</Dropdown.Item>
-                                <Dropdown.Item onClick={() => handleCategoryChange('最近更新')}>最近更新</Dropdown.Item>
-                            </Dropdown.Menu>
-                        </Dropdown>
-                    </Col>
-                </Row>
-    
-                <Row xs={1} md={2} className="g-4 pb-5">
-                    {promoPosition.length === 0 ? (
-                        <>
-                            <h3 className="fw-bold">目前沒有{currentCategory}類型的漫畫。</h3>
-                            <br />
-                        </>
-                    ) : (
-                        <>
-                            <Row xs={1} md={2} className="g-4 pb-5">
-                                {current.map((data, idx) => (
-                                    <Col key={idx} xs={6} md={6} className="pt-3">
-                                        <Card>
-                                            <Link to={`/comicDetail/${current[idx].comicID}`}>
-                                                <Card.Img variant="top" src={data.image} />
-                                            </Link>
-    
-                                            <Card.Body>
-                                                <Card.Title className='fw-bold'>{data.title}</Card.Title>
-                                                <Card.Text className='text-secondary'>{truncateText(data.text, 50)}</Card.Text>
-                                            </Card.Body>
-                                        </Card>
-                                    </Col>
-                                ))}
-                            </Row>
-                        </>
-                    )}
-                </Row>
-            </Container>
+                        <Col>
+                            {selectedCategory && <h3>{selectedCategory}</h3>}
+                        </Col>
+                        <Col xs="auto">
+                            <Dropdown>
+                                <Dropdown.Toggle as={CustomToggle} />
+                                <Dropdown.Menu>
+                                    <Dropdown.Item onClick={() => handleCategoryChange('人氣排序')}>人氣排序</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => handleCategoryChange('愛心排序')}>愛心排序</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => handleCategoryChange('新發布')}>新發布</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => handleCategoryChange('最近更新')}>最近更新</Dropdown.Item>
+                                </Dropdown.Menu>
+                            </Dropdown>
+                        </Col>
+                    </Row>
+
+
+
+                    <Row xs={1} md={2} className="g-4 pb-5">
+                        {promoPosition.length === 0 ? (
+                            <>
+                                <h3 className="fw-bold">目前沒有{currentCategory}類型的漫畫。</h3>
+                                <br />
+                            </>
+                        ) : (
+                            <>
+                                <Row xs={1} md={2} className="g-4 pb-5">
+                                    {current.map((data, idx) => (
+                                        <Col key={idx} xs={6} md={3} className="pt-3">
+                                            <Card>
+                                                <Link to={`/comicDetail/${current[idx].comicID}`}>
+                                                    <Card.Img variant="top" src={data.image} />
+                                                    <div className="category-totcount">
+                                                        <CartFill style={{ marginRight: '5px' }} />
+                                                        {data.totBuy}<br />
+                                                        <HeartFill style={{ marginRight: '5px' }} />
+                                                        {data.totHearts}
+                                                    </div>
+                                                </Link>
+                                                <Card.Body>
+                                                    <Card.Title className='fw-bold'>{data.title}</Card.Title>
+                                                    <Card.Text className='text-secondary'>{data.text}</Card.Text>
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
+                                    ))}
+                                </Row>
+                            </>
+                        )}
+                    </Row>
+                </Container>
+            }
+            {loading &&  
+                <div className="loading-container">
+                    <div>頁面加載中，請稍後...</div>
+                </div>
+            }
         </>
     );
 }

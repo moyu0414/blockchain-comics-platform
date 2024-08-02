@@ -1173,11 +1173,38 @@ a:link{
   border-radius: 5px;
 }
 
+.comic-carousel .carousel-control-prev,
+.comic-carousel .carousel-control-next {
+    display: none; /* 隐藏左右箭头 */
+}
+
+.comic-carousel .carousel-indicators {
+  display: none; /* 强制隐藏指示器 */
+}
+
+.carousel-row {
+  display: flex;
+  overflow-x: auto; /* 允许横向滚动 */
+  scrollbar-width: none;
+}
+
 /* category */
 
 .dropdown-menu {
   border: 3px #000 solid;
   border-color: black !important;
+}
+
+.category-totcount {
+  position: absolute; /* 绝对定位 */
+  top: 0px;
+  right: 0px;
+  background: rgba(0, 0, 0, 0.4); /* 半透明背景 */
+  color: #fff; /* 白色文字 */
+  padding: 5px 5px; /* 内边距 */
+  border-radius: 0 0 0 25px; /* 調整與效果圖片一致的圓角 */
+  font-size: 0.9rem; /* 字体大小 */
+  z-index: 1; /* 确保悬浮在图片上方 */
 }
 
 /* comicDetail */

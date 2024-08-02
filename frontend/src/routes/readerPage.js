@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Col, Row, Button, Figure } from 'react-bootstrap';
 import './bootstrap.min.css';
-import { Funnel, Heart, FileEarmarkText, Envelope, CardImage, VectorPen } from 'react-bootstrap-icons';
+import { Funnel, Book, Heart, FileEarmarkText, Envelope, CardImage, VectorPen } from 'react-bootstrap-icons';
 
 const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     <div
@@ -19,7 +19,7 @@ const CustomToggle = React.forwardRef(({ onClick }, ref) => (
 
 function ReaderPage() {
     const buttonData = [
-        { label: '我的書櫃', icon: <Heart /> },
+        { label: '我的書櫃', icon: <Book /> },
         { label: '漫畫收藏', icon: <Heart /> },
         { label: '我的購買', icon: <FileEarmarkText /> },
         { label: '我的訊息', icon: <Envelope /> },
