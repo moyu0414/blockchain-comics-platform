@@ -247,7 +247,7 @@ function Category() {
                             <>
                                 <Row xs={1} md={2} className="g-4 pb-5">
                                     {current.map((data, idx) => (
-                                        <Col key={idx} xs={6} md={3} className="pt-3">
+                                        <Col key={idx} xs={6} md={6} className="pt-3">
                                             <Card>
                                                 <Link to={`/comicDetail/${current[idx].comicID}`}>
                                                     <Card.Img variant="top" src={data.image} />

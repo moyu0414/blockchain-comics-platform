@@ -1071,7 +1071,6 @@ a:link{
   right: 0;
   bottom: 15px;
   width: 88%;
-  height: 180px;
   max-height: 180px;
   background: linear-gradient(90deg, rgba(2, 55, 36, 0.16) 0%, rgba(6, 157, 103, 0.57) 100%); /* 漸層背景色 */
   color: #fff; /* 文字顏色 */
@@ -1201,7 +1200,7 @@ a:link{
   right: 0px;
   background: rgba(0, 0, 0, 0.4); /* 半透明背景 */
   color: #fff; /* 白色文字 */
-  padding: 5px 5px; /* 内边距 */
+  padding: 10px; /* 内边距 */
   border-radius: 0 0 0 25px; /* 調整與效果圖片一致的圓角 */
   font-size: 0.9rem; /* 字体大小 */
   z-index: 1; /* 确保悬浮在图片上方 */
