@@ -1,12 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-contract ComicPlatform {
-    constructor() {
-        admins[msg.sender] = true; // 部署合約的地址設為管理者
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
+    uint256 public tokenCounter;
+
+    constructor(address initialOwner) Ownable(initialOwner) ERC721("ComicNFT", "CNFT") {
+        tokenCounter = 0;
+        admins[initialOwner] = true; // 将初始拥有者设为管理者
         admins[0xC6Bf9f4E9C1042Ca3aF0a33ce51506c3a123162c] = true;
         admins[0xb4C39375f9cBCCdD5dA4423F210A74f7Cbd110B7] = true;
     }
+    
+
     // 定義章節結構體
     struct Chapter {
         uint256 price; // 章節價格
@@ -16,6 +26,19 @@ contract ComicPlatform {
         address payable owner; // 漫畫所有者的錢包地址
         bool exists; // 漫畫是否存在
     }
+    // 定義NFT結構體
+    struct NFT {
+        uint256 tokenId;
+        bytes32 comicHash;
+        address minter;
+        uint256 price;
+        string description;
+        bool forSale;
+        uint256 royalty; // 自定版税率
+    }
+
+    // 儲存NFT
+    mapping(uint256 => NFT) public nfts;
     // 儲存已上傳的漫畫
     mapping(bytes32 => Comic) public comics;
     // 儲存每本漫畫的章節信息
@@ -80,6 +103,12 @@ contract ComicPlatform {
         address indexed buyer,
         uint256 price
     );
+        // NFT相关事件
+    event NFTMinted(uint256 tokenId, address owner, uint256 price, uint256 royalty, string description, bytes32 comicHash);
+    event NFTPurchased(uint256 tokenId, address buyer, uint256 price);
+    event NFTUpdated(uint256 tokenId, uint256 newPrice, bool forSale);
+    event NFTDescriptionUpdated(uint256 tokenId,uint256 price, string description, uint256 royalty,bool forSale);
+
 
     // 上傳漫畫功能
     function uploadComic(bytes32 _comicHash,string memory _title) external {
@@ -169,5 +198,86 @@ contract ComicPlatform {
     }
     function getContractBalance() external view onlyAdmin returns (uint256)  {
         return address(this).balance;
+    }
+
+    // NFT功能 - 铸造NFT
+    function _mintNFT(uint256 price, string memory description, uint256 royalty, uint256 quality, bytes32 comichash) external {
+        require(royalty <= 10, "Royalty cannot exceed 10%");
+        for (uint256 i = 0; i < quality; i++) {
+            uint256 newTokenId = tokenCounter;
+            _mint(msg.sender, newTokenId);
+
+            nfts[newTokenId] = NFT({
+                tokenId: newTokenId,
+                comicHash: comichash,
+                minter: msg.sender,
+                price: price,
+                description: description,
+                forSale: true,
+                royalty: royalty
+            });
+
+        emit NFTMinted(newTokenId, msg.sender, price, royalty, description, comichash);
+            tokenCounter++;
+        }
+        
+    }
+    
+    // 允许所有者更新价格和销售状态
+    function updateNFT(uint256 _tokenId, uint256 newPrice, bool forSale) external {
+        require(ownerOf(_tokenId) == msg.sender, "Only the owner can update the NFT");
+        nfts[_tokenId].price = newPrice;
+        nfts[_tokenId].forSale = forSale;
+
+        emit NFTUpdated(_tokenId, newPrice, forSale);
+    }
+
+    // 允许minter更新
+    function updateNFTDescription(uint256 _tokenId,uint256 price, string memory description, uint256 royalty, bool forSale) external {
+        require(nfts[_tokenId].minter == msg.sender, "Only the minter can update the data");
+        require(ownerOf(_tokenId) == msg.sender, "Only the owner can update the NFT");
+        nfts[_tokenId].description = description;
+        nfts[_tokenId].price = price;
+        nfts[_tokenId].royalty = royalty;
+        nfts[_tokenId].forSale = forSale;
+
+        emit NFTDescriptionUpdated(_tokenId, price, description, royalty, forSale);
+    }
+    // 购买NFT函数，包含2%抽成和版税逻辑
+    function purchaseNFT(uint256 _tokenId) external payable nonReentrant {
+        require(nfts[_tokenId].forSale, "NFT is not for sale");
+        require(msg.value >= nfts[_tokenId].price, "Insufficient payment");
+
+        address tokenOwner = ownerOf(_tokenId);
+        require(tokenOwner != msg.sender, "Cannot purchase your own token");
+
+        uint256 salePrice = nfts[_tokenId].price;
+        uint256 fee = salePrice * 2 / 100; // 2% 抽成
+        uint256 royalty = salePrice * nfts[_tokenId].royalty / 100; // 自定义版税
+        uint256 netPrice = salePrice - fee - royalty;
+
+        // 转移NFT
+        _transfer(tokenOwner, msg.sender, _tokenId);
+
+        // 支付卖家
+        payable(tokenOwner).transfer(netPrice);
+        
+        // 支付版税给minter
+        payable(nfts[_tokenId].minter).transfer(royalty);
+
+        nfts[_tokenId].forSale = false;
+        emit NFTPurchased(_tokenId, msg.sender, salePrice);
+    }
+
+    // 重写转移函数以确保交易只能通过合约
+    function transferFrom(address from, address to, uint256 tokenId) public override {
+        require(msg.sender == address(this), "Only contract can transfer");
+        super.transferFrom(from, to, tokenId);
+    }
+    
+    function getNFTDetails(uint256 _tokenId) external view returns (bytes32, string memory, uint256, uint256,bool) {
+        require(nfts[_tokenId].tokenId != 0, "Token does not exist");
+        NFT storage nft = nfts[_tokenId];
+        return (nft.comicHash, nft.description, nft.price, nft.royalty, nft.forSale);
     }
 }
