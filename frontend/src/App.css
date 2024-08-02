@@ -230,14 +230,14 @@ span {
 }
 
 .upload-form button {
-  background-color: #007bff;
+  background-color: #ccc;
   color: #fff;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .upload-form button:hover {
-  background-color: #0056b3;
+  background-color: #a0a0a0;
 }
 
 .upload-form select option {
@@ -479,7 +479,7 @@ a:link{
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 45vh; /* 設置高度，使其內容能夠垂直居中 */
+  height: 50vh;
   text-align: center;
   padding: 10px;
   margin: 2% 0;
@@ -494,7 +494,6 @@ a:link{
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 60vh; /* 設置高度，使其內容能夠垂直居中 */
   text-align: center;
   padding: 10px;
   margin: 2% 0;
@@ -1019,6 +1018,10 @@ a:link{
 
 
 /* homepage */
+.homepage .custom-link{
+  color: #000;
+}
+
 .carousel-item {
   padding: 15px;
 }
@@ -1088,12 +1091,12 @@ a:link{
   }
 
   .btn-section{
-    width: 24%;
-    margin: 0 0.5% 0 0!important;
+    width: 32%;
+    margin: 0 3% 0!important;
   }
 
-  .custom-button{
-    width: 100%;
+  .creatorPage .custom-button{
+    width: 20vw;
   }
 
   .text-section{
@@ -1111,6 +1114,23 @@ a:link{
     margin: 0;
     border-radius: 30px;
   }
+
+  .homepage .btn-section{
+    width: 25%;
+    margin: 0!important;
+  }
+
+  .homepage .btn{
+    width: 100%;
+  }
+
+  .homepage .carousel-caption-custom p {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* 控制顯示的行數，這裡設置為3行 */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 }
 
@@ -1174,7 +1194,24 @@ a:link{
   margin: 0;
 }
 
+.comicDetail .carousel-image-container{
+  border-radius: 0;
+}
+
+.comicDetail .carousel-image-container img{
+  border-radius: 0;
+}
+
 @media only screen and (max-width: 768px) {
+
+  .comicDetail .row{
+    padding-top: 0!important;
+  }
+
+  .comicDetail .carousel-image-container{
+    padding: 0;
+  }
+
   .comicDetail .btn-section{
     width: 40%;
   }
@@ -1215,6 +1252,10 @@ a:link{
   color: #000;
   border: 2px solid black;
   box-shadow: none!important;
+}
+
+.chapter-table .btn:hover{
+  background-color: #f6b83bec;
 }
 
 .table-button .btn{
@@ -1278,6 +1319,10 @@ a:link{
 
 .creatorPage .btn-section{
   padding-right: 10%;
+}
+
+.creatorPage .position-relative img{
+  border-radius: 0;
 }
 
 .position-relative {
@@ -1537,28 +1582,149 @@ a:link{
 }
 
 /* deleteChapter */
-.deleteChapter .btn{
-  background-color: rgba(6, 157, 103, 0.89);
-  box-shadow: 5px 5px rgba(6, 157, 103, 0.42);
-  border-radius: 8px;
+
+/* .deleteChapter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+} */
+
+.deleteChapter .row{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.custom-modal-content {
+.deleteChapter a {
+  display: inline-block;
+  max-width: 40%;
+  text-align: center;
+}
+
+.deleteChapter .pagination a {
+  width: 100%;
+  max-width: 100%;
+}
+
+.deleteChapter .page-link{
+  color: rgba(6, 157, 103, 0.89);
+}
+
+.deleteChapter h4{
+  color: #45474A;
+  font-size: 24px;
+  font-weight: 900;
+  /* margin-top: 12%; */
+}
+
+.deleteChapter .createSuccess-image-container{
+  display: inline-block;
+  width: 200px;
+  border-radius: 0;
+  margin: 0;
+}
+
+.deleteChapter .createSuccess-image-container img{
+  border-radius: 0;
+  display: block;
+  width: 100%;
+}
+
+.delete-btn{
+  background-color: rgba(6, 157, 103, 0.89);
+  width: 80%;
+  height: 40px;
+  border-radius: 0;
+  color: #fff;
+  border: 2px solid black;
+  box-shadow: rgba(0, 0, 0, 0.6) -3px 3px 5px;
+}
+
+.deleteChapter-title-section .btn{
+  background-color: #F6B93B;
+  border-radius: 0;
+  color: #000;
+  border: 2px solid black;
+  box-shadow: rgba(0, 0, 0, 0.6) -3px 3px 5px;
+}
+
+.deleteChapter .active>.page-link, .page-link.active{
+  background-color: rgba(6, 157, 103, 0.89);
+  border: 1px rgba(6, 157, 103, 0.89) solid;
+  color: #fff;
+}
+
+.delete-btn:hover{
+  background-color: rgba(6, 157, 103, 0.8);
+}
+
+
+.modal-dialog {
+  display: flex;
+  justify-content: center; 
+  align-items: center; 
+  min-height: 92vh; 
+}
+
+.modal-content, .modal-footer{
+  border-radius: 20px;
+  width: 90%;
+}
+
+.custom-modal-content .modal-content, .custom-modal-content .custom-modal-footer{
   background-color: #484C52;
   color: #fff;
-  width: 260px;
-  height: 110px;
+}
+
+.custom-modal-content h3{
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.custom-modal-content h4{
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.custom-modal-content .modal-content {
+  background-color: #484C52;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-modal-content .modal-body {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* 垂直置中 */
+  flex-grow: 1;
+  margin: 0;
+  padding: 6% 0 0 0 ;
 }
 
 .custom-modal-footer {
+  background-color: #484C52;
+  color: #fff;
+  border-top: none; /* 去掉上邊框 */
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  padding: 0 0 6% 0;
 }
 
 .custom-modal-button {
   background-color: #F6B93B;
-  color: #fff;
+  color: #484C52;
+  font-weight: bold;
+  font-size: 18px;
   border: none;
+  margin: 3% 5% 0;
+}
+
+.custom-modal-button:hover{
+  background-color:#c7932c;
 }
 
 /* mintNFT */
@@ -1615,27 +1781,27 @@ a:link{
 
 /* nftMarket */
 .nftMarket-overlay {
-  position: absolute; /* 绝对定位 */
+  position: absolute; 
   bottom: 45px;
   right: 0px;
-  background: rgba(0, 0, 0, 0.5); /* 半透明背景 */
-  color: #fff; /* 白色文字 */
-  padding: 5px 10px; /* 内边距 */
-  border-radius: 50px 0 0 0; /* 調整與效果圖片一致的圓角 */
-  font-size: 0.8rem; /* 字体大小 */
-  z-index: 1; /* 确保悬浮在图片上方 */
+  background: rgba(0, 0, 0, 0.5); 
+  color: #fff; 
+  padding: 5px 10px; 
+  border-radius: 50px 0 0 0; 
+  font-size: 0.8rem; 
+  z-index: 1; 
 }
 
 .nftMarket-overlay-owner {
-  position: absolute; /* 绝对定位 */
+  position: absolute; 
   bottom: 45px;
   left: 0px;
-  background: rgba(0, 0, 0, 0.5); /* 半透明背景 */
-  color: #fff; /* 白色文字 */
-  padding: 5px 10px; /* 内边距 */
-  border-radius: 0 50px 0 0; /* 調整與效果圖片一致的圓角 */
-  font-size: 0.9rem; /* 字体大小 */
-  z-index: 1; /* 确保悬浮在图片上方 */
+  background: rgba(0, 0, 0, 0.5); 
+  color: #fff; 
+  padding: 5px 10px; 
+  border-radius: 0 50px 0 0; 
+  font-size: 0.9rem; 
+  z-index: 1; 
 }
 
 /* readerPage */
@@ -2299,17 +2465,6 @@ a:link{
   .searchPage .btn{
     width: 110%;
   }
-
-  /* .createSuccess .createSuccess-image-container{
-    width: 30%!important;
-    height: auto!important;
-    border-radius: 0;
-    margin: 0;
-  }
-
-  .createSuccess .createSuccess-image-container img{
-    width: 110%;
-  } */
 }
 
 /* createSuccess */
@@ -2371,3 +2526,17 @@ a:link{
   font-weight: 900;
 }
 
+/* editChapter */
+.editChapter .carousel-image-container{
+  width: 200px;
+  border-radius: 0;
+}
+
+.editChapter .carousel-image-container img{
+  border-radius: 0;
+}
+
+.editChapter a h4{
+  color: #45474A;
+  font-weight: 900;
+}

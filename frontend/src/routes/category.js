@@ -180,6 +180,10 @@ function Category() {
         });
     };
 
+    const truncateText = (text, maxLength) => {
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    };
+
 
     return (
         <>
@@ -221,7 +225,7 @@ function Category() {
                         <>
                             <Row xs={1} md={2} className="g-4 pb-5">
                                 {current.map((data, idx) => (
-                                    <Col key={idx} xs={6} md={3} className="pt-3">
+                                    <Col key={idx} xs={6} md={6} className="pt-3">
                                         <Card>
                                             <Link to={`/comicDetail/${current[idx].comicID}`}>
                                                 <Card.Img variant="top" src={data.image} />
@@ -229,7 +233,7 @@ function Category() {
     
                                             <Card.Body>
                                                 <Card.Title className='fw-bold'>{data.title}</Card.Title>
-                                                <Card.Text className='text-secondary'>{data.text}</Card.Text>
+                                                <Card.Text className='text-secondary'>{truncateText(data.text, 50)}</Card.Text>
                                             </Card.Body>
                                         </Card>
                                     </Col>

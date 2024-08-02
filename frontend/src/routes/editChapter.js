@@ -164,7 +164,7 @@ function EditChapter() {
         <>
             <div>
                 {!loading &&
-                    <Container className='comicDetail'>
+                    <Container className='editChapter'>
                         {/* 此處會放上該漫畫的封面+名稱供預覽 跟創作者頁面creatorPage的一樣*/}
                         <Row className="pt-5">
                             <Link to={`/comicDetail/${comic[0].comicID}`}>
@@ -175,7 +175,7 @@ function EditChapter() {
                                     alt="800x400"
                                     />
                                 </div>
-                                <h4 className='text-center pt-3'>{comic[0].title}</h4>
+                                <h4 className='text-center pt-2'>{comic[0].title}</h4>
                             </Link>
                         </Row>
                         <Row className='pt-4 chapter-title-section'>

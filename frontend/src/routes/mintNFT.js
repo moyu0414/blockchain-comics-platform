@@ -297,7 +297,7 @@ const MintNFT = (props) => {
         </Form.Group>
 
         {/* ) : ( */}
-        <Form.Group as={Row} className='mb-2'>
+        <Form.Group as={Row} className='mb-4'>
             <Form.Label>
                 NFT價格
             </Form.Label>
@@ -377,7 +377,7 @@ const MintNFT = (props) => {
             )}
         </Form>
 
-        <Form.Group as={Row} className='mb-2'>
+        <Form.Group as={Row} className='mt-4 mb-2'>
             <Form.Label>
                 發行數量
             </Form.Label>

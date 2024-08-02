@@ -544,7 +544,7 @@ const EditWork = (props) => {
   
                 <Form.Group className='mb-4'>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Form.Label className='label-style mb-1 col-form-label'>
+                    <Form.Label className='label-style mb-3 col-form-label'>
                       本章作品上傳
                     </Form.Label>
                     <h6 style={{ marginLeft: '10px' }}>

@@ -306,6 +306,9 @@ function ComicDetail() {
         }
     };
 
+    const truncateText = (text, maxLength) => {
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    };
 
     return (
         <>
@@ -320,7 +323,7 @@ function ComicDetail() {
                             />
                         </div>
                     </Row>
-                    <Row className="pt-2 pb-3 btn-container justify-content-center">
+                    <Row className="pt-3 pb-3 btn-container justify-content-center">
                         {buttonData.map((label, idx) => (
                             <Col key={idx} xs={2} md={2} lg={2} className="pb-3 btn-section d-flex justify-content-center">
                                 <Button variant="outline-dark" className="custom-button" onClick={label === '收藏' ? handleFavoriteClick : undefined}>
@@ -413,7 +416,7 @@ function ComicDetail() {
                                         <Card.Img variant="top" src={data.image} />
                                         <Card.Body>
                                             <Card.Title>{data.title}</Card.Title>
-                                            <Card.Text>{data.description}</Card.Text>
+                                            <Card.Text>{truncateText(data.description, 50)}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Link>

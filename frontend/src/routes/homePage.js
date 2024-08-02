@@ -57,6 +57,10 @@ const HomePage = ({ contractAddress }) => {
     };
     
 
+    const truncateText = (text, maxLength) => {
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    };
+
     return (
         <>
             <Container className='homepage pt-4'>
@@ -123,7 +127,7 @@ const HomePage = ({ contractAddress }) => {
                                         </Link>
                                         <Card.Body>
                                             <Card.Title className='fw-bold'>{data.title}</Card.Title>
-                                            <Card.Text className='text-secondary'>{data.text}</Card.Text>
+                                            <Card.Text className='text-secondary'>{truncateText(data.text, 50)}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Col>
