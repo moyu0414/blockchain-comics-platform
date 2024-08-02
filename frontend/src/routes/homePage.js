@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Carousel, Card, Col, Row, Button } from 'react-bootstrap';
 import './bootstrap.min.css';
+import { HeartFill, CartFill } from 'react-bootstrap-icons';
+import axios from 'axios';
 
 const HomePage = ({ contractAddress }) => {
     const [current, setCurrent] = useState([]);
@@ -12,8 +14,6 @@ const HomePage = ({ contractAddress }) => {
     const initData = async () => {
         try {
             const storedArray = JSON.parse(storedArrayJSON);
-            console.log(storedArray);
-
             for (var i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists == 1) {
                     const filename = storedArray[i].filename;
@@ -22,11 +22,12 @@ const HomePage = ({ contractAddress }) => {
                     if (storedArray[i].protoFilename == 1) {
                         protoFilename = `http://localhost:5000/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
                     }
-                    fetchedData.push({ comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, image: image, protoFilename: protoFilename});
+                    const text = storedArray[i].description.length > 40 
+                        ? storedArray[i].description.slice(0, 40) + '...' 
+                        : storedArray[i].description;
+                    fetchedData.push({ comicHash: storedArray[i].comicHash, comicID: storedArray[i].comicID, title: storedArray[i].title, text: text, author: storedArray[i].author, category: storedArray[i].category, image: image, protoFilename: protoFilename});
                 }
             };
-            setCurrent(fetchedData);
-
             const categoryCounts = {};
             fetchedData.forEach(data => {
                 if (categoryCounts[data.category]) {
@@ -37,7 +38,27 @@ const HomePage = ({ contractAddress }) => {
             });
             const sortPromo = Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a]);
             setPromoPosition(sortPromo.slice(0, 4));  // / 推廣位只選取前四個類型來顯示
-            console.log(fetchedData);
+            try {
+                const response = await axios.get('http://localhost:5000/api/homepage/updateStats');
+                const comics = response.data;  // 获取从后端返回的漫画数据
+                console.log(comics);
+                const totalCountMap = comics.reduce((map, comic) => {
+                    map[comic.comic_id] = {
+                        totHearts: comic.totHearts, // 收藏数
+                        totBuy: comic.totBuy // 购买数
+                    };
+                    return map;
+                }, {});
+                const updatedFetchedData = fetchedData.map(data => ({
+                    ...data,
+                    totHearts: totalCountMap[data.comicHash]?.totHearts || 0, // 如果没有找到对应的 comic_id，则为 0
+                    totBuy: totalCountMap[data.comicHash]?.totBuy || 0 // 如果没有找到对应的 comic_id，则为 0
+                }));
+                console.log(updatedFetchedData);
+                setCurrent(updatedFetchedData);
+            } catch (error) {
+                console.error('Error fetching records:', error);
+            }
         } catch (error) {
             console.error('Error initializing contract:', error);
         }
@@ -108,27 +129,35 @@ const HomePage = ({ contractAddress }) => {
                         </Col>
                     ))}
                 </Row>
-    
+                
                 {promoPosition.map(category => (
                     <div key={category}>
-                        <Row>
-                            <h3 className="fw-bold">{category}漫畫</h3>
-                        </Row>
-                        <Row xs={1} md={2} className="g-4 pb-5">
-                            {current.filter(data => data.category === category).map((data, idx) => (
-                                <Col key={idx} xs={6} md={3} className="pt-3">
-                                    <Card>
-                                        <Link to={`/comicDetail/${data.comicID}`}>
-                                            <Card.Img variant="top" src={data.image} />
-                                        </Link>
-                                        <Card.Body>
-                                            <Card.Title className='fw-bold'>{data.title}</Card.Title>
-                                            <Card.Text className='text-secondary'>{data.text}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            ))}
-                        </Row>
+                        <h3 className="fw-bold">{category} 漫畫</h3>
+                        <Carousel interval={null} pause={false} wrap={true} indicators={false} className="comic-carousel">
+                            <Carousel.Item>
+                                <div className="carousel-row">
+                                    {current.filter(data => data.category === category).map((data, idx) => (
+                                        <Col key={idx} xs={6} md={3} className="pt-3 mx-1">
+                                            <Card>
+                                                <Link to={`/comicDetail/${data.comicID}`}>
+                                                    <Card.Img variant="top" src={data.image} />
+                                                    <div className="category-totcount">
+                                                        <CartFill style={{ marginRight: '5px' }} />
+                                                        {data.totBuy}<br />
+                                                        <HeartFill style={{ marginRight: '5px' }} />
+                                                        {data.totHearts}
+                                                    </div>
+                                                </Link>
+                                                <Card.Body>
+                                                    <Card.Title className='fw-bold'>{data.title}</Card.Title>
+                                                    <Card.Text className='text-secondary'>{data.text}</Card.Text>
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
+                                    ))}
+                                </div>
+                            </Carousel.Item>
+                        </Carousel>
                     </div>
                 ))}
             </Container>

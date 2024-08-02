@@ -391,6 +391,42 @@ app.get('/api/creatorPage/updateChapter', (req, res) => {
 });
 
 
+app.get('/api/homepage/updateStats', (req, res) => {
+  const query = `
+      SELECT 
+          comics.comic_id,
+          COUNT(DISTINCT user.address) AS totHearts,
+          COALESCE(purchase_stats.purchase_count, 0) AS totBuy
+      FROM 
+          comics
+      LEFT JOIN 
+          user ON JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) = 'true'
+      LEFT JOIN (
+          SELECT 
+              comic_id,
+              COUNT(*) AS purchase_count
+          FROM 
+              records
+          WHERE 
+              EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND comics.is_exist = 1)
+          GROUP BY 
+              comic_id
+      ) AS purchase_stats ON purchase_stats.comic_id = comics.comic_id
+      WHERE 
+          comics.is_exist = 1
+      GROUP BY 
+          comics.comic_id
+  `;
+  pool.query(query, (error, results) => {
+      if (error) {
+          console.error('Error fetching comic records: ', error);
+          return res.status(500).json({ message: 'Error fetching comic records' });
+      }
+      res.json(results);
+  });
+});
+
+
 app.get('/api/category/updateChapter', (req, res) => {
   const currentCategory = req.query.currentCategory;
   const query = `
@@ -435,46 +471,43 @@ app.get('/api/category/updateComic', (req, res) => {
 });
 
 
-app.get('/api/category/updateFavorite', (req, res) => {
+app.get('/api/category/updateStats', (req, res) => {
   const currentCategory = req.query.currentCategory;
   const query = `
-    SELECT user.collectComic, comics.comic_id
-    FROM user
-    INNER JOIN comics ON user.address = comics.creator
-    WHERE comics.category = ? AND comics.is_exist = 1
+      SELECT 
+          comics.comic_id,
+          COUNT(DISTINCT user.address) AS totHearts,
+          COALESCE(purchase_stats.purchase_count, 0) AS totBuy
+      FROM 
+          comics
+      LEFT JOIN 
+          user ON JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) = 'true'
+      LEFT JOIN (
+          SELECT 
+              records.comic_id,
+              COUNT(records.comic_id) AS purchase_count
+          FROM 
+              records
+          INNER JOIN 
+              comics ON records.comic_id = comics.comic_id
+          INNER JOIN 
+              user ON records.buyer = user.address
+          WHERE 
+              comics.category = ? AND comics.is_exist = 1
+          GROUP BY 
+              records.comic_id
+      ) AS purchase_stats ON purchase_stats.comic_id = comics.comic_id
+      WHERE 
+          comics.category = ? AND comics.is_exist = 1
+      GROUP BY 
+          comics.comic_id
   `;
-  pool.query(query, [currentCategory], (error, results) => {
-    if (error) {
-      console.error('Error fetching comic records: ', error);
-      return res.status(500).json({ message: 'Error fetching comic records' });
-    }
-    const comicFavoritedCounts = {};
-    const allComicIds = new Set();  // 用于存储所有 comic_id
-    results.forEach(row => {
-      const { collectComic, comic_id } = row;
-      allComicIds.add(comic_id);
-      let collectObj;
-      try {
-        collectObj = collectComic;
-        if (typeof collectObj !== 'object' || collectObj === null) {
-          collectObj = {};
-        }
-      } catch (e) {
-        console.error('Error parsing collectComic data: ', e);
-        collectObj = {};
+  pool.query(query, [currentCategory, currentCategory], (error, results) => {
+      if (error) {
+          console.error('Error fetching comic records: ', error);
+          return res.status(500).json({ message: 'Error fetching comic records' });
       }
-      if (Object.keys(collectObj).includes(comic_id)) {
-        if (!comicFavoritedCounts[comic_id]) {
-          comicFavoritedCounts[comic_id] = 0;
-        }
-        comicFavoritedCounts[comic_id]++;
-      }
-    });
-    const resultArray = Array.from(allComicIds).map(comic_id => ({
-      comic_id,
-      count: comicFavoritedCounts[comic_id] || 0
-    }));
-    res.json(resultArray);
+      res.json(results);
   });
 });
 
