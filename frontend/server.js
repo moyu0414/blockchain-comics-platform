@@ -688,11 +688,9 @@ app.get('/api/comicIMG/:filename', async (req, res) => {
       return res.status(404).json({ message: 'filename not found.' });
     }
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
-    const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', filename);
-    // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
-    const image = await fsPromises.readFile(imagePath);
-    res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
-    res.send(image);
+    const imagePath = `/uploads/${comic_id}/cover/${filename}`;
+    const imageURL = `https://web3toon.ddns.net${imagePath}`;
+    res.redirect(imageURL);
   } catch (error) {
     console.error('Error fetching comicIMG:', error);
     res.status(500).json({ message: 'Error fetching comicIMG' });
@@ -709,11 +707,9 @@ app.get('/api/chapterIMG/:filename',async (req, res) => {
       return res.status(404).json({ message: 'filename not found.' });
     }
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
-    const imagePath = path.join(__dirname, 'uploads', comic_id, 'chapters', filename);
-    // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
-    const image = await fsPromises.readFile(imagePath);
-    res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
-    res.send(image);
+    const imagePath = `/uploads/${comic_id}/chapters/${filename}`;
+    const imageURL = `https://web3toon.ddns.net${imagePath}`;
+    res.redirect(imageURL);
   } catch (error) {
     console.error('Error fetching chapterIMG:', error);
     res.status(500).json({ message: 'Error fetching chapterIMG' });
@@ -730,16 +726,14 @@ app.get('/api/coverFile/:filename/:protoFilename', async (req, res) => {
       return res.status(404).json({ message: 'Comic image not found.' });
     }
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
-    const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', 'promoCover.jpg');
-    const image = await fsPromises.readFile(imagePath);
-    res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
-    res.send(image);
+    const imagePath = `/uploads/${comic_id}/cover/promoCover.jpg`;
+    const imageURL = `https://web3toon.ddns.net${imagePath}`;
+    res.redirect(imageURL);
   } catch (error) {
     console.error('Error fetching comic image:', error);
     res.status(500).json({ message: 'Error fetching comic image' });
   }
 });
-
 
 
 // 編輯漫畫資料的請求、添加漫畫信息到數據庫的路由
