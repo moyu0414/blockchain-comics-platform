@@ -43,7 +43,7 @@ const SelectChapter = () => {
       console.log(temp);
 
       try {  // 這本漫畫得所有章節
-        const response = await axios.get('http://localhost:5000/api/chapters', {
+        const response = await axios.get('https://web3toonapi.ddns.net/api/chapters', {
           params: {
             comicHash: temp[0].comicHash
           }
@@ -56,7 +56,7 @@ const SelectChapter = () => {
       console.log(chapterInfo);
 
       try {
-        const response = await axios.get('http://localhost:5000/api/selectChapter/records', {
+        const response = await axios.get('https://web3toonapi.ddns.net/api/selectChapter/records', {
           params: {
             currentAccount: currentAccount,
             comicHash: temp[0].comicHash
@@ -203,7 +203,7 @@ const SelectChapter = () => {
           formData.append('purchase_date', Timestamp);
           formData.append('price', chapter.price);
           try {
-            const response = await axios.post('http://localhost:5000/api/add/records', formData, {
+            const response = await axios.post('https://web3toonapi.ddns.net/api/add/records', formData, {
               headers: {
                 'Content-Type': 'multipart/form-data'
               }

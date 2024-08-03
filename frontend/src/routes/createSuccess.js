@@ -22,7 +22,7 @@ function CreateSuccess() {
                 const storedArray = JSON.parse(storedArrayJSON);
                 for (let i = 0; i < storedArray.length; i++) {
                     if (comicHash === storedArray[i].comicHash) {
-                        const image = `http://localhost:5000/api/comicIMG/${storedArray[i].filename}`;
+                        const image = `https://web3toonapi.ddns.net/api/comicIMG/${storedArray[i].filename}`;
                         temp.push({
                             comicID: storedArray[i].comicID,
                             title: storedArray[i].title,

@@ -55,7 +55,7 @@ const EditWork = (props) => {
         setContract(contractInstance);
 
         try {
-          const response = await axios.get('http://localhost:5000/api/editWork/chapters', {
+          const response = await axios.get('https://web3toonapi.ddns.net/api/editWork/chapters', {
               params: {
               comicHash: temp[0].comicHash,
               currentAccount: currentAccount
@@ -69,7 +69,7 @@ const EditWork = (props) => {
               let id = 'Chapter' + (i+1);
               if (id == location.state.chapterID) {
                 let price = chapters[i].price;
-                let imgURL = "http://localhost:5000/api/chapterIMG/" + chapters[i].filename;
+                let imgURL = "https://web3toonapi.ddns.net/api/chapterIMG/" + chapters[i].filename;
                 setNewChapter({
                   chapterTitle: chapters[i].title,
                   price: price,
@@ -140,7 +140,7 @@ const EditWork = (props) => {
           } else {
             formData.append('protoFilename', '');
           };
-          await axios.put('http://localhost:5000/api/update/comicData', formData);
+          await axios.put('https://web3toonapi.ddns.net/api/update/comicData', formData);
   
           alert('漫畫編輯成功！');
           localStorage.setItem('editComicData', JSON.stringify(editComicData));
@@ -173,7 +173,7 @@ const EditWork = (props) => {
         } else {
           formData.append('protoFilename', '');
         };
-        await axios.put('http://localhost:5000/api/update/comicData', formData);
+        await axios.put('https://web3toonapi.ddns.net/api/update/comicData', formData);
 
         alert('漫畫編輯成功！');
         localStorage.setItem('editComicData', JSON.stringify(editComicData));
@@ -226,7 +226,7 @@ const EditWork = (props) => {
             await handleGeneratePages();  // 等待合併圖片操作完成
             formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
           }
-          await axios.put('http://localhost:5000/api/update/chapterData', formData);
+          await axios.put('https://web3toonapi.ddns.net/api/update/chapterData', formData);
 
           alert('章節編輯成功！');
           let editComicData = {'comicHash': comic[0].comicHash, 'editTitle': comic[0].title, editChapter: newChapter.chapterTitle};
@@ -248,7 +248,7 @@ const EditWork = (props) => {
           await handleGeneratePages();  // 等待合併圖片操作完成
           formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
         }
-        await axios.put('http://localhost:5000/api/update/chapterData', formData);
+        await axios.put('https://web3toonapi.ddns.net/api/update/chapterData', formData);
 
         alert('章節編輯成功！');
         let editComicData = {'comicHash': comic[0].comicHash, 'editTitle': comic[0].title, editChapter: newChapter.chapterTitle};
@@ -432,10 +432,10 @@ const EditWork = (props) => {
       };
       //console.log(temp);
       setComic(temp);
-      let imgURL = "http://localhost:5000/api/comicIMG/" + temp[0].filename;
+      let imgURL = "https://web3toonapi.ddns.net/api/comicIMG/" + temp[0].filename;
       let coverImg = '';
       if (temp[0].protoFilename) {
-        coverImg = `http://localhost:5000/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
+        coverImg = `https://web3toonapi.ddns.net/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
       }
       setNewComic({category:temp[0].category,  title: temp[0].title, description: temp[0].description, imgURL: imgURL, coverImg: coverImg});
     

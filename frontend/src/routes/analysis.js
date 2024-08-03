@@ -16,7 +16,7 @@ function Analysis() {
 
     const initData = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/creator/records', {
+            const response = await axios.get('https://web3toonapi.ddns.net/api/creator/records', {
                 params: {
                     currentAccount: currentAccount
                 }

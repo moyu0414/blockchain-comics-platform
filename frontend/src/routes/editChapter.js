@@ -22,10 +22,10 @@ function EditChapter() {
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists === 1) {
                     const filename = storedArray[i].filename;
-                    const image = `http://localhost:5000/api/comicIMG/${filename}`;
+                    const image = `https://web3toonapi.ddns.net/api/comicIMG/${filename}`;
                     let protoFilename;
                     if (storedArray[i].protoFilename) {
-                        protoFilename = `http://localhost:5000/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
+                        protoFilename = `https://web3toonapi.ddns.net/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
                     } else {
                         protoFilename = image
                     }
@@ -51,7 +51,7 @@ function EditChapter() {
             setComic(temp);
 
             try {
-                const response = await axios.get('http://localhost:5000/api/comicDetail', {
+                const response = await axios.get('https://web3toonapi.ddns.net/api/comicDetail', {
                     params: {
                     comicHash: temp[0].comicHash,
                     currentAccount: currentAccount

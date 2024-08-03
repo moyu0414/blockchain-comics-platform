@@ -19,7 +19,7 @@ function Bookcase() {
     const initData = async () => {
         try {
             try {
-                const response = await axios.get('http://localhost:5000/api/bookcase', {
+                const response = await axios.get('https://web3toonapi.ddns.net/api/bookcase', {
                     params: {
                     currentAccount: currentAccount
                     }
@@ -30,7 +30,7 @@ function Bookcase() {
                 for (const data of bookcase) {
                     const comic = comicMap.get(data.comicHash);
                     if (comic) {
-                        const image = `http://localhost:5000/api/comicIMG/${comic.filename}`;
+                        const image = `https://web3toonapi.ddns.net/api/comicIMG/${comic.filename}`;
                         data.comicID = comic.comicID;
                         data.image = image;
                         const readingValue = readingMap.get(comic.comicID);

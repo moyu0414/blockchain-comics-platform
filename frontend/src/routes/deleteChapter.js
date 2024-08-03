@@ -27,7 +27,7 @@ function DeleteChapter() {
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists === 1) {
                     const filename = storedArray[i].filename;
-                    const image = `http://localhost:5000/api/comicIMG/${filename}`;
+                    const image = `https://web3toonapi.ddns.net/api/comicIMG/${filename}`;
                     if (storedArray[i].comicID === comicID) {
                         let author;
                         if (storedArray[i].author == currentAccount) {
@@ -50,7 +50,7 @@ function DeleteChapter() {
             setComic(temp);
 
             try {
-                const response = await axios.get('http://localhost:5000/api/comicDetail', {
+                const response = await axios.get('https://web3toonapi.ddns.net/api/comicDetail', {
                     params: {
                     comicHash: temp[0].comicHash,
                     currentAccount: currentAccount

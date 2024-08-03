@@ -39,7 +39,7 @@ const Reading = () => {
 
 
       try {  // 這本漫畫得所有章節
-        const response = await axios.get('http://localhost:5000/api/chapters', {
+        const response = await axios.get('https://web3toonapi.ddns.net/api/chapters', {
           params: {
             comicHash: temp[0].comicHash
           }
@@ -52,7 +52,7 @@ const Reading = () => {
       console.log(chapterInfo);
 
       try {
-        const response = await axios.get('http://localhost:5000/api/reading/records', {
+        const response = await axios.get('https://web3toonapi.ddns.net/api/reading/records', {
           params: {
             currentAccount: currentAccount,
             comicHash: temp[0].comicHash,
@@ -92,7 +92,7 @@ const Reading = () => {
       for (var i = 0; i < read.length; i++) {
         if (read[i].chapterID == chapterID) {
           let imgURL = '';
-          let url = "http://localhost:5000/api/chapterIMG/" + read[i].filename;
+          let url = "https://web3toonapi.ddns.net/api/chapterIMG/" + read[i].filename;
           now.push({   //當前顯示頁面資料
             comicTitle: read[i].comicTitle,
             chapterTitle: read[i].chapterTitle,

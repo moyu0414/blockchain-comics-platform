@@ -140,10 +140,10 @@ const MintNFT = (props) => {
       };
       console.log(temp);
       setComic(temp);
-      let imgURL = "http://localhost:5000/api/comicIMG/" + temp[0].filename;
+      let imgURL = "https://web3toonapi.ddns.net/api/comicIMG/" + temp[0].filename;
       let coverImg = '';
       if (temp[0].protoFilename) {
-        coverImg = `http://localhost:5000/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
+        coverImg = `https://web3toonapi.ddns.net/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
       }
       setNewComic({category:temp[0].category,  title: temp[0].title, description: temp[0].description, imgURL: imgURL, coverImg: coverImg});
       setNFTData({comicHash: temp[0].comicHash})

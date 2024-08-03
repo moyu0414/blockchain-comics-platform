@@ -25,7 +25,7 @@ function EditSuccess() {
                 const storedArray = JSON.parse(storedArrayJSON);
                 for (let i = 0; i < storedArray.length; i++) {
                     if ((!editFile || editFile !== storedArray[i].filename) && comicHash === storedArray[i].comicHash) {
-                        const image = `http://localhost:5000/api/comicIMG/${storedArray[i].filename}`;
+                        const image = `https://web3toonapi.ddns.net/api/comicIMG/${storedArray[i].filename}`;
                         temp.push({
                             comicID: storedArray[i].comicID,
                             title: editTitle,

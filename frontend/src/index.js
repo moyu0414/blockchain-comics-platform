@@ -75,7 +75,7 @@ const AppLayout = () => {
   useEffect(() => {
     // 初始化 Web3 和智能合約
     const connectToWeb3 = async () => {
-      await axios.get('http://localhost:5000/api/comics')
+      await axios.get('https://web3toonapi.ddns.net/api/comics')
       .then(response => {
         //console.log("DB comicData：" , response.data);
         DBComicDatas = response.data;

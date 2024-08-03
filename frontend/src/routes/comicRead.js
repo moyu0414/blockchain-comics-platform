@@ -88,7 +88,7 @@ const ComicRead = () => {
             setComic(temp);
             // 本漫畫的所有章節是否購買
             try {
-                const response = await axios.get('http://localhost:5000/api/comicRead', {
+                const response = await axios.get('https://web3toonapi.ddns.net/api/comicRead', {
                     params: {
                     comicHash: temp[0].comicHash,
                     currentAccount: currentAccount
@@ -119,7 +119,7 @@ const ComicRead = () => {
 
                 for (var i = 0; i < records.length; i++) {
                     if (records[i].chapterID === chapterID && records[i].isBuying === '閱讀') {
-                        let url = "http://localhost:5000/api/chapterIMG/" + records[i].filename;
+                        let url = "https://web3toonapi.ddns.net/api/chapterIMG/" + records[i].filename;
                         read.push({
                         chapterTitle: records[i].chapterTitle,
                         chapterID: chapterID,
@@ -191,7 +191,7 @@ const ComicRead = () => {
                     formData.append('purchase_date', Timestamp);
                     formData.append('price', chapter.chapterPrice);
                     try {
-                        const response = await axios.post('http://localhost:5000/api/add/records', formData, {
+                        const response = await axios.post('https://web3toonapi.ddns.net/api/add/records', formData, {
                         headers: {
                             'Content-Type': 'multipart/form-data'
                         }

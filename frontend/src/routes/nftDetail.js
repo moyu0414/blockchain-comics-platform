@@ -59,9 +59,9 @@ function NftDetail() {
 
         for (let i = 0; i < storedArray.length; i++) {
             if (storedArray[i].exists === 1) {
-                const image = `http://localhost:5000/api/comicIMG/${storedArray[i].filename}`;
+                const image = `https://web3toonapi.ddns.net/api/comicIMG/${storedArray[i].filename}`;
                 let protoFilename = storedArray[i].protoFilename 
-                    ? `http://localhost:5000/api/coverFile/${storedArray[i].filename}/${storedArray[i].protoFilename}` 
+                    ? `https://web3toonapi.ddns.net/api/coverFile/${storedArray[i].filename}/${storedArray[i].protoFilename}` 
                     : image;
                 const comicHash = storedArray[i].comicHash;
                 const matchedRecord = records.find(record => record.comicHash === comicHash);
@@ -87,7 +87,7 @@ function NftDetail() {
         setIP(authorizations);
 
         try {
-            const response = await axios.get('http://localhost:5000/api/nftDetail/isFavorited', {
+            const response = await axios.get('https://web3toonapi.ddns.net/api/nftDetail/isFavorited', {
                 params: {
                     currentAccount: currentAccount,
                     comicHash: temp[0].comicHash
@@ -111,7 +111,7 @@ function NftDetail() {
         let bool = !isFavorited;
         let data = tokenId;
         try {
-            const response = await axios.put('http://localhost:5000/api/update/nftDetail/favorite', null, {
+            const response = await axios.put('https://web3toonapi.ddns.net/api/update/nftDetail/favorite', null, {
               params: {
                 currentAccount: currentAccount,
                 comicHash: NFT[0].comicHash,
