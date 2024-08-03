@@ -260,7 +260,7 @@ function Category() {
                                                 </Link>
                                                 <Card.Body>
                                                     <Card.Title className='fw-bold'>{data.title}</Card.Title>
-                                                    <Card.Text className='text-secondary'>{data.text}</Card.Text>
+                                                    <Card.Text className='text-secondary'>{truncateText(data.text, 50)}</Card.Text>
                                                 </Card.Body>
                                             </Card>
                                         </Col>

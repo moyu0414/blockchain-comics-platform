@@ -72,13 +72,10 @@ function ComicDetail() {
                 // 類似漫畫 依據類型跟同作者取前4本
                 if ((storedArray[i].category == temp[0].category || storedArray[i].author == temp[0].author) && storedArray[i].comicID != comicID) {
                     const image = `http://localhost:5000/api/comicIMG/${storedArray[i].filename}`;
-                    const text = storedArray[i].description.length > 40 
-                        ? storedArray[i].description.slice(0, 40) + '...' 
-                        : storedArray[i].description;
                     fetchedData.push({
                         comicID: storedArray[i].comicID,
                         title: storedArray[i].title,
-                        description: text,
+                        description: storedArray[i].description,
                         author: storedArray[i].author,
                         category: storedArray[i].category,
                         image: image,

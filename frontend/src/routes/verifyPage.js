@@ -20,6 +20,11 @@ const VerifyPage = () => {
         }
     };
 
+    const handleClick = () => {
+        window.location.replace("/verifySuccess");
+    };
+
+    
     return (
         <Container className='verifyPage'>
             <Row className="justify-content-center">
@@ -27,6 +32,11 @@ const VerifyPage = () => {
                 <Form.Group controlId="formRealName" className="mb-3">
                     <Form.Label>真實名稱</Form.Label>
                     <Form.Control type="text" placeholder="輸入真實名稱" />
+                </Form.Group>
+
+                <Form.Group controlId="formRealName" className="mb-3">
+                    <Form.Label>筆名</Form.Label>
+                    <Form.Control type="text" placeholder="輸入創作者筆名" />
                 </Form.Group>
 
                 <Form.Group controlId="formEmail" className="mb-3">
@@ -53,7 +63,7 @@ const VerifyPage = () => {
                 </Form.Group>
 
                 <div className="verification-btn-section mt-4 w-100">
-                    <Button className="verify-btn">驗證</Button>
+                    <Button onClick={handleClick} className="verify-btn">驗證</Button>
                 </div>
                 </Col>
             </Row>

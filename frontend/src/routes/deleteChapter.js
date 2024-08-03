@@ -28,12 +28,6 @@ function DeleteChapter() {
                 if (storedArray[i].exists === 1) {
                     const filename = storedArray[i].filename;
                     const image = `http://localhost:5000/api/comicIMG/${filename}`;
-                    let protoFilename;
-                    if (storedArray[i].protoFilename) {
-                        protoFilename = `http://localhost:5000/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
-                    } else {
-                        protoFilename = image
-                    }
                     if (storedArray[i].comicID === comicID) {
                         let author;
                         if (storedArray[i].author == currentAccount) {
@@ -48,7 +42,7 @@ function DeleteChapter() {
                             description: storedArray[i].description,
                             author: author,
                             category: storedArray[i].category,
-                            protoFilename: protoFilename,
+                            image: image,
                         });
                     }
                 }
@@ -199,7 +193,7 @@ function DeleteChapter() {
                                 <div className="d-block mx-auto img-fluid createSuccess-image-container">
                                     <img
                                     className="d-block mx-auto img-fluid"
-                                    src={comic[0].protoFilename}
+                                    src={comic[0].image}
                                     alt="800x400"
                                     />
                                 </div>

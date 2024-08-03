@@ -22,10 +22,7 @@ const HomePage = ({ contractAddress }) => {
                     if (storedArray[i].protoFilename == 1) {
                         protoFilename = `http://localhost:5000/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
                     }
-                    const text = storedArray[i].description.length > 40 
-                        ? storedArray[i].description.slice(0, 40) + '...' 
-                        : storedArray[i].description;
-                    fetchedData.push({ comicHash: storedArray[i].comicHash, comicID: storedArray[i].comicID, title: storedArray[i].title, text: text, author: storedArray[i].author, category: storedArray[i].category, image: image, protoFilename: protoFilename});
+                    fetchedData.push({ comicHash: storedArray[i].comicHash, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, image: image, protoFilename: protoFilename});
                 }
             };
             const categoryCounts = {};
@@ -154,7 +151,7 @@ const HomePage = ({ contractAddress }) => {
                                                 </Link>
                                                 <Card.Body>
                                                     <Card.Title className='fw-bold'>{data.title}</Card.Title>
-                                                    <Card.Text className='text-secondary'>{data.text}</Card.Text>
+                                                    <Card.Text className='text-secondary'>{truncateText(data.text, 50)}</Card.Text>
                                                 </Card.Body>
                                             </Card>
                                         </Col>

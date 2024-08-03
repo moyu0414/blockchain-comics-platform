@@ -125,8 +125,12 @@ const EditWork = (props) => {
           formData.append('description', newComic.description);
           formData.append('category', newComic.category);
           formData.append('fileName', comic[0].filename);  // 原始圖檔名稱
+          let editComicData;
           if (file) { // 有重新上傳圖片，重新產生新的fileName
             formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
+            editComicData = {'comicHash': comic[0].comicHash, 'editTitle': newComic.title, 'editFile': comic[0].filename};
+          } else {
+            editComicData = {'comicHash': comic[0].comicHash, 'editTitle': newComic.title};
           }
           if (coverFile) {
             formData.append('coverFile', coverFile);
@@ -139,7 +143,8 @@ const EditWork = (props) => {
           await axios.put('http://localhost:5000/api/update/comicData', formData);
   
           alert('漫畫編輯成功！');
-          window.location.replace("/manageComic");
+          localStorage.setItem('editComicData', JSON.stringify(editComicData));
+          window.location.replace("/editSuccess");
         } catch (error) {
           alert('漫畫編輯失敗!');
           enableButton();
@@ -153,8 +158,12 @@ const EditWork = (props) => {
         formData.append('description', newComic.description);
         formData.append('category', newComic.category);
         formData.append('fileName', comic[0].filename);
+        let editComicData;
         if (file) { // 有重新上傳圖片，重新產生新的fileName
           formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
+          editComicData = {'comicHash': comic[0].comicHash, 'editTitle': newComic.title, 'editFile': comic[0].filename};
+        } else {
+          editComicData = {'comicHash': comic[0].comicHash, 'editTitle': newComic.title};
         }
         if (coverFile) {
           formData.append('coverFile', coverFile);
@@ -167,7 +176,8 @@ const EditWork = (props) => {
         await axios.put('http://localhost:5000/api/update/comicData', formData);
 
         alert('漫畫編輯成功！');
-        window.location.replace("/manageComic");
+        localStorage.setItem('editComicData', JSON.stringify(editComicData));
+        window.location.replace("/editSuccess");
       };
     } catch (error) {
       console.error('漫畫編輯時發生錯誤：', error);
@@ -219,7 +229,9 @@ const EditWork = (props) => {
           await axios.put('http://localhost:5000/api/update/chapterData', formData);
 
           alert('章節編輯成功！');
-          window.location.href = "/manageComic";
+          let editComicData = {'comicHash': comic[0].comicHash, 'editTitle': comic[0].title, editChapter: newChapter.chapterTitle};
+          localStorage.setItem('editComicData', JSON.stringify(editComicData));
+          window.location.replace("/editSuccess");
         } catch (error) {
           alert('章節編輯失敗!');
           enableButton();
@@ -239,7 +251,9 @@ const EditWork = (props) => {
         await axios.put('http://localhost:5000/api/update/chapterData', formData);
 
         alert('章節編輯成功！');
-        window.location.href = "/manageComic";
+        let editComicData = {'comicHash': comic[0].comicHash, 'editTitle': comic[0].title, editChapter: newChapter.chapterTitle};
+        localStorage.setItem('editComicData', JSON.stringify(editComicData));
+        window.location.replace("/editSuccess");
       };
       console.log("comicHash：" + comicHash);
       console.log("chapterTitle：" + newChapter.chapterTitle);
@@ -718,6 +732,60 @@ const EditWork = (props) => {
                   </div>
                 </Form.Group>
   
+                <Form.Group className='pb-5'>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Form.Label className='label-style mb-1 col-form-label' htmlFor="image">
+                      漫畫橫向封面
+                    </Form.Label>
+                    <h6 style={{ marginLeft: '10px' }}>
+                      如不需變更封面，則無需上傳圖檔
+                    </h6>
+                  </div>
+                  <Form.Control
+                    type="file"
+                    onChange={createPromoCover}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 45%', marginRight: '20px', textAlign: 'left' }}>
+                      <div>更改前的橫向封面</div>
+                      <br />
+                      {newComic.coverImg ? (
+                        <img
+                          src={newComic.coverImg}
+                          alt="Preview"
+                          style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
+                        />
+                      ) : (
+                        <div>
+                          <h3>目前無上傳橫向封面</h3>
+                          <br />
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ flex: '1 1 45%', textAlign: 'right' }}>
+                      <div>更改後的橫向封面</div>
+                      <br />
+                      {promoPreviewImageUrl && (
+                        <div style={{ position: 'relative', display: 'inline-block' }}>
+                          <img
+                            src={promoPreviewImageUrl}
+                            alt="Preview"
+                            style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
+                          />
+                          <button
+                            onClick={handleRemovePromo}
+                            type="button"
+                            style={{ backgroundColor: 'white', position: 'absolute', top: '5px', right: '5px' }}
+                            className="remove-button"
+                          >
+                            <MdClose className="MdClose-button" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Form.Group>
+
                 <div className="text-red-500 text-center">{message}</div>
                 <Button onClick={editComic} id="list-button">
                   提交

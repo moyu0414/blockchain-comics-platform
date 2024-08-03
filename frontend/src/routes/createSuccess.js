@@ -1,81 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from "react-router-dom";
-import { Container, Col, Row, Pagination, Image, Button } from 'react-bootstrap';
+import { Link } from "react-router-dom";
+import { Container, Col, Row, Image, Button } from 'react-bootstrap';
 import './bootstrap.min.css';
-import axios from 'axios';
-import { sortByTimestamp } from '../index';
-import Cover from '../image/1_春風化雨/封面.jpg';
 import EmojiImage from '../image/Emoji.png';
 
 function CreateSuccess() {
     const [comic, setComic] = useState([]);
-    const [chapters, setChapters] = useState([]);
-    const { comicID } = useParams();
     const [loading, setLoading] = useState(true);
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const uploadComicData = localStorage.getItem("uploadComicData");
+    const uploadArray = JSON.parse(uploadComicData);
     const currentAccount = localStorage.getItem("currentAccount");
     let temp = [];
-    let chapterInfo = [];
 
     const initData = async () => {
         try {
-            const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
-            for (let i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].exists === 1) {
-                    const filename = storedArray[i].filename;
-                    const image = `http://localhost:5000/api/comicIMG/${filename}`;
-                    let protoFilename;
-                    if (storedArray[i].protoFilename) {
-                        protoFilename = `http://localhost:5000/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
-                    } else {
-                        protoFilename = image
-                    }
-                    if (storedArray[i].comicID === comicID) {
-                        let author;
-                        if (storedArray[i].author == currentAccount) {
-                            author = '您是本作品的創作者!';
-                        } else {
-                            author = storedArray[i].author;
-                        }
+            const comicHash = Object.keys(uploadArray)[0];
+            const chapterTitle = uploadArray[comicHash];
+            let found = false;
+            while (!found) {
+                const storedArrayJSON = localStorage.getItem('comicDatas');
+                const storedArray = JSON.parse(storedArrayJSON);
+                for (let i = 0; i < storedArray.length; i++) {
+                    if (comicHash === storedArray[i].comicHash) {
+                        const image = `http://localhost:5000/api/comicIMG/${storedArray[i].filename}`;
                         temp.push({
-                            comicHash: storedArray[i].comicHash,
                             comicID: storedArray[i].comicID,
                             title: storedArray[i].title,
-                            description: storedArray[i].description,
-                            author: author,
-                            category: storedArray[i].category,
-                            protoFilename: protoFilename,
+                            image: image,
+                            chapter: chapterTitle
                         });
+                        found = true; // 找到匹配的 comicHash，可以退出循环
+                        break;
                     }
                 }
+                if (!found) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // 等待1秒钟再尝试
+                }
             }
+            console.log(temp);
             setComic(temp);
-
-            try {
-                const response = await axios.get('http://localhost:5000/api/comicDetail', {
-                    params: {
-                    comicHash: temp[0].comicHash,
-                    currentAccount: currentAccount
-                    }
-                });
-                let chapters = response.data;
-                sortByTimestamp(chapters);
-
-                for (let i = 0; i < chapters.length; i++) {
-                    if (currentAccount == chapters[i].creator){
-                        let id = 'Chapter' + (i+1);
-                        chapterInfo.push({
-                        title: chapters[i].title,
-                        price: chapters[i].price,
-                        chapterID: id
-                        });
-                    }
-                }
-                setChapters(chapterInfo);
-                console.log(chapterInfo);
-            } catch (error) {
-                console.error('Error fetching records:', error);
-            }
             setLoading(false);
         } catch (error) {
             console.error('Error initializing contract:', error);
@@ -84,7 +47,16 @@ function CreateSuccess() {
 
     useEffect(() => {
         initData();
-    }, [comicID, currentAccount]);
+    }, [currentAccount]);
+
+    const handleCreator = () => {
+        window.location.replace("/creatorPage");
+    };
+
+    const handleMGMT = () => {
+        window.location.replace("/manageComic");
+    };
+
 
     return (
         <>
@@ -97,28 +69,28 @@ function CreateSuccess() {
                                 <div className="d-block mx-auto img-fluid createSuccess-image-container">
                                     <img
                                     className="d-block mx-auto img-fluid"
-                                    src={Cover}
-                                    // src={comic[0].protoFilename}
+                                    src={comic[0].image}
                                     alt="800x400"
                                     />
                                 </div>
-                                <h5 className='text-center pt-2 pb-3'>{comic[0].title}</h5>
+                                <h5 className='text-center pt-2 pb-1'>{comic[0].title}</h5>
+                                <h5 className='text-center pb-3'>{comic[0].chapter}</h5>
                             </Link>
                         </Row>
                         <Row className="justify-content-center text-center w-100">
                             <Col xs={12} md={8}>
                                 <Image 
-                                src={EmojiImage} 
-                                alt="圖片" 
-                                fluid 
-                                rounded 
-                                className="mb-4" 
-                            />
+                                    src={EmojiImage} 
+                                    alt="圖片" 
+                                    fluid 
+                                    rounded 
+                                    className="mb-4" 
+                                />
                             <div className="mb-3">
-                                <h3>上傳章節名稱</h3>
                                 <h4>漫畫上傳成功！</h4>
                             </div>
-                            <Button>返回漫畫詳情</Button>
+                            <Button onClick={handleCreator} style={{marginRight: "15px"}}>創作者專區</Button>
+                            <Button onClick={handleMGMT}>漫畫管理</Button>
                             </Col>
                         </Row>
                     </Container>

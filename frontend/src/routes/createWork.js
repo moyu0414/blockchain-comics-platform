@@ -183,7 +183,10 @@ const CreateWork = (props) => {
         enableButton();
         updateMessage("");
         updateFormParams_1({title: '', price: ''});
-        window.location.replace("/manageComic");
+        
+        let uploadComicData = {[comicHash]: formParams_1.title};
+        localStorage.setItem('uploadComicData', JSON.stringify(uploadComicData));
+        window.location.replace("/createSuccess");
       } catch (error) {
         console.error('章節內容添加至資料庫時發生錯誤：', error);
       }
