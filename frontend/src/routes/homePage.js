@@ -17,10 +17,10 @@ const HomePage = ({ contractAddress }) => {
             for (var i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists == 1) {
                     const filename = storedArray[i].filename;
-                    const image = "http://localhost:5000/api/comicIMG/" + filename;
+                    const image = "https://web3toonapi.ddns.net/api/comicIMG/" + filename;
                     let protoFilename;
                     if (storedArray[i].protoFilename == 1) {
-                        protoFilename = `http://localhost:5000/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
+                        protoFilename = `https://web3toonapi.ddns.net/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
                     }
                     fetchedData.push({ comicHash: storedArray[i].comicHash, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, image: image, protoFilename: protoFilename});
                 }
@@ -36,7 +36,7 @@ const HomePage = ({ contractAddress }) => {
             const sortPromo = Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a]);
             setPromoPosition(sortPromo.slice(0, 4));  // / 推廣位只選取前四個類型來顯示
             try {
-                const response = await axios.get('http://localhost:5000/api/homepage/updateStats');
+                const response = await axios.get('https://web3toonapi.ddns.net/api/homepage/updateStats');
                 const comics = response.data;  // 获取从后端返回的漫画数据
                 console.log(comics);
                 const totalCountMap = comics.reduce((map, comic) => {
@@ -121,7 +121,7 @@ const HomePage = ({ contractAddress }) => {
                             >
                                 <Link 
                                     to={"/category"}
-                                    state={{ category: label }}
+                                    state={{ from: 'homepage' }}
                                     className="custom-link"
                                 >
                                     {label}

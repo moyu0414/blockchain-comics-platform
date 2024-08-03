@@ -45,7 +45,7 @@
   },
   "scripts": {
     "start": "react-app-rewired start",
-    "build": "react-app-rewired build",
+    "build": "react-app-rewired build && node --max_old_space_size=4096 generateZipFile.js",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
@@ -68,8 +68,10 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/jquery": "^3.5.29",
     "buffer": "^6.0.3",
+    "copy-webpack-plugin": "^12.0.2",
     "fs": "^0.0.1-security",
     "has-symbols": "^1.0.3",
     "inherits": "^2.0.4",

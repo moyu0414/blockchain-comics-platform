@@ -150,7 +150,8 @@ function Navigation() {
         {['xxl'].map((expand) => (
             <Container fluid className="navigation">
                 <Row key={expand} className="d-flex justify-content-center align-items-center">
-                    <Navbar expand={expand} >
+                    <Navbar expand={expand}>
+                        <Navbar.Toggle onClick={() => setExpanded(!expanded)} aria-controls="offcanvas-navbar" />
                         <Navbar.Brand href="#">
                             <img
                                 className="d-inline-block align-top"
@@ -158,11 +159,12 @@ function Navigation() {
                                 alt="icon"
                             />
                         </Navbar.Brand>
-                        <Navbar.Toggle onClick={() => setExpanded(!expanded)} aria-controls="offcanvas-navbar" />
+                        
                         <Navbar.Offcanvas
                             id={`offcanvasNavbar-expand-${expand}`}
                             aria-labelledby={`offcanvasNavbarLabel-expand-${expand}`}
                             placement="start"
+                            className="d-flex flex-column"
                         >
                             <Offcanvas.Header closeButton>
                                 <Offcanvas.Title id={`offcanvasNavbarLabel-expand-${expand}`}>
@@ -173,43 +175,46 @@ function Navigation() {
                                     />
                                 </Offcanvas.Title>
                             </Offcanvas.Header>
-                            <Offcanvas.Body>
-                                <Nav className="me-auto">
-                                    <Nav.Link href="/creatorPage">創作者專區</Nav.Link>
-                                    <Nav.Link href="/readerPage">讀者專區</Nav.Link>
-                                </Nav>
-                                {/* 登入區塊 */}
-                                <Col className={`log-in-area ${expanded ? 'vertical-layout' : 'horizontal-layout'}`}>
-                                    {!isLogged && isMetamaskInstalled && (
-                                        <Button className="log-in-btn" onClick={connectAccount}>
-                                            <Person className="me-2" size={28} />
-                                            登入
-                                    </Button>
-                                    )}
-                                    {!isMetamaskInstalled && (
-                                        <a
-                                            className="install-link"
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            href="https://metamask.io/download"
-                                        >
-                                            請安裝Metamask
-                                        </a>
-                                    )}
-                                    {isLogged && (
-                                        <div className="d-flex align-items-center justify-content-end login">
-                                            <div className="show-account">{showAccount()}</div>
-                                            <div className="eth-balance">餘額: {ethBalance} SepoliaETH</div>
-                                            <Button className="reload-btn" onClick={reloadAccount}>
-                                                切換帳號
+                            <div className="d-flex flex-grow-1">
+                                <Offcanvas.Body className="flex-grow-1">
+                                    <Nav className="me-auto">
+                                        <Nav.Link href="/creatorPage">創作者專區</Nav.Link>
+                                        <Nav.Link href="/readerPage">讀者專區</Nav.Link>
+                                    </Nav>
+                                    {/* 登入區塊 */}
+                                    <div className={`log-in-area ${expanded ? 'vertical-layout' : 'horizontal-layout'}`}>
+                                        {!isLogged && isMetamaskInstalled && (
+                                            <Button className="log-in-btn" onClick={connectAccount}>
+                                                <Person className="me-2" size={28} />
+                                                登入
                                             </Button>
-                                        </div>
-                                    )}
-                                    <Search className="search-icon" size={24} />
-                                </Col>
-                                {/* 登入區塊結束 */}
-                            </Offcanvas.Body>
+                                        )}
+                                        {!isMetamaskInstalled && (
+                                            <a
+                                                className="install-link"
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                href="https://metamask.io/download"
+                                            >
+                                                請安裝Metamask
+                                            </a>
+                                        )}
+                                        {isLogged && (
+                                            <div className="d-flex align-items-center justify-content-end login">
+                                                <div className="show-account">{showAccount()}</div>
+                                                <div className="eth-balance">餘額: {ethBalance} SepoliaETH</div>
+                                                <Button className="reload-btn" onClick={reloadAccount}>
+                                                    切換帳號
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* 登入區塊結束 */}
+                                </Offcanvas.Body>
+                                
+                            </div>
                         </Navbar.Offcanvas>
+                        <Search className="search-icon ms-3" size={24} />
                     </Navbar>
                 </Row>
             </Container>

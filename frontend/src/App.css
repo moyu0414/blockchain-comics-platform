@@ -1475,6 +1475,20 @@ a:link{
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.navigation .navbar{
+  display: flex;
+  justify-content: flex-start;
+  
+}
+
+.navigation .navbar-toggler{
+  border: none;
+}
+
+.navigation .navbar-toggler:focus {
+  box-shadow: none;
+}
+
 .log-in-area {
   display: flex;
   align-items: center;
@@ -1553,6 +1567,14 @@ a:link{
   .log-in-area .btn{
     width: 95%;
   }
+
+  .search-icon {
+    display: block;
+    position: absolute;
+    right: 1rem; /* 调整为你希望的距离 */
+    top: 50%;
+    transform: translateY(-50%);
+}
 }
 
 /* manageComic */

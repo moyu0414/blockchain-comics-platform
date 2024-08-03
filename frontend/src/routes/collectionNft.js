@@ -19,7 +19,7 @@ function CollectionNft() {
         const web3 = new Web3(window.ethereum);
         const contract = new web3.eth.Contract(comicData.abi, comicData.address);
         try {
-            const response = await axios.get('http://localhost:5000/api/nftDetail/isFavorited', {
+            const response = await axios.get('https://web3toonapi.ddns.net/api/nftDetail/isFavorited', {
                 params: {
                     currentAccount: currentAccount,
                 }
@@ -43,10 +43,10 @@ function CollectionNft() {
                         };
                         const storedItem = storedArray.find(item => item.comicHash === comicHash);
                         if (storedItem) {
-                            const image = `http://localhost:5000/api/comicIMG/${storedItem.filename}`;
+                            const image = `https://web3toonapi.ddns.net/api/comicIMG/${storedItem.filename}`;
                             record.title = storedItem.title;
                             record.image = storedItem.protoFilename
-                                ? `http://localhost:5000/api/coverFile/${storedItem.filename}/${storedItem.protoFilename}`
+                                ? `https://web3toonapi.ddns.net/api/coverFile/${storedItem.filename}/${storedItem.protoFilename}`
                                 : image;
                         }
                         records.push(record);

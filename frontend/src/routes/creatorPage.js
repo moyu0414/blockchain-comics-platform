@@ -32,7 +32,7 @@ function CreatorPage() {
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists === 1) {
                     const filename = storedArray[i].filename;
-                    const image = `http://localhost:5000/api/comicIMG/${filename}`;
+                    const image = `https://web3toonapi.ddns.net/api/comicIMG/${filename}`;
                     if (storedArray[i].author == currentAccount) {
                         temp.push({
                             comicHash: storedArray[i].comicHash,
@@ -91,7 +91,7 @@ function CreatorPage() {
 
     const updateChapter = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/creatorPage/updateChapter', {
+            const response = await axios.get('https://web3toonapi.ddns.net/api/creatorPage/updateChapter', {
                 params: {
                     currentAccount: currentAccount
                 }

@@ -15,7 +15,7 @@ function MessagePage() {
             const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists === 1 && storedArray[i].author == currentAccount) {
-                    const image = `http://localhost:5000/api/comicIMG/${storedArray[i].filename}`;
+                    const image = `https://web3toonapi.ddns.net/api/comicIMG/${storedArray[i].filename}`;
                     temp.push({
                         comicHash: storedArray[i].comicHash,
                         comicID: storedArray[i].comicID,

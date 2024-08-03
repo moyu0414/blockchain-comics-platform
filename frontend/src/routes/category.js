@@ -4,6 +4,7 @@ import { Container, Carousel, Card, Col, Row, Button, Dropdown } from 'react-boo
 import './bootstrap.min.css';
 import { Funnel, HeartFill, CartFill } from 'react-bootstrap-icons';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 
 const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     <div
@@ -25,6 +26,7 @@ function Category() {
     const [promoPosition, setPromoPosition] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [loading, setLoading] = useState(true);
+    const location = useLocation();
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     let savedCurrentCategory = localStorage.getItem('currentCategory');
@@ -37,7 +39,7 @@ function Category() {
             for (var i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists == 1 && storedArray[i].category == currentCategory) {
                     const filename = storedArray[i].filename;
-                    const image = "http://localhost:5000/api/comicIMG/" + filename;
+                    const image = "https://web3toonapi.ddns.net/api/comicIMG/" + filename;
                     fetchedData.push({ comicHash: storedArray[i].comicHash, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, image: image});
                 }
             };
@@ -55,7 +57,7 @@ function Category() {
             //setPromoPosition(sortPromo.slice(0, 8));
             //console.log(fetchedData);
             try {
-                const response = await axios.get('http://localhost:5000/api/category/updateStats', {
+                const response = await axios.get('https://web3toonapi.ddns.net/api/category/updateStats', {
                     params: {
                         currentCategory: currentCategory
                     }
@@ -80,6 +82,9 @@ function Category() {
                         handleCategoryChange(savedFilter);
                     }
                     setLoading(false);
+                } else if (location.state && location.state.from === 'homepage') {
+                    setLoading(false);
+                    location.state = null;
                 }
             } catch (error) {
                 console.error('Error fetching records:', error);
@@ -94,7 +99,7 @@ function Category() {
         '戀愛', '懸疑', '恐怖', '冒險',
         '古風', '玄幻', '武俠', '搞笑',
     ];
-
+    
     useEffect(() => {
         if (savedCurrentCategory) {
             setCurrentCategory(savedCurrentCategory);
@@ -139,7 +144,7 @@ function Category() {
 
     const updateComic = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/category/updateComic', {
+            const response = await axios.get('https://web3toonapi.ddns.net/api/category/updateComic', {
                 params: {
                     currentCategory: currentCategory
                 }
@@ -165,7 +170,7 @@ function Category() {
 
     const updateChapter = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/category/updateChapter', {
+            const response = await axios.get('https://web3toonapi.ddns.net/api/category/updateChapter', {
                 params: {
                     currentCategory: currentCategory
                 }

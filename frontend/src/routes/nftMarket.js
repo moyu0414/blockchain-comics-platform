@@ -67,9 +67,9 @@ function NftMarket() {
 
         storedArray.forEach(stored => {
             if (stored.exists === 1) {
-                const image = `http://localhost:5000/api/comicIMG/${stored.filename}`;
+                const image = `https://web3toonapi.ddns.net/api/comicIMG/${stored.filename}`;
                 const protoFilename = stored.protoFilename
-                    ? `http://localhost:5000/api/coverFile/${stored.filename}/${stored.protoFilename}`
+                    ? `https://web3toonapi.ddns.net/api/coverFile/${stored.filename}/${stored.protoFilename}`
                     : image;
                 const comicHash = stored.comicHash;
                 if (comicHashMap[comicHash]) {

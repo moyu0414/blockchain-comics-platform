@@ -118,7 +118,7 @@ const Home = ({ contractAddress }) => {
                     </p>
                   </div>
                 </div>
-                <img src={`http://localhost:5000/api/comicIMG/${comic.filename}`} alt={`Comic ${index + 1}`} className="img-fluid comic-image" />
+                <img src={`https://web3toonapi.ddns.net/api/comicIMG/${comic.filename}`} alt={`Comic ${index + 1}`} className="img-fluid comic-image" />
               </Link>
             </div>
           ))}

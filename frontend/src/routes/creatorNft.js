@@ -84,9 +84,9 @@ function CreatorNft() {
             const comic = comicMap.get(data.comicHash);
             if (comic) {
                 data.title = comic.title;
-                const image = `http://localhost:5000/api/comicIMG/${comic.filename}`;
+                const image = `https://web3toonapi.ddns.net/api/comicIMG/${comic.filename}`;
                 const protoFilename = comic.protoFilename
-                    ? `http://localhost:5000/api/coverFile/${comic.filename}/${comic.protoFilename}`
+                    ? `https://web3toonapi.ddns.net/api/coverFile/${comic.filename}/${comic.protoFilename}`
                     : image;
                 data.image = protoFilename;
             }

@@ -103,7 +103,7 @@ const CreateWork = (props) => {
       };
 
       try {
-        const response = await axios.post('http://localhost:5000/api/add/comics', formData, {
+        const response = await axios.post('https://web3toonapi.ddns.net/api/add/comics', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -172,7 +172,7 @@ const CreateWork = (props) => {
       formData.append('timestamp', timestamp);
       
       try {
-        const response = await axios.post('http://localhost:5000/api/add/chapters', formData, {
+        const response = await axios.post('https://web3toonapi.ddns.net/api/add/chapters', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }

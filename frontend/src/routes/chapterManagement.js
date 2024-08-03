@@ -33,7 +33,7 @@ const ChapterManagement = () => {
       console.log(temp);
 
       try {  // 這本漫畫得所有章節
-        const response = await axios.get('http://localhost:5000/api/chapters', {
+        const response = await axios.get('https://web3toonapi.ddns.net/api/chapters', {
           params: {
             comicHash: temp[0].comicHash
           }

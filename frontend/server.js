@@ -689,6 +689,8 @@ app.get('/api/comicIMG/:filename', async (req, res) => {
     }
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
     const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', filename);
+
+    console.log('Image path:', imagePath);
     // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
     const image = await fsPromises.readFile(imagePath);
     res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片

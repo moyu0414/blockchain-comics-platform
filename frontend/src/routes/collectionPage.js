@@ -15,7 +15,7 @@ function CollectionPage() {
 
     const initData = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/comicDetail/isFavorited', {
+            const response = await axios.get('https://web3toonapi.ddns.net/api/comicDetail/isFavorited', {
                 params: {
                     currentAccount: currentAccount,
                 }
@@ -31,7 +31,7 @@ function CollectionPage() {
                     comicID: item.comicID,
                     title: item.title,
                     category: item.category,
-                    image: `http://localhost:5000/api/comicIMG/${item.filename}`
+                    image: `https://web3toonapi.ddns.net/api/comicIMG/${item.filename}`
                 }));
                 console.log(temp);
                 setComic(temp);
