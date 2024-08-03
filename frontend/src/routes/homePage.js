@@ -133,7 +133,7 @@ const HomePage = ({ contractAddress }) => {
                 
                 {promoPosition.map(category => (
                     <div key={category}>
-                        <h3 className="fw-bold">{category} 漫畫</h3>
+                        <h3 className="fw-bold">{category}漫畫</h3>
                         <Carousel interval={null} pause={false} wrap={true} indicators={false} className="comic-carousel">
                             <Carousel.Item>
                                 <div className="carousel-row">

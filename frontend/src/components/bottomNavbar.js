@@ -25,7 +25,10 @@ function BottomNavbar() {
                         </Link>
                     </Col>
                     <Col xs={3} className="icon-col">
-                        <Link to="/category">
+                        <Link 
+                            to={"/category"}
+                            state={{ from: 'homepage' }}
+                        >
                             <Grid size={32} />
                             <div className="icon-text">Category</div>
                         </Link>

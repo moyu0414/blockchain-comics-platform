@@ -214,7 +214,9 @@ function Navigation() {
                                 
                             </div>
                         </Navbar.Offcanvas>
-                        <Search className="search-icon ms-3" size={24} />
+                        <Link to={"/searchPage"}>
+                            <Search className="search-icon ms-3" size={30} />
+                        </Link>
                     </Navbar>
                 </Row>
             </Container>
