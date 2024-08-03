@@ -4,6 +4,7 @@ import { Container, Carousel, Card, Col, Row, Button, Dropdown } from 'react-boo
 import './bootstrap.min.css';
 import { Funnel, HeartFill, CartFill } from 'react-bootstrap-icons';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 
 const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     <div
@@ -25,6 +26,7 @@ function Category() {
     const [promoPosition, setPromoPosition] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [loading, setLoading] = useState(true);
+    const location = useLocation();
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     let savedCurrentCategory = localStorage.getItem('currentCategory');
@@ -80,6 +82,9 @@ function Category() {
                         handleCategoryChange(savedFilter);
                     }
                     setLoading(false);
+                } else if (location.state && location.state.from === 'homepage') {
+                    setLoading(false);
+                    location.state = null;
                 }
             } catch (error) {
                 console.error('Error fetching records:', error);
@@ -94,7 +99,7 @@ function Category() {
         '戀愛', '懸疑', '恐怖', '冒險',
         '古風', '玄幻', '武俠', '搞笑',
     ];
-
+    
     useEffect(() => {
         if (savedCurrentCategory) {
             setCurrentCategory(savedCurrentCategory);

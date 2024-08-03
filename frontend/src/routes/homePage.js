@@ -121,7 +121,7 @@ const HomePage = ({ contractAddress }) => {
                             >
                                 <Link 
                                     to={"/category"}
-                                    state={{ category: label }}
+                                    state={{ from: 'homepage' }}
                                     className="custom-link"
                                 >
                                     {label}
