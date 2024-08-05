@@ -6,6 +6,7 @@ import { Heart, HeartFill } from 'react-bootstrap-icons';
 import BootstrapTable from 'react-bootstrap-table-next';
 import axios from 'axios';
 import { formatDate, formatTime, sortByDatetime } from '../index.js';
+const website = process.env.REACT_APP_Website;
 
 function Analysis() {
     const [creatorLogArray, setCreatorLogArray] = useState([]);
@@ -16,7 +17,7 @@ function Analysis() {
 
     const initData = async () => {
         try {
-            const response = await axios.get('https://web3toonapi.ddns.net/api/creator/records', {
+            const response = await axios.get(`${website}/api/creator/records`, {
                 params: {
                     currentAccount: currentAccount
                 }

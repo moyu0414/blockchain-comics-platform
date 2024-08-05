@@ -6,6 +6,7 @@ import comicData from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
+const website = process.env.REACT_APP_Website;
 
 const MintNFT = (props) => {
   const [web3, setWeb3] = useState(null);
@@ -140,10 +141,10 @@ const MintNFT = (props) => {
       };
       console.log(temp);
       setComic(temp);
-      let imgURL = "https://web3toonapi.ddns.net/api/comicIMG/" + temp[0].filename;
+      let imgURL = `${website}/api/comicIMG/${temp[0].filename}`;
       let coverImg = '';
       if (temp[0].protoFilename) {
-        coverImg = `https://web3toonapi.ddns.net/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
+        coverImg = `${website}/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
       }
       setNewComic({category:temp[0].category,  title: temp[0].title, description: temp[0].description, imgURL: imgURL, coverImg: coverImg});
       setNFTData({comicHash: temp[0].comicHash})

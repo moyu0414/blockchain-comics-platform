@@ -4,6 +4,7 @@ import { Container, Card, Col, Row } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel } from 'react-bootstrap-icons';
 import axios from 'axios';
+const website = process.env.REACT_APP_Website;
 
 function CollectionPage() {
     const [comic, setComic] = useState([]);
@@ -15,7 +16,7 @@ function CollectionPage() {
 
     const initData = async () => {
         try {
-            const response = await axios.get('https://web3toonapi.ddns.net/api/comicDetail/isFavorited', {
+            const response = await axios.get(`${website}/api/comicDetail/isFavorited`, {
                 params: {
                     currentAccount: currentAccount,
                 }
@@ -31,7 +32,7 @@ function CollectionPage() {
                     comicID: item.comicID,
                     title: item.title,
                     category: item.category,
-                    image: `https://web3toonapi.ddns.net/api/comicIMG/${item.filename}`
+                    image: `${website}/api/comicIMG/${item.filename}`
                 }));
                 console.log(temp);
                 setComic(temp);

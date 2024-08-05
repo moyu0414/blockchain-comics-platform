@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Container, Card, Col, Row, Button, Navbar, Form, InputGroup, FormControl } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel, ArrowLeft, Search} from 'react-bootstrap-icons';
+const website = process.env.REACT_APP_Website;
 
 function SearchPage() {
     const [comic, setComic] = useState([]);
@@ -21,10 +22,10 @@ function SearchPage() {
             for (var i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists == 1) {
                     const filename = storedArray[i].filename;
-                    const image = "https://web3toonapi.ddns.net/api/comicIMG/" + filename;
+                    const image = `${website}/api/comicIMG/${filename}`;
                     let protoFilename;
                     if (storedArray[i].protoFilename) {
-                        protoFilename = `https://web3toonapi.ddns.net/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
+                        protoFilename = `${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
                     } else {
                         protoFilename = image
                     }

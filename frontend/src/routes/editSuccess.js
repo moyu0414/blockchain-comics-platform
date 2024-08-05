@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Container, Col, Row, Image, Button } from 'react-bootstrap';
 import './bootstrap.min.css';
 import EmojiImage from '../image/Emoji.png';
+const website = process.env.REACT_APP_Website;
 
 function EditSuccess() {
     const [comic, setComic] = useState([]);
@@ -25,7 +26,7 @@ function EditSuccess() {
                 const storedArray = JSON.parse(storedArrayJSON);
                 for (let i = 0; i < storedArray.length; i++) {
                     if ((!editFile || editFile !== storedArray[i].filename) && comicHash === storedArray[i].comicHash) {
-                        const image = `https://web3toonapi.ddns.net/api/comicIMG/${storedArray[i].filename}`;
+                        const image = `${website}/api/comicIMG/${storedArray[i].filename}`;
                         temp.push({
                             comicID: storedArray[i].comicID,
                             title: editTitle,

@@ -5,6 +5,7 @@ import './bootstrap.min.css';
 import { Funnel} from 'react-bootstrap-icons';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
+const website = process.env.REACT_APP_Website;
 
 const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     <div
@@ -32,7 +33,7 @@ function CreatorPage() {
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists === 1) {
                     const filename = storedArray[i].filename;
-                    const image = `https://web3toonapi.ddns.net/api/comicIMG/${filename}`;
+                    const image = `${website}/api/comicIMG/${filename}`;
                     if (storedArray[i].author == currentAccount) {
                         temp.push({
                             comicHash: storedArray[i].comicHash,
@@ -91,7 +92,7 @@ function CreatorPage() {
 
     const updateChapter = async () => {
         try {
-            const response = await axios.get('https://web3toonapi.ddns.net/api/creatorPage/updateChapter', {
+            const response = await axios.get(`${website}/api/creatorPage/updateChapter`, {
                 params: {
                     currentAccount: currentAccount
                 }

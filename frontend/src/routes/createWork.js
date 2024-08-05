@@ -10,6 +10,7 @@ import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import { MdClose, MdDragHandle } from 'react-icons/md';  // 導入小叉叉圖標和拖曳圖標
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';  // 拖放功能，讓使用者可以拖曳圖片來重新排列它們的順序。
+const website = process.env.REACT_APP_Website;
 
 const CreateWork = (props) => {
   const [web3, setWeb3] = useState(null);
@@ -103,7 +104,7 @@ const CreateWork = (props) => {
       };
 
       try {
-        const response = await axios.post('https://web3toonapi.ddns.net/api/add/comics', formData, {
+        const response = await axios.post(`${website}/api/add/comics`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -172,7 +173,7 @@ const CreateWork = (props) => {
       formData.append('timestamp', timestamp);
       
       try {
-        const response = await axios.post('https://web3toonapi.ddns.net/api/add/chapters', formData, {
+        const response = await axios.post(`${website}/api/add/chapters`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }

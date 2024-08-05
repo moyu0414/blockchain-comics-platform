@@ -6,6 +6,7 @@ import axios from 'axios';
 import { sortByTimestamp } from '../index';
 import Cover from '../image/1_春風化雨/封面.jpg';
 import EmojiImage from '../image/Emoji.png';
+const website = process.env.REACT_APP_Website;
 
 function MintNFTSuccess() {
     const [comic, setComic] = useState([]);
@@ -23,10 +24,10 @@ function MintNFTSuccess() {
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists === 1) {
                     const filename = storedArray[i].filename;
-                    const image = `https://web3toonapi.ddns.net/api/comicIMG/${filename}`;
+                    const image = `${website}/api/comicIMG/${filename}`;
                     let protoFilename;
                     if (storedArray[i].protoFilename) {
-                        protoFilename = `https://web3toonapi.ddns.net/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
+                        protoFilename = `${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
                     } else {
                         protoFilename = image
                     }
@@ -52,7 +53,7 @@ function MintNFTSuccess() {
             setComic(temp);
 
             try {
-                const response = await axios.get('https://web3toonapi.ddns.net/api/comicDetail', {
+                const response = await axios.get(`${website}/api/comicDetail`, {
                     params: {
                     comicHash: temp[0].comicHash,
                     currentAccount: currentAccount

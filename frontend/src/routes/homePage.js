@@ -4,6 +4,7 @@ import { Container, Carousel, Card, Col, Row, Button } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { HeartFill, CartFill } from 'react-bootstrap-icons';
 import axios from 'axios';
+const website = process.env.REACT_APP_Website;
 
 const HomePage = ({ contractAddress }) => {
     const [current, setCurrent] = useState([]);
@@ -17,12 +18,12 @@ const HomePage = ({ contractAddress }) => {
             for (var i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists == 1) {
                     const filename = storedArray[i].filename;
-                    const image = "https://web3toonapi.ddns.net/api/comicIMG/" + filename;
+                    const image = `${website}/api/comicIMG/${filename}`;
                     let protoFilename;
                     if (storedArray[i].protoFilename == 1) {
-                        protoFilename = `https://web3toonapi.ddns.net/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
+                        protoFilename = `${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
                     }
-                    fetchedData.push({ comicHash: storedArray[i].comicHash, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, image: image, protoFilename: protoFilename});
+                    fetchedData.push({ comicHash: storedArray[i].comicHash, comicID: storedArray[i].comicID, title: storedArray[i].title, author: storedArray[i].author, category: storedArray[i].category, image: image, protoFilename: protoFilename});
                 }
             };
             const categoryCounts = {};
@@ -36,7 +37,7 @@ const HomePage = ({ contractAddress }) => {
             const sortPromo = Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a]);
             setPromoPosition(sortPromo.slice(0, 4));  // / 推廣位只選取前四個類型來顯示
             try {
-                const response = await axios.get('https://web3toonapi.ddns.net/api/homepage/updateStats');
+                const response = await axios.get(`${website}/api/homepage/updateStats`);
                 const comics = response.data;  // 获取从后端返回的漫画数据
                 console.log(comics);
                 const totalCountMap = comics.reduce((map, comic) => {
@@ -73,11 +74,7 @@ const HomePage = ({ contractAddress }) => {
     const handleCategoryClick = (category) => {
         localStorage.setItem('currentCategory', category);
     };
-    
 
-    const truncateText = (text, maxLength) => {
-        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-    };
 
     return (
         <>
@@ -151,7 +148,6 @@ const HomePage = ({ contractAddress }) => {
                                                 </Link>
                                                 <Card.Body>
                                                     <Card.Title className='fw-bold'>{data.title}</Card.Title>
-                                                    <Card.Text className='text-secondary'>{truncateText(data.text, 50)}</Card.Text>
                                                 </Card.Body>
                                             </Card>
                                         </Col>
