@@ -10,6 +10,7 @@ import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import { MdClose, MdDragHandle } from 'react-icons/md';  // 導入小叉叉圖標和拖曳圖標
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';  // 拖放功能，讓使用者可以拖曳圖片來重新排列它們的順序。
+const website = process.env.REACT_APP_Website;
 
 const EditWork = (props) => {
   const [web3, setWeb3] = useState(null);
@@ -55,7 +56,7 @@ const EditWork = (props) => {
         setContract(contractInstance);
 
         try {
-          const response = await axios.get('https://web3toonapi.ddns.net/api/editWork/chapters', {
+          const response = await axios.get(`${website}/api/editWork/chapters`, {
               params: {
               comicHash: temp[0].comicHash,
               currentAccount: currentAccount
@@ -69,7 +70,7 @@ const EditWork = (props) => {
               let id = 'Chapter' + (i+1);
               if (id == location.state.chapterID) {
                 let price = chapters[i].price;
-                let imgURL = "https://web3toonapi.ddns.net/api/chapterIMG/" + chapters[i].filename;
+                let imgURL = `${website}/api/chapterIMG/${chapters[i].filename}`;
                 setNewChapter({
                   chapterTitle: chapters[i].title,
                   price: price,
@@ -140,7 +141,7 @@ const EditWork = (props) => {
           } else {
             formData.append('protoFilename', '');
           };
-          await axios.put('https://web3toonapi.ddns.net/api/update/comicData', formData);
+          await axios.put(`${website}/api/update/comicData`, formData);
   
           alert('漫畫編輯成功！');
           localStorage.setItem('editComicData', JSON.stringify(editComicData));
@@ -173,7 +174,7 @@ const EditWork = (props) => {
         } else {
           formData.append('protoFilename', '');
         };
-        await axios.put('https://web3toonapi.ddns.net/api/update/comicData', formData);
+        await axios.put(`${website}/api/update/comicData`, formData);
 
         alert('漫畫編輯成功！');
         localStorage.setItem('editComicData', JSON.stringify(editComicData));
@@ -226,7 +227,7 @@ const EditWork = (props) => {
             await handleGeneratePages();  // 等待合併圖片操作完成
             formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
           }
-          await axios.put('https://web3toonapi.ddns.net/api/update/chapterData', formData);
+          await axios.put(`${website}/api/update/chapterData`, formData);
 
           alert('章節編輯成功！');
           let editComicData = {'comicHash': comic[0].comicHash, 'editTitle': comic[0].title, editChapter: newChapter.chapterTitle};
@@ -248,7 +249,7 @@ const EditWork = (props) => {
           await handleGeneratePages();  // 等待合併圖片操作完成
           formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
         }
-        await axios.put('https://web3toonapi.ddns.net/api/update/chapterData', formData);
+        await axios.put(`${website}/api/update/chapterData`, formData);
 
         alert('章節編輯成功！');
         let editComicData = {'comicHash': comic[0].comicHash, 'editTitle': comic[0].title, editChapter: newChapter.chapterTitle};
@@ -432,10 +433,10 @@ const EditWork = (props) => {
       };
       //console.log(temp);
       setComic(temp);
-      let imgURL = "https://web3toonapi.ddns.net/api/comicIMG/" + temp[0].filename;
+      let imgURL = `${website}/api/comicIMG/${temp[0].filename}`;
       let coverImg = '';
       if (temp[0].protoFilename) {
-        coverImg = `https://web3toonapi.ddns.net/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
+        coverImg = `${website}/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
       }
       setNewComic({category:temp[0].category,  title: temp[0].title, description: temp[0].description, imgURL: imgURL, coverImg: coverImg});
     

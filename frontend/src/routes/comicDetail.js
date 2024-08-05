@@ -8,6 +8,7 @@ import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
 import axios from 'axios';
 import { sortByTimestamp, getTransactionTimestamp, disableAllButtons, enableAllButtons } from '../index';
+const website = process.env.REACT_APP_Website;
 
 function ComicDetail() {
     const [web3, setWeb3] = useState(null);
@@ -39,10 +40,10 @@ function ComicDetail() {
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists === 1) {
                     const filename = storedArray[i].filename;
-                    const image = `https://web3toonapi.ddns.net/api/comicIMG/${filename}`;
+                    const image = `${website}/api/comicIMG/${filename}`;
                     let protoFilename;
                     if (storedArray[i].protoFilename) {
-                        protoFilename = `https://web3toonapi.ddns.net/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
+                        protoFilename = `${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
                     } else {
                         protoFilename = image
                     }
@@ -71,7 +72,7 @@ function ComicDetail() {
             for (let i = 0; i < storedArray.length; i++) {
                 // 類似漫畫 依據類型跟同作者取前4本
                 if ((storedArray[i].category == temp[0].category || storedArray[i].author == temp[0].author) && storedArray[i].comicID != comicID) {
-                    const image = `https://web3toonapi.ddns.net/api/comicIMG/${storedArray[i].filename}`;
+                    const image = `${website}/api/comicIMG/${storedArray[i].filename}`;
                     fetchedData.push({
                         comicID: storedArray[i].comicID,
                         title: storedArray[i].title,
@@ -89,7 +90,7 @@ function ComicDetail() {
 
             // 章節購買者
             try {
-                const response = await axios.get('https://web3toonapi.ddns.net/api/comicDetail', {
+                const response = await axios.get(`${website}/api/comicDetail`, {
                     params: {
                         comicHash: temp[0].comicHash,
                         currentAccount: currentAccount
@@ -128,7 +129,7 @@ function ComicDetail() {
 
             // 資料庫查詢收藏狀態
             try {
-                const response = await axios.get('https://web3toonapi.ddns.net/api/comicDetail/isFavorited', {
+                const response = await axios.get(`${website}/api/comicDetail/isFavorited`, {
                     params: {
                         currentAccount: currentAccount,
                         comicHash: temp[0].comicHash
@@ -152,7 +153,7 @@ function ComicDetail() {
     const handleFavoriteClick = async () => {
         setIsFavorited(!isFavorited); // 切換收藏狀態
         try {
-            const response = await axios.put('https://web3toonapi.ddns.net/api/update/comicDetail/favorite', null, {
+            const response = await axios.put(`${website}/api/update/comicDetail/favorite`, null, {
               params: {
                 currentAccount: currentAccount,
                 comicHash: comic[0].comicHash,
@@ -280,7 +281,7 @@ function ComicDetail() {
                 formData.append('purchase_date', Timestamp);
                 formData.append('price', chapter.price);
                 try {
-                    const response = await axios.post('https://web3toonapi.ddns.net/api/add/records', formData, {
+                    const response = await axios.post(`${website}/api/add/records`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }

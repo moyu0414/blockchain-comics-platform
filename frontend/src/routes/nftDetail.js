@@ -6,6 +6,7 @@ import { Heart, HeartFill } from 'react-bootstrap-icons';
 import Web3 from 'web3';
 import axios from 'axios';
 import comicData from '../contracts/ComicPlatform.json';
+const website = process.env.REACT_APP_Website;
 
 function NftDetail() {
     const [web3, setWeb3] = useState(null);
@@ -59,9 +60,9 @@ function NftDetail() {
 
         for (let i = 0; i < storedArray.length; i++) {
             if (storedArray[i].exists === 1) {
-                const image = `https://web3toonapi.ddns.net/api/comicIMG/${storedArray[i].filename}`;
+                const image = `${website}/api/comicIMG/${storedArray[i].filename}`;
                 let protoFilename = storedArray[i].protoFilename 
-                    ? `https://web3toonapi.ddns.net/api/coverFile/${storedArray[i].filename}/${storedArray[i].protoFilename}` 
+                    ? `${website}/api/coverFile/${storedArray[i].filename}/${storedArray[i].protoFilename}` 
                     : image;
                 const comicHash = storedArray[i].comicHash;
                 const matchedRecord = records.find(record => record.comicHash === comicHash);
@@ -87,7 +88,7 @@ function NftDetail() {
         setIP(authorizations);
 
         try {
-            const response = await axios.get('https://web3toonapi.ddns.net/api/nftDetail/isFavorited', {
+            const response = await axios.get(`${website}/api/nftDetail/isFavorited`, {
                 params: {
                     currentAccount: currentAccount,
                     comicHash: temp[0].comicHash
@@ -111,7 +112,7 @@ function NftDetail() {
         let bool = !isFavorited;
         let data = tokenId;
         try {
-            const response = await axios.put('https://web3toonapi.ddns.net/api/update/nftDetail/favorite', null, {
+            const response = await axios.put(`${website}/api/update/nftDetail/favorite`, null, {
               params: {
                 currentAccount: currentAccount,
                 comicHash: NFT[0].comicHash,

@@ -50,6 +50,7 @@ import NftDetail from './routes/nftDetail';
 import Web3 from 'web3';
 import comicData from "./contracts/ComicPlatform.json"
 import axios from 'axios';
+const website = process.env.REACT_APP_Website;
 
 let DBComicDatas = [];
 let DBChapterDatas = [];
@@ -75,7 +76,7 @@ const AppLayout = () => {
   useEffect(() => {
     // 初始化 Web3 和智能合約
     const connectToWeb3 = async () => {
-      await axios.get('https://web3toonapi.ddns.net/api/comics')
+      await axios.get(`${website}/api/comics`)
       .then(response => {
         //console.log("DB comicData：" , response.data);
         DBComicDatas = response.data;

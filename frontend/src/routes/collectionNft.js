@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import Web3 from 'web3';
 import axios from 'axios';
 import comicData from '../contracts/ComicPlatform.json';
+const website = process.env.REACT_APP_Website;
 
 function CollectionNft() {
     const [NFT, setNFT] = useState([]);
@@ -19,7 +20,7 @@ function CollectionNft() {
         const web3 = new Web3(window.ethereum);
         const contract = new web3.eth.Contract(comicData.abi, comicData.address);
         try {
-            const response = await axios.get('https://web3toonapi.ddns.net/api/nftDetail/isFavorited', {
+            const response = await axios.get(`${website}/api/nftDetail/isFavorited`, {
                 params: {
                     currentAccount: currentAccount,
                 }
@@ -43,10 +44,10 @@ function CollectionNft() {
                         };
                         const storedItem = storedArray.find(item => item.comicHash === comicHash);
                         if (storedItem) {
-                            const image = `https://web3toonapi.ddns.net/api/comicIMG/${storedItem.filename}`;
+                            const image = `${website}/api/comicIMG/${storedItem.filename}`;
                             record.title = storedItem.title;
                             record.image = storedItem.protoFilename
-                                ? `https://web3toonapi.ddns.net/api/coverFile/${storedItem.filename}/${storedItem.protoFilename}`
+                                ? `${website}/api/coverFile/${storedItem.filename}/${storedItem.protoFilename}`
                                 : image;
                         }
                         records.push(record);

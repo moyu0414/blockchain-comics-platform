@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import $ from 'jquery';
-
+const website = process.env.REACT_APP_Website;
 
 const Creator = () => {
   const [imgURL, setImgURL] = useState([]);
@@ -71,7 +71,7 @@ const Creator = () => {
             <div className="col-3" key={index}>
               <Link to={`/chapterManagement/${comic.comicID}`}> {/* 將 comicID 作為路由參數 */}
                 <p className='management-title'>{comic.title}</p>
-                <img src={`https://web3toonapi.ddns.net/api/comicIMG/${comic.filename}`} alt={`Comic ${index + 1}`} className="img-fluid" />
+                <img src={`${website}/api/comicIMG/${comic.filename}`} alt={`Comic ${index + 1}`} className="img-fluid" />
               </Link>
             </div>
           ))}

@@ -5,6 +5,7 @@ import './bootstrap.min.css';
 import { Funnel, HeartFill, CartFill } from 'react-bootstrap-icons';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
+const website = process.env.REACT_APP_Website;
 
 const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     <div
@@ -39,7 +40,7 @@ function Category() {
             for (var i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists == 1 && storedArray[i].category == currentCategory) {
                     const filename = storedArray[i].filename;
-                    const image = "https://web3toonapi.ddns.net/api/comicIMG/" + filename;
+                    const image = `${website}/api/comicIMG/${filename}`;
                     fetchedData.push({ comicHash: storedArray[i].comicHash, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, image: image});
                 }
             };
@@ -57,7 +58,7 @@ function Category() {
             //setPromoPosition(sortPromo.slice(0, 8));
             //console.log(fetchedData);
             try {
-                const response = await axios.get('https://web3toonapi.ddns.net/api/category/updateStats', {
+                const response = await axios.get(`${website}/api/category/updateStats`, {
                     params: {
                         currentCategory: currentCategory
                     }
@@ -144,7 +145,7 @@ function Category() {
 
     const updateComic = async () => {
         try {
-            const response = await axios.get('https://web3toonapi.ddns.net/api/category/updateComic', {
+            const response = await axios.get(`${website}/api/category/updateComic`, {
                 params: {
                     currentCategory: currentCategory
                 }
@@ -170,7 +171,7 @@ function Category() {
 
     const updateChapter = async () => {
         try {
-            const response = await axios.get('https://web3toonapi.ddns.net/api/category/updateChapter', {
+            const response = await axios.get(`${website}/api/category/updateChapter`, {
                 params: {
                     currentCategory: currentCategory
                 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Container, Card, Button, Row,Col } from 'react-bootstrap';
 import { HouseDoor, Grid, Cart, Person, Book } from 'react-bootstrap-icons';
 import './bootstrap.min.css';
+const website = process.env.REACT_APP_Website;
 
 function ManageComic() {
     const [comic, setComic] = useState([]);
@@ -17,7 +18,7 @@ function ManageComic() {
             const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists === 1 && storedArray[i].author == currentAccount) {
-                    const image = `https://web3toonapi.ddns.net/api/comicIMG/${storedArray[i].filename}`;
+                    const image = `${website}/api/comicIMG/${storedArray[i].filename}`;
                     temp.push({
                         comicHash: storedArray[i].comicHash,
                         comicID: storedArray[i].comicID,

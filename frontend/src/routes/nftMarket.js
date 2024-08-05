@@ -4,6 +4,7 @@ import './bootstrap.min.css';
 import { Link } from "react-router-dom";
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
+const website = process.env.REACT_APP_Website;
 
 function NftMarket() {
     const [comic, setComic] = useState([]);
@@ -67,9 +68,9 @@ function NftMarket() {
 
         storedArray.forEach(stored => {
             if (stored.exists === 1) {
-                const image = `https://web3toonapi.ddns.net/api/comicIMG/${stored.filename}`;
+                const image = `${website}/api/comicIMG/${stored.filename}`;
                 const protoFilename = stored.protoFilename
-                    ? `https://web3toonapi.ddns.net/api/coverFile/${stored.filename}/${stored.protoFilename}`
+                    ? `${website}/api/coverFile/${stored.filename}/${stored.protoFilename}`
                     : image;
                 const comicHash = stored.comicHash;
                 if (comicHashMap[comicHash]) {

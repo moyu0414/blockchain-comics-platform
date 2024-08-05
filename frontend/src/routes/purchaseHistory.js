@@ -6,6 +6,7 @@ import './bootstrap.min.css';
 import { Link } from "react-router-dom";
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
+const website = process.env.REACT_APP_Website;
 
 const PurchaseHistory = () => {
   const [readerLogArray, setReaderLogArray] = useState([]);
@@ -22,7 +23,7 @@ const PurchaseHistory = () => {
 
   const initData = async () => {
     try {
-        const response = await axios.get('https://web3toonapi.ddns.net/api/reader/records', {
+        const response = await axios.get(`${website}/api/reader/records`, {
             params: {
                 currentAccount: currentAccount
             }

@@ -4,6 +4,7 @@ import { Container, Col, Row, Table, ButtonToolbar, Pagination } from 'react-boo
 import './bootstrap.min.css';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
+const website = process.env.REACT_APP_Website;
 
 function EditChapter() {
     const [comic, setComic] = useState([]);
@@ -22,10 +23,10 @@ function EditChapter() {
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists === 1) {
                     const filename = storedArray[i].filename;
-                    const image = `https://web3toonapi.ddns.net/api/comicIMG/${filename}`;
+                    const image = `${website}/api/comicIMG/${filename}`;
                     let protoFilename;
                     if (storedArray[i].protoFilename) {
-                        protoFilename = `https://web3toonapi.ddns.net/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
+                        protoFilename = `${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
                     } else {
                         protoFilename = image
                     }
@@ -51,7 +52,7 @@ function EditChapter() {
             setComic(temp);
 
             try {
-                const response = await axios.get('https://web3toonapi.ddns.net/api/comicDetail', {
+                const response = await axios.get(`${website}/api/comicDetail`, {
                     params: {
                     comicHash: temp[0].comicHash,
                     currentAccount: currentAccount

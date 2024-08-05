@@ -4,6 +4,7 @@ import { Container, Col, Row, Table, ButtonToolbar, Pagination, Modal, Button } 
 import './bootstrap.min.css';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
+const website = process.env.REACT_APP_Website;
 
 function DeleteChapter() {
     const [comic, setComic] = useState([]);
@@ -27,7 +28,7 @@ function DeleteChapter() {
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].exists === 1) {
                     const filename = storedArray[i].filename;
-                    const image = `https://web3toonapi.ddns.net/api/comicIMG/${filename}`;
+                    const image = `${website}/api/comicIMG/${filename}`;
                     if (storedArray[i].comicID === comicID) {
                         let author;
                         if (storedArray[i].author == currentAccount) {
@@ -50,7 +51,7 @@ function DeleteChapter() {
             setComic(temp);
 
             try {
-                const response = await axios.get('https://web3toonapi.ddns.net/api/comicDetail', {
+                const response = await axios.get(`${website}/api/comicDetail`, {
                     params: {
                     comicHash: temp[0].comicHash,
                     currentAccount: currentAccount

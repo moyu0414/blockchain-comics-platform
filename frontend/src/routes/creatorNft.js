@@ -4,6 +4,7 @@ import './bootstrap.min.css';
 import { Link } from "react-router-dom";
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
+const website = process.env.REACT_APP_Website;
 
 function CreatorNft() {
     const [comic, setComic] = useState([]);
@@ -84,9 +85,9 @@ function CreatorNft() {
             const comic = comicMap.get(data.comicHash);
             if (comic) {
                 data.title = comic.title;
-                const image = `https://web3toonapi.ddns.net/api/comicIMG/${comic.filename}`;
+                const image = `${website}/api/comicIMG/${comic.filename}`;
                 const protoFilename = comic.protoFilename
-                    ? `https://web3toonapi.ddns.net/api/coverFile/${comic.filename}/${comic.protoFilename}`
+                    ? `${website}/api/coverFile/${comic.filename}/${comic.protoFilename}`
                     : image;
                 data.image = protoFilename;
             }
