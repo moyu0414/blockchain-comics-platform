@@ -13,7 +13,7 @@ body{
 
 @media only screen and (max-width: 768px) {
   body{
-    padding-bottom: 30%;
+    padding-bottom: 40%;
   }
 }
 
@@ -692,6 +692,7 @@ a:link{
 
 .loading-container {
   position: fixed;
+  width: 80%;
   top: 50%;
   left: 50%;
   font-size:24px;
@@ -1090,12 +1091,12 @@ a:link{
   }
 
   .btn-section{
-    width: 32%;
+    width: 34%;
     margin: 0 3% 0!important;
   }
 
   .creatorPage .custom-button{
-    width: 20vw;
+    width: 25vw;
   }
 
   .text-section{
@@ -1117,6 +1118,7 @@ a:link{
   .homepage .btn-section{
     width: 25%;
     margin: 0!important;
+    padding-left: 0;
   }
 
   .homepage .btn{
@@ -1330,7 +1332,7 @@ a:link{
   padding: 0 2%;
   background-color: #F6B93B;
   border: 2px #F6B93B solid;
-  font-size: 16px;
+  font-size: 14px;
   box-shadow: rgba(246, 185, 59, 0.42) 5px 5px;
   border-radius: 8px;
 }
@@ -2268,7 +2270,7 @@ a:link{
 
   .bottom-navigation-bar .main-icon {
     top: calc(50% - 40px); 
-    width: 12%!important;
+    width: 13%!important;
   }
 }
 
