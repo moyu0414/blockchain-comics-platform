@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Container,Form, Row, Col, Button, ProgressBar } from 'react-bootstrap';
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
@@ -8,6 +10,7 @@ import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import { MdClose, MdDragHandle } from 'react-icons/md';  // 導入小叉叉圖標和拖曳圖標
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';  // 拖放功能，讓使用者可以拖曳圖片來重新排列它們的順序。
+const website = process.env.REACT_APP_Website;
 
 const EditWork = (props) => {
   const [web3, setWeb3] = useState(null);
@@ -52,39 +55,38 @@ const EditWork = (props) => {
         const contractInstance = new web3.eth.Contract(comicData.abi, comicData.address);
         setContract(contractInstance);
 
-        try {  // 這本漫畫得所有章節
-          const response = await axios.get('http://localhost:5000/api/chapters', {
-            params: {
-              comicHash: temp[0].comicHash
-            }
+        try {
+          const response = await axios.get(`${website}/api/editWork/chapters`, {
+              params: {
+              comicHash: temp[0].comicHash,
+              currentAccount: currentAccount
+              }
           });
-          chapterInfo = response.data;
-        } catch (error) {
-          console.error('Error fetching records:', error);
-        }
-        sortByTimestamp(chapterInfo);
-        console.log(chapterInfo);
-
-        for (var i = 0; i < chapterInfo.length; i++) {
-          if (temp[0].author == currentAccount) {
-            let id = 'Chapter' + (i+1);
-            if (id == location.state.chapterID) {
-              let price = chapterInfo[i].price;
-              let imgURL = "http://localhost:5000/api/chapterIMG/" + chapterInfo[i].filename;
-              setNewChapter({
-                chapterTitle: chapterInfo[i].chapterTitle,
-                price: price,
-                imgURL: imgURL
-              });
-              setChapter({
-                chapterTitle: chapterInfo[i].chapterTitle,
-                price: price,
-                chapterHash: chapterInfo[i].chapterHash,
-                imgURL: imgURL,
-                filename: chapterInfo[i].filename
-              })
-            }
+          let chapters = response.data;
+          sortByTimestamp(chapters);
+          //console.log(chapters);
+          
+          for (var i = 0; i < chapters.length; i++) {
+              let id = 'Chapter' + (i+1);
+              if (id == location.state.chapterID) {
+                let price = chapters[i].price;
+                let imgURL = `${website}/api/chapterIMG/${chapters[i].filename}`;
+                setNewChapter({
+                  chapterTitle: chapters[i].title,
+                  price: price,
+                  imgURL: imgURL
+                });
+                setChapter({
+                  chapterTitle: chapters[i].title,
+                  price: price,
+                  chapterHash: chapters[i].chapterHash,
+                  imgURL: imgURL,
+                  filename: chapters[i].filename
+                })
+              }
           }
+        } catch (error) {
+            console.error('Error fetching records:', error);
         }
       } catch (error) {
         console.error(error);
@@ -124,8 +126,12 @@ const EditWork = (props) => {
           formData.append('description', newComic.description);
           formData.append('category', newComic.category);
           formData.append('fileName', comic[0].filename);  // 原始圖檔名稱
+          let editComicData;
           if (file) { // 有重新上傳圖片，重新產生新的fileName
             formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
+            editComicData = {'comicHash': comic[0].comicHash, 'editTitle': newComic.title, 'editFile': comic[0].filename};
+          } else {
+            editComicData = {'comicHash': comic[0].comicHash, 'editTitle': newComic.title};
           }
           if (coverFile) {
             formData.append('coverFile', coverFile);
@@ -135,10 +141,11 @@ const EditWork = (props) => {
           } else {
             formData.append('protoFilename', '');
           };
-          await axios.put('http://localhost:5000/api/update/comicData', formData);
+          await axios.put(`${website}/api/update/comicData`, formData);
   
           alert('漫畫編輯成功！');
-          window.location.replace("/creator");
+          localStorage.setItem('editComicData', JSON.stringify(editComicData));
+          window.location.replace("/editSuccess");
         } catch (error) {
           alert('漫畫編輯失敗!');
           enableButton();
@@ -152,8 +159,12 @@ const EditWork = (props) => {
         formData.append('description', newComic.description);
         formData.append('category', newComic.category);
         formData.append('fileName', comic[0].filename);
+        let editComicData;
         if (file) { // 有重新上傳圖片，重新產生新的fileName
           formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
+          editComicData = {'comicHash': comic[0].comicHash, 'editTitle': newComic.title, 'editFile': comic[0].filename};
+        } else {
+          editComicData = {'comicHash': comic[0].comicHash, 'editTitle': newComic.title};
         }
         if (coverFile) {
           formData.append('coverFile', coverFile);
@@ -163,10 +174,11 @@ const EditWork = (props) => {
         } else {
           formData.append('protoFilename', '');
         };
-        await axios.put('http://localhost:5000/api/update/comicData', formData);
+        await axios.put(`${website}/api/update/comicData`, formData);
 
         alert('漫畫編輯成功！');
-        window.location.replace("/creator");
+        localStorage.setItem('editComicData', JSON.stringify(editComicData));
+        window.location.replace("/editSuccess");
       };
     } catch (error) {
       console.error('漫畫編輯時發生錯誤：', error);
@@ -194,7 +206,7 @@ const EditWork = (props) => {
       disableButton();
       updateMessage("正在編輯章節資料中...請稍後。")
 
-      if (chapter.price == newChapter.price && chapter.chapterTitle == newChapter.chapterTitle && !file) {
+      if (chapter.price == newChapter.price && chapter.chapterTitle == newChapter.chapterTitle && file.length === 0) {
         alert('目前您未編輯任何東西!');
         updateMessage("");
         enableButton();
@@ -215,10 +227,12 @@ const EditWork = (props) => {
             await handleGeneratePages();  // 等待合併圖片操作完成
             formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
           }
-          await axios.put('http://localhost:5000/api/update/chapterData', formData);
+          await axios.put(`${website}/api/update/chapterData`, formData);
 
           alert('章節編輯成功！');
-          window.location.href = `/chapterManagement/${comic[0].comicID}`;
+          let editComicData = {'comicHash': comic[0].comicHash, 'editTitle': comic[0].title, editChapter: newChapter.chapterTitle};
+          localStorage.setItem('editComicData', JSON.stringify(editComicData));
+          window.location.replace("/editSuccess");
         } catch (error) {
           alert('章節編輯失敗!');
           enableButton();
@@ -235,10 +249,12 @@ const EditWork = (props) => {
           await handleGeneratePages();  // 等待合併圖片操作完成
           formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
         }
-        await axios.put('http://localhost:5000/api/update/chapterData', formData);
+        await axios.put(`${website}/api/update/chapterData`, formData);
 
         alert('章節編輯成功！');
-        window.location.href = `/chapterManagement/${comic[0].comicID}`;
+        let editComicData = {'comicHash': comic[0].comicHash, 'editTitle': comic[0].title, editChapter: newChapter.chapterTitle};
+        localStorage.setItem('editComicData', JSON.stringify(editComicData));
+        window.location.replace("/editSuccess");
       };
       console.log("comicHash：" + comicHash);
       console.log("chapterTitle：" + newChapter.chapterTitle);
@@ -268,6 +284,9 @@ const EditWork = (props) => {
   // 處理單張圖片，資料驗證、預覽
   const handleFileInputChange = (event) => {
     const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
     if (validateFileType(file)) {
       previewImage(file);
     } else {
@@ -284,6 +303,7 @@ const EditWork = (props) => {
   const handleMultiFileInputChange = (event) => {
     const files = event.target.files;
     const fileArray = Array.from(files);
+    const urls = fileArray.map(file => URL.createObjectURL(file)); // 创建预览 URL
     fileArray.forEach(file => {
       if (validateFileType(file)) {
         previewImage(file);
@@ -293,15 +313,16 @@ const EditWork = (props) => {
         return -1;
       }
     });
-    const urls = fileArray.map(file => {
-      return URL.createObjectURL(file);  // 创建预览 URL
-    });
-    setFiles(prevFiles => [...prevFiles, ...fileArray]);  // 添增新文件到舊文件列表中
-    setPreviewImageUrls(prevUrls => [...prevUrls, ...urls]);  // 添加新預覽 URL 到舊預覽 URL 列表中
+    setFiles(prevFiles => [...prevFiles, ...fileArray]);  // 添加新文件到旧文件列表中
+    setPreviewImageUrls(prevUrls => [...prevUrls, ...urls]);  // 添加新预览 URL 到旧预览 URL 列表中
   };
+  
 
   const createPromoCover = (event) => {
     const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
     if (validateFileType(file)) {
       previewPromoCover(file);
       setCoverFile(file);
@@ -334,6 +355,17 @@ const EditWork = (props) => {
     reader.onloadend = () => {
       setPromoPreviewImageUrl(reader.result);
     };
+  };
+
+  // 处理单张图片的删除
+  const handleRemoveCover = () => {
+    setFiles(null);
+    setPreviewImageUrl(null);
+  };
+
+  const handleRemovePromo = () => {
+    setCoverFile(null);
+    setPromoPreviewImageUrl(null);
   };
 
   // 允許使用者刪除不需要的文件預覽
@@ -399,12 +431,12 @@ const EditWork = (props) => {
           temp.push(storedArray[i]);
         };
       };
-      console.log(temp);
+      //console.log(temp);
       setComic(temp);
-      let imgURL = "http://localhost:5000/api/comicIMG/" + temp[0].filename;
+      let imgURL = `${website}/api/comicIMG/${temp[0].filename}`;
       let coverImg = '';
       if (temp[0].protoFilename) {
-        coverImg = `http://localhost:5000/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
+        coverImg = `${website}/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
       }
       setNewComic({category:temp[0].category,  title: temp[0].title, description: temp[0].description, imgURL: imgURL, coverImg: coverImg});
     
@@ -415,13 +447,12 @@ const EditWork = (props) => {
       connectToWeb3();
       setLoading(true);
     }
-  }, [location]);
+  }, [currentAccount]);
 
 
   // 处理生成合并图片并进行翻页
   const handleGeneratePages = async () => {
     return new Promise((resolve, reject) => {
-      console.log('aaa');
       if (file.length == 1) {
         console.log(file);
         mergedFile = file[0];
@@ -473,200 +504,303 @@ const EditWork = (props) => {
 
 
   return (
-    <div className="upload-form">
-      <div className="step-container">
-        <div className={`step-item ${stepCompleted && !showChapterForm ? 'step-completed' : ''}`}>
-          <div className="step-line">
-            <div className={`line ${stepCompleted ? 'bg-blue' : 'bg-gray'}`}></div>
-            <div className="dot">1</div>
-            <div className={`line ${stepCompleted ? 'bg-blue' : 'bg-gray'}`}></div>
+    <>
+      <div className="upload-form">
+        <div className="step-container">
+          <div className={`step-item ${stepCompleted && !showChapterForm ? 'step-completed' : ''}`}>
+            <div className="step-line">
+              <div className={`line ${stepCompleted ? 'bg-blue' : 'bg-gray'}`}></div>
+              <div className="dot">1</div>
+              <div className={`line ${stepCompleted ? 'bg-blue' : 'bg-gray'}`}></div>
+            </div>
+            <div className="step-title">編輯漫畫</div>
           </div>
-          <div className="step-title">編輯漫畫</div>
-        </div>
-        <div className={`step-item ${!showChapterForm && !stepCompleted ? 'step-item-gray' : ''}`}>
-          <div className="step-line">
-            <div className={`line ${!showChapterForm && !stepCompleted ? 'bg-gray' : 'bg-blue'}`}></div>
-            <div className="dot">2</div>
-            <div className={`line ${!showChapterForm && !stepCompleted ? 'bg-gray' : 'bg-blue'}`}></div>
+          <div className={`step-item ${!showChapterForm && !stepCompleted ? 'step-item-gray' : ''}`}>
+            <div className="step-line">
+              <div className={`line ${!showChapterForm && !stepCompleted ? 'bg-gray' : 'bg-blue'}`}></div>
+              <div className="dot">2</div>
+              <div className={`line ${!showChapterForm && !stepCompleted ? 'bg-gray' : 'bg-blue'}`}></div>
+            </div>
+            <div className="step-title">編輯章節</div>
           </div>
-          <div className="step-title">編輯章節</div>
         </div>
-      </div>
-      {loading ? (
-        <>
-          {showChapterForm ? (
-              <div>
-                <label htmlFor="name">本章名稱</label>
-                <input
-                  type="text"
-                  value={newChapter.chapterTitle}
-                  placeholder="請輸入章節名稱"
-                  onChange={(e) => setNewChapter({ ...newChapter, chapterTitle: e.target.value })}
-                />
-
-                <label htmlFor="price">本章價格 (ETH)</label>
-                <input
-                  type="number"
-                  value={newChapter.price}
-                  placeholder="Min 0.01 ETH"
-                  step="0.01"
-                  onChange={(e) => setNewChapter({ ...newChapter, price: e.target.value })}
-                />
-                <label htmlFor="image">本章作品上傳，如不需變更章節內容，則無需上傳圖檔</label>
-                <input
-                  type="file"
-                  onChange={handleMultiFileInputChange}
-                  multiple  // 允许多个文件选择
-                />
-                <div style={{display: 'flex'}}>
-                  <div style={{marginRight: '170px'}}>更改前的章節內容
-                    <br />
-                    <img
-                      src={newChapter.imgURL}
-                      alt="Preview"
-                      style={{ width: '150px', paddingBottom: '3%', marginRight: '50px'}}
+        {loading ? (
+          <>
+            {showChapterForm ? (
+              <Form>
+                <Form.Group as={Row} className='mb-3 label-container'>
+                  <Form.Label column sm={3} className='label-style col-form-label label-section'>
+                    本章名稱
+                  </Form.Label>
+                  <Col sm={9}>
+                    <Form.Control
+                      type="text"
+                      value={newChapter.chapterTitle}
+                      placeholder="請輸入章節名稱"
+                      onChange={(e) => setNewChapter({ ...newChapter, chapterTitle: e.target.value })}
                     />
+                  </Col>
+                </Form.Group>
+  
+                <Form.Group as={Row} className='mb-3 label-container'>
+                  <Form.Label column sm={3} className='label-style col-form-label label-section'>
+                    本章價格
+                  </Form.Label>
+                  <Col sm={9}>
+                    <Form.Control
+                      type="number"
+                      value={newChapter.price}
+                      placeholder="Min 0.01 ETH"
+                      step="0.01"
+                      onChange={(e) => setNewChapter({ ...newChapter, price: e.target.value })}
+                    />
+                  </Col>
+                </Form.Group>
+  
+                <Form.Group className='mb-4'>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Form.Label className='label-style mb-3 col-form-label'>
+                      本章作品上傳
+                    </Form.Label>
+                    <h6 style={{ marginLeft: '10px' }}>
+                      如不需變更內容，則無需上傳圖檔
+                    </h6>
                   </div>
-                  <div>更改後的章節內容
-                    <br />
-                    <DragDropContext onDragEnd={handleDragEnd}>
-                      <Droppable droppableId="droppable">
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            className="image-list"
-                          >
-                            {previewImageUrls.map((url, index) => (
-                              <Draggable key={index} draggableId={`draggable-${index}`} index={index}>
-                                {(provided) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    className="image-item"
-                                  >
-                                    <img
-                                      src={url}
-                                      alt={`Preview ${index}`}
-                                      className="preview-image"
-                                    />
-                                    <button
-                                      onClick={() => handleRemoveFile(index)}
-                                      style={{backgroundColor: 'white'}}
-                                      className="remove-button"
+                  <Form.Control
+                    type="file"
+                    onChange={handleMultiFileInputChange}
+                    multiple
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 45%', textAlign: 'left', marginRight: '10px' }}>
+                      <div>更改前的章節內容</div>
+                      <br />
+                      {newChapter.imgURL ? (
+                        <img
+                          src={newChapter.imgURL}
+                          alt="Preview"
+                          style={{ width: '80%', paddingBottom: '3%' }}
+                        />
+                      ) : (
+                        <p>目前無上傳章節內容</p>
+                      )}
+                    </div>
+                    <div style={{ flex: '1 1 45%', textAlign: 'right' }}>
+                      <div>更改後的章節內容</div>
+                      <br />
+                      <DragDropContext onDragEnd={handleDragEnd}>
+                        <Droppable droppableId="droppable">
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                              className="image-list"
+                              style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'flex-end' }}
+                            >
+                              {previewImageUrls.map((url, index) => (
+                                <Draggable key={index} draggableId={`draggable-${index}`} index={index}>
+                                  {(provided) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className="image-item"
+                                      style={{ position: 'relative' }}
                                     >
-                                      <MdClose 
-                                    className="MdClose-button"/>  {/* 小叉叉图标 */}
-                                    </button>
-                                    <MdDragHandle style={{ position: 'absolute', bottom: '5px', right: '5px', cursor: 'grab' }} />
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))}
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                    </DragDropContext>
+                                      <img
+                                        src={url}
+                                        alt={`Preview ${index}`}
+                                        className="preview-image"
+                                        style={{ width: '80%', height: 'auto', paddingBottom: '3%' }}
+                                      />
+                                      <button
+                                        onClick={() => handleRemoveFile(index)}
+                                        type="button"
+                                        style={{ backgroundColor: 'white', position: 'absolute', top: '5px', right: '5px' }}
+                                        className="remove-button"
+                                      >
+                                        <MdClose className="MdClose-button" />
+                                      </button>
+                                      <MdDragHandle
+                                        style={{ position: 'absolute', bottom: '5px', right: '5px', cursor: 'grab' }}
+                                      />
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </DragDropContext>
+                    </div>
                   </div>
-                </div>
+                </Form.Group>
+  
                 <div className="text-red-500 text-center">{message}</div>
-                <button onClick={editChapter} id="list-button">提交</button>
-              </div>
-          ) : (
-              <div>
-                <label htmlFor="category">漫畫類型</label>
-                <select value={newComic.category} onChange={ChoseLevel}>
-                  <option>請選擇類型</option>
-                  {grading.map((name, index) => (
-                    <option key={index}>{name}</option>
-                  ))}
-                </select>
-                <p></p>
-                <label htmlFor="title">作品名稱</label>
-                <input
-                  type="text"
-                  value={newComic.title}
-                  onChange={(e) => setNewComic({ ...newComic, title: e.target.value })}
-                />
-                <label htmlFor="description">作品簡介</label>
-                <textarea
-                  cols="30"
-                  rows="5"
-                  value={newComic.description}
-                  onChange={(e) => setNewComic({ ...newComic, description: e.target.value })}
-                ></textarea>
-                <label htmlFor="image">上傳漫畫封面，如不需變更封面，則無需上傳圖檔</label>
-                <input
-                  type="file"
-                  onChange={handleFileInputChange}
-                />
-                <div style={{display: 'flex'}}>
-                    <div style={{marginRight: '170px'}}>更改前的圖片封面
+                <Button onClick={editChapter} id="list-button">
+                  提交
+                </Button>
+              </Form>
+            ) : (
+              <Form>
+                <Form.Group as={Row} className='mb-3 label-container'>
+                  <Form.Label column sm={3} className='label-style label-section'>
+                    漫畫名稱
+                  </Form.Label>
+                  <Col sm={9}>
+                    <Form.Control
+                      type="text"
+                      value={newComic.title}
+                      onChange={(e) => setNewComic({ ...newComic, title: e.target.value })}
+                    />
+                  </Col>
+                </Form.Group>
+  
+                <Form.Group as={Row} className='mb-3 label-container'>
+                  <Form.Label column sm={3} className='label-style label-section'>
+                    漫畫類別
+                  </Form.Label>
+                  <Col sm={9}>
+                    <Form.Control
+                      as="select"
+                      className="form-select"
+                      value={newComic.category}
+                      onChange={ChoseLevel}
+                    >
+                      <option>請選擇漫畫類型</option>
+                      {grading.map((name, index) => (
+                        <option key={index}>{name}</option>
+                      ))}
+                    </Form.Control>
+                  </Col>
+                </Form.Group>
+  
+                <Form.Group className='pb-4'>
+                  <Form.Label className='label-style mb-3 col-form-label'>漫畫簡介</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={5}
+                    value={newComic.description}
+                    onChange={(e) => setNewComic({ ...newComic, description: e.target.value })}
+                  />
+                </Form.Group>
+  
+                <Form.Group className='pb-5'>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Form.Label className='label-style mb-1 col-form-label' htmlFor="image">
+                      漫畫封面
+                    </Form.Label>
+                    <h6 style={{ marginLeft: '10px' }}>
+                      如不需變更封面，則無需上傳圖檔
+                    </h6>
+                  </div>
+                  <Form.Control
+                    type="file"
+                    onChange={handleFileInputChange}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 45%', marginRight: '20px', textAlign: 'left' }}>
+                      <div>更改前的圖片封面</div>
                       <br />
                       <img
                         src={newComic.imgURL}
                         alt="Preview"
-                        style={{ width: '50%', paddingBottom: '3%' }}
+                        style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
                       />
                     </div>
-                    <div>更改後的圖片封面
+                    <div style={{ flex: '1 1 45%', textAlign: 'right' }}>
+                      <div>更改後的圖片封面</div>
                       <br />
                       {previewImageUrl && (
-                        <img
-                          src={previewImageUrl}
-                          alt="Preview"
-                          style={{ width: '50%', paddingBottom: '3%' }}
-                        />
+                        <div style={{ position: 'relative', display: 'inline-block' }}>
+                          <img
+                            src={previewImageUrl}
+                            alt="Preview"
+                            style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
+                          />
+                          <button
+                            onClick={handleRemoveCover}
+                            type="button"
+                            style={{ backgroundColor: 'white', position: 'absolute', top: '5px', right: '5px' }}
+                            className="remove-button"
+                          >
+                            <MdClose className="MdClose-button" />
+                          </button>
+                        </div>
                       )}
                     </div>
-                </div>
-                <label htmlFor="image">上傳橫向封面(推廣頁)，如不需變更封面，則無需上傳圖檔</label>
-                <input
-                  type="file"
-                  onChange={createPromoCover}
-                />
-                <div style={{ display: 'flex' }}>
-                  {newComic.coverImg ? (
-                    <div style={{ marginRight: '170px' }}>
-                      <div>更改前的橫向封面(推廣頁)</div>
-                      <img
-                        src={newComic.coverImg}
-                        alt="Preview"
-                        style={{ width: '50%', paddingBottom: '3%', marginRight: '50px' }}
-                      />
-                    </div>
-                  ) : (
-                    <div style={{ marginRight: '170px' }}>
-                      <div>更改前的橫向封面(推廣頁)</div>
-                        <h3>目前無上傳橫向封面</h3><br />
-                    </div>
-                  )}
-                  <div>
-                    <div>更改後的橫向封面(推廣頁)</div>
-                    <br />
-                    {promoPreviewImageUrl && (
-                      <img
-                        src={promoPreviewImageUrl}
-                        alt="Promo Cover Preview"
-                        style={{ width: '50%', paddingBottom: '3%' }}
-                      />
-                    )}
                   </div>
-                </div>
+                </Form.Group>
+  
+                <Form.Group className='pb-5'>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Form.Label className='label-style mb-1 col-form-label' htmlFor="image">
+                      漫畫橫向封面
+                    </Form.Label>
+                    <h6 style={{ marginLeft: '10px' }}>
+                      如不需變更封面，則無需上傳圖檔
+                    </h6>
+                  </div>
+                  <Form.Control
+                    type="file"
+                    onChange={createPromoCover}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 45%', marginRight: '20px', textAlign: 'left' }}>
+                      <div>更改前的橫向封面</div>
+                      <br />
+                      {newComic.coverImg ? (
+                        <img
+                          src={newComic.coverImg}
+                          alt="Preview"
+                          style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
+                        />
+                      ) : (
+                        <div>
+                          <h3>目前無上傳橫向封面</h3>
+                          <br />
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ flex: '1 1 45%', textAlign: 'right' }}>
+                      <div>更改後的橫向封面</div>
+                      <br />
+                      {promoPreviewImageUrl && (
+                        <div style={{ position: 'relative', display: 'inline-block' }}>
+                          <img
+                            src={promoPreviewImageUrl}
+                            alt="Preview"
+                            style={{ width: '80%', maxWidth: '300px', paddingBottom: '3%' }}
+                          />
+                          <button
+                            onClick={handleRemovePromo}
+                            type="button"
+                            style={{ backgroundColor: 'white', position: 'absolute', top: '5px', right: '5px' }}
+                            className="remove-button"
+                          >
+                            <MdClose className="MdClose-button" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Form.Group>
+
                 <div className="text-red-500 text-center">{message}</div>
-                <button onClick={editComic} id="list-button">提交</button>
-              </div>
-          )}
-        </>
-      ) : (
-        <div className="loading-container">
-          <div>資料未載入成功，請重新刷新...</div>
-        </div>
-      )}
-    </div>
+                <Button onClick={editComic} id="list-button">
+                  提交
+                </Button>
+              </Form>
+            )}
+          </>
+        ) : (
+          <div>Loading...</div>
+        )}
+      </div>
+    </>
   );
+  
 };
 
 export default EditWork;

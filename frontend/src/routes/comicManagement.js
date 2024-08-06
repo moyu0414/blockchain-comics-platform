@@ -63,7 +63,7 @@ const ComicManagement = ({ contractAddress }) => {
       try{
         updateMessage("正在刪除漫畫中...請稍後。");
         await meta.toggleComicExistence(comicHash).send({ from: currentAccount });
-        await axios.put('http://localhost:5000/api/update/comicExist', {
+        await axios.put('https://web3toonapi.ddns.net/api/update/comicExist', {
           comicHash: comicHash,
           is_exist: 0,
         });
@@ -85,7 +85,7 @@ const ComicManagement = ({ contractAddress }) => {
       try{
         updateMessage("正在復原漫畫中...請稍後。");
         await meta.toggleComicExistence(comicHash).send({ from: currentAccount });
-        await axios.put('http://localhost:5000/api/update/comicExist', {
+        await axios.put('https://web3toonapi.ddns.net/api/update/comicExist', {
           comicHash: comicHash,
           is_exist: 1,
         });

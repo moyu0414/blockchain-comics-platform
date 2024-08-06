@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Carousel, Card, Col, Row, Button, Dropdown, Figure, Table, ButtonGroup, ButtonToolbar, Pagination } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+import { Container, Col, Row, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
 import BootstrapTable from 'react-bootstrap-table-next';
 import axios from 'axios';
 import { formatDate, formatTime, sortByDatetime } from '../index.js';
+const website = process.env.REACT_APP_Website;
 
 function Analysis() {
     const [creatorLogArray, setCreatorLogArray] = useState([]);
@@ -15,7 +17,7 @@ function Analysis() {
 
     const initData = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/creator/records', {
+            const response = await axios.get(`${website}/api/creator/records`, {
                 params: {
                     currentAccount: currentAccount
                 }
@@ -129,50 +131,52 @@ function Analysis() {
 
 
     return (
-        <Container className='analysis'>
-            <Row className='pt-5 justify-content-center'>
-                <h1 className="fw-bold text-center">{totalPrice}</h1>
-            </Row>
-            <Row className='pt-5 justify-content-center'>
-                <Col className='d-flex justify-content-center chapter-table'>
-                    <Table size="sm">
-                        <thead>
-                            <tr>
-                                <th className='text-center fw-bold'>日期</th>
-                                <th className='text-center fw-bold'>漫畫 / 章節</th>
-                                <th className='text-center fw-bold'>收益</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {currentIncome.map((income, index) => (
-                                <tr key={index}>
-                                    <td className='text-center fw-bold'>{income.date}<br />{income.time}</td>
-                                    <td className='text-center'>{income.title}</td>
-                                    <td className='text-center'>{income.income}</td>
+        <>
+            <Container className='analysis'>
+                <Row className='pt-5 justify-content-center'>
+                    <h1 className="fw-bold text-center">{totalPrice}</h1>
+                </Row>
+                <Row className='pt-5 justify-content-center'>
+                    <Col className='d-flex justify-content-center chapter-table'>
+                        <Table size="sm">
+                            <thead>
+                                <tr>
+                                    <th className='text-center fw-bold'>交易日期</th>
+                                    <th className='text-center fw-bold'>漫畫 / 章節</th>
+                                    <th className='text-center fw-bold'>收益</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </Table>
-                </Col>
-            </Row>
-            <Row className='pt-2 pb-5 justify-content-center table-button'>
-                <Col className='d-flex justify-content-center'>
-                    <ButtonToolbar aria-label="Toolbar with pagination">
-                        <Pagination>
-                            <Pagination.Prev 
-                                onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} 
-                                className='pagination-button'
-                            />
-                            {getPageItems()}
-                            <Pagination.Next 
-                                onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages} 
-                                className='pagination-button'
-                            />
-                        </Pagination>
-                    </ButtonToolbar>
-                </Col>
-            </Row>
-        </Container>
+                            </thead>
+                            <tbody>
+                                {currentIncome.map((income, index) => (
+                                    <tr key={index}>
+                                        <td className='text-center fw-bold'>{income.date}<br />{income.time}</td>
+                                        <td className='text-center'>{income.title}</td>
+                                        <td className='text-center'>{income.income}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    </Col>
+                </Row>
+                <Row className='pt-2 pb-5 justify-content-center table-button'>
+                    <Col className='d-flex justify-content-center'>
+                        <ButtonToolbar aria-label="Toolbar with pagination">
+                            <Pagination>
+                                <Pagination.Prev 
+                                    onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} 
+                                    className='pagination-button'
+                                />
+                                {getPageItems()}
+                                <Pagination.Next 
+                                    onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages} 
+                                    className='pagination-button'
+                                />
+                            </Pagination>
+                        </ButtonToolbar>
+                    </Col>
+                </Row>
+            </Container>
+        </>
     );
 }
 
