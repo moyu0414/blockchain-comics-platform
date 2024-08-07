@@ -12,6 +12,10 @@ const { promisify } = require('util');
 const rename = promisify(fsPromises.rename); // 圖片重命名
 const app = express();
 const port = 5000;
+require('dotenv').config({ path: '/var/www/html/src/.env' }); // 加载环境变量
+
+const API_KEY = process.env.API_KEY; // 从环境变量读取API密钥
+
 app.use(cors());
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');  // 允許所有来源的請求訪問資源
@@ -23,6 +27,16 @@ app.use((req, res, next) => {
 // 設置body-parser中間件來解析請求主體
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// API密钥验证中间件
+app.use((req, res, next) => {
+  const apiKey = req.headers['api-key'];
+  if (apiKey && apiKey === API_KEY) {
+    next(); // API密钥验证通过，继续处理请求
+  } else {
+    res.status(403).json({ error: 'Forbidden' }); // API密钥验证失败，拒绝请求
+  }
+});
 
 // 創建MySQL連線池
 const pool = mysql.createPool({
