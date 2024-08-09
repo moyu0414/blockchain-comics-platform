@@ -60,6 +60,8 @@ function Navigation() {
                 } catch (error) {
                     console.error('錯誤:', error);
                 }
+            } else {
+                detectCurrentProvider();
             }
         }
     };
@@ -141,6 +143,7 @@ function Navigation() {
             provider = window.web3.currentProvider;
         } else {
             console.log("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
+            alert("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
         }
         return provider;
     };

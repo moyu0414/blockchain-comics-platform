@@ -48,24 +48,17 @@ import VerifySuccess from './routes/verifySuccess';
 import NftMarket from './routes/nftMarket';
 import NftDetail from './routes/nftDetail';
 import Web3 from 'web3';
-import comicData from "./contracts/ComicPlatform.json"
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
-
-let DBComicDatas = [];
-let DBChapterDatas = [];
-let comicDatas = [];
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 const AppLayout = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [accounts, setAccounts] = useState([]);
-  const [web3Instance, setWeb3Instance] = useState(null);
-  const [contractInstance, setContractInstance] = useState(null);
-  const currentAccount = localStorage.getItem("currentAccount");
   const location = useLocation();
   const isComicReadPage = location.pathname.startsWith('/comicRead/');
   const isSearchPage = location.pathname.startsWith('/searchPage');
-
+  const headers = {'api-key': API_KEY};
   // 處理登錄狀態的函數
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -74,62 +67,22 @@ const AppLayout = () => {
 
 
   useEffect(() => {
-    // 初始化 Web3 和智能合約
-    const connectToWeb3 = async () => {
-      await axios.get(`${website}/api/comics`)
+    const initialData = async () => {
+      await axios.get(`${website}/api/comics`, { headers })
       .then(response => {
-        //console.log("DB comicData：" , response.data);
-        DBComicDatas = response.data;
-        localStorage.setItem('DB_ComicDatas', JSON.stringify(response.data));
+        let comicDatas = response.data;
+        console.log("comicDatas：" , comicDatas);
+        //儲存comicDatas資料至各分頁
+        localStorage.setItem('comicDatas', JSON.stringify(comicDatas));
+        //要刪除可以用下列的程式
+        //localStorage.removeItem('web3Instance');
       })
       .catch(error => {
         console.error('Error fetching comics: ', error);
-      });
-
-      if (window.ethereum) {
-        try {
-          // 請求用戶授權
-          await window.ethereum.request({ method: 'eth_requestAccounts' });
-          const web3Instance = new Web3(window.ethereum);
-          setWeb3Instance(web3Instance);
-
-          // 創建合約實例，需替換為您的合約地址
-          const contractInstance = new web3Instance.eth.Contract(comicData.abi, comicData.address);
-          setContractInstance(contractInstance);
-          const meta = await contractInstance.methods;
-
-          sortByTimestamp(DBComicDatas);
-          let comicHash, id, temp_title, comicAuthor, comicDescription, comicCategory, comicExists, filename, protoFilename, timestamp;
-          for (var i = 0; i < DBComicDatas.length; i++) {
-            let id = 'Comic' + (i + 1) ;
-            comicHash = DBComicDatas[i].comic_id;
-            temp_title = DBComicDatas[i].title;
-            comicAuthor = DBComicDatas[i].creator;
-            comicDescription = DBComicDatas[i].description;
-            comicCategory = DBComicDatas[i].category;
-            comicExists = DBComicDatas[i].is_exist;
-            filename = DBComicDatas[i].filename;
-            protoFilename = DBComicDatas[i].protoFilename;
-            timestamp = DBComicDatas[i].create_timestamp
-
-            comicDatas.push({comicID: id, title: temp_title, author: comicAuthor, description: comicDescription, category: comicCategory, exists: comicExists, filename: filename, comicHash: comicHash, protoFilename: protoFilename, timestamp: timestamp});
-          }
-          console.log("comicDatas：" , comicDatas);
-          //儲存comicDatas資料至各分頁
-          localStorage.setItem('comicDatas', JSON.stringify(comicDatas));
-          //要刪除可以用下列的程式
-          //localStorage.removeItem('web3Instance', 'contractInstance', 'comicDatas');
-
-        } catch (error) {
-          console.error(error);
-        }
-      } else {
-        alert('請安裝 MetaMask 或其他支援的錢包');
-      }
-    };
+      });   
+    }
       
-    // 初始化 Web3 和智能合約
-    connectToWeb3();
+    initialData();
 
     // 處理登錄狀態
     handleLogin();
@@ -177,7 +130,7 @@ function sortByDatetime(array) {
   return array.sort((a, b) => {
     const datetimeA = new Date(a.purchase_date);
     const datetimeB = new Date(b.purchase_date);
-    return datetimeA - datetimeB;  // 升序排序
+    return datetimeB - datetimeA ;  // 降序排序
   });
 }
 
@@ -239,7 +192,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Home contractAddress={comicData.address}  />,
+        element: <Home />,
       },
       {
         path: "/reader",
@@ -281,13 +234,13 @@ const router = createBrowserRouter([
         element: <ChapterManagement />,
       },{
         path: "/comicManagement",
-        element: <ComicManagement contractAddress={comicData.address} />,
+        element: <ComicManagement />,
       },{
         path: "/accountManagement",
         element: <AccountManagement />,
       },{
         path: "/homePage",
-        element: <HomePage contractAddress={comicData.address} />,
+        element: <HomePage />,
       },{
         path: "/category",
         element: <Category />,

@@ -17,7 +17,13 @@ const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     </div>
 ));
 
+
 function ReaderPage() {
+    if (!window.ethereum) {
+        alert('請先登入以太坊錢包!!');
+    }
+
+
     const buttonData = [
         { label: '我的書櫃', icon: <Book /> },
         { label: '漫畫收藏', icon: <Heart /> },

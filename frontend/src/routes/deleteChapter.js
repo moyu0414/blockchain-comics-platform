@@ -5,6 +5,7 @@ import './bootstrap.min.css';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function DeleteChapter() {
     const [comic, setComic] = useState([]);
@@ -18,6 +19,7 @@ function DeleteChapter() {
     const [selectedChapter, setSelectedChapter] = useState(null);
     const [showConfirm, setShowConfirm] = useState(false);
     const [showFinal, setShowFinal] = useState(false);
+    const headers = {'api-key': API_KEY};
 
     let temp = [];
     let chapterInfo = [];
@@ -26,18 +28,18 @@ function DeleteChapter() {
         try {
             const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
             for (let i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].exists === 1) {
-                    const filename = storedArray[i].filename;
-                    const image = `${website}/api/comicIMG/${filename}`;
+                if (storedArray[i].is_exist === 1) {
+                    const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
+                    const image = URL.createObjectURL(imageResponse.data);
                     if (storedArray[i].comicID === comicID) {
                         let author;
-                        if (storedArray[i].author == currentAccount) {
+                        if (storedArray[i].creator == currentAccount) {
                             author = '您是本作品的創作者!';
                         } else {
-                            author = storedArray[i].author;
+                            author = storedArray[i].creator;
                         }
                         temp.push({
-                            comicHash: storedArray[i].comicHash,
+                            comicHash: storedArray[i].comic_id,
                             comicID: storedArray[i].comicID,
                             title: storedArray[i].title,
                             description: storedArray[i].description,
@@ -52,9 +54,10 @@ function DeleteChapter() {
 
             try {
                 const response = await axios.get(`${website}/api/comicDetail`, {
+                    headers, headers,
                     params: {
-                    comicHash: temp[0].comicHash,
-                    currentAccount: currentAccount
+                        comicHash: temp[0].comicHash,
+                        currentAccount: currentAccount
                     }
                 });
                 let chapters = response.data;
@@ -162,6 +165,7 @@ function DeleteChapter() {
 
     const handleClose = () => {
         setShow(false);
+        setSelectedChapter(null);
     };
     const handleShow = (chapter) => {
         setSelectedChapter(chapter);
@@ -178,6 +182,9 @@ function DeleteChapter() {
     };
 
     const handleConfirm = () => {
+        if (selectedChapter !== null) {
+            const chapter = currentChapters[selectedChapter];
+        }
         setShowConfirm(false);
         setShow(false);
         setShowFinal(true);
@@ -193,19 +200,19 @@ function DeleteChapter() {
                             <Link to={`/comicDetail/${comic[0].comicID}`}>
                                 <div className="d-block mx-auto img-fluid createSuccess-image-container">
                                     <img
-                                    className="d-block mx-auto img-fluid"
-                                    src={comic[0].image}
-                                    alt="800x400"
+                                        className="d-block mx-auto img-fluid"
+                                        src={comic[0].image}
+                                        alt="800x400"
                                     />
                                 </div>
                                 <h4 className='text-center pt-2'>{comic[0].title}</h4>
                             </Link>
                         </Row>
-                        <Row className='pt-4 deleteChapter-title-section'>
+                        <Row className='pt-3 deleteChapter-title-section'>
                             <Col className=''>
                                 <div className='d-flex justify-content-between align-items-center'>
                                     <h3 className='fw-bold mb-0'>章節目錄</h3>
-                                    <p className='mt-4 btn'>刪除本漫畫</p>
+                                    <button className='mt-2 deleteAll-btn'>刪除本漫畫</button>
                                 </div>
                                 <hr/>
                             </Col>
@@ -222,7 +229,7 @@ function DeleteChapter() {
                                                 <td className='text-center'>
                                                     <button 
                                                         className="delete-btn"
-                                                        onClick={() => handleConfirmShow(chapter)}
+                                                        onClick={() => handleConfirmShow(index)}
                                                     >
                                                         刪除
                                                     </button>
@@ -233,22 +240,22 @@ function DeleteChapter() {
                                 </Table>
                             </Col>
                         </Row>
-
-                        <Modal show={show} onHide={handleClose} dialogClassName="custom-modal-content">
-                            <Modal.Body>
-                            <h3>確定刪除</h3>
-                            <h4>第一章 章節名稱？</h4>
-                            </Modal.Body>
-                            <Modal.Footer className="custom-modal-footer">
-                            <Button className="custom-modal-button" onClick={handleClose}>
-                                取消
-                            </Button>
-                            <Button className="custom-modal-button" onClick={handleConfirm}>
-                                確定
-                            </Button>
-                            </Modal.Footer>
-                        </Modal>
-
+                        {selectedChapter !== null && (
+                            <Modal show={show} onHide={handleClose} dialogClassName="custom-modal-content">
+                                <Modal.Body>
+                                    <h3>確定刪除</h3>
+                                    <h4>第{selectedChapter + 1}章 {currentChapters[selectedChapter].title}？</h4>
+                                </Modal.Body>
+                                <Modal.Footer className="custom-modal-footer">
+                                    <Button className="custom-modal-button" onClick={handleClose}>
+                                        取消
+                                    </Button>
+                                    <Button className="custom-modal-button" onClick={handleConfirm}>
+                                        確定
+                                    </Button>
+                                </Modal.Footer>
+                            </Modal>
+                        )}
                         <Modal show={showFinal} onHide={handleFinalClose} dialogClassName="custom-modal-content">
                             <Modal.Body>
                                 <h3>已成功刪除</h3>

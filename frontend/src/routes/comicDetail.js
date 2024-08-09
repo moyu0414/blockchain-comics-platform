@@ -3,16 +3,14 @@ import { Link, useParams } from "react-router-dom";
 import { Container, Card, Col, Row, Button, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
-import BootstrapTable from 'react-bootstrap-table-next';
 import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
 import axios from 'axios';
 import { sortByTimestamp, getTransactionTimestamp, disableAllButtons, enableAllButtons } from '../index';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function ComicDetail() {
-    const [web3, setWeb3] = useState(null);
-    const [web3Instance, setWeb3Instance] = useState('');
     const [comic, setComic] = useState([]);
     const [similComic, setSimilComic] = useState([]);
     const [chapters, setChapters] = useState([]);
@@ -22,6 +20,7 @@ function ComicDetail() {
     const [currentPage, setCurrentPage] = useState(1);
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
+    const headers = {'api-key': API_KEY};
     const fetchedData = [];
     const buttonData = [
         '開始閱讀', '收藏'
@@ -31,31 +30,29 @@ function ComicDetail() {
 
     const initData = async () => {
         try {
-            const web3 = new Web3(window.ethereum);
-            setWeb3(web3);
-            const contractInstance = new web3.eth.Contract(comicData.abi, comicData.address);
-            setWeb3Instance(contractInstance);
-
             const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
+            console.log(storedArray);
+
             for (let i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].exists === 1) {
+                if (storedArray[i].is_exist === 1) {
                     const filename = storedArray[i].filename;
-                    const image = `${website}/api/comicIMG/${filename}`;
                     let protoFilename;
                     if (storedArray[i].protoFilename) {
-                        protoFilename = `${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
+                        const protoResponse = await axios.get(`${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`, { responseType: 'blob', headers });
+                        protoFilename = URL.createObjectURL(protoResponse.data); 
                     } else {
-                        protoFilename = image
+                        const imageResponse = await axios.get(`${website}/api/comicIMG/${filename}`, { responseType: 'blob', headers });
+                        protoFilename = URL.createObjectURL(imageResponse.data);
                     }
                     if (storedArray[i].comicID === comicID) {
                         let author;
-                        if (storedArray[i].author == currentAccount) {
+                        if (storedArray[i].creator == currentAccount) {
                             author = '您是本作品的創作者!';
                         } else {
-                            author = storedArray[i].author;
+                            author = storedArray[i].creator;
                         }
                         temp.push({
-                            comicHash: storedArray[i].comicHash,
+                            comicHash: storedArray[i].comic_id,
                             comicID: storedArray[i].comicID,
                             title: storedArray[i].title,
                             description: storedArray[i].description,
@@ -66,18 +63,19 @@ function ComicDetail() {
                     }
                 }
             }
-            //console.log(temp);
+            console.log(temp);
             setComic(temp);
 
             for (let i = 0; i < storedArray.length; i++) {
                 // 類似漫畫 依據類型跟同作者取前4本
-                if ((storedArray[i].category == temp[0].category || storedArray[i].author == temp[0].author) && storedArray[i].comicID != comicID) {
-                    const image = `${website}/api/comicIMG/${storedArray[i].filename}`;
+                if ((storedArray[i].category == temp[0].category || storedArray[i].creator == temp[0].author) && storedArray[i].comicID != comicID) {
+                    const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
+                    const image = URL.createObjectURL(imageResponse.data);
                     fetchedData.push({
                         comicID: storedArray[i].comicID,
                         title: storedArray[i].title,
                         description: storedArray[i].description,
-                        author: storedArray[i].author,
+                        author: storedArray[i].creator,
                         category: storedArray[i].category,
                         image: image,
                     });
@@ -91,6 +89,7 @@ function ComicDetail() {
             // 章節購買者
             try {
                 const response = await axios.get(`${website}/api/comicDetail`, {
+                    headers: headers,
                     params: {
                         comicHash: temp[0].comicHash,
                         currentAccount: currentAccount
@@ -100,18 +99,19 @@ function ComicDetail() {
                 sortByTimestamp(chapters);
 
                 chapters = chapters.map((chapter, index) => {
-                    let isBuying;
-                    if (chapter.creator === currentAccount) {
+                    let isBuying, price;
+                    if (chapter.creator === currentAccount || chapter.isBuying !== null || chapter.price == 0) {
                         isBuying = '閱讀';
-                    } else if (chapter.isBuying !== null) {
-                        isBuying = '閱讀';
+                        price = chapter.price == 0 ? '免費' : chapter.price;
                     } else {
                         isBuying = '購買';
+                        price = chapter.price;
                     }
                     return {
                         ...chapter,
                         chapterID: `chapter${index + 1}`,
-                        isBuying
+                        isBuying,
+                        price
                     };
                 });
                 console.log(chapters);
@@ -122,7 +122,7 @@ function ComicDetail() {
                     return {...comic, chapter: lastChapterInfo.title};
                 });
                 setComic(updatedComic);
-                //console.log(updatedComic);
+                console.log(updatedComic);
             } catch (error) {
                 console.error('Error fetching records:', error);
             }
@@ -130,6 +130,7 @@ function ComicDetail() {
             // 資料庫查詢收藏狀態
             try {
                 const response = await axios.get(`${website}/api/comicDetail/isFavorited`, {
+                    headers: headers,
                     params: {
                         currentAccount: currentAccount,
                         comicHash: temp[0].comicHash
@@ -152,13 +153,16 @@ function ComicDetail() {
 
     const handleFavoriteClick = async () => {
         setIsFavorited(!isFavorited); // 切換收藏狀態
+        let data = chapters[chapters.length-1].create_timestamp;
         try {
             const response = await axios.put(`${website}/api/update/comicDetail/favorite`, null, {
-              params: {
-                currentAccount: currentAccount,
-                comicHash: comic[0].comicHash,
-                bool: !isFavorited
-              },
+                headers: headers,
+                params: {
+                    currentAccount: currentAccount,
+                    comicHash: comic[0].comicHash,
+                    bool: !isFavorited,
+                    data: data
+                },
             });
         } catch (error) {
             console.error('Error handleFavoriteClick', error);
@@ -248,6 +252,8 @@ function ComicDetail() {
         } else {
         try {
             disableAllButtons();
+            const web3 = new Web3(window.ethereum);
+            const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
             let balance = await web3.eth.getBalance(currentAccount);
             balance = balance.toString() / 1e18;
             let price = chapter.price;
@@ -271,19 +277,18 @@ function ComicDetail() {
                 const transactionHash = transaction.transactionHash;
                 let Timestamp = await getTransactionTimestamp(transactionHash);
 
-                const author = comic[0].author === '您是本作品的創作者!' ? currentAccount : comic[0].author;
                 const formData = new FormData();
                 formData.append('hash', transactionHash);
                 formData.append('comic_id', comicHash);
                 formData.append('chapter_id', chapterHash);
                 formData.append('buyer', currentAccount);
-                formData.append('creator', author);
                 formData.append('purchase_date', Timestamp);
                 formData.append('price', chapter.price);
                 try {
                     const response = await axios.post(`${website}/api/add/records`, formData, {
                     headers: {
-                        'Content-Type': 'multipart/form-data'
+                        'Content-Type': 'multipart/form-data',
+                        'api-key': API_KEY
                     }
                     });
                     alert('章節購買成功！');
@@ -417,7 +422,7 @@ function ComicDetail() {
                                         <Card.Img variant="top" src={data.image} />
                                         <Card.Body>
                                             <Card.Title>{data.title}</Card.Title>
-                                            <Card.Text>{truncateText(data.description, 50)}</Card.Text>
+                                            <Card.Text>{truncateText(data.description, 30)}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Link>

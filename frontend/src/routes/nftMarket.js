@@ -2,17 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Container, Carousel, Card, Col, Row, Tabs, Tab, Form } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Link } from "react-router-dom";
-import Web3 from 'web3';
-import comicData from '../contracts/ComicPlatform.json';
+import axios from 'axios';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function NftMarket() {
     const [comic, setComic] = useState([]);
-    const [selectedGrading, setSelectedGrading] = useState();
+    const [selectedGrading, setSelectedGrading] = useState('角色商品化');
     const [material, setMaterial] = useState([]);
     const [loading, setLoading] = useState(true);
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
+    const currentAccount = localStorage.getItem("currentAccount");
+    const headers = {'api-key': API_KEY};
     const [grading, setGrading] = useState([
         "角色商品化",
         "改編權",
@@ -24,121 +26,67 @@ function NftMarket() {
         "其他"
     ]);
 
-    let records = [];
-    let temp = [];
-    const comicHashMap = {};
-    const uniqueKeyData = new Set();  // 用于存储已处理的 keyData
-    const addedOriginals = new Set();  // 使用 Set 来追蹤已经添加的原创的 comicHash
+    let allRecord = [];
     let comicStats = {};
     let CountComicDetails = {};
-
+    let temp = [];
 
     const initData = async () => {
-        const web3 = new Web3(window.ethereum);
-        const contract = new web3.eth.Contract(comicData.abi, comicData.address);
-        const totCount = await contract.methods.tokenCounter().call();
-        for (let i = 0; i < totCount; i++) {
-            const data = await contract.methods.nfts(i).call();
-            let price = data.price.toString() / 1e18;
-            let tokenId = `tokenId${data.tokenId.toString()}`;
-            const keyData = `${data.comicHash}-${price}-${data.royalty}-${data.description || ""}`;
-            records.push({
-                tokenId: tokenId,
-                comicHash: data.comicHash,
-                description: data.description,
-                forSale: data.forSale,
-                price: price,
-                keyData: keyData
-            });
-            const uniqueKey = `${data.comicHash}-${price}-${data.royalty}-${data.description || ""}`;
-            if (!comicStats[uniqueKey]) {
-                comicStats[uniqueKey] = { tot: 0, sale: 0 };
-            }
-            comicStats[uniqueKey].tot += 1;
-            if (!data.forSale) {
-                comicStats[uniqueKey].sale += 1;
-            }
-        }
-        records.forEach(record => {
-            if (!comicHashMap[record.comicHash]) {
-                comicHashMap[record.comicHash] = { true: [], false: [] };
-            }
-            comicHashMap[record.comicHash][record.forSale].push(record);
-        });
-
-        storedArray.forEach(stored => {
-            if (stored.exists === 1) {
-                const image = `${website}/api/comicIMG/${stored.filename}`;
-                const protoFilename = stored.protoFilename
-                    ? `${website}/api/coverFile/${stored.filename}/${stored.protoFilename}`
-                    : image;
-                const comicHash = stored.comicHash;
-                if (comicHashMap[comicHash]) {
-                    const availableRecords = comicHashMap[comicHash];
-                    availableRecords.false.forEach(record => {
-                        const descTitle = parseAuthorizations(record.description);
-                        const firstName = descTitle[0]?.name || '';
-                        temp.push({
-                            title: stored.title,
-                            description: record.description,
-                            firstName: firstName,
-                            image: protoFilename,
-                            tokenId: record.tokenId,
-                            isFanCreation: "轉售",
-                        });
-                    });
-                    availableRecords.true.forEach(record => {
-                        const { keyData, comicHash, description, tokenId } = record;
-                        if (!uniqueKeyData.has(keyData)) {
-                            const descTitle = parseAuthorizations(record.description);
-                            const firstName = descTitle[0]?.name || '';
-                            temp.push({
-                                title: stored.title,
-                                description: description,
-                                firstName: firstName,
-                                image: protoFilename,
-                                tokenId: tokenId,
-                                comicHash: comicHash,
-                                isFanCreation: "原創",
-                                totQty: comicStats[keyData]?.tot || 0,
-                                saleQty: comicStats[keyData]?.sale || 0
-                            });
-                            uniqueKeyData.add(keyData);  // 标记 keyData 已经处理
-                        }
-                    });
-                }
-            }
-        });
-        //console.log(temp);
-        setComic(temp);
-
-        const materialData = temp.flatMap(item => {
-            if (item.comicHash) {
-                const authorizations = parseAuthorizations(item.description);
-                return authorizations.map(auth => ({
-                    tokenId: item.tokenId,
-                    image: item.image,
-                    title: item.title,
-                    name: auth.name,
-                }));
-            }
-            return [];
-        }).reduce((acc, curr) => {
-            if (!acc[curr.tokenId]) {
-                acc[curr.tokenId] = {
-                    tokenId: curr.tokenId,
-                    image: curr.image,
-                    title: curr.title,
-                    names: [],
+        try {
+            const response = await axios.get(`${website}/api/nftMarket/records`, { headers });
+            let nftData = response.data;
+            nftData.forEach(item => {
+                const keyData = `${item.comicHash}-${item.price}-${item.royalty}-${item.description || ""}`;
+                const updatedRecord = {
+                    ...item, // 保留原有属性
+                    isFanCreation: item.forSale ? "原創" : "轉售", // 添加新属性
+                    keyData
                 };
-            }
-            acc[curr.tokenId].names.push(curr.name);
-            return acc;
-        }, {});
-        console.log(materialData);
-        setMaterial(materialData);
-
-        setLoading(false);
+                allRecord.push(updatedRecord);
+                if (!comicStats[keyData]) {
+                    comicStats[keyData] = { tot: 0, sale: 0 };
+                }
+                comicStats[keyData].tot += 1;
+                if (item.forSale === 0) { // 已售出的 NFT
+                    comicStats[keyData].sale += 1;
+                }
+            });
+            const keyhMap = allRecord.map(record => ({
+                ...record,
+                ...(record.isFanCreation === "原創" ? {
+                    totQty: comicStats[record.keyData]?.tot || 0,
+                    saleQty: comicStats[record.keyData]?.sale || 0
+                } : {})
+            }));
+            keyhMap.forEach(record => {
+                const { isFanCreation, keyData } = record;
+                if (isFanCreation === "原創") {
+                    if (!CountComicDetails[keyData]) {
+                        CountComicDetails[keyData] = true;
+                        temp.push(record);
+                    }
+                } else {
+                    temp.push(record);
+                }
+            });
+            const fetchImageAndNames = async (data) => {
+                const url = data.protoFilename === 1
+                    ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
+                    : `${website}/api/comicIMG/${data.filename}`;
+                const response = await axios.get(url, { responseType: 'blob', headers });
+                const protoFilename = URL.createObjectURL(response.data);
+                data.image = protoFilename;
+                data.names = parseAuthorizations(data.description).map(auth => auth.name);
+            };
+            await Promise.all(temp.map(fetchImageAndNames));
+            console.log(temp);
+            setComic(temp);
+            setMaterial(temp);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error initializing contract:', error);
+        }
+    
     };
 
     useEffect(() => {
@@ -168,12 +116,23 @@ function NftMarket() {
         }
     });
 
-    const images = [
-        "https://via.placeholder.com/120x60?text=Image",
-        "https://via.placeholder.com/120x60?text=Image",
-        "https://via.placeholder.com/120x60?text=Image",
-        "https://via.placeholder.com/120x60?text=Image"
-    ];
+    const truncateText = (text, maxLength) => {
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    };
+
+    const truncateLastText = (text, maxLength) => {
+        if (text.length > maxLength) {
+            const end = text.slice(-maxLength); // 获取最后 maxLength 个字符
+            return `...${end}`;
+        }
+        return text;
+    };
+
+    const truncateTextForName = (text) => {
+        const isChinese = (char) => /[\u4e00-\u9fa5]/.test(char);
+        const maxLength = text.split('').some(isChinese) ? 6 : 12;  // 中文7個字、英文15個字
+        return truncateText(text, maxLength);
+    };
 
 
     return (
@@ -186,11 +145,11 @@ function NftMarket() {
                 <Row className='pt-1 pb-5'>
                     {comic.filter(data => data.isFanCreation === '原創').map((data, index) => (
                         <Col xs={6} md={3} className="pt-3">
-                            <Link to={`/nftDetail/${data.tokenId}`}>
+                            <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                 <Card className="effect-image-1">
                                     <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
                                     <div className="nftMarket-overlay-owner">{data.saleQty}/{data.totQty}</div>
-                                    <div className="nftMarket-overlay">{data.firstName}</div>
+                                    <div className="nftMarket-overlay">{truncateTextForName(data.names[0])}</div>
                                     <Card.Body className="simple-text">
                                         <Card.Text>{data.title}</Card.Text>
                                     </Card.Body>
@@ -203,20 +162,6 @@ function NftMarket() {
                     <h3 className="fw-bold">推薦NFT</h3>
                 </Row>
                 <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" className="mb-3">
-                    <Tab eventKey="member" title="會員">
-                        <Row className='pt-1 pb-5'>
-                            {images.map((src, index) => (
-                            <Col xs={6} md={3} className="pt-3">
-                                <Card className="effect-image-1">
-                                    <Card.Img variant="top" src={src} alt={`image-${index + 1}`} />
-                                    <Card.Body className="simple-text">
-                                        <Card.Text>名稱名稱</Card.Text>
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                            ))}
-                        </Row>
-                    </Tab>
                     <Tab eventKey="material" title="素材">
                         <Form.Group>
                             <Form.Label>IP種類</Form.Label>
@@ -229,10 +174,11 @@ function NftMarket() {
                         <Row className='pt-1 pb-5'>
                             {filteredMaterials.map((data, index) => (
                                 <Col xs={6} md={3} className="pt-3" key={index}>
-                                    <Link to={`/nftDetail/${data.tokenId}`}>
+                                    <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                         <Card className="effect-image-1">
                                             <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                            <div className="nftMarket-overlay">持有者</div>
+                                            <div className="nftMarket-overlay-owner">{truncateLastText(data.owner, 4)}</div>
+                                            <div className="nftMarket-overlay">{truncateTextForName(data.names[0])}</div>
                                             <Card.Body className="simple-text">
                                                 <Card.Text>{data.title}</Card.Text>
                                             </Card.Body>
@@ -246,11 +192,11 @@ function NftMarket() {
                         <Row className='pt-1 pb-5'>
                             {comic.filter(data => data.isFanCreation === '原創').map((data, index) => (
                                 <Col key={index} xs={6} md={3} className="pt-3">
-                                    <Link to={`/nftDetail/${data.tokenId}`}>
+                                    <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                     <Card className="effect-image-1">
                                         <Card.Img src={data.image} alt={`image-${index + 1}`} />
-                                        <div className="nftMarket-overlay-owner">持有者</div>
-                                        <div className="nftMarket-overlay">{data.firstName}</div>
+                                        <div className="nftMarket-overlay-owner">{truncateLastText(data.owner, 4)}</div>
+                                        <div className="nftMarket-overlay">{truncateTextForName(data.names[0])}</div>
                                         <Card.Body className="simple-text">
                                         <Card.Text>{data.title}</Card.Text>
                                         </Card.Body>
@@ -264,11 +210,11 @@ function NftMarket() {
                         <Row className='pt-1 pb-5'>
                             {comic.filter(data => data.isFanCreation === '轉售').map((data, index) => (
                                 <Col key={index} xs={6} md={3} className="pt-3">
-                                    <Link to={`/nftDetail/${data.tokenId}`}>
+                                    <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                     <Card className="effect-image-1">
                                         <Card.Img src={data.image} alt={`image-${index + 1}`} />
-                                        <div className="nftMarket-overlay-owner">持有者</div>
-                                        <div className="nftMarket-overlay">{data.firstName}</div>
+                                        <div className="nftMarket-overlay-owner">{truncateLastText(data.owner, 4)}</div>
+                                        <div className="nftMarket-overlay">{truncateTextForName(data.names[0])}</div>
                                         <Card.Body className="simple-text">
                                         <Card.Text>{data.title}</Card.Text>
                                         </Card.Body>

@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { Container, Col, Row, Image, Button } from 'react-bootstrap';
 import './bootstrap.min.css';
 import EmojiImage from '../image/Emoji.png';
+import axios from 'axios';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function EditSuccess() {
     const [comic, setComic] = useState([]);
@@ -11,6 +13,7 @@ function EditSuccess() {
     const editComicData = localStorage.getItem("editComicData");
     const editArray = JSON.parse(editComicData);
     const currentAccount = localStorage.getItem("currentAccount");
+    const headers = {'api-key': API_KEY};
     let temp = [];
 
     const initData = async () => {
@@ -25,8 +28,9 @@ function EditSuccess() {
                 const storedArrayJSON = localStorage.getItem('comicDatas');
                 const storedArray = JSON.parse(storedArrayJSON);
                 for (let i = 0; i < storedArray.length; i++) {
-                    if ((!editFile || editFile !== storedArray[i].filename) && comicHash === storedArray[i].comicHash) {
-                        const image = `${website}/api/comicIMG/${storedArray[i].filename}`;
+                    if ((!editFile || editFile !== storedArray[i].filename) && comicHash === storedArray[i].comic_id) {
+                        const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
+                        const image = URL.createObjectURL(imageResponse.data);
                         temp.push({
                             comicID: storedArray[i].comicID,
                             title: editTitle,

@@ -6,6 +6,7 @@ import { Funnel, HeartFill, CartFill } from 'react-bootstrap-icons';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     <div
@@ -32,19 +33,19 @@ function Category() {
     const currentAccount = localStorage.getItem("currentAccount");
     let savedCurrentCategory = localStorage.getItem('currentCategory');
     let savedFilter = localStorage.getItem('filter');
+    const headers = {'api-key': API_KEY};
     const fetchedData = [];
     
     const initData = async () => {
         try {
             const storedArray = JSON.parse(storedArrayJSON);
             for (var i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].exists == 1 && storedArray[i].category == currentCategory) {
-                    const filename = storedArray[i].filename;
-                    const image = `${website}/api/comicIMG/${filename}`;
-                    fetchedData.push({ comicHash: storedArray[i].comicHash, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, image: image});
+                if (storedArray[i].is_exist == 1 && storedArray[i].category == currentCategory) {
+                    const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
+                    const image = URL.createObjectURL(imageResponse.data);
+                    fetchedData.push({ comicHash: storedArray[i].comic_id, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, category: storedArray[i].category, image: image});
                 }
             };
-            //setCurrent(fetchedData);
             const categoryCounts = {};
             fetchedData.forEach(data => {
                 if (categoryCounts[data.category]) {
@@ -55,10 +56,9 @@ function Category() {
             });
             const sortPromo = Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a]);
             setPromoPosition(sortPromo);
-            //setPromoPosition(sortPromo.slice(0, 8));
-            //console.log(fetchedData);
             try {
                 const response = await axios.get(`${website}/api/category/updateStats`, {
+                    headers: headers,
                     params: {
                         currentCategory: currentCategory
                     }
@@ -73,9 +73,10 @@ function Category() {
                 }, {});
                 updatedFetchedData = fetchedData.map(data => ({
                     ...data,
-                    totHearts: totalCountMap[data.comicHash]?.totHearts || 0, // 如果没有找到对应的 comic_id，则为 0
-                    totBuy: totalCountMap[data.comicHash]?.totBuy || 0 // 如果没有找到对应的 comic_id，则为 0
+                    ...totalCountMap[data.comicHash],
+                    total: (totalCountMap[data.comicHash]?.totHearts || 0) + (totalCountMap[data.comicHash]?.totBuy || 0)
                 }));
+                updatedFetchedData.sort((a, b) => b.total - a.total);
                 console.log(updatedFetchedData);
                 setCurrent(updatedFetchedData);
                 if (updatedFetchedData.length !== 0) {
@@ -138,7 +139,6 @@ function Category() {
 
     const updateFavorite = async () => {
         const sortedCurrent = [...updatedFetchedData].sort((a, b) => b.totHearts - a.totHearts);
-        console.log(sortedCurrent);
         setCurrent(sortedCurrent);
         setSelectedCategory('愛心排序');
     };
@@ -146,6 +146,7 @@ function Category() {
     const updateComic = async () => {
         try {
             const response = await axios.get(`${website}/api/category/updateComic`, {
+                headers: headers,
                 params: {
                     currentCategory: currentCategory
                 }
@@ -155,7 +156,6 @@ function Category() {
                 comic.create_timestamp = Number(comic.create_timestamp);
             });
             const timestampMap = new Map(comics.map(comic => [comic.comicHash, comic.create_timestamp]));
-            
             let sortedComics;
             if (updatedFetchedData.length !== 0) {
                 sortedComics = sortComics(updatedFetchedData, timestampMap);
@@ -172,6 +172,7 @@ function Category() {
     const updateChapter = async () => {
         try {
             const response = await axios.get(`${website}/api/category/updateChapter`, {
+                headers: headers,
                 params: {
                     currentCategory: currentCategory
                 }
@@ -181,7 +182,6 @@ function Category() {
                 chapter.create_timestamp = Number(chapter.create_timestamp);
             });
             const timestampMap = new Map(chapters.map(chapter => [chapter.comicHash, chapter.create_timestamp]));
-    
             let sortedComics;
             if (updatedFetchedData.length !== 0) {
                 sortedComics = sortComics(updatedFetchedData, timestampMap);
@@ -240,9 +240,6 @@ function Category() {
                             </Dropdown>
                         </Col>
                     </Row>
-
-
-
                     <Row xs={1} md={2} className="g-4 pb-5">
                         {promoPosition.length === 0 ? (
                             <>
@@ -266,7 +263,7 @@ function Category() {
                                                 </Link>
                                                 <Card.Body>
                                                     <Card.Title className='fw-bold'>{data.title}</Card.Title>
-                                                    <Card.Text className='text-secondary'>{truncateText(data.text, 50)}</Card.Text>
+                                                    <Card.Text className='text-secondary'>{truncateText(data.text, 20)}</Card.Text>
                                                 </Card.Body>
                                             </Card>
                                         </Col>

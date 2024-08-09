@@ -5,6 +5,7 @@ import './bootstrap.min.css';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function Bookcase() {
     const [current, setCurrent] = useState([]);
@@ -14,6 +15,7 @@ function Bookcase() {
     const readingProgress = localStorage.getItem("readingProgress");
     const readingArray = readingProgress ? JSON.parse(readingProgress) : {}; 
     const currentAccount = localStorage.getItem("currentAccount");
+    const headers = {'api-key': API_KEY};
     let bookcase = [];
     let fetchedData = [];
     
@@ -21,17 +23,21 @@ function Bookcase() {
         try {
             try {
                 const response = await axios.get(`${website}/api/bookcase`, {
+                    headers: headers,
                     params: {
-                    currentAccount: currentAccount
+                        currentAccount: currentAccount
                     }
                 });
                 bookcase = response.data;
-                const comicMap = new Map(storedArray.map(comic => [comic.comicHash, comic]));
+                console.log(bookcase);
+
+                const comicMap = new Map(storedArray.map(comic => [comic.comic_id, comic]));
                 const readingMap = new Map(Object.entries(readingArray));
                 for (const data of bookcase) {
                     const comic = comicMap.get(data.comicHash);
                     if (comic) {
-                        const image = `${website}/api/comicIMG/${comic.filename}`;
+                        const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.filename}`, { responseType: 'blob', headers });
+                        const image = URL.createObjectURL(imageResponse.data);
                         data.comicID = comic.comicID;
                         data.image = image;
                         const readingValue = readingMap.get(comic.comicID);
@@ -40,8 +46,8 @@ function Bookcase() {
                         }
                     }
                 }
-                sortByPurchase(bookcase);
                 console.log(bookcase);
+                sortByPurchase(bookcase);
                 setCurrent(bookcase);
             } catch (error) {
                 console.error('Error fetching records:', error);
