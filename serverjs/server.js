@@ -13,8 +13,8 @@ const rename = promisify(fsPromises.rename); // 圖片重命名
 const app = express();
 const port = 5000;
 const dotenv = require('dotenv');
-//const envPath = path.join('/var/www/html/src', '.env');
-const envPath = path.join('../', '.env');
+const envPath = path.join('/var/www/html/src', '.env');  // web3toonapi
+//const envPath = path.join('../', '.env');  // localhost
 dotenv.config({ path: envPath });
 const API_KEY = process.env.REACT_APP_API_KEY; // 从环境变量读取API密钥
 
@@ -56,13 +56,13 @@ const query = promisify(pool.query).bind(pool);  // 将 pool.query 包装成返�
 
 // 檢查連線建立過程中的錯誤
 pool.getConnection((err, connection) => {
-    if (err) {
-      console.error('Error connecting to database: ', err);
-      return;
-    }
-    console.log('Connected to MySQL database!');
-    connection.release(); // 釋放連線
-  });
+  if (err) {
+    console.error('Error connecting to database: ', err);
+    return;
+  }
+  console.log('Connected to MySQL database!');
+  connection.release(); // 釋放連線
+});
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -869,6 +869,37 @@ app.post('/api/add/NFT', upload.any(), (req, res) => {
 });
 
 
+app.post('/api/add/user', upload.any(), (req, res) => {
+  const { address } = req.body;
+  // 先检查是否已经存在相同的 address
+  pool.query(
+    'SELECT 1 FROM user WHERE address = ? LIMIT 1',
+    [address],
+    (error, results) => {
+      if (error) {
+        console.error('Error checking address existence: ', error);
+        return res.status(500).json({ message: 'Error checking address existence' });
+      }
+      if (results.length > 0) {
+        return res.json({ message: 'Address already exists' });
+      }
+      // 如果地址不存在，则插入新记录
+      pool.query(
+        'INSERT INTO user (address, is_creator, is_admin) VALUES (?, ?, ?)',
+        [address, 0, 0],
+        (error) => {
+          if (error) {
+            console.error('Error inserting into records: ', error);
+            return res.status(500).json({ message: 'Error inserting into records' });
+          }
+          res.json({ message: 'User added successfully.' });
+        }
+      );
+    }
+  );
+});
+
+
 // 根据 filename 获取漫画图片的路由
 app.get('/api/comicIMG/:filename', async (req, res) => {
   const { filename } = req.params;
@@ -880,10 +911,10 @@ app.get('/api/comicIMG/:filename', async (req, res) => {
       const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
       
       // localhost
-      const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', filename);
+      //const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', filename);
 
       // web3toonapi
-      //const imagePath = `https://web3toon.ddns.net/uploads/${comic_id}/chapters/${filename}`;
+      const imagePath = `https://web3toon.ddns.net/uploads/${comic_id}/cover/${filename}`;
       
       // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
       const image = await fsPromises.readFile(imagePath);
@@ -905,16 +936,17 @@ app.get('/api/chapterIMG/:filename',async (req, res) => {
       return res.status(404).json({ message: 'filename not found.' });
     }
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
-    const imagePath = path.join(__dirname, 'uploads', comic_id, 'chapters', filename);
+      
+    // localhost
+    //const imagePath = path.join(__dirname, 'uploads', comic_id, 'chapters', filename);
+
+    // web3toonapi
+    const imagePath = `https://web3toon.ddns.net/uploads/${comic_id}/chapters/${filename}`;
+
     // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
     const image = await fsPromises.readFile(imagePath);
     res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
     res.send(image);
-
-    // web3toonapi
-    //const imagePath = `/uploads/${comic_id}/chapters/${filename}`;
-    //const imageURL = `https://web3toon.ddns.net${imagePath}`;
-    //res.redirect(imageURL);
   } catch (error) {
     console.error('Error fetching chapterIMG:', error);
     res.status(500).json({ message: 'Error fetching chapterIMG' });
@@ -931,15 +963,16 @@ app.get('/api/coverFile/:filename/:protoFilename', async (req, res) => {
       return res.status(404).json({ message: 'Comic image not found.' });
     }
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
-    const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', 'promoCover.jpg');
+    
+    // localhost
+    //const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', 'promoCover.jpg');
+
+    // web3toonapi
+    const imagePath = `https://web3toon.ddns.net/uploads/${comic_id}/cover/promoCover.jpg`;
+
     const image = await fsPromises.readFile(imagePath);
     res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
     res.send(image);
-
-    // web3toonapi
-    //const imagePath = `/uploads/${comic_id}/cover/promoCover.jpg`;
-    //const imageURL = `https://web3toon.ddns.net${imagePath}`;
-    //res.redirect(imageURL);
   } catch (error) {
     console.error('Error fetching comic image:', error);
     res.status(500).json({ message: 'Error fetching comic image' });
