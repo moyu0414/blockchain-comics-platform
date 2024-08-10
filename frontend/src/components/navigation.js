@@ -4,9 +4,11 @@ import Web3 from 'web3';
 import { Link, useNavigate } from "react-router-dom";
 import { SidebarData } from "./SidebarData";
 import { Search, Person } from 'react-bootstrap-icons';
+import axios from 'axios';
+const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function Navigation() {
-
     const [isMetamaskInstalled, setMetamaskInstalled] = useState(true);
     const [isConnected, setConnected] = useState(false);
     const [isLogged, setIsLogged] = useState(false);
@@ -17,12 +19,13 @@ function Navigation() {
     const [account, setAccount] = useState('');
     const [accounts, setAccounts] = useState([]);
     const [expanded, setExpanded] = useState(false); // 状态用于控制菜单展开或折叠
+    const headers = {'api-key': API_KEY};
 
     const navigate = useNavigate();
 
     useEffect(() => {
         if (accounts.length > 0) {
-            setIsLogged(true);
+            //setIsLogged(true);
             loadAccountBalance(accounts[0]);
         }
     }, [accounts]);
@@ -52,11 +55,21 @@ function Navigation() {
                     setCurrentAccount(accounts[0]);
                     setConnected(true);
                     setIsLogged(true);
-                    localStorage.setItem("loggedIn", "true");
-                    localStorage.setItem("currentAccount", accounts[0]);
-                    alert("登入成功!");
-                    navigate("/");
-                    loadAccountBalance(accounts[0]);
+                    try {
+                        const response = await axios.post(`${website}/api/add/user`, {
+                            address: accounts[0]
+                        }, {
+                            headers: headers
+                        });
+                        console.log(response.data);
+                        localStorage.setItem("loggedIn", "true");
+                        localStorage.setItem("currentAccount", accounts[0]);
+                        alert("登入成功!");
+                        navigate("/homepage");
+                        loadAccountBalance(accounts[0]);
+                    } catch (error) {
+                        console.error('Error fetching records:', error);
+                    }
                 } catch (error) {
                     console.error('錯誤:', error);
                 }
@@ -108,12 +121,21 @@ function Navigation() {
                     const web3 = new Web3(provider);
                     const newAccount = accounts[0];
                     console.log('切換後的帳戶: ' + newAccount);
-                    setAccount(newAccount);
-                    localStorage.setItem("currentAccount", newAccount);
-                    const balance = await web3.eth.getBalance(newAccount);
-                    setEthBalance(parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(3));
-                    setIsLogged(true);
-                    window.location.reload();
+                    try {
+                        const response = await axios.post(`${website}/api/add/user`, {
+                            address: newAccount
+                        }, {
+                            headers: headers
+                        });
+                        setAccount(newAccount);
+                        localStorage.setItem("currentAccount", newAccount);
+                        const balance = await web3.eth.getBalance(newAccount);
+                        setEthBalance(parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(3));
+                        setIsLogged(true);
+                        window.location.reload();
+                    } catch (error) {
+                        console.error('Error fetching records:', error);
+                    }
                 } else {
                     setIsLogged(false);
                 }
@@ -124,15 +146,28 @@ function Navigation() {
     };
 
     useEffect(() => {
-        const loggedIn = localStorage.getItem("loggedIn");
-        const currentAccount = localStorage.getItem("currentAccount");
-        if (loggedIn === "true" && currentAccount) {
+        const checkLoginStatus = async () => {
+          let loggedIn = localStorage.getItem("loggedIn");
+          const currentAccount = localStorage.getItem("currentAccount");
+          if (window.ethereum) {
+            const web3 = new Web3(window.ethereum);
+            const accounts = await web3.eth.getAccounts();
+            const account = accounts[0];
+            if (!account) {
+                loggedIn = "false";
+                localStorage.setItem("loggedIn", "false");
+                localStorage.removeItem("currentAccount");
+            }
+          }
+          if (loggedIn === "true" && currentAccount) {
             setIsLogged(true);
             setAccount(currentAccount);
             setCurrentAccount(currentAccount);
             setConnected(true);
             loadAccountBalance(currentAccount);
-        }
+          }
+        };
+        checkLoginStatus();
     }, []);
 
     const detectCurrentProvider = () => {

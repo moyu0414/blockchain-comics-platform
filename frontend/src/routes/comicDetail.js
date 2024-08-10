@@ -6,7 +6,7 @@ import { Heart, HeartFill } from 'react-bootstrap-icons';
 import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
 import axios from 'axios';
-import { sortByTimestamp, getTransactionTimestamp, disableAllButtons, enableAllButtons } from '../index';
+import { sortByTimestamp, getTransactionTimestamp, disableAllButtons, enableAllButtons, initializeWeb3 } from '../index';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
@@ -169,6 +169,22 @@ function ComicDetail() {
         }
     };
 
+    const handleReadClick = async () => {
+        const reading = chapters.find(chapter => chapter.isBuying === "閱讀");
+        if (reading) {
+            const readingProgress = localStorage.getItem("readingProgress");
+            const readingArray = readingProgress ? JSON.parse(readingProgress) : {};
+            const exists = chapters.some(chapter => chapter.isBuying === "閱讀" && chapter.chapterID === readingArray[comicID]);
+            if (comicID in readingArray && exists === true) {  // 有購買紀錄
+                window.location.replace(`/comicRead/${comicID}/${readingArray[comicID]}`);
+            } else {  // 免費閱讀
+                window.location.replace(`/comicRead/${comicID}/${reading.chapterID}`);
+            }
+        } else {
+            alert(`${comic[0].title}沒有提供免費試讀!\n您也尚未購買漫畫!`);
+        }
+    };
+
     const itemsPerPage = 10; // 每頁顯示的章節數量
     const totalPages = Math.ceil(chapters.length / itemsPerPage);
 
@@ -252,55 +268,65 @@ function ComicDetail() {
         } else {
         try {
             disableAllButtons();
-            const web3 = new Web3(window.ethereum);
+            const web3 = await initializeWeb3();
+            if (!web3) {
+                return;
+            }
             const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
-            let balance = await web3.eth.getBalance(currentAccount);
-            balance = balance.toString() / 1e18;
-            let price = chapter.price;
-            if (balance > price) {
-                const comicHash = comic[0].comicHash;
-                const chapterHash = chapter.chapterHash;
-                console.log(comicHash);
-                console.log(chapterHash);
-                console.log(price);
-                price = web3.utils.toWei(price, 'ether');
-
-                let gasEstimate = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, price/10).estimateGas({
-                    from: currentAccount,
-                    value: price,
-                });
-                const transaction = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, gasEstimate).send({
-                    from: currentAccount,
-                    value: price,
-                    gas: gasEstimate
-                });
-                const transactionHash = transaction.transactionHash;
-                let Timestamp = await getTransactionTimestamp(transactionHash);
-
-                const formData = new FormData();
-                formData.append('hash', transactionHash);
-                formData.append('comic_id', comicHash);
-                formData.append('chapter_id', chapterHash);
-                formData.append('buyer', currentAccount);
-                formData.append('purchase_date', Timestamp);
-                formData.append('price', chapter.price);
-                try {
-                    const response = await axios.post(`${website}/api/add/records`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        'api-key': API_KEY
-                    }
+            const accounts = await web3.eth.getAccounts();
+            const account = accounts[0];
+            if (account) {
+                let balance = await web3.eth.getBalance(currentAccount);
+                balance = balance.toString() / 1e18;
+                let price = chapter.price;
+                if (balance > price) {
+                    const comicHash = comic[0].comicHash;
+                    const chapterHash = chapter.chapterHash;
+                    console.log(comicHash);
+                    console.log(chapterHash);
+                    console.log(price);
+                    price = web3.utils.toWei(price, 'ether');
+    
+                    let gasEstimate = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, price/10).estimateGas({
+                        from: currentAccount,
+                        value: price,
                     });
-                    alert('章節購買成功！');
-                    const updatedChapters = [...currentChapters];
-                    updatedChapters[chapterId].isBuying = '閱讀'; // 更新章節的購買狀態
-                    setChapters(updatedChapters);
-                } catch (error) {
-                    console.error('購買紀錄添加至資料庫時發生錯誤：', error);
+                    const transaction = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, gasEstimate).send({
+                        from: currentAccount,
+                        value: price,
+                        gas: gasEstimate
+                    });
+                    const transactionHash = transaction.transactionHash;
+                    let Timestamp = await getTransactionTimestamp(transactionHash);
+    
+                    const formData = new FormData();
+                    formData.append('hash', transactionHash);
+                    formData.append('comic_id', comicHash);
+                    formData.append('chapter_id', chapterHash);
+                    formData.append('buyer', currentAccount);
+                    formData.append('purchase_date', Timestamp);
+                    formData.append('price', chapter.price);
+                    try {
+                        const response = await axios.post(`${website}/api/add/records`, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                            'api-key': API_KEY
+                        }
+                        });
+                        alert('章節購買成功！');
+                        const updatedChapters = [...currentChapters];
+                        updatedChapters[chapterId].isBuying = '閱讀'; // 更新章節的購買狀態
+                        setChapters(updatedChapters);
+                    } catch (error) {
+                        console.error('購買紀錄添加至資料庫時發生錯誤：', error);
+                    }
+                } else {
+                    console.log('餘額不足');
+                    alert('餘額不足');
                 }
             } else {
-                console.log('餘額不足');
-                alert('餘額不足');
+                alert('請先登入以太坊錢包，再進行購買!!');
+                return;
             }
         } catch (error) {
             console.error('章節購買時發生錯誤：', error);
@@ -332,7 +358,7 @@ function ComicDetail() {
                     <Row className="pt-3 pb-3 btn-container justify-content-center">
                         {buttonData.map((label, idx) => (
                             <Col key={idx} xs={2} md={2} lg={2} className="pb-3 btn-section d-flex justify-content-center">
-                                <Button variant="outline-dark" className="custom-button" onClick={label === '收藏' ? handleFavoriteClick : undefined}>
+                                <Button variant="outline-dark" className="custom-button" onClick={label === '收藏' ? handleFavoriteClick : handleReadClick}>
                                     {label === '收藏' && (
                                         <>
                                             {isFavorited ? (

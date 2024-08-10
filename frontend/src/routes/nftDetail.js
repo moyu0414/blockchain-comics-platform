@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Container, Carousel, Card, Col, Row, ListGroup, Button } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
+import { initializeWeb3 } from '../index';
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
 import axios from 'axios';
@@ -110,34 +111,44 @@ function NftDetail() {
     const handlePurchase = async () => {
         if (NFT[0].owner !== '您擁有此NFT!' && NFT[0].minter !== '您是本作品創作者!') {
             try {
-                const web3 = new Web3(window.ethereum);
+                const web3 = await initializeWeb3();
+                if (!web3) {
+                    return;
+                }
                 const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
-                let balance = await web3.eth.getBalance(currentAccount);
-                balance = balance.toString() / 1e18;
-                let price = NFT[0].price;
-                if (balance > price) {
-                    let id = tokenId.replace("tokenId", "");
-                    price = web3.utils.toWei(price, 'ether');
-                    await web3Instance.methods.purchaseNFT(id).send({from: currentAccount, value: price,});
-            
-                    try {
-                        const response = await axios.put(`${website}/api/update/nftDetail/owner`, {
-                          tokenId: id,
-                          currentAccount: currentAccount
-                        }, {
-                          headers: headers
-                        });
-                        alert('NFT 購買成功！');
-                        const updatedNFT = [...NFT];
-                        updatedNFT[0].owner = '您擁有此NFT!'; // 更新購買狀態
-                        updatedNFT[0].state = '二次轉售';
-                        setNFT(updatedNFT);
-                      } catch (error) {
-                        console.error('Error updating NFT:', error);
-                      }
+                const accounts = await web3.eth.getAccounts();
+                const account = accounts[0];
+                if (account) {
+                    let balance = await web3.eth.getBalance(currentAccount);
+                    balance = balance.toString() / 1e18;
+                    let price = NFT[0].price;
+                    if (balance > price) {
+                        let id = tokenId.replace("tokenId", "");
+                        price = web3.utils.toWei(price, 'ether');
+                        await web3Instance.methods.purchaseNFT(id).send({from: currentAccount, value: price,});
+                
+                        try {
+                            const response = await axios.put(`${website}/api/update/nftDetail/owner`, {
+                            tokenId: id,
+                            currentAccount: currentAccount
+                            }, {
+                            headers: headers
+                            });
+                            alert('NFT 購買成功！');
+                            const updatedNFT = [...NFT];
+                            updatedNFT[0].owner = '您擁有此NFT!'; // 更新購買狀態
+                            updatedNFT[0].state = '二次轉售';
+                            setNFT(updatedNFT);
+                        } catch (error) {
+                            console.error('Error updating NFT:', error);
+                        }
+                    } else {
+                        console.log('餘額不足');
+                        alert('餘額不足');
+                    }
                 } else {
-                    console.log('餘額不足');
-                    alert('餘額不足');
+                    alert('請先登入以太坊錢包，再進行購買!!');
+                    return;
                 }
             } catch (error) {
                 console.error('購買NFT發生錯誤：', error);

@@ -185,6 +185,27 @@ const enableAllButtons = () => {
   });
 };
 
+const detectEthereumProvider = () => {
+  if (window.ethereum) {
+      return window.ethereum;
+  } else if (window.web3) {
+      return window.web3.currentProvider;
+  } else {
+      console.log("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
+      alert("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
+      return null;
+  }
+};
+
+const initializeWeb3 = async () => {
+  const provider = detectEthereumProvider();
+  if (provider) {
+      const web3 = new Web3(provider);
+      return web3;
+  }
+  return null;
+};
+
 
 const router = createBrowserRouter([
   {
@@ -320,4 +341,4 @@ createRoot(document.getElementById("root")).render(
   <RouterProvider router={router} />
 );
 
-export { formatDate, formatTime, sortByTimestamp, sortByDatetime, getTransactionTimestamp, disableAllButtons, enableAllButtons };
+export { formatDate, formatTime, sortByTimestamp, sortByDatetime, getTransactionTimestamp, disableAllButtons, enableAllButtons, detectEthereumProvider, initializeWeb3 };

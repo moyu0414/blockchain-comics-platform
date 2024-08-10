@@ -42,21 +42,24 @@ const HomePage = () => {
                 .sort((a, b) => categoryCounts[b] - categoryCounts[a])
                 .slice(0, 4); 
             setPromoPosition(promoCategories);
-            for (const comic of updatedFetchedData) {
+            const fetchComicData = async (comic) => {
                 if (comic.is_exist === 1 && promoCategories.includes(comic.category)) {
-                    const filename = comic.filename;
                     try {
-                        const imageResponse = await axios.get(`${website}/api/comicIMG/${filename}`, { responseType: 'blob', headers });
-                        comic.image = URL.createObjectURL(imageResponse.data); // 将图片 URL 存储到漫画对象中
+                        // Fetch the main comic image
+                        const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.filename}`, { responseType: 'blob', headers });
+                        comic.image = URL.createObjectURL(imageResponse.data); // Set the comic image URL
+            
+                        // Fetch the proto image if applicable
                         if (comic.protoFilename === 1) {
-                            const protoFilenameResponse = await axios.get(`${website}/api/coverFile/${filename}/${comic.protoFilename}`, { responseType: 'blob', headers });
-                            comic.protoFilename = URL.createObjectURL(protoFilenameResponse.data);
+                            const protoFilenameResponse = await axios.get(`${website}/api/coverFile/${comic.filename}/${comic.protoFilename}`, { responseType: 'blob', headers });
+                            comic.protoFilename = URL.createObjectURL(protoFilenameResponse.data); // Set the proto image URL
                         }
                     } catch (error) {
                         console.error('Error fetching comic image path:', error);
                     }
                 }
-            }
+            };
+            await Promise.all(updatedFetchedData.map(fetchComicData));
             updatedFetchedData.sort((a, b) => b.total - a.total);
             console.log(updatedFetchedData);
             setCurrent(updatedFetchedData);

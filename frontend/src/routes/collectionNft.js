@@ -22,7 +22,8 @@ function CollectionNft() {
                 }
             });
             let collectNFT = response.data;
-            if (typeof collectNFT !== 'undefined' && typeof collectNFT.length === 'undefined') {
+            console.log(collectNFT);
+            if (typeof collectNFT !== 'undefined' && typeof collectNFT.length === 'undefined' || collectNFT.length === 0) {
                 setBeingNFT(false);
             } else {
                 const fetchImage = async (data) => {
