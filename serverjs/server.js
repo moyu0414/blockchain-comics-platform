@@ -13,13 +13,7 @@ const rename = promisify(fsPromises.rename); // 圖片重命名
 const app = express();
 const port = 5000;
 const dotenv = require('dotenv');
-<<<<<<<< HEAD:serverjs/server.js
 const envPath = path.join('/var/www/html/src', '.env');  // web3toonapi
-//const envPath = path.join('../', '.env');  // localhost
-========
-//const envPath = path.join('/var/www/html/src', '.env');  // web3toonapi
-const envPath = path.join('../', '.env');  // localhost
->>>>>>>> dev:frontend/serverjs/server.js
 dotenv.config({ path: envPath });
 const API_KEY = process.env.REACT_APP_API_KEY; // 从环境变量读取API密钥
 
