@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Col, Row, Button, Figure } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel, Book, Heart, FileEarmarkText, Envelope, CardImage, VectorPen } from 'react-bootstrap-icons';
+import { initializeWeb3 } from '../index';
 
 const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     <div
@@ -17,7 +18,26 @@ const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     </div>
 ));
 
+
 function ReaderPage() {
+    const [isButtonEnabled, setIsButtonEnabled] = useState(false);
+
+    useEffect(() => {
+        const checkAccount = async () => {
+            const web3 = await initializeWeb3();
+            if (web3) {
+                const accounts = await web3.eth.getAccounts();
+                const currentAccount = accounts[0];
+                if (currentAccount) {
+                    setIsButtonEnabled(true);
+                } else {
+                    alert('請先登入以太坊錢包，才開放讀者專區!!');
+                }
+            }
+        };
+        checkAccount();
+    }, []);
+
     const buttonData = [
         { label: '我的書櫃', icon: <Book /> },
         { label: '漫畫收藏', icon: <Heart /> },
@@ -52,8 +72,12 @@ function ReaderPage() {
             <Row className="pt-4 pb-3 btn-container justify-content-center w-100">
                 {buttonData.map((item, idx) => (
                     <Col key={idx} xs={6} sm={6} md={3} lg={1} className="pb-3 btn-section">
-                        <Link to={pathMap[item.label]}>
-                            <Button variant="outline-dark" className="custom-button">
+                        <Link to={isButtonEnabled ? pathMap[item.label] : '#'}>
+                            <Button
+                                variant={isButtonEnabled ? "outline-dark" : "outline-secondary"} // 设置颜色
+                                className="custom-button"
+                                disabled={!isButtonEnabled} // 禁用按钮
+                            >
                                 <div className="icon-label">
                                     {item.icon}
                                     <span>{item.label}</span>

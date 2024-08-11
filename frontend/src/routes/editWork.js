@@ -11,6 +11,7 @@ import CryptoJS from 'crypto-js';
 import { MdClose, MdDragHandle } from 'react-icons/md';  // 導入小叉叉圖標和拖曳圖標
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';  // 拖放功能，讓使用者可以拖曳圖片來重新排列它們的順序。
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 const EditWork = (props) => {
   const [web3, setWeb3] = useState(null);
@@ -32,6 +33,7 @@ const EditWork = (props) => {
   const [coverFile, setCoverFile] = useState('');
   const [promoPreviewImageUrl, setPromoPreviewImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const headers = {'api-key': API_KEY};
   const [grading, setGrading] = useState([
     "戀愛",
     "懸疑",
@@ -42,7 +44,7 @@ const EditWork = (props) => {
     "武俠",
     "搞笑"
   ]);
-  let temp = [];
+  let tempCH = [];
   let chapterInfo = [];
   let mergedFile = '';
   
@@ -54,12 +56,12 @@ const EditWork = (props) => {
         setWeb3(web3);
         const contractInstance = new web3.eth.Contract(comicData.abi, comicData.address);
         setContract(contractInstance);
-
         try {
           const response = await axios.get(`${website}/api/editWork/chapters`, {
+              headers: headers,
               params: {
-              comicHash: temp[0].comicHash,
-              currentAccount: currentAccount
+                comicHash: tempCH[0].comicHash,
+                currentAccount: currentAccount
               }
           });
           let chapters = response.data;
@@ -70,7 +72,8 @@ const EditWork = (props) => {
               let id = 'Chapter' + (i+1);
               if (id == location.state.chapterID) {
                 let price = chapters[i].price;
-                let imgURL = `${website}/api/chapterIMG/${chapters[i].filename}`;
+                const chapterResponse = await axios.get(`${website}/api/chapterIMG/${chapters[i].filename}`, { responseType: 'blob', headers });
+                let imgURL = URL.createObjectURL(chapterResponse.data);
                 setNewChapter({
                   chapterTitle: chapters[i].title,
                   price: price,
@@ -118,10 +121,10 @@ const EditWork = (props) => {
         return -1;
       }else if (comic[0].title != newComic.title) {  // 只變更title
         try {
-          await contract.methods.editComic(comic[0].comicHash, newComic.title).send({ from: currentAccount });
+          await contract.methods.editComic(comic[0].comic_id, newComic.title).send({ from: currentAccount });
 
           const formData = new FormData();
-          formData.append('id', comic[0].comicHash);
+          formData.append('id', comic[0].comic_id);
           formData.append('title', newComic.title);
           formData.append('description', newComic.description);
           formData.append('category', newComic.category);
@@ -129,9 +132,9 @@ const EditWork = (props) => {
           let editComicData;
           if (file) { // 有重新上傳圖片，重新產生新的fileName
             formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
-            editComicData = {'comicHash': comic[0].comicHash, 'editTitle': newComic.title, 'editFile': comic[0].filename};
+            editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title, 'editFile': comic[0].filename};
           } else {
-            editComicData = {'comicHash': comic[0].comicHash, 'editTitle': newComic.title};
+            editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title};
           }
           if (coverFile) {
             formData.append('coverFile', coverFile);
@@ -141,7 +144,7 @@ const EditWork = (props) => {
           } else {
             formData.append('protoFilename', '');
           };
-          await axios.put(`${website}/api/update/comicData`, formData);
+          await axios.put(`${website}/api/update/comicData`, formData, {headers});
   
           alert('漫畫編輯成功！');
           localStorage.setItem('editComicData', JSON.stringify(editComicData));
@@ -152,9 +155,9 @@ const EditWork = (props) => {
           updateMessage("");
         }
       } else {
-        console.log(comic[0].comicHash);
+        console.log(comic[0].comic_id);
         const formData = new FormData();
-        formData.append('id', comic[0].comicHash);
+        formData.append('id', comic[0].comic_id);
         formData.append('title', newComic.title);
         formData.append('description', newComic.description);
         formData.append('category', newComic.category);
@@ -162,9 +165,9 @@ const EditWork = (props) => {
         let editComicData;
         if (file) { // 有重新上傳圖片，重新產生新的fileName
           formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
-          editComicData = {'comicHash': comic[0].comicHash, 'editTitle': newComic.title, 'editFile': comic[0].filename};
+          editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title, 'editFile': comic[0].filename};
         } else {
-          editComicData = {'comicHash': comic[0].comicHash, 'editTitle': newComic.title};
+          editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title};
         }
         if (coverFile) {
           formData.append('coverFile', coverFile);
@@ -174,7 +177,7 @@ const EditWork = (props) => {
         } else {
           formData.append('protoFilename', '');
         };
-        await axios.put(`${website}/api/update/comicData`, formData);
+        await axios.put(`${website}/api/update/comicData`, formData, {headers});
 
         alert('漫畫編輯成功！');
         localStorage.setItem('editComicData', JSON.stringify(editComicData));
@@ -215,10 +218,10 @@ const EditWork = (props) => {
         try {
           let price_temp = parseFloat(newChapter.price);
           price_temp = web3.utils.toWei(price_temp, 'ether');
-          await contract.methods.editChapter(comic[0].comicHash, chapter.chapterHash, newChapter.chapterTitle, price_temp).send({ from: currentAccount });
+          await contract.methods.editChapter(comic[0].comic_id, chapter.chapterHash, newChapter.chapterTitle, price_temp).send({ from: currentAccount });
 
           const formData = new FormData();
-          formData.append('comic_id', comic[0].comicHash);
+          formData.append('comic_id', comic[0].comic_id);
           formData.append('chapter_id', chapter.chapterHash);
           formData.append('price', newChapter.price);
           formData.append('title', newChapter.chapterTitle);
@@ -227,10 +230,10 @@ const EditWork = (props) => {
             await handleGeneratePages();  // 等待合併圖片操作完成
             formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
           }
-          await axios.put(`${website}/api/update/chapterData`, formData);
+          await axios.put(`${website}/api/update/chapterData`, formData, {headers});
 
           alert('章節編輯成功！');
-          let editComicData = {'comicHash': comic[0].comicHash, 'editTitle': comic[0].title, editChapter: newChapter.chapterTitle};
+          let editComicData = {'comicHash': comic[0].comic_id, 'editTitle': comic[0].title, editChapter: newChapter.chapterTitle};
           localStorage.setItem('editComicData', JSON.stringify(editComicData));
           window.location.replace("/editSuccess");
         } catch (error) {
@@ -240,7 +243,7 @@ const EditWork = (props) => {
         }
       }else {
         const formData = new FormData();
-        formData.append('comic_id', comic[0].comicHash);
+        formData.append('comic_id', comic[0].comic_id);
         formData.append('chapter_id', chapter.chapterHash);
         formData.append('price', newChapter.price);
         formData.append('title', newChapter.chapterTitle);
@@ -249,14 +252,14 @@ const EditWork = (props) => {
           await handleGeneratePages();  // 等待合併圖片操作完成
           formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
         }
-        await axios.put(`${website}/api/update/chapterData`, formData);
+        await axios.put(`${website}/api/update/chapterData`, formData, {headers});
 
         alert('章節編輯成功！');
-        let editComicData = {'comicHash': comic[0].comicHash, 'editTitle': comic[0].title, editChapter: newChapter.chapterTitle};
+        let editComicData = {'comicHash': comic[0].comic_id, 'editTitle': comic[0].title, editChapter: newChapter.chapterTitle};
         localStorage.setItem('editComicData', JSON.stringify(editComicData));
         window.location.replace("/editSuccess");
       };
-      console.log("comicHash：" + comicHash);
+      console.log("comicHash：" + comic[0].comic_id);
       console.log("chapterTitle：" + newChapter.chapterTitle);
       console.log("price：" + newChapter.price);
     } catch (error) {
@@ -419,36 +422,43 @@ const EditWork = (props) => {
   };
 
   useEffect(() => {
-    // 检查是否传递了参数并设置 showChapterForm 状态
-    if (location.state) {
-      console.log("Location state:", location.state);
-      setShowChapterForm(location.state.showChapterForm);
-      const storedArrayJSON = localStorage.getItem('comicDatas');
-      const storedArray = JSON.parse(storedArrayJSON);
-
-      for (var i = 0; i < storedArray.length; i++) {
-        if(storedArray[i].comicID == location.state.comicID){
-          temp.push(storedArray[i]);
-        };
-      };
-      //console.log(temp);
-      setComic(temp);
-      let imgURL = `${website}/api/comicIMG/${temp[0].filename}`;
-      let coverImg = '';
-      if (temp[0].protoFilename) {
-        coverImg = `${website}/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
-      }
-      setNewComic({category:temp[0].category,  title: temp[0].title, description: temp[0].description, imgURL: imgURL, coverImg: coverImg});
-    
-      if (location.state.chapterID) {
-        setComicHash(temp[0].comicHash);
-        setChapterID(location.state.chapterID);
-      };
-      connectToWeb3();
-      setLoading(true);
-    }
-  }, [currentAccount]);
-
+    const fetchData = async () => {
+        if (location.state) {
+            console.log("Location state:", location.state);
+            setShowChapterForm(location.state.showChapterForm);
+            const storedArrayJSON = localStorage.getItem('comicDatas');
+            const storedArray = JSON.parse(storedArrayJSON);
+            const temp = storedArray.filter(item => item.comicID === location.state.comicID);
+            console.log(temp);
+            setComic(temp);
+            tempCH.push({'comicHash': temp[0].comic_id})
+            try {
+                const [imageResponse, protoResponse] = await Promise.all([
+                    axios.get(`${website}/api/comicIMG/${temp[0].filename}`, { responseType: 'blob', headers }),
+                    temp[0].protoFilename ? axios.get(`${website}/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`, { responseType: 'blob', headers }) : Promise.resolve(null)
+                ]);
+                const imgURL = URL.createObjectURL(imageResponse.data);
+                const coverImg = protoResponse ? URL.createObjectURL(protoResponse.data) : '';
+                setNewComic({
+                    category: temp[0].category,
+                    title: temp[0].title,
+                    description: temp[0].description,
+                    imgURL: imgURL,
+                    coverImg: coverImg
+                });
+                if (location.state.chapterID) {
+                    setComicHash(temp[0].comic_id);
+                    setChapterID(location.state.chapterID);
+                }
+                connectToWeb3();
+                setLoading(true);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+    };
+    fetchData();
+}, [location.state, currentAccount]);
 
   // 处理生成合并图片并进行翻页
   const handleGeneratePages = async () => {

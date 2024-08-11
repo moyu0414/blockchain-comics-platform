@@ -6,17 +6,20 @@ import { Heart, HeartFill } from 'react-bootstrap-icons';
 import axios from 'axios';
 import { formatDate, formatTime, sortByDatetime } from '../index.js';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function Analysis() {
     const [creatorLogArray, setCreatorLogArray] = useState([]);
     const currentAccount = localStorage.getItem("currentAccount");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // 每頁顯示的收益數量
+    const headers = {'api-key': API_KEY};
     let analysisArray = [];
 
     const initData = async () => {
         try {
             const response = await axios.get(`${website}/api/creator/records`, {
+                headers: headers,
                 params: {
                     currentAccount: currentAccount
                 }

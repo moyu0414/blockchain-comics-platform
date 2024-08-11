@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 const PurchaseHistory = () => {
   const [readerLogArray, setReaderLogArray] = useState([]);
@@ -18,12 +19,13 @@ const PurchaseHistory = () => {
   const storedArray = JSON.parse(storedArrayJSON);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10; // 每頁顯示的收益數量
+  const headers = {'api-key': API_KEY};
   let analysisArray = [];
-  let purchased = [];
 
   const initData = async () => {
     try {
         const response = await axios.get(`${website}/api/reader/records`, {
+            headers: headers,
             params: {
                 currentAccount: currentAccount
             }
@@ -47,32 +49,15 @@ const PurchaseHistory = () => {
           setBeingComic(false);
         }
 
-        const web3 = new Web3(window.ethereum);
-        const contract = new web3.eth.Contract(comicData.abi, comicData.address);
-        const totCount = await contract.methods.tokenCounter().call();
-        for (let i = 0; i < totCount; i++) {
-            const data = await contract.methods.nfts(i).call();
-            if (data.minter.toLowerCase() !== currentAccount && data.forSale === false) {
-              const owner = await contract.methods.ownerOf(i).call();
-              if (owner.toLowerCase() === currentAccount) {
-                let price = data.price.toString() / 1e18;
-                purchased.push({
-                    tokenId: data.tokenId.toString(),
-                    comicHash: data.comicHash,
-                    price: price,
-                });
-              }
+        const nftResponse = await axios.get(`${website}/api/purchaseHistory/nftRecords`, {
+            headers: headers,
+            params: {
+                currentAccount: currentAccount
             }
-        }
-        const comicMap = new Map(storedArray.map(comic => [comic.comicHash, comic]));
-        for (const purchase of purchased) {
-          const comic = comicMap.get(purchase.comicHash);
-          if (comic) {
-              purchase.title = comic.title;
-          }
-        }
-        setNFTLogArray(purchased);
-        if (purchased.length === 0) {
+        });
+        let nftRecords = nftResponse.data;
+        setNFTLogArray(nftRecords);
+        if (nftRecords.length === 0) {
           setBeingNFT(false);
         }
     } catch (error) {

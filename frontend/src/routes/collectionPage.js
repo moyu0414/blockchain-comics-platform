@@ -5,6 +5,7 @@ import './bootstrap.min.css';
 import { Funnel } from 'react-bootstrap-icons';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function CollectionPage() {
     const [comic, setComic] = useState([]);
@@ -12,34 +13,49 @@ function CollectionPage() {
     const [beingComic, setBeingComic] = useState(true);
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
+    const headers = {'api-key': API_KEY};
     let temp = [];
 
     const initData = async () => {
         try {
             const response = await axios.get(`${website}/api/comicDetail/isFavorited`, {
+                headers: headers,
                 params: {
                     currentAccount: currentAccount,
                 }
             });
-            //console.log(response.data);
-
             const collectComicSet = new Set(Object.keys(response.data.collectComic));
             try {
                 const storedArray = JSON.parse(storedArrayJSON);
                 const temp = storedArray
-                .filter(item => item.exists === 1 && collectComicSet.has(item.comicHash))
-                .map(item => ({
-                    comicID: item.comicID,
-                    title: item.title,
-                    category: item.category,
-                    image: `${website}/api/comicIMG/${item.filename}`
-                }));
-                console.log(temp);
-                setComic(temp);
-                if (temp.length === 0) {
-                    setBeingComic(false);
-                }
-                setLoading(false);
+                    .filter(item => item.is_exist === 1 && collectComicSet.has(item.comic_id))
+                    .map(async item => {
+                        try {
+                            const imageResponse = await axios.get(`${website}/api/comicIMG/${item.filename}`, { responseType: 'blob', headers });
+                            const imageUrl = URL.createObjectURL(imageResponse.data);
+                            return {
+                                comicID: item.comicID,
+                                title: item.title,
+                                category: item.category,
+                                image: imageUrl
+                            };
+                        } catch (error) {
+                            console.error(`Error fetching image for ${item.title}: ${error.message}`);
+                        }
+                    });
+                Promise.all(temp)
+                    .then(results => {
+                        const filteredResults = results.filter(result => result !== null);
+                        console.log(filteredResults);
+                        setComic(filteredResults);
+                        if (filteredResults.length === 0) {
+                            setBeingComic(false);
+                        }
+                        setLoading(false);
+                    })
+                    .catch(error => {
+                        console.error(`Error processing stored data: ${error.message}`);
+                    });
             } catch (error) {
                 console.error('Error initializing comic:', error);
             }

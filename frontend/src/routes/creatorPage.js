@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Card, Col, Row, Button, Figure, Dropdown } from 'react-bootstrap';
 import './bootstrap.min.css';
-import { Funnel} from 'react-bootstrap-icons';
+import { Funnel, CartFill } from 'react-bootstrap-icons';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     <div
@@ -25,18 +26,19 @@ function CreatorPage() {
     const [selectedCategory, setSelectedCategory] = useState('已經發布');
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
+    const headers = {'api-key': API_KEY};
     let temp = [];
 
     const initData = async () => {
         try {
             const storedArray = JSON.parse(storedArrayJSON);
             for (let i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].exists === 1) {
-                    const filename = storedArray[i].filename;
-                    const image = `${website}/api/comicIMG/${filename}`;
-                    if (storedArray[i].author == currentAccount) {
+                if (storedArray[i].is_exist === 1) {
+                    const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
+                    const image = URL.createObjectURL(imageResponse.data);
+                    if (storedArray[i].creator == currentAccount) {
                         temp.push({
-                            comicHash: storedArray[i].comicHash,
+                            comicHash: storedArray[i].comic_id,
                             comicID: storedArray[i].comicID,
                             title: storedArray[i].title,
                             category: storedArray[i].category,
@@ -81,18 +83,43 @@ function CreatorPage() {
             return countB - countA; // 按數量從多到少排序
         });
         setComic(sortedComics);
-        console.log(sortedComics);
         setSelectedCategory('漫畫類型');
     };
 
-    const popPurchase = () => {
-
-        setSelectedCategory('人氣購買');
+    const popPurchase = async () => {
+        try {
+            const response = await axios.get(`${website}/api/creatorPage/popPurchase`, {
+                headers: headers,
+                params: {
+                    currentAccount: currentAccount
+                }
+            });
+            let comics = response.data;
+            const totalCountMap = comics.reduce((map, comic) => {
+                map[comic.comic_id] = {
+                    totBuy: ` / ${comic.totBuy}`
+                };
+                return map;
+            }, {});
+            const updatedData = comic.map(data => ({
+                ...data,
+                ...totalCountMap[data.comicHash],
+            }));
+            updatedData.sort((a, b) => {
+                return b.totBuy.localeCompare(a.totBuy);
+            });
+            //console.log(updatedData);
+            setComic(updatedData);
+            setSelectedCategory('人氣購買');
+        } catch (error) {
+            console.error('Error fetching records:', error);
+        }
     };
 
     const updateChapter = async () => {
         try {
             const response = await axios.get(`${website}/api/creatorPage/updateChapter`, {
+                headers: headers,
                 params: {
                     currentAccount: currentAccount
                 }
@@ -161,7 +188,7 @@ function CreatorPage() {
                                 <Card>
                                     <div className="position-relative">
                                         <Card.Img variant="top" src={data.image} />
-                                        <div className="category-overlay">{data.category}</div>
+                                        <div className="category-overlay">{data.category}{data.totBuy}</div>
                                     </div>
                                     <Card.Body>
                                         <Card.Title className='text-center'>{data.title}</Card.Title>

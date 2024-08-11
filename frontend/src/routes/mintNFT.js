@@ -7,6 +7,7 @@ import $ from 'jquery';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 const MintNFT = (props) => {
   const [web3, setWeb3] = useState(null);
@@ -23,7 +24,8 @@ const MintNFT = (props) => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showDescription, setShowDescription] = useState(false);
   const [inputValues, setInputValues] = useState({}); // 用于存储每个输入框的值
-  let temp = [];
+  const headers = {'api-key': API_KEY};
+  const BATCH_SIZE = 10; // 每批处理的最大数量
   const [grading, setGrading] = useState([
     "角色商品化",
     "改編權",
@@ -53,8 +55,6 @@ const MintNFT = (props) => {
         setWeb3(web3);
         const contractInstance = new web3.eth.Contract(comicData.abi, comicData.address);
         setContract(contractInstance);
-        console.log(contractInstance);
-
       } catch (error) {
         console.error(error);
       }
@@ -83,19 +83,41 @@ const MintNFT = (props) => {
 
       disableButton();
       updateMessage("正在鑄造NFT中...請稍後。")
-
+      
       console.log("price：" + NFTData.price);
       console.log("description：" + NFTData.description);
       console.log("royalty：" + NFTData.royalty);
       console.log("quantity：" + NFTData.quantity);
       console.log("comicHash：" + NFTData.comicHash);
      
-      await contract.methods._mintNFT(price_temp, NFTData.description, NFTData.royalty, NFTData.quantity , NFTData.comicHash).send({ from: currentAccount });
+      const transaction = await contract.methods._mintNFT(price_temp, NFTData.description, NFTData.royalty, NFTData.quantity, NFTData.comicHash).send({ from: currentAccount });
+      const transactionHash = transaction.transactionHash;
+      //console.log(transactionHash);
+      const receipt = await web3.eth.getTransactionReceipt(transactionHash);
+      const tokenIds = [];
+      for (let i = NFTData.quantity * 2 - 2; i >= 0; i -= 2) {
+        const tokenId = web3.utils.hexToNumberString(receipt.logs[i].topics[3]);
+        tokenIds.push(tokenId);
+      }
+      const { allSuccess, failedTokenIds } = await postNFTDataInBatches(tokenIds, {
+        comicHash: NFTData.comicHash,
+        minter: currentAccount,
+        price: NFTData.price,
+        description: NFTData.description,
+        forSale: 1,
+        royalty: NFTData.royalty,
+        owner: currentAccount
+      });
 
-      alert('鑄造NFT成功！');
-      enableButton();
-      updateMessage("");
-      window.location.replace("/manageComic");
+      if (allSuccess) {
+        alert('鑄造NFT成功！');
+        enableButton();
+        updateMessage("");
+        window.location.replace("/creatorNft");
+      } else {
+        alert('部分NFT鑄造失敗，請檢查控制台了解詳情。');
+        console.log('Failed token IDs:', failedTokenIds);
+      }
     } catch (error) {
       console.error('鑄造NFT時發生錯誤：', error);
       alert('鑄造NFT時發生錯誤!' + error);
@@ -103,6 +125,42 @@ const MintNFT = (props) => {
       updateMessage("");
     }
   };
+
+  async function postNFTDataBatch(nftDataBatch) {
+    try {
+      const response = await axios.post(`${website}/api/add/NFT`, { nftData: nftDataBatch }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'api-key': API_KEY
+        }
+      });
+      console.log(response.data);
+      return { success: true };
+    } catch (error) {
+      console.error('批量添加 NFT 资料时发生错误：', error);
+      return { success: false, error };
+    }
+  }
+
+  async function postNFTDataInBatches(tokenIds, formData) {
+    let allSuccess = true;
+    const failedTokenIds = [];
+    for (let i = 0; i < tokenIds.length; i += BATCH_SIZE) {
+      const batch = tokenIds.slice(i, i + BATCH_SIZE);
+      const nftDataBatch = batch.map(tokenId => ({
+        tokenId,
+        ...formData
+      }));
+
+      const result = await postNFTDataBatch(nftDataBatch);
+      if (!result.success) {
+        allSuccess = false;
+        batch.forEach(tokenId => failedTokenIds.push(tokenId));
+        console.error(`Failed batch with tokenIds: ${batch.join(', ')}`, result.error);
+      }
+    }
+    return { allSuccess, failedTokenIds };
+  }
 
   async function disableButton() {
     const listButton = document.getElementById("list-button")
@@ -129,30 +187,38 @@ const MintNFT = (props) => {
   };
 
   useEffect(() => {
-    if (location.state) {
-      console.log("Location state:", location.state);
-      const storedArrayJSON = localStorage.getItem('comicDatas');
-      const storedArray = JSON.parse(storedArrayJSON);
+    const fetchData = async () => {
+        if (!location.state) return;
+        console.log("Location state:", location.state);
+        try {
+            const storedArrayJSON = localStorage.getItem('comicDatas');
+            const storedArray = JSON.parse(storedArrayJSON);
+            const temp = storedArray.find(item => item.comicID === location.state.comicID);
+            setComic([temp]);
+            const [imageResponse, protoResponse] = await Promise.all([
+                axios.get(`${website}/api/comicIMG/${temp.filename}`, { responseType: 'blob', headers }),
+                temp.protoFilename ? axios.get(`${website}/api/coverFile/${temp.filename}/${temp.protoFilename}`, { responseType: 'blob', headers }) : Promise.resolve(null)
+            ]);
+            const imgURL = URL.createObjectURL(imageResponse.data);
+            const coverImg = protoResponse ? URL.createObjectURL(protoResponse.data) : '';
+            setNewComic({
+                category: temp.category,
+                title: temp.title,
+                description: temp.description,
+                imgURL: imgURL,
+                coverImg: coverImg
+            });
+            setNFTData({ comicHash: temp.comic_id });
+            setShowChapterForm(location.state.showChapterForm);
+            connectToWeb3();
+            setLoading(true);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
+    fetchData();
+}, [location]);
 
-      for (var i = 0; i < storedArray.length; i++) {
-        if(storedArray[i].comicID == location.state.comicID){
-          temp.push(storedArray[i]);
-        };
-      };
-      console.log(temp);
-      setComic(temp);
-      let imgURL = `${website}/api/comicIMG/${temp[0].filename}`;
-      let coverImg = '';
-      if (temp[0].protoFilename) {
-        coverImg = `${website}/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`;
-      }
-      setNewComic({category:temp[0].category,  title: temp[0].title, description: temp[0].description, imgURL: imgURL, coverImg: coverImg});
-      setNFTData({comicHash: temp[0].comicHash})
-      setShowChapterForm(location.state.showChapterForm)
-      connectToWeb3();
-      setLoading(true);
-    }
-  }, [location]);
 
   useEffect(() => {
     const combinedDescription = selectedCategories
@@ -232,7 +298,7 @@ const MintNFT = (props) => {
                 </Form.Label>
                 <Form.Control
                     type="text"
-                    value={newComic.title}
+                    defaultValue={newComic.title}
                     style={{ marginLeft: '10px' }}
                 />
             </div>
@@ -245,10 +311,9 @@ const MintNFT = (props) => {
                 </Form.Label>
                 <Form.Control
                     className="form-select"
-                    value={newComic.category}
+                    defaultValue={newComic.category}
                     style={{ marginLeft: '10px' }}
-                >
-                </Form.Control>
+                />
             </div>
         </Form.Group>
 
@@ -260,8 +325,9 @@ const MintNFT = (props) => {
                 <Form.Control
                     as="textarea"
                     rows={5}
-                    value={newComic.description}
+                    defaultValue={newComic.description}
                     style={{ marginLeft: '10px' }}
+                    readOnly
                 />
             </div>
         </Form.Group>

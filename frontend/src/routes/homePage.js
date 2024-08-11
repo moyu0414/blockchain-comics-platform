@@ -5,58 +5,65 @@ import './bootstrap.min.css';
 import { HeartFill, CartFill } from 'react-bootstrap-icons';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
-const HomePage = ({ contractAddress }) => {
+const HomePage = () => {
     const [current, setCurrent] = useState([]);
     const [promoPosition, setPromoPosition] = useState([]);
+    const [loading, setLoading] = useState(true);
     const storedArrayJSON = localStorage.getItem('comicDatas');
-    const fetchedData = [];
+    const storedArray = JSON.parse(storedArrayJSON);
+    const headers = {'api-key': API_KEY};
     
     const initData = async () => {
         try {
-            const storedArray = JSON.parse(storedArrayJSON);
-            for (var i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].exists == 1) {
-                    const filename = storedArray[i].filename;
-                    const image = `${website}/api/comicIMG/${filename}`;
-                    let protoFilename;
-                    if (storedArray[i].protoFilename == 1) {
-                        protoFilename = `${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
-                    }
-                    fetchedData.push({ comicHash: storedArray[i].comicHash, comicID: storedArray[i].comicID, title: storedArray[i].title, author: storedArray[i].author, category: storedArray[i].category, image: image, protoFilename: protoFilename});
-                }
-            };
+            const response = await axios.get(`${website}/api/homepage/updateStats`, { headers });
+            let comics = response.data;
+            console.log(comics);
+            const totalCountMap = comics.reduce((map, comic) => {
+                map[comic.comic_id] = {
+                    totHearts: comic.totHearts, // 收藏数
+                    totBuy: comic.totBuy // 购买数
+                };
+                return map;
+            }, {});
+            const updatedFetchedData = storedArray.map(data => ({
+                ...data,
+                ...totalCountMap[data.comic_id],
+                total: (totalCountMap[data.comic_id]?.totHearts || 0) + (totalCountMap[data.comic_id]?.totBuy || 0)
+            }));
             const categoryCounts = {};
-            fetchedData.forEach(data => {
-                if (categoryCounts[data.category]) {
-                    categoryCounts[data.category]++;
-                } else {
-                    categoryCounts[data.category] = 1;
+            updatedFetchedData.forEach(data => {
+                if (data.is_exist === 1) {
+                    categoryCounts[data.category] = (categoryCounts[data.category] || 0) + 1;
                 }
             });
-            const sortPromo = Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a]);
-            setPromoPosition(sortPromo.slice(0, 4));  // / 推廣位只選取前四個類型來顯示
-            try {
-                const response = await axios.get(`${website}/api/homepage/updateStats`);
-                const comics = response.data;  // 获取从后端返回的漫画数据
-                console.log(comics);
-                const totalCountMap = comics.reduce((map, comic) => {
-                    map[comic.comic_id] = {
-                        totHearts: comic.totHearts, // 收藏数
-                        totBuy: comic.totBuy // 购买数
-                    };
-                    return map;
-                }, {});
-                const updatedFetchedData = fetchedData.map(data => ({
-                    ...data,
-                    totHearts: totalCountMap[data.comicHash]?.totHearts || 0, // 如果没有找到对应的 comic_id，则为 0
-                    totBuy: totalCountMap[data.comicHash]?.totBuy || 0 // 如果没有找到对应的 comic_id，则为 0
-                }));
-                console.log(updatedFetchedData);
-                setCurrent(updatedFetchedData);
-            } catch (error) {
-                console.error('Error fetching records:', error);
-            }
+            const promoCategories = Object.keys(categoryCounts)
+                .sort((a, b) => categoryCounts[b] - categoryCounts[a])
+                .slice(0, 4); 
+            setPromoPosition(promoCategories);
+            const fetchComicData = async (comic) => {
+                if (comic.is_exist === 1 && promoCategories.includes(comic.category)) {
+                    try {
+                        // Fetch the main comic image
+                        const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.filename}`, { responseType: 'blob', headers });
+                        comic.image = URL.createObjectURL(imageResponse.data); // Set the comic image URL
+            
+                        // Fetch the proto image if applicable
+                        if (comic.protoFilename === 1) {
+                            const protoFilenameResponse = await axios.get(`${website}/api/coverFile/${comic.filename}/${comic.protoFilename}`, { responseType: 'blob', headers });
+                            comic.protoFilename = URL.createObjectURL(protoFilenameResponse.data); // Set the proto image URL
+                        }
+                    } catch (error) {
+                        console.error('Error fetching comic image path:', error);
+                    }
+                }
+            };
+            await Promise.all(updatedFetchedData.map(fetchComicData));
+            updatedFetchedData.sort((a, b) => b.total - a.total);
+            console.log(updatedFetchedData);
+            setCurrent(updatedFetchedData);
+            setLoading(false);
         } catch (error) {
             console.error('Error initializing contract:', error);
         }
@@ -78,86 +85,93 @@ const HomePage = ({ contractAddress }) => {
 
     return (
         <>
-            <Container className='homepage pt-4'>
-                <Carousel>
-                    {promoPosition.map(category => {
-                        // max(前4個類型)，取第1個輪播
-                        const firstItem = current.find(data => data.category === category);
-                        if (firstItem) {
-                            const imageUrl = firstItem.protoFilename ? firstItem.protoFilename : firstItem.image;
-                            return (
-                                <Carousel.Item key={category}>
-                                    <Link to={`/comicDetail/${firstItem.comicID}`}>
-                                        <div className="carousel-image-container embed-responsive embed-responsive-16by9">
-                                            <img
-                                                className="d-block mx-auto img-fluid"
-                                                src={imageUrl}
-                                                alt={`Slide for ${category}`}
-                                            />
-                                        </div>
-                                        <Carousel.Caption className="carousel-caption-custom">
-                                            <h3>{firstItem.title}</h3>
-                                            <p>{firstItem.text}</p>
-                                        </Carousel.Caption>
-                                    </Link>
-                                </Carousel.Item>
-                            );
-                        } else {
-                            return null; // 如果沒有找到符合的項目，返回空
-                        }
-                    })}
-                </Carousel>
-    
-                <Row className="pt-5 pb-5 btn-container">
-                    {buttonData.map((label, idx) => (
-                        <Col key={idx} xs={2} md={3} lg={1} className="pb-3 btn-section">
-                            <Button 
-                                variant="outline-dark"
-                                className="custom-button"
-                                onClick={() => handleCategoryClick(label)}
-                            >
-                                <Link 
-                                    to={"/category"}
-                                    state={{ from: 'homepage' }}
-                                    className="custom-link"
+            {!loading &&
+                <Container className='homepage pt-4'>
+                    <Carousel>
+                        {promoPosition.map(category => {
+                            // max(前4個類型)，取第1個輪播
+                            const firstItem = current.find(data => data.category === category);
+                            if (firstItem) {
+                                const imageUrl = firstItem.protoFilename ? firstItem.protoFilename : firstItem.image;
+                                return (
+                                    <Carousel.Item key={category}>
+                                        <Link to={`/comicDetail/${firstItem.comicID}`}>
+                                            <div className="carousel-image-container embed-responsive embed-responsive-16by9">
+                                                <img
+                                                    className="d-block mx-auto img-fluid"
+                                                    src={imageUrl}
+                                                    alt={`Slide for ${category}`}
+                                                />
+                                            </div>
+                                            <Carousel.Caption className="carousel-caption-custom">
+                                                <h3>{firstItem.title}</h3>
+                                                <p>{firstItem.description}</p>
+                                            </Carousel.Caption>
+                                        </Link>
+                                    </Carousel.Item>
+                                );
+                            } else {
+                                return null; // 如果沒有找到符合的項目，返回空
+                            }
+                        })}
+                    </Carousel>
+        
+                    <Row className="pt-5 pb-5 btn-container">
+                        {buttonData.map((label, idx) => (
+                            <Col key={idx} xs={2} md={3} lg={1} className="pb-3 btn-section">
+                                <Button 
+                                    variant="outline-dark"
+                                    className="custom-button"
+                                    onClick={() => handleCategoryClick(label)}
                                 >
-                                    {label}
-                                </Link>
-                            </Button>
-                        </Col>
+                                    <Link 
+                                        to={"/category"}
+                                        state={{ from: 'homepage' }}
+                                        className="custom-link"
+                                    >
+                                        {label}
+                                    </Link>
+                                </Button>
+                            </Col>
+                        ))}
+                    </Row>
+                    
+                    {promoPosition.map(category => (
+                        <div key={category}>
+                            <h3 className="fw-bold">{category}漫畫</h3>
+                            <Carousel interval={null} pause={false} wrap={true} indicators={false} className="comic-carousel">
+                                <Carousel.Item>
+                                    <div className="carousel-row">
+                                        {current.filter(data => data.category === category).map((data, idx) => (
+                                            <Col key={idx} xs={6} md={3} className="pt-3 mx-1">
+                                                <Card>
+                                                    <Link to={`/comicDetail/${data.comicID}`}>
+                                                        <Card.Img variant="top" src={data.image} />
+                                                        <div className="category-totcount">
+                                                            <CartFill style={{ marginRight: '5px' }} />
+                                                            {data.totBuy}<br />
+                                                            <HeartFill style={{ marginRight: '5px' }} />
+                                                            {data.totHearts}
+                                                        </div>
+                                                    </Link>
+                                                    <Card.Body>
+                                                        <Card.Title className='fw-bold'>{data.title}</Card.Title>
+                                                    </Card.Body>
+                                                </Card>
+                                            </Col>
+                                        ))}
+                                    </div>
+                                </Carousel.Item>
+                            </Carousel>
+                        </div>
                     ))}
-                </Row>
-                
-                {promoPosition.map(category => (
-                    <div key={category}>
-                        <h3 className="fw-bold">{category}漫畫</h3>
-                        <Carousel interval={null} pause={false} wrap={true} indicators={false} className="comic-carousel">
-                            <Carousel.Item>
-                                <div className="carousel-row">
-                                    {current.filter(data => data.category === category).map((data, idx) => (
-                                        <Col key={idx} xs={6} md={3} className="pt-3 mx-1">
-                                            <Card>
-                                                <Link to={`/comicDetail/${data.comicID}`}>
-                                                    <Card.Img variant="top" src={data.image} />
-                                                    <div className="category-totcount">
-                                                        <CartFill style={{ marginRight: '5px' }} />
-                                                        {data.totBuy}<br />
-                                                        <HeartFill style={{ marginRight: '5px' }} />
-                                                        {data.totHearts}
-                                                    </div>
-                                                </Link>
-                                                <Card.Body>
-                                                    <Card.Title className='fw-bold'>{data.title}</Card.Title>
-                                                </Card.Body>
-                                            </Card>
-                                        </Col>
-                                    ))}
-                                </div>
-                            </Carousel.Item>
-                        </Carousel>
-                    </div>
-                ))}
-            </Container>
+                </Container>
+            }
+            {loading &&  
+                <div className="loading-container">
+                    <div>頁面加載中，請稍後...</div>
+                </div>
+            }
         </>
     );
 }

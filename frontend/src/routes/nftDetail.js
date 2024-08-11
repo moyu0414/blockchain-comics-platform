@@ -3,22 +3,21 @@ import { Link, useParams } from "react-router-dom";
 import { Container, Carousel, Card, Col, Row, ListGroup, Button } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
+import { initializeWeb3 } from '../index';
 import Web3 from 'web3';
-import axios from 'axios';
 import comicData from '../contracts/ComicPlatform.json';
+import axios from 'axios';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function NftDetail() {
-    const [web3, setWeb3] = useState(null);
-    const [web3Instance, setWeb3Instance] = useState('');
     const [NFT, setNFT] = useState([]);
     const [IP, setIP] = useState([]);
     const { tokenId } = useParams();
     const [loading, setLoading] = useState(true);
     const [isFavorited, setIsFavorited] = useState('');
     const currentAccount = localStorage.getItem("currentAccount");
-    const storedArrayJSON = localStorage.getItem('comicDatas');
-    const storedArray = JSON.parse(storedArrayJSON);
+    const headers = {'api-key': API_KEY};
     const buttonData = [
         `$ ${NFT[0]?.price}`, '收藏'
     ];
@@ -26,72 +25,41 @@ function NftDetail() {
     let temp = [];
 
     const initData = async () => {
-        const web3 = new Web3(window.ethereum);
-        setWeb3(web3);
-        const contract = new web3.eth.Contract(comicData.abi, comicData.address);
-        setWeb3Instance(contract);
-        let id = tokenId.replace("tokenId", "");
-        const data = await contract.methods.nfts(id).call();
-
-        let state = '原創授權';
-        let author = data.minter.toLowerCase();
-        let owner = data.minter.toLowerCase();
-        if (data.forSale === false) {
-            state = '二次轉售';
-            owner = await contract.methods.ownerOf(id).call();
-            owner = owner.toLowerCase();
-        }
-        if (owner == currentAccount) {
-            owner = '您擁有此NFT!';
-        }
-        if (author == currentAccount) {
-            author = '您是本作品創作者!';
-        }
-        let price = data.price.toString() / 1e18;
-        records.push({
-            comicHash: data.comicHash,
-            description: data.description,
-            author: author,
-            owner: owner,
-            state: state,
-            price: price,
-        });
-        //console.log(records);
-
-        for (let i = 0; i < storedArray.length; i++) {
-            if (storedArray[i].exists === 1) {
-                const image = `${website}/api/comicIMG/${storedArray[i].filename}`;
-                let protoFilename = storedArray[i].protoFilename 
-                    ? `${website}/api/coverFile/${storedArray[i].filename}/${storedArray[i].protoFilename}` 
-                    : image;
-                const comicHash = storedArray[i].comicHash;
-                const matchedRecord = records.find(record => record.comicHash === comicHash);
-                if (matchedRecord) {
-                    temp.push({
-                        comicHash: comicHash,
-                        title: storedArray[i].title,
-                        image: protoFilename,
-                        comicDesc: storedArray[i].description,
-                        nftDesc: matchedRecord.description,
-                        owner: matchedRecord.owner,
-                        state: matchedRecord.state,
-                        price: matchedRecord.price,
-                        author: matchedRecord.author,
-                        owner: matchedRecord.owner
-                    });
-                }
+        const response = await axios.get(`${website}/api/nftDetail/records`, {
+            headers: headers,
+            params: {
+                tokenId: tokenId.replace("tokenId", "")
             }
-        }
-        console.log(temp);
-        setNFT(temp);
-        const authorizations = parseAuthorizations(temp[0].nftDesc);
+        });
+        let nftData = response.data;
+
+        const { minter: initialMinter, owner: initialOwner, price, forSale, protoFilename, filename } = nftData[0];
+        const currentState = forSale === 0 ? '二次轉售' : '原創授權';
+        const currentOwner = initialOwner === currentAccount ? '您擁有此NFT!' : initialOwner;
+        const currentMinter = initialMinter === currentAccount ? '您是本作品創作者!' : initialMinter;
+        const url = protoFilename === 1
+            ? `${website}/api/coverFile/${filename}/${protoFilename}`
+            : `${website}/api/comicIMG/${filename}`;
+        const imageResponse = await axios.get(url, { responseType: 'blob', headers });
+        const image = URL.createObjectURL(imageResponse.data);
+        const newData = nftData.map(data => ({
+            ...data,
+            minter: currentMinter,
+            owner: currentOwner,
+            state: currentState,
+            image
+        }));
+        console.log(newData);
+        setNFT(newData);
+        const authorizations = parseAuthorizations(newData[0].description);
         setIP(authorizations);
 
         try {
             const response = await axios.get(`${website}/api/nftDetail/isFavorited`, {
+                headers: headers,
                 params: {
                     currentAccount: currentAccount,
-                    comicHash: temp[0].comicHash
+                    comicHash: nftData[0].comicHash
                 }
             });
             if (Array.isArray(response.data.value) && response.data.value.includes(tokenId)) {
@@ -113,12 +81,13 @@ function NftDetail() {
         let data = tokenId;
         try {
             const response = await axios.put(`${website}/api/update/nftDetail/favorite`, null, {
-              params: {
-                currentAccount: currentAccount,
-                comicHash: NFT[0].comicHash,
-                bool: bool,
-                data: data
-              },
+                headers: headers,
+                params: {
+                    currentAccount: currentAccount,
+                    comicHash: NFT[0].comicHash,
+                    bool: bool,
+                    data: data
+                },
             });
             //console.log(response.data);
         } catch (error) {
@@ -140,23 +109,46 @@ function NftDetail() {
     };
 
     const handlePurchase = async () => {
-        if (NFT[0].owner !== '您擁有此NFT!' && NFT[0].author !== '您是本作品創作者!') {
+        if (NFT[0].owner !== '您擁有此NFT!' && NFT[0].minter !== '您是本作品創作者!') {
             try {
-                let balance = await web3.eth.getBalance(currentAccount);
-                balance = balance.toString() / 1e18;
-                let price = NFT[0].price;
-                if (balance > price) {
-                    let id = tokenId.replace("tokenId", "");
-                    price = web3.utils.toWei(price, 'ether');
-                    await web3Instance.methods.purchaseNFT(id).send({from: currentAccount, value: price,});
-            
-                    alert('NFT 購買成功！');
-                    const updatedNFT = [...NFT];
-                    updatedNFT[0].owner = '您擁有此NFT!'; // 更新購買狀態
-                    setNFT(updatedNFT);
+                const web3 = await initializeWeb3();
+                if (!web3) {
+                    return;
+                }
+                const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
+                const accounts = await web3.eth.getAccounts();
+                const account = accounts[0];
+                if (account) {
+                    let balance = await web3.eth.getBalance(currentAccount);
+                    balance = balance.toString() / 1e18;
+                    let price = NFT[0].price;
+                    if (balance > price) {
+                        let id = tokenId.replace("tokenId", "");
+                        price = web3.utils.toWei(price, 'ether');
+                        await web3Instance.methods.purchaseNFT(id).send({from: currentAccount, value: price,});
+                
+                        try {
+                            const response = await axios.put(`${website}/api/update/nftDetail/owner`, {
+                            tokenId: id,
+                            currentAccount: currentAccount
+                            }, {
+                            headers: headers
+                            });
+                            alert('NFT 購買成功！');
+                            const updatedNFT = [...NFT];
+                            updatedNFT[0].owner = '您擁有此NFT!'; // 更新購買狀態
+                            updatedNFT[0].state = '二次轉售';
+                            setNFT(updatedNFT);
+                        } catch (error) {
+                            console.error('Error updating NFT:', error);
+                        }
+                    } else {
+                        console.log('餘額不足');
+                        alert('餘額不足');
+                    }
                 } else {
-                    console.log('餘額不足');
-                    alert('餘額不足');
+                    alert('請先登入以太坊錢包，再進行購買!!');
+                    return;
                 }
             } catch (error) {
                 console.error('購買NFT發生錯誤：', error);
@@ -213,7 +205,7 @@ function NftDetail() {
                                 <React.Fragment key={index}>
                                     <h3 className="fw-bold">{data.title}</h3>
                                     <h4 className="fw-bold">{data.state}</h4>
-                                    <p className="text-secondary">作者:<br />{data.author}</p>
+                                    <p className="text-secondary">作者:<br />{data.minter}</p>
                                     <p className="text-secondary">持有者:<br />{data.owner}</p>
                                     <p className="text-secondary">{data.comicDesc}</p>
                                 </React.Fragment>
