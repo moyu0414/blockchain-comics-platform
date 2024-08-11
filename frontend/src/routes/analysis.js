@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Container, Col, Row, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
-import BootstrapTable from 'react-bootstrap-table-next';
 import axios from 'axios';
 import { formatDate, formatTime, sortByDatetime } from '../index.js';
 const website = process.env.REACT_APP_Website;

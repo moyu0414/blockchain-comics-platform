@@ -3,7 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import { Container, Card, Col, Row, Button, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
-import BootstrapTable from 'react-bootstrap-table-next';
 import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
 import axios from 'axios';
