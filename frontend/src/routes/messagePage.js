@@ -2,35 +2,102 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Card, Button, Row,Col } from 'react-bootstrap';
 import './bootstrap.min.css';
+import axios from 'axios';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function MessagePage() {
     const [comic, setComic] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [being, setBeing] = useState(true);
     const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArray = JSON.parse(storedArrayJSON);
     const currentAccount = localStorage.getItem("currentAccount");
+    const headers = {'api-key': API_KEY};
+    let readMsg = JSON.parse(localStorage.getItem('readMsg')) || [];
     let temp = [];
 
     const initData = async () => {
         try {
-            const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
-            for (let i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].exists === 1 && storedArray[i].author == currentAccount) {
-                    const image = `${website}/api/comicIMG/${storedArray[i].filename}`;
-                    temp.push({
-                        comicHash: storedArray[i].comicHash,
-                        comicID: storedArray[i].comicID,
-                        title: storedArray[i].title,
-                        image: image
-                    });
+            const response = await axios.get(`${website}/api/messagePage`, {
+                headers: headers,
+                params: {
+                    currentAccount: currentAccount,
                 }
+            });
+            let data = response.data.collectComic;
+            console.log(data);
+            if (response.data.message == '請先收藏漫畫!') {
+                setBeing(false);
+                setLoading(false);
+            } else {
+                const fetchImage = async (item) => {
+                    try {
+                        const response = await axios.get(`${website}/api/comicIMG/${item.filename}`, { responseType: 'blob', headers });
+                        item.image = URL.createObjectURL(response.data);
+                        const storedItem = storedArray.find(stored => stored.is_exist === 1 && stored.comic_id === item.comicHash);
+                        if (storedItem) {
+                            item.comicID = storedItem.comicID;
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching image for item with filename ${item.filename}: ${error.message}`);
+                    }
+                };
+                const updateFavorite = async (item) => {
+                    try {
+                        await axios.put(`${website}/api/update/comicDetail/favorite`, null, {
+                            headers: headers,
+                            params: {
+                                currentAccount: currentAccount,
+                                comicHash: item.comicHash,
+                                bool: true,
+                                data: item.newCreate
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error handleFavoriteClick', error);
+                    }
+                };
+                if (Array.isArray(data)) {
+                    await Promise.all(data.map(fetchImage));
+                } else if (typeof data === 'object') {
+                    await fetchImage(data);
+                }
+                await Promise.all(data.map(updateFavorite));
+                
+                const dataComicHashes = new Set(data.map(item => item.comicHash));
+                readMsg = readMsg
+                    .filter(readMsgItem => dataComicHashes.has(readMsgItem.comicHash))
+                    .map(readMsgItem => {
+                        const dataItem = data.find(item => item.comicHash === readMsgItem.comicHash);
+                        if (dataItem) {
+                            readMsgItem.image = dataItem.image;
+                        }
+                        return readMsgItem;
+                    });
+                data.forEach(item => {
+                    const index = readMsg.findIndex(readMsgItem =>
+                        readMsgItem.comicHash === item.comicHash &&
+                        readMsgItem.comicID === item.comicID &&
+                        readMsgItem.chapterTitle === item.chapterTitle
+                    );
+                    if (index !== -1) {
+                        readMsg.splice(index, 1);
+                    }
+                    readMsg.unshift(item);
+                });
+                readMsg = readMsg.filter(readMsgItem => {
+                    const dataItem = data.find(item => item.comicHash === readMsgItem.comicHash);
+                    return !(dataItem && Number(dataItem.newCreate) < Number(readMsgItem.newCreate));
+                });
+                sortByTimestamp(readMsg);
+                console.log(readMsg);
+                localStorage.setItem('readMsg', JSON.stringify(readMsg));
+                setComic(readMsg);
+                setLoading(false);
             }
-            setComic(temp);
-            console.log(temp);
-
-            setLoading(false);
         } catch (error) {
-            console.error('Error initializing contract:', error);
+            console.error('Error initializing data:', error);
         }
     };
 
@@ -38,75 +105,54 @@ function MessagePage() {
         initData();
     }, [currentAccount]);
 
+    function sortByTimestamp(array) {
+        return array.sort((a, b) => {
+            const timestampA = parseInt(a.newCreate);
+            const timestampB = parseInt(b.newCreate);
+            return timestampB - timestampA; // 降序排序
+        });
+    }
 
-    const getComicHash = () => {
-        if (comic && comic.length > 0) {
-            return comic[0].comicHash; // 选择第一个 comicHash
-        }
-        return null;
-    };
 
-    const buttonData = [
-        '新增章節','鑄造NFT', '編輯漫畫', '編輯章節', '刪除', '詳情'
-    ];
-
-    const pathMap = {
-        '新增章節': {
-            pathname: '/createWork',
-            state: (comicHash) => ({ showChapterForm: true, comicHash }) // 动态设置状态
-        },
-        '鑄造NFT': {
-            pathname: '/mintNFT',
-            state: (comicID) => ({ showChapterForm: true, comicID }) // 动态设置状态
-        },
-        '編輯漫畫': {
-            pathname: '/editWork',
-            state: (comicID) => ({ showChapterForm: false, comicID }) // 动态设置状态
-        },
-        '編輯章節': (comicID) => ({ pathname: `/editChapter/${comicID}` }),
-        '刪除': (comicID) => ({ pathname: `/deleteChapter/${comicID}` }),
-        '詳情': (comicID) => ({ pathname: `/comicDetail/${comicID}` })
-    };
-
-    const message =[
-        {
-            image: 'https://images.pexels.com/photos/7809122/pexels-photo-7809122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-            title: '更新通知！',
-            content: '您收藏的漫畫已更新，快來看看吧！'
-        },
-        {
-            image: 'https://images.pexels.com/photos/7809122/pexels-photo-7809122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-            title: '更新通知！',
-            content: '您收藏的漫畫已更新，快來看看吧！您收藏的漫畫已更新，快來看看吧！您收藏的漫畫已更新，快來看看吧！您收藏的漫畫已更新，快來看看吧！您收藏的漫畫已更新，快來看看吧！'
-        }
-    ]
-
-    
     return (
         <div>
-            {!loading &&
+            {!loading ? (
                 <Container className='messagePage pt-4'>
-                    {message.map((message, index) => (
-                        <Card className={`mt-4`} key={index}>
-                            {/* <Card.Img variant="top" src={comic.image}  alt="..." /> */}
-                            <div className="image-container">
-                                <Card.Img variant="top" src={message.image} alt="..." />
-                            </div>
-                            <Card.Body >
-                                <div className="text-section">
-                                    <Card.Title>{message.title}</Card.Title>
-                                    <Card.Text>{message.content}</Card.Text>
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    ))}
+                    {!being ? (
+                        <Row className='pt-5 justify-content-center'>
+                            <h1 className="fw-bold text-center">請先收藏漫畫!!!</h1>
+                        </Row>
+                    ) : (
+                        <>
+                            {comic.length === 0 ? (
+                                <Row className='pt-5 justify-content-center'>
+                                    <h1 className="fw-bold text-center">目前沒有更新通知!</h1>
+                                </Row>
+                            ) : (
+                                comic.map((message, index) => (
+                                    <Card className="mt-4" key={index} style={{ display: 'flex' }}>
+                                        <div style={{ flex: '1' }}>
+                                            <Link to={`/comicDetail/${message.comicID}`}>
+                                                <Card.Img variant="top" src={message.image} alt={message.comicTitle} style={{ width: '100%', maxWidth: '100%' }} />
+                                            </Link>
+                                        </div>
+                                        <div style={{ flex: '2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                            <Card.Body className="text-section text-left">
+                                                <Card.Title>漫畫：{message.comicTitle}</Card.Title>
+                                                <Card.Title>{message.msg}{message.chapterTitle}</Card.Title>
+                                            </Card.Body>
+                                        </div>
+                                    </Card>
+                                ))
+                            )}
+                        </>
+                    )}
                 </Container>
-            }
-            {loading &&  
+            ) : (
                 <div className="loading-container">
                     <div>頁面加載中，請稍後...</div>
                 </div>
-            }
+            )}
         </div>
     );
 }

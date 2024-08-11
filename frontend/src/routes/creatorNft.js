@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Container, Card, Col, Row, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Link } from "react-router-dom";
-import Web3 from 'web3';
-import comicData from '../contracts/ComicPlatform.json';
+import axios from 'axios';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function CreatorNft() {
     const [comic, setComic] = useState([]);
@@ -15,90 +15,70 @@ function CreatorNft() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // 每頁顯示的收益數量
     const currentAccount = localStorage.getItem("currentAccount");
-    const storedArrayJSON = localStorage.getItem('comicDatas');
-    const storedArray = JSON.parse(storedArrayJSON);
+    const headers = {'api-key': API_KEY};
 
     let allRecord = [];
-    let currentComic = [];
     let purchased = [];
     let CountComicDetails = {};
+    let currentComic = [];
     let comicStats = {};
 
     const initData = async () => {
-        const web3 = new Web3(window.ethereum);
-        const contract = new web3.eth.Contract(comicData.abi, comicData.address);
-        const totCount = await contract.methods.tokenCounter().call();
-        // 获取 NFT 数据
-        for (let i = 0; i < totCount; i++) {
-            const data = await contract.methods.nfts(i).call();
-            if (data.minter.toLowerCase() === currentAccount) {
-                let price = data.price.toString() / 1e18;
-                let tokenId = `tokenId${data.tokenId.toString()}`;
-                const descTitle = parseAuthorizations(data.description);
-                const firstName = descTitle[0]?.name || '';
-                const keyData = `${data.comicHash}-${price}-${data.royalty}-${data.description || ""}`;
-                allRecord.push({
-                    tokenId: tokenId,
-                    comicHash: data.comicHash,
-                    firstName: firstName,
-                    //royalty: data.royalty.toString(),
-                    keyData: keyData
-                });
-                if (!data.forSale) {  // 已售出的 NFT
-                    purchased.push({
-                        tokenId: data.tokenId.toString(),
-                        comicHash: data.comicHash,
-                        price: price * 0.98,
-                        royalty: data.royalty.toString()
-                    });
-                }
-                const uniqueKey = `${data.comicHash}-${price}-${data.royalty}-${data.description || ""}`;
-                if (!comicStats[uniqueKey]) {
-                    comicStats[uniqueKey] = { tot: 0, sale: 0 };
-                }
-                comicStats[uniqueKey].tot += 1;
-                if (!data.forSale) {
-                    comicStats[uniqueKey].sale += 1;
-                }
+        const response = await axios.get(`${website}/api/creatorNft/records`, {
+            headers: headers,
+            params: {
+                currentAccount: currentAccount
             }
-        }
-        //console.log(allRecord);
+        });
+        let nftData = response.data;
+        console.log(nftData);
 
-        for (const data of allRecord) {
+        nftData.forEach(item => {
+            const descTitle = parseAuthorizations(item.description);
+            const firstName = descTitle[0]?.name || '';
+            const keyData = `${item.comicHash}-${item.price}-${item.royalty}-${item.description || ""}`;
+            allRecord.push({
+                ...item,
+                firstName,
+                keyData,
+            });
+            if (!comicStats[keyData]) {
+                comicStats[keyData] = { tot: 0, sale: 0 };
+            }
+            comicStats[keyData].tot += 1;
+            if (item.forSale === 0) {  // 已售出的 NFT
+                comicStats[keyData].sale += 1;
+                purchased.push({
+                    tokenId: item.tokenId,
+                    comicHash: item.comicHash,
+                    title: item.title,
+                    price: (item.price * 0.98).toFixed(3),
+                    royalty: item.royalty
+                });
+            }
+        });
+        allRecord.forEach(data => {
             const key = data.keyData;
             if (!CountComicDetails[key]) {
                 CountComicDetails[key] = true;
                 currentComic.push({
-                    tokenId: data.tokenId,
-                    comicHash: data.comicHash,
-                    firstName: data.firstName,
-                    //royalty: data.royalty.toString(),
-                    totQty: (comicStats[key]?.tot || 0),
-                    saleQty: (comicStats[key]?.sale || 0)
+                    ...data,
+                    totQty: comicStats[key]?.tot || 0,
+                    saleQty: comicStats[key]?.sale || 0
                 });
             }
-        }
-        //console.log(currentComic);
+        });
+        const fetchImage = async (data) => {
+            const url = data.protoFilename === 1
+                ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
+                : `${website}/api/comicIMG/${data.filename}`;
+            const response = await axios.get(url, { responseType: 'blob', headers });
+            data.image = URL.createObjectURL(response.data);
+        };
+        await Promise.all(currentComic.map(fetchImage));
 
-        const comicMap = new Map(storedArray.map(comic => [comic.comicHash, comic]));
-        for (const data of currentComic) {
-            const comic = comicMap.get(data.comicHash);
-            if (comic) {
-                data.title = comic.title;
-                const image = `${website}/api/comicIMG/${comic.filename}`;
-                const protoFilename = comic.protoFilename
-                    ? `${website}/api/coverFile/${comic.filename}/${comic.protoFilename}`
-                    : image;
-                data.image = protoFilename;
-            }
-        }
-        for (const purchase of purchased) {
-            const comic = comicMap.get(purchase.comicHash);
-            if (comic) {
-                purchase.title = comic.title;
-            }
-        }
         console.log(currentComic);
+        console.log(purchased);
         if (currentComic.length === 0) {
             setBeingNFT(false);
         } else if (purchased.length === 0) {
@@ -196,6 +176,17 @@ function CreatorNft() {
         return pageItems;
     };
 
+    const truncateText = (text, maxLength) => {
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    };
+
+    const truncateTextForName = (text) => {
+        const isChinese = (char) => /[\u4e00-\u9fa5]/.test(char);
+        const maxLength = text.split('').some(isChinese) ? 4 : 8;  // 中文4個字、英文8個字
+        return truncateText(text, maxLength);
+    };
+
+
     return (
         <>
             {!loading ? (
@@ -211,11 +202,11 @@ function CreatorNft() {
                     <Row className='pt-1 pb-5'>
                         {comic.map((data, index) => (
                             <Col xs={4} md={3} className="pt-3" key={index}>
-                                <Link to={`/nftDetail/${data.tokenId}`}>
+                                <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                     <Card className="effect-image-1">
                                         <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
                                         <div className="nftMarket-overlay-owner">{data.saleQty}/{data.totQty}</div>
-                                        <div className="nftMarket-overlay">{data.firstName}</div>
+                                        <div className="nftMarket-overlay">{truncateTextForName(data.firstName)}</div>
                                         <Card.Body className="simple-text">
                                             <Card.Text>{data.title}</Card.Text>
                                         </Card.Body>

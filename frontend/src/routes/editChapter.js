@@ -5,6 +5,7 @@ import './bootstrap.min.css';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function EditChapter() {
     const [comic, setComic] = useState([]);
@@ -13,6 +14,7 @@ function EditChapter() {
     const [loading, setLoading] = useState(true);
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
+    const headers = {'api-key': API_KEY};
     const fetchedData = [];
     let temp = [];
     let chapterInfo = [];
@@ -21,30 +23,24 @@ function EditChapter() {
         try {
             const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
             for (let i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].exists === 1) {
-                    const filename = storedArray[i].filename;
-                    const image = `${website}/api/comicIMG/${filename}`;
-                    let protoFilename;
-                    if (storedArray[i].protoFilename) {
-                        protoFilename = `${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
-                    } else {
-                        protoFilename = image
-                    }
+                if (storedArray[i].is_exist === 1) {
+                    const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
+                    const image = URL.createObjectURL(imageResponse.data);
                     if (storedArray[i].comicID === comicID) {
                         let author;
-                        if (storedArray[i].author == currentAccount) {
+                        if (storedArray[i].creator == currentAccount) {
                             author = '您是本作品的創作者!';
                         } else {
-                            author = storedArray[i].author;
+                            author = storedArray[i].creator;
                         }
                         temp.push({
-                            comicHash: storedArray[i].comicHash,
+                            comicHash: storedArray[i].comic_id,
                             comicID: storedArray[i].comicID,
                             title: storedArray[i].title,
                             description: storedArray[i].description,
                             author: author,
                             category: storedArray[i].category,
-                            protoFilename: protoFilename,
+                            image: image,
                         });
                     }
                 }
@@ -53,13 +49,15 @@ function EditChapter() {
 
             try {
                 const response = await axios.get(`${website}/api/comicDetail`, {
+                    headers: headers,
                     params: {
-                    comicHash: temp[0].comicHash,
-                    currentAccount: currentAccount
+                        comicHash: temp[0].comicHash,
+                        currentAccount: currentAccount
                     }
                 });
                 let chapters = response.data;
                 sortByTimestamp(chapters);
+                //console.log(chapters);
 
                 for (let i = 0; i < chapters.length; i++) {
                     if (currentAccount == chapters[i].creator){
@@ -169,11 +167,11 @@ function EditChapter() {
                         {/* 此處會放上該漫畫的封面+名稱供預覽 跟創作者頁面creatorPage的一樣*/}
                         <Row className="pt-5">
                             <Link to={`/comicDetail/${comic[0].comicID}`}>
-                                <div className="d-block mx-auto img-fluid carousel-image-container">
+                                <div className="d-block mx-auto img-fluid createSuccess-image-container">
                                     <img
-                                    className="d-block mx-auto img-fluid"
-                                    src={comic[0].protoFilename}
-                                    alt="800x400"
+                                        className="d-block mx-auto -fluid"
+                                        src={comic[0].image}
+                                        alt="800x400"
                                     />
                                 </div>
                                 <h4 className='text-center pt-2'>{comic[0].title}</h4>

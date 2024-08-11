@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { Container, Card, Col, Row, Button, Navbar, Form, InputGroup, FormControl } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel, ArrowLeft, Search} from 'react-bootstrap-icons';
+import axios from 'axios';
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function SearchPage() {
     const [comic, setComic] = useState([]);
@@ -15,21 +17,19 @@ function SearchPage() {
     const [searchHistory, setSearchHistory] = useState([]);
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const fetchedData = [];
+    const headers = {'api-key': API_KEY};
 
     const initData = async () => {
         try {
             const storedArray = JSON.parse(storedArrayJSON);
             for (var i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].exists == 1) {
-                    const filename = storedArray[i].filename;
-                    const image = `${website}/api/comicIMG/${filename}`;
-                    let protoFilename;
-                    if (storedArray[i].protoFilename) {
-                        protoFilename = `${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`;
-                    } else {
-                        protoFilename = image
-                    }
-                    fetchedData.push({ comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].author, category: storedArray[i].category, protoFilename: protoFilename});
+                if (storedArray[i].is_exist == 1) {
+                    const url = storedArray[i].protoFilename === 1
+                        ? `${website}/api/coverFile/${storedArray[i].filename}/${storedArray[i].protoFilename}`
+                        : `${website}/api/comicIMG/${storedArray[i].filename}`;
+                    const response = await axios.get(url, { responseType: 'blob', headers });
+                    const protoFilename = URL.createObjectURL(response.data);
+                    fetchedData.push({ comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, author: storedArray[i].creator, category: storedArray[i].category, protoFilename: protoFilename});
                 }
             };
             console.log(fetchedData);

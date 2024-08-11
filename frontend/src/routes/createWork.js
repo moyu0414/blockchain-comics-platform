@@ -11,12 +11,13 @@ import CryptoJS from 'crypto-js';
 import { MdClose, MdDragHandle } from 'react-icons/md';  // 導入小叉叉圖標和拖曳圖標
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';  // 拖放功能，讓使用者可以拖曳圖片來重新排列它們的順序。
 const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 const CreateWork = (props) => {
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
   const [formParams, updateFormParams] = useState({title:'', description:'',  category: ''});
-  const [formParams_1, updateFormParams_1] = useState({title: '', price: ''});
+  const [formParams_1, updateFormParams_1] = useState({title: '', price: '', isFree: false});
   const [message, updateMessage] = useState('');
   const [stepCompleted, setStepCompleted] = useState(false);
   const [showChapterForm, setShowChapterForm] = useState(false);
@@ -30,6 +31,7 @@ const CreateWork = (props) => {
   const [promoPreviewImageUrl, setPromoPreviewImageUrl] = useState('');
   const fileInputRef = useRef(null);
   const currentAccount = localStorage.getItem("currentAccount");
+  const headers = {'api-key': API_KEY};
   let mergedFile = '';
   let chapterHash = '';
   const [grading, setGrading] = useState([
@@ -106,7 +108,8 @@ const CreateWork = (props) => {
       try {
         const response = await axios.post(`${website}/api/add/comics`, formData, {
           headers: {
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'multipart/form-data',
+            'api-key': API_KEY
           }
         });
         console.log('Comic added successfully:', response.data);
@@ -144,11 +147,14 @@ const CreateWork = (props) => {
         console.error('合約實例未初始化');
         return;
       }
-      let price_temp = parseFloat(formParams_1.price);
-      price_temp = web3.utils.toWei(price_temp, 'ether');
-      if (price_temp < 10000000000000000) {
-        alert('價格至少0.01 ETH!');
-        return;
+      let price_temp = formParams_1.price;
+      if (price_temp && !isNaN(parseFloat(price_temp))) {
+        price_temp = parseFloat(price_temp);
+        price_temp = web3.utils.toWei(price_temp.toString(), 'ether');
+        if (price_temp < 10000000000000000 && formParams_1.isFree === false) {
+          alert('價格至少0.01 ETH!');
+          return;
+        }
       }
       disableButton();
       updateMessage("正在添加章節至合約中...請稍後。")
@@ -175,7 +181,8 @@ const CreateWork = (props) => {
       try {
         const response = await axios.post(`${website}/api/add/chapters`, formData, {
           headers: {
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'multipart/form-data',
+            'api-key': API_KEY
           }
         });
         console.log('chapter added successfully:', response.data);
@@ -360,8 +367,8 @@ const CreateWork = (props) => {
         return -1;
       }
     }else{
-      const {title, price} = formParams_1;
-      if(!comicHash || !title || !price || file.length === 0)
+      const {title, price, isFree} = formParams_1;
+      if (!comicHash || !title || (!formParams_1.isFree && !price) || file.length === 0)
       {
         updateMessage("請填寫所有欄位！")
         return -1;
@@ -471,22 +478,48 @@ return (
             </Col>
           </Form.Group>
 
-          <Form.Group as={Row} className='mb-3 label-container'>
+          <Form.Group as={Row} className='mb-2 label-container'>
             <Form.Label column sm={3} className='label-style col-form-label label-section'>
               本章價格
             </Form.Label>
             <Col sm={9}>
               <Form.Control
                 type="number"
-                value={formParams_1.price}
+                value={formParams_1.isFree ? '0' : formParams_1.price}  // 如果 isFree 為 true，顯示 '0'，否則顯示 formParams_1.price
                 placeholder="Min 0.01 ETH"
                 step="0.01"
-                onChange={(e) => updateFormParams_1({ ...formParams_1, price: e.target.value })}
+                disabled={formParams_1.isFree}  // 如果 isFree 為 true，則禁用輸入框
+                onChange={(e) => {
+                  if (!formParams_1.isFree) {  // 如果不是免費狀態才更新 price
+                    updateFormParams_1({ ...formParams_1, price: e.target.value });
+                  }
+                }}
               />
             </Col>
           </Form.Group>
 
-          <Form.Group controlId="file-upload" className='pt-4'>
+          <Form.Group as={Row} className='mb-3'>
+            <div style={{ display: 'flex' }}>
+              <Form.Label column sm={3} className='label-style  '>
+                本章免費
+              </Form.Label>
+              <Form.Check
+                type="checkbox"
+                onChange={(e) => {
+                  const isFree = e.target.checked;
+                  updateFormParams_1({
+                    ...formParams_1,
+                    isFree: isFree,
+                    price: isFree ? 0 : formParams_1.price // 如果是免费，则将价格设为 0，否则保持原来的价格
+                  });
+                }}
+                checked={formParams_1.isFree}
+                style={{ transform: 'scale(1.8)', marginTop: '12px', marginLeft: '1.3rem' }}
+              />
+            </div>
+          </Form.Group>
+
+          <Form.Group as={Row} className='mb-2'>
             <div style={{ display: 'flex' }}>
               <Form.Label
                 className='label-style col-form-label'
