@@ -1701,6 +1701,18 @@ a:link{
   box-shadow: rgba(0, 0, 0, 0.6) -3px 3px 5px;
 }
 
+.deleteAll-btn{
+  background-color: rgba(28, 170, 217, 0.89);
+  width: 30%;
+  height: 40px;
+  border-radius: 0;
+  color: #fff;
+  border: 2px solid black;
+  box-shadow: rgba(0, 0, 0, 0.6) -3px 3px 5px;
+  padding: 7px;
+  text-align: center;
+}
+
 .deleteChapter-title-section .btn{
   background-color: #F6B93B;
   border-radius: 0;
@@ -1719,6 +1731,9 @@ a:link{
   background-color: rgba(6, 157, 103, 0.8);
 }
 
+.deleteAll-btn:hover{
+  background-color: rgba(35, 201, 143, 0.8);
+}
 
 .modal-dialog {
   display: flex;
@@ -2588,13 +2603,41 @@ a:link{
 }
 
 /* editChapter */
-.editChapter .carousel-image-container{
-  width: 200px;
-  border-radius: 0;
+.editChapter .row{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.editChapter .carousel-image-container img{
+.editChapter a {
+  display: inline-block;
+  max-width: 40%;
+  text-align: center;
+}
+
+.editChapter .pagination a {
+  width: 100%;
+  max-width: 100%;
+}
+
+.editChapter h4{
+  color: #45474A;
+  font-size: 24px;
+  font-weight: 900;
+  /* margin-top: 12%; */
+}
+
+.editChapter .createSuccess-image-container{
+  display: inline-block;
+  width: 200px;
   border-radius: 0;
+  margin: 0;
+}
+
+.editChapter .createSuccess-image-container img{
+  border-radius: 0;
+  display: block;
+  width: 100%;
 }
 
 .editChapter a h4{
