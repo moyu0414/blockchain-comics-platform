@@ -193,7 +193,7 @@ function Navigation() {
                         <Navbar.Brand href="#">
                             <img
                                 className="d-inline-block align-top"
-                                src="https://i.postimg.cc/VvL1b9n1/icon.png"
+                                src="/icon.png"
                                 alt="icon"
                             />
                         </Navbar.Brand>

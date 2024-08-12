@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { Container, Col, Row, Image, Button } from 'react-bootstrap';
 import './bootstrap.min.css';
-import EmojiImage from '../image/Emoji.png';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -85,7 +84,7 @@ function CreateSuccess() {
                         <Row className="justify-content-center text-center w-100">
                             <Col xs={12} md={8}>
                                 <Image 
-                                    src={EmojiImage} 
+                                    src="/Emoji.png" 
                                     alt="圖片" 
                                     fluid 
                                     rounded 

@@ -284,10 +284,32 @@ span {
   }
 
   .step-item .step-line::after{
+    left: 50%!important;
+    padding-left: 10%;
+  }
+
+}
+
+@media only screen and (max-width: 500px) {
+  .step-item .step-line::after{
     left: 55%!important;
     padding-left: 10%;
   }
 
+  .step-item {
+    padding: 0 15%!important;
+  }
+}
+
+@media only screen and (max-width: 400px) {
+  .step-item .step-line::after{
+    left: 50%!important;
+    padding-left: 10%;
+  }
+
+  .step-item {
+    padding: 0 12%!important;
+  }
 }
 
 
@@ -1500,8 +1522,14 @@ a:link{
 
 .log-in-btn{
   background-color: #F6B93B;
-  border: 1px #000 solid;
+  border: 2px #000 solid;
   color: #000;
+  font-weight: bold;
+}
+
+.log-in-btn:hover{
+  background-color: #f9b630;
+  border: 2px #000 solid;
   font-weight: bold;
 }
 
@@ -2452,7 +2480,7 @@ a:link{
   transform: scale(1.2);
 }
 .searchPage-custom-navbar .form-control{
-  width: 50vw;
+  width: 60vw;
 }
 
 .searchPage-search-input {
@@ -2475,6 +2503,7 @@ a:link{
   background-color: rgba(6, 157, 103, 0.89);
   width: 120%;
   border: 3px #000 solid;
+  font-size: 14px;
 }
 
 .searchPage .card {
@@ -2505,7 +2534,7 @@ a:link{
   padding: 10px; 
   width: 100%; 
   text-align: left;
-  font-size: 38px; 
+  font-size: 24px; 
   font-weight: bold;
   text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
 }
@@ -2518,7 +2547,7 @@ a:link{
   padding: 10px;
   width: 100%; 
   text-align: left;
-  font-size: 18px; 
+  font-size: 16px; 
   font-weight: bold;
   text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
 }

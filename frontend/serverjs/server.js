@@ -32,9 +32,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // API密钥验证中间件
 app.use((req, res, next) => {
+  console.log(API_KEY);
   const apiKey = req.headers['api-key'];
+  console.log(apiKey);
   if (apiKey && apiKey === API_KEY) {
     next(); // API密钥验证通过，继续处理请求
+    console.log('aaa');
   } else {
     res.status(403).json({ error: 'Forbidden' }); // API密钥验证失败，拒绝请求
   }

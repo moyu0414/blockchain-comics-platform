@@ -52,6 +52,7 @@ import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
+
 const AppLayout = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [accounts, setAccounts] = useState([]);
@@ -68,6 +69,7 @@ const AppLayout = () => {
 
   useEffect(() => {
     const initialData = async () => {
+      console.log(API_KEY);
       await axios.get(`${website}/api/comics`, { headers })
       .then(response => {
         let comicDatas = response.data;
@@ -77,6 +79,7 @@ const AppLayout = () => {
         //要刪除可以用下列的程式
         //localStorage.removeItem('web3Instance');
       })
+      
       .catch(error => {
         console.error('Error fetching comics: ', error);
       });   
