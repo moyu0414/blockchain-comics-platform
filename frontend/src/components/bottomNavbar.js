@@ -19,7 +19,7 @@ function BottomNavbar() {
                         </Link>
                     </Col>
                     <Col xs={3} className="icon-col">
-                        <Link to="/homepage">
+                        <Link to="/">
                             <HouseDoor size={32} />
                             <div className="icon-text">Home</div>
                         </Link>

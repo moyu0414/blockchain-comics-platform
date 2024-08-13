@@ -130,7 +130,7 @@ function NftMarket() {
 
     const truncateTextForName = (text) => {
         const isChinese = (char) => /[\u4e00-\u9fa5]/.test(char);
-        const maxLength = text.split('').some(isChinese) ? 6 : 12;  // 中文7個字、英文15個字
+        const maxLength = text.split('').some(isChinese) ? 6 : 12;  // 中文6個字、英文12個字
         return truncateText(text, maxLength);
     };
 

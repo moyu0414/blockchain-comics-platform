@@ -65,7 +65,7 @@ function Navigation() {
                         localStorage.setItem("loggedIn", "true");
                         localStorage.setItem("currentAccount", accounts[0]);
                         alert("登入成功!");
-                        navigate("/homepage");
+                        navigate("/");
                         loadAccountBalance(accounts[0]);
                     } catch (error) {
                         console.error('Error fetching records:', error);
@@ -208,7 +208,7 @@ function Navigation() {
                                 <Offcanvas.Title id={`offcanvasNavbarLabel-expand-${expand}`}>
                                     <img
                                         className="d-inline-block align-top"
-                                        src="https://i.postimg.cc/VvL1b9n1/icon.png"
+                                        src="/icon.png"
                                         alt="icon"
                                     />
                                 </Offcanvas.Title>
