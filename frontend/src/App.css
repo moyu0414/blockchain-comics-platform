@@ -1505,6 +1505,15 @@ a:link{
   
 }
 
+.nav-link-section{
+  width: 80%;
+}
+
+.nav-link-section .nav-link{
+  padding-left: 2%!important;
+  padding-right: 2%!important;
+}
+
 .navigation .navbar-toggler{
   border: none;
 }
@@ -2672,4 +2681,169 @@ a:link{
 .editChapter a h4{
   color: #45474A;
   font-weight: 900;
+}
+
+/* rankingList */
+
+.rankingList {
+  padding: 2% 4%;
+}
+
+.rankingList .ranking {
+  background-color: white;
+  padding: 0;
+  visibility: hidden;
+  margin: 2% 0 4% 0;
+  text-align: center;
+  position: relative; /* 添加这个以便将 place 元素绝对定位 */
+}
+
+.rankingList .ranking.slideInUp {
+  display: block;
+  visibility: visible;
+}
+
+.rankingList .ranking.first {
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.15);
+  margin: 0 0 4% 0;
+  z-index: 123;
+}
+
+.rankingList .ranking .header {
+  background-color: #069D67;
+}
+
+.rankingList .ranking .header h3 {
+  color: white;
+  font-weight: 900;
+  font-size: 1.4em;
+  margin: 0;
+  padding: 4%;
+}
+
+.rankingList .ranking .ranking-image {
+  width: 100%;
+  max-width: 260px; 
+  height: auto; 
+  object-fit: cover; 
+}
+
+.rankingList .ranking .place {
+  background-color: #f9b630;
+  border: 5px solid white;
+  border-radius: 50%;
+  color: white;
+  line-height: 2em;
+  font-size: 24px;
+  position: absolute;
+  width: 2.5em;
+  height: 2.5em;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.rankingList .ranking-title {
+  font-size: 1.2rem;
+  font-weight: normal;
+  margin-bottom: 0.5rem;
+}
+
+.rankingList .rank-image {
+  margin-right: 1rem;
+  position: relative;
+  border-radius: 0;
+}
+
+.rankingList .ranking-thumbnail {
+  width: 6rem;
+}
+
+.rankingList .ranking-list{
+  border: none;
+  border-bottom: 1px #ccc solid;
+  padding: 3% 0;
+}
+
+.rankingList  .ranking-list-title{
+  font-size: 28px;
+}
+
+.rankingList .ranking-badge {
+  margin: 0 3%;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.rankingList .ranking-item:nth-child(1) .ranking-badge {
+  background-color: #d9b340;
+  border: 1px solid #d9b340;
+  color: #fff;
+}
+
+.rankingList .ranking-item:nth-child(2) .ranking-badge {
+  background-color: #6f7b83;
+  border: 1px solid #6f7b83;
+  color: #fff;
+}
+
+.rankingList .ranking-item:nth-child(3) .ranking-badge {
+  background-color: #a15326;
+  border: 1px solid #a15326;
+  color: #fff;
+}
+
+.rankingList .ranking-shop-name {
+  color: #888;
+  font-size: 0.75rem;
+}
+
+.rankingList .ranking-description {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin-top: 0.5rem;
+}
+
+.rankingList .ranking-card:hover .ranking-thumbnail {
+  opacity: 0.75;
+}
+
+.rankingList .ranking-card:hover .ranking-description {
+  text-decoration: underline;
+}
+
+.rankingList .ranking-description , .rankingList .ranking-author{
+  color: #ccc;
+}
+
+
+
+/* ORDER FIRST PLACE RESPONSIVE */
+@media only screen and (max-width: 768px) {
+  .rankingList {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 2% 4%;
+  }
+
+  .ranking-section{
+    padding: 0 6%;
+  }
+
+  .rankingList .ranking {
+    width: 100%;
+    margin: 0 0 2% 0;
+  }
+  .rankingList .ranking.first {
+    order: 1; /* 确保第一名排在最上面 */
+  }
+  .rankingList .ranking.r2 {
+    order: 2;
+  }
+  .rankingList .ranking.r3 {
+    order: 3;
+  }
+  .rankingList .ranking .place {
+    margin-top: 10px;
+  }
 }

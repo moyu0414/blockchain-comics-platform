@@ -215,9 +215,10 @@ function Navigation() {
                             </Offcanvas.Header>
                             <div className="d-flex flex-grow-1">
                                 <Offcanvas.Body className="flex-grow-1">
-                                    <Nav className="me-auto">
+                                    <Nav className="me-auto nav-link-section">
                                         <Nav.Link href="/creatorPage">創作者專區</Nav.Link>
                                         <Nav.Link href="/readerPage">讀者專區</Nav.Link>
+                                        <Nav.Link href="/rankingList">排行榜</Nav.Link>
                                     </Nav>
                                     {/* 登入區塊 */}
                                     <div className={`log-in-area ${expanded ? 'vertical-layout' : 'horizontal-layout'}`}>

@@ -36,6 +36,7 @@ import ChapterManagement from './routes/chapterManagement';
 import SelectChapter from './routes/selectChapter';
 import ReaderChapter from './routes/reader_Chapter';
 import Reading from './routes/reading';
+import RankingList from './routes/rankingList';
 import TransactionHistory from './routes/transactionHistory';
 import PurchaseHistory from './routes/purchaseHistory';
 import ComicManagement from './routes/comicManagement';
@@ -334,6 +335,9 @@ const router = createBrowserRouter([
       },{
         path: "/editSuccess",
         element: <EditSuccess />,
+      },{
+        path: "/rankingList",
+        element: <RankingList />,
       }
     ],
   },
