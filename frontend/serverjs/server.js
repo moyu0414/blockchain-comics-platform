@@ -32,12 +32,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // API密钥验证中间件
 app.use((req, res, next) => {
-  console.log(API_KEY);
   const apiKey = req.headers['api-key'];
-  console.log(apiKey);
   if (apiKey && apiKey === API_KEY) {
     next(); // API密钥验证通过，继续处理请求
-    console.log('aaa');
   } else {
     res.status(403).json({ error: 'Forbidden' }); // API密钥验证失败，拒绝请求
   }
@@ -761,6 +758,57 @@ app.get('/api/nftMarket/records', (req, res) => {
     }
     if (results.length === 0) {
       return res.json([]);
+    }
+    res.json(results);
+  });
+});
+
+
+app.get('/api/searchPage/LP', (req, res) => {
+  const query = `
+    SELECT category, description AS text, filename, protoFilename
+    FROM comics
+    WHERE create_timestamp = (
+        SELECT MAX(create_timestamp)
+        FROM comics AS sub
+        WHERE sub.category = comics.category AND sub.is_exist = 1
+    )
+      AND is_exist = 1
+    GROUP BY category, description, filename, protoFilename
+    ORDER BY (
+        SELECT COUNT(*)
+        FROM comics AS sub
+        WHERE sub.category = comics.category AND sub.is_exist = 1
+    ) DESC
+    LIMIT 4;
+  `;
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching latest records by category: ', error);
+      return res.status(500).json({ message: 'Error fetching latest records by category' });
+    }
+    res.json(results.length ? results : []);
+  });
+});
+
+
+app.get('/api/searchPage/Keyword', (req, res) => {
+  const searchTerm = req.query.term;
+  const query = `
+    SELECT title, description AS text, comic_id, filename, protoFilename
+    FROM comics
+    WHERE is_exist = 1 AND (
+      creator LIKE ? OR
+      title LIKE ? OR
+      description LIKE ? OR
+      category LIKE ?
+    )
+  `;
+  const searchTermPattern = `%${searchTerm}%`;
+  pool.query(query, [searchTermPattern, searchTermPattern, searchTermPattern, searchTermPattern], (error, results) => {
+    if (error) {
+      console.error('Error fetching keyword results: ', error);
+      return res.status(500).json({ message: 'Error fetching keyword results' });
     }
     res.json(results);
   });
