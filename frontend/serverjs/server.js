@@ -815,6 +815,107 @@ app.get('/api/searchPage/Keyword', (req, res) => {
 });
 
 
+app.get('/api/rankingList/top10', (req, res) => {
+  const query = `
+      SELECT 
+          comics.comic_id, comics.creator, comics.title, comics.description, comics.filename,
+          COUNT(CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL THEN 1 END) AS totHearts,
+          COALESCE(purchase_stats.purchase_count, 0) AS totBuy,
+          COUNT(CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL THEN 1 END) + COALESCE(purchase_stats.purchase_count, 0) AS total
+      FROM 
+          comics
+      LEFT JOIN 
+          user ON JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL
+      LEFT JOIN (
+          SELECT 
+              comic_id,
+              COUNT(*) AS purchase_count
+          FROM 
+              records
+          WHERE 
+              EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND comics.is_exist = 1)
+          GROUP BY 
+              comic_id
+      ) AS purchase_stats ON purchase_stats.comic_id = comics.comic_id
+      WHERE 
+          comics.is_exist = 1
+      GROUP BY 
+          comics.comic_id
+      ORDER BY 
+          total DESC
+      LIMIT 10
+  `;
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching rankingList: ', error);
+      return res.status(500).json({ message: 'Error fetching rankingList' });
+    }
+    res.json(results.length ? results : []);
+  });
+});
+
+
+app.get('/api/rankingList/purRank', (req, res) => {
+  const query = `
+      SELECT 
+          c.comic_id, c.creator, c.title, c.description, c.filename,
+          COALESCE(purchase_stats.purchase_count, 0) AS totBuy
+      FROM 
+          comics c
+      LEFT JOIN (
+          SELECT 
+              comic_id,
+              COUNT(*) AS purchase_count
+          FROM 
+              records
+          WHERE 
+              EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND is_exist = 1)
+          GROUP BY 
+              comic_id
+      ) AS purchase_stats ON purchase_stats.comic_id = c.comic_id
+      WHERE 
+          c.is_exist = 1
+      ORDER BY 
+          totBuy DESC
+      LIMIT 10
+  `;
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching rankingList: ', error);
+      return res.status(500).json({ message: 'Error fetching rankingList' });
+    }
+    res.json(results.length ? results : []);
+  });
+});
+
+
+app.get('/api/rankingList/favoriteRank', (req, res) => {
+  const query = `
+      SELECT 
+          comics.comic_id, comics.creator, comics.title, comics.description, comics.filename,
+          COUNT(CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL THEN 1 END) AS totHearts
+      FROM 
+          comics
+      LEFT JOIN 
+          user ON JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL
+      WHERE 
+          comics.is_exist = 1
+      GROUP BY 
+          comics.comic_id
+      ORDER BY 
+          totHearts DESC
+      LIMIT 10
+  `;
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching rankingList: ', error);
+      return res.status(500).json({ message: 'Error fetching rankingList' });
+    }
+    res.json(results.length ? results : []);
+  });
+});
+
+
 // 新增一筆 comics 資料、添加漫画信息到数据库的路由
 app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {
   const file = req.files['comicIMG'] ? req.files['comicIMG'][0] : null;

@@ -190,14 +190,13 @@ function Navigation() {
                 <Row key={expand} className="d-flex justify-content-center align-items-center">
                     <Navbar expand={expand}>
                         <Navbar.Toggle onClick={() => setExpanded(!expanded)} aria-controls="offcanvas-navbar" />
-                        <Navbar.Brand href="#">
+                        <Link to="/">
                             <img
                                 className="d-inline-block align-top"
                                 src="/icon.png"
                                 alt="icon"
                             />
-                        </Navbar.Brand>
-                        
+                        </Link>
                         <Navbar.Offcanvas
                             id={`offcanvasNavbar-expand-${expand}`}
                             aria-labelledby={`offcanvasNavbarLabel-expand-${expand}`}

@@ -10,7 +10,6 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 function SearchPage() {
     const [comic, setComic] = useState([]);
     const [promoPosition, setPromoPosition] = useState([]);
-    const [imageWidth, setImageWidth] = useState(null);
     const [btnWidth, setBtnWidth] = useState(null);
     const btnRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -71,20 +70,6 @@ function SearchPage() {
         document.body.classList.remove('no-padding-bottom');
         };
     }, []);
-
-    const handleImageLoad = (event) => {
-        const width = event.target.clientWidth;
-        setImageWidth(width);
-    };
-
-    const truncateText = (text) => {
-        if (!imageWidth) {
-            return text; // 如果图片宽度未知，返回完整文本
-        }
-        // 根据图片宽度调整文本显示长度
-        const adjustedMaxLength = Math.floor(imageWidth / 18); // 假设每个字符大约占用20像素的宽度
-        return text.length > adjustedMaxLength ? text.substring(0, adjustedMaxLength) + '...' : text;
-    };
 
     const truncateBtnText = (text) => {
         if (!btnWidth) {
@@ -188,7 +173,7 @@ function SearchPage() {
                                         <div className="position-relative">
                                             <Card.Img variant="top" src={data.protoFilename} />
                                             <div className="category-title">{data.title}</div>
-                                            <div className="category-content">{truncateText(data.text, 100)}</div>
+                                            <div className="category-content">{data.text}</div>
                                         </div>
                                     </Card>
                                 </Link>
@@ -216,9 +201,9 @@ function SearchPage() {
                                     <Link to={"/category"}>
                                         <Card>
                                             <div onClick={() => handleCategoryClick(data.category)} className="position-relative">
-                                                <Card.Img variant="top" src={data.protoFilename} onLoad={handleImageLoad} />
+                                                <Card.Img variant="top" src={data.protoFilename} />
                                                 <div className="category-title">{data.category}漫畫</div>
-                                                <div className="category-content">{truncateText(data.text)}</div>
+                                                <p className="category-content">{data.text}</p>
                                             </div>
                                         </Card>
                                     </Link>

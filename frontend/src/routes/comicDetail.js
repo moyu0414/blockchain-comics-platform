@@ -35,16 +35,16 @@ function ComicDetail() {
 
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].is_exist === 1) {
-                    const filename = storedArray[i].filename;
-                    let protoFilename;
-                    if (storedArray[i].protoFilename) {
-                        const protoResponse = await axios.get(`${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`, { responseType: 'blob', headers });
-                        protoFilename = URL.createObjectURL(protoResponse.data); 
-                    } else {
-                        const imageResponse = await axios.get(`${website}/api/comicIMG/${filename}`, { responseType: 'blob', headers });
-                        protoFilename = URL.createObjectURL(imageResponse.data);
-                    }
                     if (storedArray[i].comicID === comicID) {
+                        const filename = storedArray[i].filename;
+                        let protoFilename;
+                        if (storedArray[i].protoFilename) {
+                            const protoResponse = await axios.get(`${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`, { responseType: 'blob', headers });
+                            protoFilename = URL.createObjectURL(protoResponse.data); 
+                        } else {
+                            const imageResponse = await axios.get(`${website}/api/comicIMG/${filename}`, { responseType: 'blob', headers });
+                            protoFilename = URL.createObjectURL(imageResponse.data);
+                        }
                         let author;
                         if (storedArray[i].creator == currentAccount) {
                             author = '您是本作品的創作者!';
@@ -181,7 +181,7 @@ function ComicDetail() {
                 window.location.replace(`/comicRead/${comicID}/${reading.chapterID}`);
             }
         } else {
-            alert(`${comic[0].title}沒有提供免費試讀!\n您也尚未購買漫畫!`);
+            alert(`${comic[0].title}沒有提供免費試讀!`);
         }
     };
 
