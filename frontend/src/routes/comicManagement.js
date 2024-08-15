@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
-//import { Button } from 'react-bootstrap';
+import {  Container, Table, Button, Modal, Form, Pagination, Tabs, Tab, InputGroup, FormControl} from 'react-bootstrap';
+import { PlusLg, TrashFill } from 'react-bootstrap-icons';
 import axios from 'axios';
 
 const ComicManagement = ({ contractAddress }) => {
@@ -189,58 +190,95 @@ const ComicManagement = ({ contractAddress }) => {
 
 
   return (
-    <div className="management-page">
-      {isAdmin ? (
-        <>
-          <h2 className="title-text">帳號管理</h2>
-          <div className="management-btn mb-5">
-            <input value={inputValue} type="text" placeholder="請輸入帳號" onChange={handleInputChange} style={{width: '420px'}}></input>
-            <button  onClick={addAdmin} className="btn" style={{ marginLeft: '15px', marginRight: '15px' }}>
-              新增管理者
-            </button>
-            <button onClick={removeAdmin} className="btn">
-              刪除管理者
-            </button >
-            <div className="text-red-500 text-center" style={{marginTop: '10px'}}>{messageAccount}</div>
-          </div>
-          <div className="page-content">
-            <div className="chapter-selection">
-              <h2 className="title-text">漫畫管理</h2>
-              <table className="table table-image">
-                <thead>
-                  <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">漫畫標題</th>
-                    <th scope="col">作者</th>
-                    <th scope="col">漫畫Hash</th>
-                    <th scope="col">狀態</th>
-                    <th scope="col"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {current.map((comic, index) => (
-                    <tr key={index}>
-                      <td>{index + 1}</td>
-                      <td className='comic-management-title'>{comic.title}</td>
-                      <td>{comic.author}</td>
-                      <td>{comic.hash}</td>
-                      <td>
-                        <button onClick={() => handleToggle(index)} className="btn" value={comic.exists}>{comic.exists}</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="text-red-500 text-center">{message}</div>
+    <Container className="comicManagement mt-4">
+      <div className="table-wrapper">
+        <Tabs defaultActiveKey="tab1" id="tabs" className="mb-3">
+          <Tab eventKey="tab1" title="管理員">
+            <Form className="d-flex ms-3">
+                <InputGroup>
+                    <FormControl
+                        placeholder="請輸入管理員帳號"
+                        aria-label="Search"
+                        aria-describedby="basic-addon2"
+                    />
+                </InputGroup>
+            </Form>
+            <div className="table-title mt-3 mb-3 d-flex justify-content-between align-items-center">
+              <h2><b>帳號管理</b></h2>
+              <div>
+                <Button className='add-btn' variant="outline-danger">
+                  <PlusLg title="Add" size={24}/> 新增管理員
+                </Button>
+              </div>
             </div>
-          </div>
-        </>
-      ) : (
-        <div className="loading-container">
-          <div>目前您並不是管理者，請稍後再試...</div>
-        </div>
-      )}
-    </div>
+            <Table striped hover>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>#</th>
+                  <th>帳號</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...Array(5)].map((_, index) => (
+                  <tr key={index}>
+                    <th></th>
+                    <th>{index + 1}</th>
+                    <td>Account</td>
+                    <td className="text-end btn-section">
+                      <Button className='del-btn' variant="outline-danger">
+                        <TrashFill title="Delete" /> <span>刪除</span>
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </Tab>
+          <Tab eventKey="tab2" title="漫畫">
+            <Form className="d-flex ms-3">
+                <InputGroup>
+                    <FormControl
+                        placeholder="請輸入漫畫名或作者名"
+                        aria-label="Search"
+                        aria-describedby="basic-addon2"
+                    />
+                </InputGroup>
+            </Form>
+            <div className="table-title mt-3 mb-3 d-flex justify-content-between align-items-center">
+              <h2><b>漫畫管理</b></h2>
+            </div>
+            <Table striped hover>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>漫畫標題</th>
+                  <th>作者</th>
+                  <th>漫畫Hash</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...Array(5)].map((_, index) => (
+                  <tr key={index}>
+                    <th>{index + 1}</th>
+                    <td>漫畫標題</td>
+                    <td>作者</td>
+                    <td>漫畫Hash</td>
+                    <td className="text-end">
+                      <Button className='del-btn' variant="outline-danger">
+                        <TrashFill title="Delete" /> <span className="del-text">刪除</span>
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </Tab>
+        </Tabs>
+      </div>
+    </Container>
   );
 };
 

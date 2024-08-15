@@ -2880,4 +2880,101 @@ a:link{
   .rankingList .ranking-description {
     -webkit-line-clamp: 2;
   }
+
+  .comicManagement .table td .del-btn {
+    width: 95%;
+  }
+
+  .comicManagement .btn-section{
+    padding-right: 2%!important;
+  }
+
+  .del-text {
+    display: none;
+  }
+}
+
+/* comicManagement */
+.comicManagement .table-wrapper {
+  background: #fff;
+  padding: 0 2%;
+  margin: 30px 0;
+  border-radius: 3px;
+  box-shadow: 0 1px 1px rgba(0,0,0,.05);
+}
+
+.comicManagement .table-title {
+  background: #069D67;
+  color: #fff;
+  padding: 16px 30px;
+  border-radius: 3px 3px 0 0;
+}
+
+.comicManagement .table-title h2 {
+  margin: 5px 0 0;
+  font-size: 24px;
+}
+
+.comicManagement .table-title .btn {
+  width: 110%;
+  color: #fff; 
+  background-color: #0d6efd; 
+}
+
+.comicManagement .table-title .btn:hover {
+  background-color: #0b5ed7;
+}
+
+.comicManagement .table-title .btn i {
+  font-size: 21px;
+}
+
+.comicManagement .table-title .btn span {
+  margin-top: 2px;
+}
+
+.comicManagement .table td{
+  width: 40%;
+}
+
+.comicManagement .table td a {
+  font-weight: bold;
+  color: #566787;
+}
+
+.comicManagement .table td a:hover {
+  color: #2196F3;
+}
+
+.comicManagement .table td .del-btn {
+  background-color: #F44336;
+}
+
+.comicManagement .table td .del-btn:hover {
+  background-color: #bb2d3b;
+}
+
+.comicManagement .pagination {
+  float: right;
+  margin: 0 0 5px;
+}
+
+.comicManagement .pagination li a {
+  color: #999;
+}
+
+.comicManagement .pagination li.active a {
+  background: #03A9F4;
+}
+
+.comicManagement .pagination li.disabled a {
+  color: #ccc;
+}
+
+.comicManagement .hint-text {
+  font-size: 13px;
+}
+
+.comicManagement .btn-section{
+  padding-right: 3%;
 }
