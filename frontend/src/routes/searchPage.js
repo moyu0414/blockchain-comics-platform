@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Container, Card, Col, Row, Button, Navbar, Form, InputGroup, FormControl } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel, ArrowLeft, Search } from 'react-bootstrap-icons';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -16,6 +18,8 @@ function SearchPage() {
     const [searchResults, setSearchResults] = useState([]);
     const [isSearch, setIsSearch] = useState(false);
     const [searchHistory, setSearchHistory] = useState([]);
+    const { t } = useTranslation();
+    const language = localStorage.getItem('language') || i18n.language;
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
     const fetchedData = [];
@@ -152,7 +156,7 @@ function SearchPage() {
                         <Form onSubmit={handleSearchSubmit} className="d-flex ms-3">
                             <InputGroup>
                                 <FormControl
-                                    placeholder="請輸入漫畫名或作者名"
+                                    placeholder={t('請輸入')}
                                     aria-label="Search"
                                     aria-describedby="basic-addon2"
                                     className="searchPage-search-input"
@@ -165,7 +169,7 @@ function SearchPage() {
                     </div>
                 </Navbar>
                 {isSearch &&
-                    <Row xs={1} md={2} className="searchPage">
+                    <Row xs={1} md={2} className="searchPage pb-3">
                         {searchResults.length > 0 && searchResults.map((data, idx) => (
                             <Col key={idx} xs={12} md={12} className="pt-3 pb-1">
                                 <Link to={`/comicDetail/${data.comicID}`}>
@@ -173,7 +177,7 @@ function SearchPage() {
                                         <div className="position-relative">
                                             <Card.Img variant="top" src={data.protoFilename} />
                                             <div className="category-title">{data.title}</div>
-                                            <div className="category-content">{data.text}</div>
+                                            <div className="category-content" style={{bottom: "8px"}}>{data.text}</div>
                                         </div>
                                     </Card>
                                 </Link>
@@ -183,7 +187,7 @@ function SearchPage() {
                 }
                 {!isSearch &&  
                     <Container className='searchPage pt-3 pb-3'>
-                        <h4>搜尋歷史</h4>
+                        <h4>{t('搜尋歷史')}</h4>
                         <Row className="pb-5 w-100">
                             {searchHistory.map((term, index) => (
                                 <Col key={index} xs={2} sm={2} md={2} lg={1} className="btn-section">
@@ -191,18 +195,18 @@ function SearchPage() {
                                 </Col>
                             ))}
                             <Col xs={2} sm={2} md={2} lg={1} className="pb-3 btn-section">
-                                <Button variant="outline-dark" onClick={clearSearchHistory} className="custom-button">清除歷史</Button>
+                                <Button variant="outline-dark" onClick={clearSearchHistory} className="custom-button">{t('清除歷史')}</Button>
                             </Col>
                         </Row>
-                        <h4>常見分類</h4>
+                        <h4>{t('常見分類')}</h4>
                         <Row xs={1} md={2} className="g-4 pb-5">
                             {promoPosition.map((data, idx) => (
                                 <Col key={idx} xs={12} md={12} className="pt-3">
                                     <Link to={"/category"}>
                                         <Card>
-                                            <div onClick={() => handleCategoryClick(data.category)} className="position-relative">
+                                            <div onClick={() => handleCategoryClick(t(data.category))} className="position-relative">
                                                 <Card.Img variant="top" src={data.protoFilename} />
-                                                <div className="category-title">{data.category}漫畫</div>
+                                                <div className="category-title">{t(data.category)} {t('漫畫')}</div>
                                                 <p className="category-content">{data.text}</p>
                                             </div>
                                         </Card>

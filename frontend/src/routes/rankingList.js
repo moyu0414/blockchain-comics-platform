@@ -282,7 +282,7 @@ const RankingList = () => {
                             {weekData.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`}>
                                     <ListGroup.Item key={index} className="d-flex align-items-center ranking-list">
-                                        <span className="ranking-badge">{item.rank}</span>
+                                        <span className="ranking-badge">{index + 1}</span>
                                         <div className="ranking-image">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
                                         </div>
@@ -301,7 +301,7 @@ const RankingList = () => {
                             {newData.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`}>
                                     <ListGroup.Item key={index} className="d-flex align-items-center ranking-list">
-                                        <span className="ranking-badge">{item.rank}</span>
+                                        <span className="ranking-badge">{index + 1}</span>
                                         <div className="ranking-image">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
                                         </div>

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Container, Card, Col, Row, Pagination } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -10,6 +12,8 @@ function CollectionNft() {
     const [NFT, setNFT] = useState([]);
     const [loading, setLoading] = useState(true);
     const [beingNFT, setBeingNFT] = useState(true);
+    const { t } = useTranslation();
+    const language = localStorage.getItem('language') || i18n.language;
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
 
@@ -54,7 +58,7 @@ function CollectionNft() {
         return lines.map(line => {
             const [name] = line.split(':');
             return {
-                name: name.trim(),
+                name: t(name.trim()),
             };
         });
     };
@@ -76,11 +80,11 @@ function CollectionNft() {
                 <>
                 <Container className='creatorNft'>
                     <Row className='pt-5'>
-                        <h3 className="fw-bold">已收藏NFT</h3>
+                        <h3 className="fw-bold">{t('已收藏NFT')}</h3>
                     </Row>
                     {!beingNFT &&  
                         <Row className='pt-5 justify-content-center'>
-                            <h1 className="fw-bold text-center">目前尚未收藏NFT!</h1>
+                            <h1 className="fw-bold text-center">{t('目前尚未收藏NFT')}</h1>
                         </Row>
                     }
                     <Row className='pt-1 pb-5'>
@@ -103,7 +107,7 @@ function CollectionNft() {
                 </>
             ) : (
                 <div className="loading-container">
-                    <div>頁面加載中，請稍後...</div>
+                    <div>{t('頁面加載中')}</div>
                 </div>
             )}
         </>

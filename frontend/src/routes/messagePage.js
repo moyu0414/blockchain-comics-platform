@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Card, Button, Row,Col } from 'react-bootstrap';
 import './bootstrap.min.css';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -10,6 +12,8 @@ function MessagePage() {
     const [comic, setComic] = useState([]);
     const [loading, setLoading] = useState(true);
     const [being, setBeing] = useState(true);
+    const { t } = useTranslation();
+    const language = localStorage.getItem('language') || i18n.language;
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
     const currentAccount = localStorage.getItem("currentAccount");
@@ -27,7 +31,7 @@ function MessagePage() {
             });
             let data = response.data.collectComic;
             console.log(data);
-            if (response.data.message == '請先收藏漫畫!') {
+            if (response.data.message == t('請先收藏漫畫')) {
                 setBeing(false);
                 setLoading(false);
             } else {
@@ -120,13 +124,13 @@ function MessagePage() {
                 <Container className='messagePage pt-4'>
                     {!being ? (
                         <Row className='pt-5 justify-content-center'>
-                            <h1 className="fw-bold text-center">請先收藏漫畫!!!</h1>
+                            <h1 className="fw-bold text-center">{t('請先收藏漫畫')}</h1>
                         </Row>
                     ) : (
                         <>
                             {comic.length === 0 ? (
                                 <Row className='pt-5 justify-content-center'>
-                                    <h1 className="fw-bold text-center">目前沒有更新通知!</h1>
+                                    <h1 className="fw-bold text-center">{t('目前沒有更新通知')}</h1>
                                 </Row>
                             ) : (
                                 comic.map((message, index) => (
@@ -138,8 +142,8 @@ function MessagePage() {
                                         </div>
                                         <div style={{ flex: '2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                             <Card.Body className="text-section text-left">
-                                                <Card.Title>漫畫：{message.comicTitle}</Card.Title>
-                                                <Card.Title>{message.msg}{message.chapterTitle}</Card.Title>
+                                                <Card.Title>{t('漫畫')}：{message.comicTitle}</Card.Title>
+                                                <Card.Title>{t('章節更新至')}：{message.chapterTitle}</Card.Title>
                                             </Card.Body>
                                         </div>
                                     </Card>
@@ -150,7 +154,7 @@ function MessagePage() {
                 </Container>
             ) : (
                 <div className="loading-container">
-                    <div>頁面加載中，請稍後...</div>
+                    <div>{t('頁面加載中')}</div>
                 </div>
             )}
         </div>

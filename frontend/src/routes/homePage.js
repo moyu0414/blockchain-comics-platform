@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Container, Carousel, Card, Col, Row, Button } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { HeartFill, CartFill } from 'react-bootstrap-icons';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -11,6 +13,8 @@ const HomePage = () => {
     const [current, setCurrent] = useState([]);
     const [promoPosition, setPromoPosition] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { t } = useTranslation();
+    const language = localStorage.getItem('language') || i18n.language;
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
     const headers = {'api-key': API_KEY};
@@ -19,7 +23,7 @@ const HomePage = () => {
         try {
             const response = await axios.get(`${website}/api/homepage/updateStats`, { headers });
             let comics = response.data;
-            console.log(comics);
+            //console.log(comics);
             const totalCountMap = comics.reduce((map, comic) => {
                 map[comic.comic_id] = {
                     totHearts: comic.totHearts, // 收藏数
@@ -122,14 +126,14 @@ const HomePage = () => {
                                 <Button 
                                     variant="outline-dark"
                                     className="custom-button"
-                                    onClick={() => handleCategoryClick(label)}
+                                    onClick={() => handleCategoryClick(t(label))}
                                 >
                                     <Link 
                                         to={"/category"}
                                         state={{ from: 'homepage' }}
                                         className="custom-link"
                                     >
-                                        {label}
+                                        {t(label)}
                                     </Link>
                                 </Button>
                             </Col>
@@ -138,7 +142,7 @@ const HomePage = () => {
                     
                     {promoPosition.map(category => (
                         <div key={category}>
-                            <h3 className="fw-bold">{category}漫畫</h3>
+                            <h3 className="fw-bold">{t(category)} {t('漫畫')}</h3>
                             <Carousel interval={null} pause={false} wrap={true} indicators={false} className="comic-carousel">
                                 <Carousel.Item>
                                     <div className="carousel-row">
@@ -169,7 +173,7 @@ const HomePage = () => {
             }
             {loading &&  
                 <div className="loading-container">
-                    <div>頁面加載中，請稍後...</div>
+                    <div>{t('頁面加載中')}</div>
                 </div>
             }
         </>

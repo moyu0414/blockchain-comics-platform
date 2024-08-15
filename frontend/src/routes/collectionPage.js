@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Container, Card, Col, Row } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel } from 'react-bootstrap-icons';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -11,6 +13,8 @@ function CollectionPage() {
     const [comic, setComic] = useState([]);
     const [loading, setLoading] = useState(true);
     const [beingComic, setBeingComic] = useState(true);
+    const { t } = useTranslation();
+    const language = localStorage.getItem('language') || i18n.language;
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
@@ -74,11 +78,11 @@ function CollectionPage() {
             {!loading ? (
                 <Container className='creatorPage'>
                     <Row className='pt-5'>
-                        <h3 className="fw-bold">已收藏漫畫</h3>
+                        <h3 className="fw-bold">{t('已收藏漫畫')}</h3>
                     </Row>
                     {!beingComic &&  
                         <Row className='pt-5 justify-content-center'>
-                            <h1 className="fw-bold text-center">目前尚未收藏漫畫!</h1>
+                            <h1 className="fw-bold text-center">{t('目前尚未收藏漫畫')}</h1>
                         </Row>
                     }
                     <Row xs={1} md={2} className="g-4 pb-5">
@@ -88,7 +92,7 @@ function CollectionPage() {
                                     <Card>
                                         <div className="position-relative">
                                             <Card.Img variant="top" src={data.image} />
-                                            <div className="category-overlay">{data.category}</div>
+                                            <div className="category-overlay">{t(data.category)}</div>
                                         </div>
                                         <Card.Body>
                                             <Card.Title className='text-center'>{data.title}</Card.Title>
@@ -101,7 +105,7 @@ function CollectionPage() {
                 </Container>
             ) : (
                 <div className="loading-container">
-                <div>頁面加載中，請稍後...</div>
+                <div>{t('頁面加載中')}</div>
                 </div>
             )}
         </>

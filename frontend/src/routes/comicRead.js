@@ -4,6 +4,8 @@ import { Navbar, Container, Row, Col, Table, ButtonToolbar, Pagination } from 'r
 import { ChevronLeft, List, ChevronDoubleLeft, ChevronRight, ChevronDoubleRight } from 'react-bootstrap-icons';
 import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 import { sortByTimestamp, getTransactionTimestamp, disableAllButtons, enableAllButtons, initializeWeb3 } from '../index';
 const website = process.env.REACT_APP_Website;
@@ -21,6 +23,8 @@ const ComicRead = () => {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // 每頁顯示的章節數量
+    const { t } = useTranslation();
+    const language = localStorage.getItem('language') || i18n.language;
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const [readingProgress, setReadingProgress] = useState(() => {
@@ -99,15 +103,15 @@ const ComicRead = () => {
                 records = records.map((chapter, index) => {
                     let isBuying, creator, chapterPrice;
                     if (chapter.creator === currentAccount) {
-                        isBuying = '閱讀';
-                        creator = '您是本作品的創作者!'
+                        isBuying = t('閱讀');
+                        creator = t('您是本作品的創作者');
                         chapterPrice = chapter.chapterPrice;
                     } else if (chapter.chapterPrice == 0) {
-                        isBuying = '閱讀';
+                        isBuying = t('閱讀');
                         creator = chapter.creator
-                        chapterPrice = '免費';
+                        chapterPrice = t('免費');
                     } else {
-                        isBuying = chapter.isBuying;
+                        isBuying = t(chapter.isBuying);
                         creator = chapter.creator;
                         chapterPrice = chapter.chapterPrice;
                     }
@@ -123,7 +127,7 @@ const ComicRead = () => {
                 setAllChapters(records);
 
                 for (var i = 0; i < records.length; i++) {
-                    if (records[i].chapterID === chapterID && records[i].isBuying === '閱讀') {
+                    if (records[i].chapterID === chapterID && records[i].isBuying === t('閱讀')) {
                         const chapterResponse = await axios.get(`${website}/api/chapterIMG/${records[i].filename}`, { responseType: 'blob', headers });
                         const image = URL.createObjectURL(chapterResponse.data);
                         read.push({
@@ -159,12 +163,12 @@ const ComicRead = () => {
         const chapter = currentChapters[chapterId]; // 使用傳遞進來的索引值來訪問章節資料
         const operationValue = chapter.isBuying;
 
-        if (operationValue === '閱讀') {
+        if (operationValue === t('閱讀')) {
         window.location.href = `/comicRead/${comicID}/${chapter.chapterID}`;
         } else {
             try {
                 disableAllButtons();
-                const web3 = await initializeWeb3();
+                const web3 = await initializeWeb3(t);
                 if (!web3) {
                     return;
                 }
@@ -212,25 +216,29 @@ const ComicRead = () => {
                                 'api-key': API_KEY
                             }
                             });
-                            alert('章節購買成功！');
+                            alert(t('章節購買成功'));
                             const updatedChapters = [...currentChapters];
-                            updatedChapters[chapterId].isBuying = '閱讀'; // 更新章節的購買狀態
+                            updatedChapters[chapterId].isBuying = t('閱讀'); // 更新章節的購買狀態
                             setAllChapters(updatedChapters);
                         } catch (error) {
                             console.error('購買紀錄添加至資料庫時發生錯誤：', error);
                         }
                     } else {
                         console.log('餘額不足');
-                        alert('餘額不足');
+                        alert(t('餘額不足'));
                     }
                 } else {
-                    alert('請先登入以太坊錢包，再進行購買!!');
+                    alert(t('請先登入以太坊錢包，再進行購買'));
                     return;
                 }
             } catch (error) {
-                console.error('章節購買時發生錯誤：', error);
-                alert(error);
-                //window.location.reload();
+                if (error.message.includes('User denied transaction signature')) {
+                    alert(t('拒绝交易'));
+                  } else {
+                    console.error('章節購買時發生錯誤：', error);
+                    alert(error);
+                    window.location.reload();
+                  }
             } finally {
                 enableAllButtons();
             }
@@ -316,17 +324,17 @@ const ComicRead = () => {
         const total = allChapters.length.toString();
         let id = parseInt(chapterID.replace("chapter", ""), 10);
         if (total == 1) {
-            alert('目前只有這個章節!');
+            alert(t('目前只有這個章節'));
             return;
         } else if (allChapters[(id-2)]) {
-            if (allChapters[(id-2)].isBuying === "閱讀") {
+            if (allChapters[(id-2)].isBuying === t('閱讀')) {
                 window.location.replace(`/comicRead/${comicID}/chapter${id-1}`);
             } else {
-                alert(`您尚未購買 第${id-1}章節`);
+                alert(t('您尚未購買第幾章節', { id: id - 1 }));
                 return;
             }
         } else {
-            alert('本章節為第一章!');
+            alert(t('本章節為第一章'));
             return;
         }
     };
@@ -336,17 +344,17 @@ const ComicRead = () => {
         let id = parseInt(chapterID.replace("chapter", ""), 10);
 
         if (total == 1) {
-            alert('目前只有這個章節!');
+            alert(t('目前只有這個章節'));
             return;
         } else if (allChapters[(id)]) {
-            if (allChapters[(id)].isBuying === "閱讀") {
+            if (allChapters[(id)].isBuying === t('閱讀')) {
                 window.location.replace(`/comicRead/${comicID}/chapter${id+1}`);
             } else {
-                alert(`您尚未購買 第${id+1}章節`);
+                alert(t('您尚未購買第幾章節', { id: id + 1 }));
                 return;
             }
         } else {
-            alert('本章節為最新章!');
+            alert(t('本章節為最新章'));
             return;
         }
     };
@@ -364,7 +372,7 @@ const ComicRead = () => {
                             </Link>
                         </Navbar.Brand>
                         <Navbar.Brand className="navbar-center">
-                            第{chapter[0]?.num}章： {chapter[0]?.chapterTitle}
+                            {t('第幾章', { chapter: chapter[0]?.num })}： {chapter[0]?.chapterTitle}
                         </Navbar.Brand>
                         <div className="navbar-right">
                             <List className="icon" size={36} onClick={handleListClick} />
@@ -398,7 +406,7 @@ const ComicRead = () => {
                                                 <tbody>
                                                     {currentChapters.map((chapter, index) => (
                                                         <tr key={index}>
-                                                            <td className='text-center fw-bold'>第 {startIndex + index + 1} 章</td>
+                                                            <td className='text-center fw-bold'>{t('第幾章', { chapter: startIndex + index + 1 })}</td>
                                                             <td className='text-center'>{chapter.chapterTitle}</td>
                                                             <td className='text-center'>{chapter.chapterPrice}</td>
                                                             <td className='text-center'>
@@ -439,7 +447,7 @@ const ComicRead = () => {
     
         {loading &&  
             <div className="loading-container">
-                <div>頁面加載中，請稍後...</div>
+                <div>{t('頁面加載中')}</div>
             </div>
         }
         </>

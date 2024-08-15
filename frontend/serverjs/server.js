@@ -711,7 +711,7 @@ app.get('/api/messagePage', (req, res) => {
           LIMIT 1
         `;
         pool.query(sql, [comicID], (error, results) => {
-          updatedComics.push({comicHash: comicID, comicTitle: results[0].comicTitle, msg: '章節更新至：', chapterTitle: results[0].chapterTitle, filename: results[0].filename, newCreate: results[0].newCreate});
+          updatedComics.push({comicHash: comicID, comicTitle: results[0].comicTitle, chapterTitle: results[0].chapterTitle, filename: results[0].filename, newCreate: results[0].newCreate});
           completedQueries++;
           if (completedQueries === comicIDs.length) {
             res.json({ collectComic: updatedComics });
