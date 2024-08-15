@@ -818,12 +818,12 @@ a:link{
   color: #fff;
   text-decoration: none;
   padding: 10px 20px;
-  background-color: #f00;
+  background-color: rgba(15, 213, 167, 0.853);
   border-radius: 5px;
 }
 
 .install-link:hover {
-  background-color: #c00;
+  background-color: rgb(0, 204, 3);
 }
 
 .login-account {
@@ -1613,7 +1613,7 @@ a:link{
     right: 1rem; /* 调整为你希望的距离 */
     top: 50%;
     transform: translateY(-50%);
-}
+  }
 }
 
 /* manageComic */

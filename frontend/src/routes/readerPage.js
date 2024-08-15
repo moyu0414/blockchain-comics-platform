@@ -4,6 +4,8 @@ import { Container, Col, Row, Button, Figure } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel, Book, Heart, FileEarmarkText, Envelope, CardImage, VectorPen } from 'react-bootstrap-icons';
 import { initializeWeb3 } from '../index';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 
 const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     <div
@@ -20,18 +22,20 @@ const CustomToggle = React.forwardRef(({ onClick }, ref) => (
 
 
 function ReaderPage() {
+    const { t } = useTranslation();
+    const language = localStorage.getItem('language') || i18n.language;
     const [isButtonEnabled, setIsButtonEnabled] = useState(false);
 
     useEffect(() => {
         const checkAccount = async () => {
-            const web3 = await initializeWeb3();
+            const web3 = await initializeWeb3(t);
             if (web3) {
                 const accounts = await web3.eth.getAccounts();
                 const currentAccount = accounts[0];
                 if (currentAccount) {
                     setIsButtonEnabled(true);
                 } else {
-                    alert('請先登入以太坊錢包，才開放讀者專區!!');
+                    alert(t('請先登入以太坊錢包，才開放讀者專區'));
                 }
             }
         };
@@ -39,21 +43,21 @@ function ReaderPage() {
     }, []);
 
     const buttonData = [
-        { label: '我的書櫃', icon: <Book /> },
-        { label: '漫畫收藏', icon: <Heart /> },
-        { label: '我的購買', icon: <FileEarmarkText /> },
-        { label: '我的訊息', icon: <Envelope /> },
-        { label: 'NFT收藏', icon: <CardImage /> },
-        { label: '成為作家', icon: <VectorPen /> }
+        { label: t('我的書櫃'), icon: <Book /> },
+        { label: t('漫畫收藏'), icon: <Heart /> },
+        { label: t('我的購買'), icon: <FileEarmarkText /> },
+        { label: t('我的訊息'), icon: <Envelope /> },
+        { label: t('NFT收藏'), icon: <CardImage /> },
+        { label: t('成為作家'), icon: <VectorPen /> }
     ];
 
     const pathMap = {
-        '我的書櫃': '/bookcase',
-        '漫畫收藏': '/collectionPage',
-        '我的購買': '/purchaseHistory',
-        '我的訊息': '/messagePage',
-        'NFT收藏': '/collectionNft',
-        '成為作家': '/becomeWriter'
+        [t('我的書櫃')]: '/bookcase',
+        [t('漫畫收藏')]: '/collectionPage',
+        [t('我的購買')]: '/purchaseHistory',
+        [t('我的訊息')]: '/messagePage',
+        [t('NFT收藏')]: '/collectionNft',
+        [t('成為作家')]: '/becomeWriter'
     };
     
 
@@ -68,7 +72,7 @@ function ReaderPage() {
                     />
                 </Figure>
             </Row>
-            <h3><center>讀者專區</center></h3>
+            <h3><center>{t('讀者專區')}</center></h3>
             <Row className="pt-4 pb-3 btn-container justify-content-center w-100">
                 {buttonData.map((item, idx) => (
                     <Col key={idx} xs={6} sm={6} md={3} lg={1} className="pb-3 btn-section">

@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { Container, Carousel, Card, Col, Row, Button, Dropdown } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel, HeartFill, CartFill } from 'react-bootstrap-icons';
+import { useTranslation } from 'react-i18next';
+import { getTranslationKey } from '../index';
+import i18n from '../i18n';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 const website = process.env.REACT_APP_Website;
@@ -27,8 +30,11 @@ function Category() {
     const [current, setCurrent] = useState([]);
     const [promoPosition, setPromoPosition] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [rewind, setRewind] = useState('');
     const [loading, setLoading] = useState(true);
     const location = useLocation();
+    const { t } = useTranslation();
+    const language = localStorage.getItem('language') || i18n.language;
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     let savedCurrentCategory = localStorage.getItem('currentCategory');
@@ -39,8 +45,10 @@ function Category() {
     const initData = async () => {
         try {
             const storedArray = JSON.parse(storedArrayJSON);
+            let rewind = getTranslationKey(currentCategory, language);
+            setRewind(rewind);
             for (var i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].is_exist == 1 && storedArray[i].category == currentCategory) {
+                if (storedArray[i].is_exist == 1 && storedArray[i].category == rewind) {
                     const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
                     const image = URL.createObjectURL(imageResponse.data);
                     fetchedData.push({ comicHash: storedArray[i].comic_id, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, category: storedArray[i].category, image: image});
@@ -60,7 +68,7 @@ function Category() {
                 const response = await axios.get(`${website}/api/category/updateStats`, {
                     headers: headers,
                     params: {
-                        currentCategory: currentCategory
+                        currentCategory: rewind
                     }
                 });
                 const comics = response.data;
@@ -134,13 +142,11 @@ function Category() {
     const updatePurchase = async () => {
         const sortedCurrent = [...updatedFetchedData].sort((a, b) => b.totBuy - a.totBuy);
         setCurrent(sortedCurrent);
-        setSelectedCategory('人氣排序');
     };
 
     const updateFavorite = async () => {
         const sortedCurrent = [...updatedFetchedData].sort((a, b) => b.totHearts - a.totHearts);
         setCurrent(sortedCurrent);
-        setSelectedCategory('愛心排序');
     };
 
     const updateComic = async () => {
@@ -148,7 +154,7 @@ function Category() {
             const response = await axios.get(`${website}/api/category/updateComic`, {
                 headers: headers,
                 params: {
-                    currentCategory: currentCategory
+                    currentCategory: rewind
                 }
             });
             let comics = response.data;
@@ -163,7 +169,6 @@ function Category() {
                 sortedComics = sortComics(current, timestampMap);
             }
             setCurrent(sortedComics);
-            setSelectedCategory('新上市');
         } catch (error) {
             console.error('Error fetching records:', error);
         }
@@ -174,7 +179,7 @@ function Category() {
             const response = await axios.get(`${website}/api/category/updateChapter`, {
                 headers: headers,
                 params: {
-                    currentCategory: currentCategory
+                    currentCategory: rewind
                 }
             });
             let chapters = response.data;
@@ -189,7 +194,6 @@ function Category() {
                 sortedComics = sortComics(current, timestampMap);
             }
             setCurrent(sortedComics);
-            setSelectedCategory('最近更新');
         } catch (error) {
             console.error('Error fetching records:', error);
         }
@@ -217,25 +221,25 @@ function Category() {
                     <Row className="pt-5 pb-5 btn-container">
                         {buttonData.map((label, idx) => (
                             <Col key={idx} xs={2} md={3} lg={1} className="pb-3 btn-section">
-                                <Button variant="outline-dark" className="custom-button" onClick={() => handleCategoryClick(label)}>{label}</Button>
+                                <Button variant="outline-dark" className="custom-button" onClick={() => handleCategoryClick(t(label))}>{t(label)}</Button>
                             </Col>
                         ))}
                     </Row>
                     <Row className="align-items-center">
                         <Col>
-                            <h3 className="fw-bold">{currentCategory}漫畫</h3>
+                            <h3 className="fw-bold">{currentCategory} {t('漫畫')}</h3>
                         </Col>
                         <Col>
-                            {selectedCategory && <h3>{selectedCategory}</h3>}
+                            {selectedCategory && <h3>{t(selectedCategory)}</h3>}
                         </Col>
                         <Col xs="auto">
                             <Dropdown>
                                 <Dropdown.Toggle as={CustomToggle} />
                                 <Dropdown.Menu>
-                                    <Dropdown.Item onClick={() => handleCategoryChange('人氣排序')}>人氣排序</Dropdown.Item>
-                                    <Dropdown.Item onClick={() => handleCategoryChange('愛心排序')}>愛心排序</Dropdown.Item>
-                                    <Dropdown.Item onClick={() => handleCategoryChange('新上市')}>新上市</Dropdown.Item>
-                                    <Dropdown.Item onClick={() => handleCategoryChange('最近更新')}>最近更新</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => handleCategoryChange('人氣排序')}>{t('人氣排序')}</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => handleCategoryChange('愛心排序')}>{t('愛心排序')}</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => handleCategoryChange('新上市')}>{t('新上市')}</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => handleCategoryChange('最近更新')}>{t('最近更新')}</Dropdown.Item>
                                 </Dropdown.Menu>
                             </Dropdown>
                         </Col>
@@ -243,7 +247,7 @@ function Category() {
                     <Row xs={1} md={2} className="g-4 pb-5">
                         {promoPosition.length === 0 ? (
                             <>
-                                <h3 className="fw-bold">目前沒有{currentCategory}類型的漫畫。</h3>
+                                <h3 className="fw-bold">{t('目前沒有...類型的漫畫', { category: currentCategory })}</h3>
                                 <br />
                             </>
                         ) : (
@@ -276,7 +280,7 @@ function Category() {
             }
             {loading &&  
                 <div className="loading-container">
-                    <div>頁面加載中，請稍後...</div>
+                    <div>{t('頁面加載中')}</div>
                 </div>
             }
         </>

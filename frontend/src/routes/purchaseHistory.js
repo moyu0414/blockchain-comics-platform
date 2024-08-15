@@ -6,6 +6,8 @@ import './bootstrap.min.css';
 import { Link } from "react-router-dom";
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
@@ -14,6 +16,8 @@ const PurchaseHistory = () => {
   const [NFTLogArray, setNFTLogArray] = useState([]);
   const [beingComic, setBeingComic] = useState(true);
   const [beingNFT, setBeingNFT] = useState(true);
+  const { t } = useTranslation();
+  const language = localStorage.getItem('language') || i18n.language;
   const currentAccount = localStorage.getItem("currentAccount");
   const storedArrayJSON = localStorage.getItem('comicDatas');
   const storedArray = JSON.parse(storedArrayJSON);
@@ -146,10 +150,10 @@ const PurchaseHistory = () => {
     <>
       <Container className='purchaseHistory pt-5'>
         <Tabs defaultActiveKey="comics" id="tabs">
-          <Tab eventKey="comics" title="漫畫">
+          <Tab eventKey="comics" title={t('漫畫')}>
             {!beingComic &&  
               <Row className='pt-5 justify-content-center'>
-                <h1 className="fw-bold text-center">目前尚未購買漫畫!</h1>
+                <h1 className="fw-bold text-center">{t('目前尚未購買漫畫')}</h1>
               </Row>
             }
             <Row className='pt-4 justify-content-center'>
@@ -157,9 +161,9 @@ const PurchaseHistory = () => {
                 <Table size="sm">
                   <thead>
                     <tr>
-                      <th className='text-center fw-bold'>交易日期</th>
-                      <th className='text-center fw-bold'>漫畫 / 章節</th>
-                      <th className='text-center fw-bold'>支出</th>
+                      <th className='text-center fw-bold'>{t('交易日期')}</th>
+                      <th className='text-center fw-bold'>{t('漫畫 / 章節')}</th>
+                      <th className='text-center fw-bold'>{t('支出')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -195,7 +199,7 @@ const PurchaseHistory = () => {
           <Tab eventKey="nft" title="NFT">
             {!beingNFT &&  
               <Row className='pt-5 justify-content-center'>
-                <h1 className="fw-bold text-center">目前尚未購買NFT!</h1>
+                <h1 className="fw-bold text-center">{t('目前尚未購買NFT')}</h1>
               </Row>
             }
             {/* 複製這裡的內容到 NFT Tab */}
@@ -205,9 +209,9 @@ const PurchaseHistory = () => {
                   <thead>
                     <tr>
                       <th className='text-center fw-bold'>tokenId</th>
-                      <th className='text-center fw-bold'>名稱</th>
-                      <th className='text-center fw-bold'>支出</th>
-                      <th className='text-center fw-bold'>詳情</th>
+                      <th className='text-center fw-bold'>{t('名稱')}</th>
+                      <th className='text-center fw-bold'>{t('支出')}</th>
+                      <th className='text-center fw-bold'>{t('詳情')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -218,7 +222,7 @@ const PurchaseHistory = () => {
                         <td className='text-center'>{data.price}</td>
                         <td className='text-center'>
                             <Link to={`/nftDetail/tokenId${data.tokenId}`}>
-                                <button className="btn">詳情</button>
+                                <button className="btn">{t('詳情')}</button>
                             </Link>
                         </td>
                       </tr>

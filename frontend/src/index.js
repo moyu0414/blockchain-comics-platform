@@ -5,6 +5,8 @@ import {
   createBrowserRouter,
   RouterProvider
 } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
+import i18n from './i18n';
 //import Home from './routes/Home';
 import HomePage from './routes/homePage';
 import Navbar from "./components/Navbar";
@@ -181,30 +183,44 @@ const enableAllButtons = () => {
   const buttons = document.querySelectorAll(".btn");
   buttons.forEach(button => {
     button.disabled = false;
-    button.style.backgroundColor = "#F6B93B";
+    const buttonDataColor = button.getAttribute("data-backgroundColor");
+    button.style.backgroundColor = buttonDataColor || "#F6B93B";
     button.style.opacity = 1;
   });
 };
 
-const detectEthereumProvider = () => {
+
+const detectEthereumProvider = (t) => {
   if (window.ethereum) {
-      return window.ethereum;
+    return window.ethereum;
   } else if (window.web3) {
-      return window.web3.currentProvider;
+    return window.web3.currentProvider;
   } else {
-      console.log("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
-      alert("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
-      return null;
+    console.log("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
+    alert(t('非以太坊瀏覽器')); // 使用传入的翻译函数
+    return null;
   }
 };
 
-const initializeWeb3 = async () => {
-  const provider = detectEthereumProvider();
+
+const initializeWeb3 = async (t) => {
+  const provider = detectEthereumProvider(t);
   if (provider) {
       const web3 = new Web3(provider);
       return web3;
   }
   return null;
+};
+
+
+// translation 的 key 找 value
+const getTranslationKey = (value, language) => {
+  const translations = i18n.getResourceBundle(language, 'translation');
+  const reversedTranslations = Object.entries(translations).reduce((acc, [key, val]) => {
+      acc[val] = key;
+      return acc;
+  }, {});
+  return reversedTranslations[value] || null;
 };
 
 
@@ -342,4 +358,4 @@ createRoot(document.getElementById("root")).render(
   <RouterProvider router={router} />
 );
 
-export { formatDate, formatTime, sortByTimestamp, sortByDatetime, getTransactionTimestamp, disableAllButtons, enableAllButtons, detectEthereumProvider, initializeWeb3 };
+export { formatDate, formatTime, sortByTimestamp, sortByDatetime, getTransactionTimestamp, disableAllButtons, enableAllButtons, detectEthereumProvider, initializeWeb3, getTranslationKey };

@@ -1,12 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { Container, Carousel, Card, Col, Row, Button, Dropdown, Navbar, Nav, NavDropdown, Offcanvas } from 'react-bootstrap';
+import { Container, Carousel, Card, Col, Row, Button, Dropdown, Navbar, Nav, Offcanvas } from 'react-bootstrap';
 import Web3 from 'web3';
 import { Link, useNavigate } from "react-router-dom";
 import { SidebarData } from "./SidebarData";
-import { Search, Person } from 'react-bootstrap-icons';
+import { Search, Person, Translate } from 'react-bootstrap-icons';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
+import '../i18n';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
+
+const CustomToggle = React.forwardRef(({ onClick }, ref) => (
+    <div
+        ref={ref}
+        onClick={(e) => {
+            e.preventDefault();
+            onClick(e);
+        }}
+        style={{ cursor: 'pointer', color: 'green' }}
+    >
+        <Translate size={36} />
+    </div>
+));
 
 function Navigation() {
     const [isMetamaskInstalled, setMetamaskInstalled] = useState(true);
@@ -19,6 +34,8 @@ function Navigation() {
     const [account, setAccount] = useState('');
     const [accounts, setAccounts] = useState([]);
     const [expanded, setExpanded] = useState(false); // 状态用于控制菜单展开或折叠
+    const [selectedLanguage, setSelectedLanguage] = useState('');
+    const { t, i18n } = useTranslation();
     const headers = {'api-key': API_KEY};
 
     const navigate = useNavigate();
@@ -64,7 +81,7 @@ function Navigation() {
                         console.log(response.data);
                         localStorage.setItem("loggedIn", "true");
                         localStorage.setItem("currentAccount", accounts[0]);
-                        alert("登入成功!");
+                        alert(t('登入成功'));
                         navigate("/");
                         loadAccountBalance(accounts[0]);
                     } catch (error) {
@@ -177,16 +194,29 @@ function Navigation() {
         } else if (window.web3) {
             provider = window.web3.currentProvider;
         } else {
-            console.log("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
-            alert("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
+            alert(t('非以太坊瀏覽器'));
+            setMetamaskInstalled(false);
         }
         return provider;
     };
 
+    useEffect(() => {
+        const storedLang = localStorage.getItem('language');
+        if (storedLang) {
+            i18n.changeLanguage(storedLang);
+        }
+    }, [i18n]);
+
+    const changeLanguage = (lang) => {
+        i18n.changeLanguage(lang);
+        localStorage.setItem('language', lang);
+    };
+
+
     return (
         <>
-        {['xxl'].map((expand) => (
-            <Container fluid className="navigation">
+        {['xxl'].map((expand, index) => (
+            <Container fluid key={index} className="navigation">
                 <Row key={expand} className="d-flex justify-content-center align-items-center">
                     <Navbar expand={expand}>
                         <Navbar.Toggle onClick={() => setExpanded(!expanded)} aria-controls="offcanvas-navbar" />
@@ -215,16 +245,16 @@ function Navigation() {
                             <div className="d-flex flex-grow-1">
                                 <Offcanvas.Body className="flex-grow-1">
                                     <Nav className="me-auto nav-link-section">
-                                        <Nav.Link href="/creatorPage">創作者專區</Nav.Link>
-                                        <Nav.Link href="/readerPage">讀者專區</Nav.Link>
-                                        <Nav.Link href="/rankingList">排行榜</Nav.Link>
+                                        <Nav.Link href="/creatorPage">{t('創作者專區')}</Nav.Link>
+                                        <Nav.Link href="/readerPage">{t('讀者專區')}</Nav.Link>
+                                        <Nav.Link href="/rankingList">{t('排行榜')}</Nav.Link>
                                     </Nav>
                                     {/* 登入區塊 */}
                                     <div className={`log-in-area ${expanded ? 'vertical-layout' : 'horizontal-layout'}`}>
                                         {!isLogged && isMetamaskInstalled && (
                                             <Button className="log-in-btn" onClick={connectAccount}>
                                                 <Person className="me-2" size={28} />
-                                                登入
+                                                {t('登入')}
                                             </Button>
                                         )}
                                         {!isMetamaskInstalled && (
@@ -234,15 +264,15 @@ function Navigation() {
                                                 rel="noreferrer"
                                                 href="https://metamask.io/download"
                                             >
-                                                請安裝Metamask
+                                                {t('請安裝MetaMask')}
                                             </a>
                                         )}
                                         {isLogged && (
                                             <div className="d-flex align-items-center justify-content-end login">
                                                 <div className="show-account">{showAccount()}</div>
-                                                <div className="eth-balance">餘額: {ethBalance} SepoliaETH</div>
+                                                <div className="eth-balance">{t('餘額')}: {ethBalance} SepoliaETH</div>
                                                 <Button className="reload-btn" onClick={reloadAccount}>
-                                                    切換帳號
+                                                    {t('切換帳號')}
                                                 </Button>
                                             </div>
                                         )}
@@ -252,9 +282,20 @@ function Navigation() {
                                 
                             </div>
                         </Navbar.Offcanvas>
+
                         <Link to={"/searchPage"}>
                             <Search className="search-icon ms-3" size={30} />
                         </Link>
+
+                        <Dropdown>
+                            <Dropdown.Toggle as={CustomToggle} />
+                            <Dropdown.Menu>
+                                <Dropdown.Item onClick={() => changeLanguage('zh')}>繁體中文</Dropdown.Item>
+                                <Dropdown.Item onClick={() => changeLanguage('en')}>English</Dropdown.Item>
+                                <Dropdown.Item onClick={() => changeLanguage('ja')}>日語</Dropdown.Item>
+                                <Dropdown.Item onClick={() => changeLanguage('ko')}>한국어</Dropdown.Item>
+                            </Dropdown.Menu>
+                        </Dropdown>
                     </Navbar>
                 </Row>
             </Container>
