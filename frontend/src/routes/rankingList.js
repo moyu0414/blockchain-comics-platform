@@ -9,12 +9,12 @@ const RankingList = () => {
     const [totRankDatas, setTotRankDatas] = useState([]);
     const [purRank, setPurRank] = useState([]);
     const [favRank, setFavRank] = useState([]);
+    const [weekData, setWeekData] = useState([]);
+    const [newData, setNewData] = useState([]);
     const [loading, setLoading] = useState(true);
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
     const headers = {'api-key': API_KEY};
-
-
 
     const initData = async () => {
         try {
@@ -69,6 +69,10 @@ const RankingList = () => {
             purchaseRank();
         } else if (key === 'favoriteRank') {
             favoriteRank();
+        } else if (key === 'weekRank') {
+            weekRank();
+        } else if (key === 'newRank') {
+            newRank();
         }
     };
 
@@ -120,49 +124,54 @@ const RankingList = () => {
         }
     };
 
-    const showAccount = (account) => {
-        const prefix = account.substring(0, 9);
-        const suffix = account.substring(account.length - 8);
-        return `${prefix}...${suffix}`;
+    const weekRank = async () => {
+        const response = await axios.get(`${website}/api/rankingList/weekRank`, { headers });
+        let rankDatas = response.data;
+        try {
+            const rankInfo = await Promise.all(rankDatas.map(async (data) => {
+                const url = `${website}/api/comicIMG/${data.filename}`;
+                const response = await axios.get(url, { responseType: 'blob', headers });
+                const filename = URL.createObjectURL(response.data);
+                return {
+                    ...data,
+                    imageUrl: filename
+                };
+            }));
+            const updatedFetchedData = rankInfo.map(fetchedItem => {
+                const match = storedArray.find(storedItem => storedItem.comic_id === fetchedItem.comic_id);
+                return { ...fetchedItem, comicID: match ? match.comicID : null };
+            });
+            //console.log(updatedFetchedData);
+            setWeekData(updatedFetchedData);
+        } catch (error) {
+            console.error('Error fetching image:', error);
+        }
     };
 
-    const rankings  = [
-        {
-            rank: 1,
-            comicTitle: "作品名稱",
-            comicAuthor: "作者帳號",
-            description: "描述描述描述描述描述描述描述描述描述描述",
-            imageUrl: "https://images.pexels.com/photos/7809122/pexels-photo-7809122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-        },
-        {
-            rank: 2,
-            comicTitle: "作品名稱",
-            comicAuthor: "作者帳號",
-            description: "描述描述描述描述描述描述描述描述描述描述",
-            imageUrl: "https://images.pexels.com/photos/7809122/pexels-photo-7809122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-        },
-        {
-            rank: 3,
-            comicTitle: "作品名稱",
-            comicAuthor: "作者帳號",
-            description: "描述描述描述描述描述描述描述描述描述描述",
-            imageUrl: "https://images.pexels.com/photos/7809122/pexels-photo-7809122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-        },
-        {
-            rank: 4,
-            comicTitle: "作品名稱",
-            comicAuthor: "作者帳號",
-            description: "描述描述描述描述描述描述描述描述描述描述",
-            imageUrl: "https://images.pexels.com/photos/7809122/pexels-photo-7809122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-        },
-        {
-            rank: 5,
-            comicTitle: "作品名稱",
-            comicAuthor: "作者帳號",
-            description: "描述描述描述描述描述描述描述描述描述描述",
-            imageUrl: "https://images.pexels.com/photos/7809122/pexels-photo-7809122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+    const newRank = async () => {
+        const response = await axios.get(`${website}/api/rankingList/newRank`, { headers });
+        let rankDatas = response.data;
+        try {
+            const rankInfo = await Promise.all(rankDatas.map(async (data) => {
+                const url = `${website}/api/comicIMG/${data.filename}`;
+                const response = await axios.get(url, { responseType: 'blob', headers });
+                const filename = URL.createObjectURL(response.data);
+                return {
+                    ...data,
+                    imageUrl: filename
+                };
+            }));
+            const updatedFetchedData = rankInfo.map(fetchedItem => {
+                const match = storedArray.find(storedItem => storedItem.comic_id === fetchedItem.comic_id);
+                return { ...fetchedItem, comicID: match ? match.comicID : null };
+            });
+            //console.log(updatedFetchedData);
+            setNewData(updatedFetchedData);
+        } catch (error) {
+            console.error('Error fetching image:', error);
         }
-    ];
+    };
+
 
     return (
         <>
@@ -230,7 +239,7 @@ const RankingList = () => {
                             ))}
                         </ListGroup>
                     </Tab>
-                    <Tab eventKey="purchaseRank" title="人氣排行">
+                    <Tab eventKey="purchaseRank" title="暢銷榜">
                         <ListGroup>
                             {purRank.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`}>
@@ -249,7 +258,7 @@ const RankingList = () => {
                             ))}
                         </ListGroup>
                     </Tab>
-                    <Tab eventKey="favoriteRank" title="愛心排行">
+                    <Tab eventKey="favoriteRank" title="愛心榜">
                         <ListGroup>
                             {favRank.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`}>
@@ -268,25 +277,41 @@ const RankingList = () => {
                             ))}
                         </ListGroup>
                     </Tab>
-
-
-
-
-
                     <Tab eventKey="weekRank" title="週排行">
                         <ListGroup>
-                            {rankings.map((item, index) => (
-                                <ListGroup.Item key={index} className="d-flex align-items-center ranking-list">
-                                    <span className="ranking-badge">{item.rank}</span>
-                                    <div className="ranking-image">
-                                        <img src={item.imageUrl} alt={item.comicTitle} className="ranking-thumbnail" />
-                                    </div>
-                                    <div className="ranking-card-info ms-3">
-                                        <div className="ranking-title">{item.comicTitle}</div>
-                                        <div className="ranking-author">{item.comicAuthor}</div>
-                                        <p className="ranking-description">{item.description}</p>
-                                    </div>
-                                </ListGroup.Item>
+                            {weekData.map((item, index) => (
+                                <Link to={`/comicDetail/${item.comicID}`}>
+                                    <ListGroup.Item key={index} className="d-flex align-items-center ranking-list">
+                                        <span className="ranking-badge">{item.rank}</span>
+                                        <div className="ranking-image">
+                                            <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
+                                        </div>
+                                        <div className="ranking-card-info ms-3">
+                                            <div className="ranking-title">{item.title}</div>
+                                            <div className="ranking-author">{item.creator}</div>
+                                            <p className="ranking-description">{item.description}</p>
+                                        </div>
+                                    </ListGroup.Item>
+                                </Link>
+                            ))}
+                        </ListGroup>
+                    </Tab>
+                    <Tab eventKey="newRank" title="新上市">
+                        <ListGroup>
+                            {newData.map((item, index) => (
+                                <Link to={`/comicDetail/${item.comicID}`}>
+                                    <ListGroup.Item key={index} className="d-flex align-items-center ranking-list">
+                                        <span className="ranking-badge">{item.rank}</span>
+                                        <div className="ranking-image">
+                                            <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
+                                        </div>
+                                        <div className="ranking-card-info ms-3">
+                                            <div className="ranking-title">{item.title}</div>
+                                            <div className="ranking-author">{item.creator}</div>
+                                            <p className="ranking-description">{item.description}</p>
+                                        </div>
+                                    </ListGroup.Item>
+                                </Link>
                             ))}
                         </ListGroup>
                     </Tab>

@@ -124,7 +124,7 @@ function Category() {
             updatePurchase();
         } else if (filters === '愛心排序') {  // 收藏數量
             updateFavorite();
-        } else if (filters === '新發布') {  // 漫畫新發布
+        } else if (filters === '新上市') {  // 漫畫新發布
             updateComic();
         } else if (filters === '最近更新') {  // 章節更新
             updateChapter();
@@ -163,7 +163,7 @@ function Category() {
                 sortedComics = sortComics(current, timestampMap);
             }
             setCurrent(sortedComics);
-            setSelectedCategory('新發布');
+            setSelectedCategory('新上市');
         } catch (error) {
             console.error('Error fetching records:', error);
         }
@@ -234,7 +234,7 @@ function Category() {
                                 <Dropdown.Menu>
                                     <Dropdown.Item onClick={() => handleCategoryChange('人氣排序')}>人氣排序</Dropdown.Item>
                                     <Dropdown.Item onClick={() => handleCategoryChange('愛心排序')}>愛心排序</Dropdown.Item>
-                                    <Dropdown.Item onClick={() => handleCategoryChange('新發布')}>新發布</Dropdown.Item>
+                                    <Dropdown.Item onClick={() => handleCategoryChange('新上市')}>新上市</Dropdown.Item>
                                     <Dropdown.Item onClick={() => handleCategoryChange('最近更新')}>最近更新</Dropdown.Item>
                                 </Dropdown.Menu>
                             </Dropdown>

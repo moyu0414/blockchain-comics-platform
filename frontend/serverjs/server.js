@@ -916,6 +916,65 @@ app.get('/api/rankingList/favoriteRank', (req, res) => {
 });
 
 
+app.get('/api/rankingList/weekRank', (req, res) => {
+  const query = `
+      SELECT 
+          comics.comic_id, comics.creator, comics.title, comics.description, comics.filename,
+          COALESCE(purchase_stats.purchase_count, 0) AS totBuy
+      FROM 
+          comics
+      LEFT JOIN (
+          SELECT 
+              comic_id,
+              COUNT(*) AS purchase_count
+          FROM 
+              records
+          WHERE 
+              purchase_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+              AND EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND comics.is_exist = 1)
+          GROUP BY 
+              comic_id
+      ) AS purchase_stats ON purchase_stats.comic_id = comics.comic_id
+      WHERE 
+          comics.is_exist = 1
+      GROUP BY 
+          comics.comic_id
+      ORDER BY 
+          totBuy DESC
+      LIMIT 10
+  `;
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching rankingList: ', error);
+      return res.status(500).json({ message: 'Error fetching rankingList' });
+    }
+    res.json(results.length ? results : []);
+  });
+});
+
+
+app.get('/api/rankingList/newRank', (req, res) => {
+  const query = `
+      SELECT 
+          comic_id, creator, title, description, filename
+      FROM 
+          comics
+      WHERE 
+          is_exist = 1
+      ORDER BY 
+          create_timestamp DESC
+      LIMIT 10
+  `;
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching rankingList:', error);
+      return res.status(500).json({ message: 'Error fetching rankingList' });
+    }
+    res.json(results);
+  });
+});
+
+
 // 新增一筆 comics 資料、添加漫画信息到数据库的路由
 app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {
   const file = req.files['comicIMG'] ? req.files['comicIMG'][0] : null;
