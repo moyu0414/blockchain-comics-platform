@@ -1509,8 +1509,12 @@ a:link{
 
 .navigation .navbar{
   display: flex;
-  justify-content: flex-start;
+  justify-content:space-around;
   
+}
+
+.navigation span{
+  margin: 0;
 }
 
 .nav-link-section{
@@ -1586,6 +1590,11 @@ a:link{
   color: #008F8C;
 }
 
+.navigation .dropdown-menu[data-bs-popper]{
+  right: -90%;
+  top: 130%;
+}
+
 @media only screen and (max-width: 1400px) {
   .offcanvas{
     background-color: #F3FCF3;
@@ -1615,13 +1624,17 @@ a:link{
     width: 95%;
   }
 
-  .search-icon {
-    display: block;
-    position: absolute;
-    right: 1rem; /* 调整为你希望的距离 */
-    top: 50%;
-    transform: translateY(-50%);
+  .search-icon{
+    right: 0;
+    margin-left: 80%;
   }
+
+  .translate-icon{
+    right: 0;
+    margin-left: 80%;
+  }
+  
+  
 }
 
 /* manageComic */
@@ -1685,7 +1698,11 @@ a:link{
     width: 100px;
     margin-bottom: 5%;
   }
+
+  
 }
+
+
 
 /* deleteChapter */
 
@@ -2043,11 +2060,11 @@ a:link{
   cursor: pointer;
 }
 
-.show {
+.no-padding-bottom .show {
   bottom: 0; 
 }
 
-.hide {
+.no-padding-bottom  .hide {
   top: -400px;
   bottom: -100px;
 }

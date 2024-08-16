@@ -18,8 +18,9 @@ const CustomToggle = React.forwardRef(({ onClick }, ref) => (
             onClick(e);
         }}
         style={{ cursor: 'pointer', color: 'green' }}
+        className="translate-icon"
     >
-        <Translate size={36} />
+        <Translate size={32} />
     </div>
 ));
 
@@ -164,25 +165,25 @@ function Navigation() {
 
     useEffect(() => {
         const checkLoginStatus = async () => {
-          let loggedIn = localStorage.getItem("loggedIn");
-          const currentAccount = localStorage.getItem("currentAccount");
-          if (window.ethereum) {
-            const web3 = new Web3(window.ethereum);
-            const accounts = await web3.eth.getAccounts();
-            const account = accounts[0];
-            if (!account) {
-                loggedIn = "false";
-                localStorage.setItem("loggedIn", "false");
-                localStorage.removeItem("currentAccount");
+            let loggedIn = localStorage.getItem("loggedIn");
+            const currentAccount = localStorage.getItem("currentAccount");
+            if (window.ethereum) {
+                const web3 = new Web3(window.ethereum);
+                const accounts = await web3.eth.getAccounts();
+                const account = accounts[0];
+                if (!account) {
+                    loggedIn = "false";
+                    localStorage.setItem("loggedIn", "false");
+                    localStorage.removeItem("currentAccount");
+                }
             }
-          }
-          if (loggedIn === "true" && currentAccount) {
-            setIsLogged(true);
-            setAccount(currentAccount);
-            setCurrentAccount(currentAccount);
-            setConnected(true);
-            loadAccountBalance(currentAccount);
-          }
+            if (loggedIn === "true" && currentAccount) {
+                setIsLogged(true);
+                setAccount(currentAccount);
+                setCurrentAccount(currentAccount);
+                setConnected(true);
+                loadAccountBalance(currentAccount);
+            }
         };
         checkLoginStatus();
     }, []);
@@ -203,10 +204,10 @@ function Navigation() {
     const handleAdminClick = async () => {
         try {
             const response = await axios.get(`${website}/api/comicManagement/isAdmin`, {
-              headers: headers,
-              params: {
-                currentAccount: currentAccount
-              }
+                headers: headers,
+                params: {
+                    currentAccount: currentAccount
+                }
             });
             if (response.data.exists === true) {
                 navigate('/comicManagement');
@@ -236,12 +237,12 @@ function Navigation() {
         <>
         {['xxl'].map((expand, index) => (
             <Container fluid key={index} className="navigation">
-                <Row key={expand} className="d-flex justify-content-center align-items-center">
+                <Row key={expand}>
                     <Navbar expand={expand}>
                         <Navbar.Toggle onClick={() => setExpanded(!expanded)} aria-controls="offcanvas-navbar" />
                         <Link to="/">
                             <img
-                                className="d-inline-block align-top"
+                                className="d-inline-block align-top nav-icon"
                                 src="/icon.png"
                                 alt="icon"
                             />
@@ -304,10 +305,10 @@ function Navigation() {
                         </Navbar.Offcanvas>
 
                         <Link to={"/searchPage"}>
-                            <Search className="search-icon ms-3" size={30} />
+                            <Search className="search-icon" size={30} />
                         </Link>
 
-                        <Dropdown>
+                        <Dropdown drop="start">
                             <Dropdown.Toggle as={CustomToggle} />
                             <Dropdown.Menu>
                                 <Dropdown.Item onClick={() => changeLanguage('zh')}>繁體中文</Dropdown.Item>
