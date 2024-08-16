@@ -1,14 +1,16 @@
 {
     "navigation_comment": "navigation",
+    "排行榜": "Ranking List",
     "創作者專區": "Creator Zone",
     "讀者專區": "Reader Zone",
-    "排行榜": "Ranking List",
+    "管理者專區": "Administrator Area",
     "登入": "Login",
     "切換帳號": "Switch Account",
     "餘額": "Balance",
     "登入成功": "Login Successful!",
     "非以太坊瀏覽器": "Detected a non-Ethereum browser. Please install MetaMask or another supported wallet",
     "請安裝MetaMask": "Please install MetaMask",
+    "您並非管理者": "You are not the administrator!",
 
     "homePage_comment": "homePage",
     "頁面加載中": "Page is loading, please wait...",
@@ -136,7 +138,32 @@
     "creatorNft_comment": "creatorNft",
     "目前尚未鑄造NFT": "NFT Not Minted Yet",
     "NFT交易情形": "NFT Trading Status",
-    "目前無人購買NFT": "No Purchases of NFT Yet"
+    "目前無人購買NFT": "No Purchases of NFT Yet",
+
+    "comicManagement_comment": "comicManagement",
+    "刪除": "Delete",
+    "復原": "Restore",
+    "漫畫刪除成功": "Comic deleted successfully!",
+    "漫畫復原成功": "Comic restored successfully!",
+    "請輸入有效的帳號": "Please enter a valid account!",
+    "此帳號已是管理者": "This account is already an administrator!",
+    "管理者新增成功": "Administrator added successfully!",
+    "此帳號並非管理者，所以不用刪除": "This account is not an administrator, so no need to delete!",
+    "管理者刪除成功": "Administrator deleted successfully!",
+    "管理員": "Administrator",
+    "請輸入管理員帳號": "Please enter the administrator's account...",
+    "帳號管理": "Account management",
+    "新增管理員": "Add administrator",
+    "帳號": "Account",
+    "請輸入漫畫名或作者名": "Please enter the comic name or author name...",
+    "漫畫標題": "Comic title",
+    "漫畫Hash": "Comic Hash",
+
+    "rankingList_comment": "rankingList",
+    "總排行": "Overall Ranking",
+    "暢銷榜": "Best Sellers",
+    "愛心榜": "Heart Ranking",
+    "週排行": "Weekly Ranking"
 
   }
   

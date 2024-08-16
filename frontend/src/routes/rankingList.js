@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Row, Col, Card, ListGroup, ListGroupItem, Tabs, Tab } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -12,6 +14,8 @@ const RankingList = () => {
     const [weekData, setWeekData] = useState([]);
     const [newData, setNewData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { t } = useTranslation();
+    const language = localStorage.getItem('language') || i18n.language;
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
     const headers = {'api-key': API_KEY};
@@ -220,7 +224,7 @@ const RankingList = () => {
                 </Row>
 
                 <Tabs defaultActiveKey="totalRank" className="mb-3" onSelect={handleTabSelect}>
-                    <Tab eventKey="totalRank" title="總排行">
+                    <Tab eventKey="totalRank" title={t('總排行')}>
                         <ListGroup>
                             {totRankDatas.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`}>
@@ -239,7 +243,7 @@ const RankingList = () => {
                             ))}
                         </ListGroup>
                     </Tab>
-                    <Tab eventKey="purchaseRank" title="暢銷榜">
+                    <Tab eventKey="purchaseRank" title={t('暢銷榜')}>
                         <ListGroup>
                             {purRank.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`}>
@@ -258,7 +262,7 @@ const RankingList = () => {
                             ))}
                         </ListGroup>
                     </Tab>
-                    <Tab eventKey="favoriteRank" title="愛心榜">
+                    <Tab eventKey="favoriteRank" title={t('愛心榜')}>
                         <ListGroup>
                             {favRank.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`}>
@@ -277,7 +281,7 @@ const RankingList = () => {
                             ))}
                         </ListGroup>
                     </Tab>
-                    <Tab eventKey="weekRank" title="週排行">
+                    <Tab eventKey="weekRank" title={t('週排行')}>
                         <ListGroup>
                             {weekData.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`}>
@@ -296,7 +300,7 @@ const RankingList = () => {
                             ))}
                         </ListGroup>
                     </Tab>
-                    <Tab eventKey="newRank" title="新上市">
+                    <Tab eventKey="newRank" title={t('新上市')}>
                         <ListGroup>
                             {newData.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`}>

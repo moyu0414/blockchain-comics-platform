@@ -200,6 +200,25 @@ function Navigation() {
         return provider;
     };
 
+    const handleAdminClick = async () => {
+        try {
+            const response = await axios.get(`${website}/api/comicManagement/isAdmin`, {
+              headers: headers,
+              params: {
+                currentAccount: currentAccount
+              }
+            });
+            if (response.data.exists === true) {
+                navigate('/comicManagement');
+            } else {
+                alert(t('您並非管理者'));
+                return;
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     useEffect(() => {
         const storedLang = localStorage.getItem('language');
         if (storedLang) {
@@ -245,9 +264,10 @@ function Navigation() {
                             <div className="d-flex flex-grow-1">
                                 <Offcanvas.Body className="flex-grow-1">
                                     <Nav className="me-auto nav-link-section">
+                                        <Nav.Link href="/rankingList">{t('排行榜')}</Nav.Link>
                                         <Nav.Link href="/creatorPage">{t('創作者專區')}</Nav.Link>
                                         <Nav.Link href="/readerPage">{t('讀者專區')}</Nav.Link>
-                                        <Nav.Link href="/rankingList">{t('排行榜')}</Nav.Link>
+                                        <Nav.Link onClick={handleAdminClick}>{t('管理者專區')}</Nav.Link>
                                     </Nav>
                                     {/* 登入區塊 */}
                                     <div className={`log-in-area ${expanded ? 'vertical-layout' : 'horizontal-layout'}`}>

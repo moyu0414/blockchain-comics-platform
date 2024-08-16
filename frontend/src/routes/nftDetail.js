@@ -187,7 +187,7 @@ function NftDetail() {
                     <Row className="pt-2 pb-3 btn-container justify-content-center">
                         {buttonData.map((label, idx) => (
                             <Col key={idx} xs={2} md={2} lg={2} className="pb-3 btn-section d-flex justify-content-center">
-                                <Button variant="outline-dark" className="custom-button" onClick={label === t('收藏') ? handleFavoriteClick : handlePurchase} data-backgroundColor="#fff">
+                                <Button variant="outline-dark" className="custom-button" onClick={label === t('收藏') ? handleFavoriteClick : handlePurchase} data-backgroundcolor="#fff">
                                     {label === t('收藏') && (
                                         <>
                                             {isFavorited ? (

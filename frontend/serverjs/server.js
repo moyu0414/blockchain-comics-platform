@@ -975,6 +975,43 @@ app.get('/api/rankingList/newRank', (req, res) => {
 });
 
 
+app.get('/api/comicManagement/isAdmin', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const query = `
+      SELECT 
+          address
+      FROM 
+          user
+      WHERE 
+          is_admin = 1 AND address = ?
+  `;
+  pool.query(query, [currentAccount], (error, results) => {
+    if (error) {
+      console.error('Error fetching addresses:', error);
+      return res.status(500).json({ message: 'Error fetching addresses' });
+    }
+    if (results.length === 0) {
+      return res.json({ exists: false });
+    }
+    const allAddressesQuery = `
+        SELECT 
+            address
+        FROM 
+            user
+        WHERE 
+            is_admin = 1
+    `;
+    pool.query(allAddressesQuery, (error, allResults) => {
+      if (error) {
+        console.error('Error fetching all addresses:', error);
+        return res.status(500).json({ message: 'Error fetching all addresses' });
+      }
+      res.json({ exists: true, address: allResults });
+    });
+  });
+});
+
+
 // 新增一筆 comics 資料、添加漫画信息到数据库的路由
 app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {
   const file = req.files['comicIMG'] ? req.files['comicIMG'][0] : null;
@@ -1276,9 +1313,9 @@ app.put('/api/update/chapterData', upload.single('chapterIMG'), async (req, res)
 });
 
 
-// 更新漫畫存在狀態的路由
 app.put('/api/update/comicExist', async (req, res) => {
-  const { is_exist, comicHash } = req.body;
+  const comicHash = req.query.comicHash;
+  const is_exist = req.query.is_exist;
   try {
     const updateQuery = `UPDATE comics SET is_exist = ? WHERE comic_id = ?`;
     const queryResult = await new Promise((resolve, reject) => {
@@ -1293,6 +1330,48 @@ app.put('/api/update/comicExist', async (req, res) => {
     res.status(200).json({ message: 'comicExist updated successfully' });
   } catch (error) {
     console.error('Error updating comicExist:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.put('/api/update/addAdmin', async (req, res) => {
+  const address = req.query.address;
+  try {
+    const updateQuery = 'UPDATE user SET is_admin = 1 WHERE address = ?';
+    const queryResult = await new Promise((resolve, reject) => {
+      pool.query(updateQuery, [address.toLowerCase()], (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+    res.status(200).json({ message: 'addAdmin successfully' });
+  } catch (error) {
+    console.error('Error updating addAdmin:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.put('/api/update/removeAdmin', async (req, res) => {
+  const address = req.query.address;
+  try {
+    const updateQuery = 'UPDATE user SET is_admin = 0 WHERE address = ?';
+    const queryResult = await new Promise((resolve, reject) => {
+      pool.query(updateQuery, [address.toLowerCase()], (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+    res.status(200).json({ message: 'removeAdmin successfully' });
+  } catch (error) {
+    console.error('Error updating removeAdmin:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -36,18 +36,18 @@ const HomePage = () => {
                 ...totalCountMap[data.comic_id],
                 total: (totalCountMap[data.comic_id]?.totHearts || 0) + (totalCountMap[data.comic_id]?.totBuy || 0)
             }));
+            const filteredData = updatedFetchedData.filter(data => data.is_exist === 1);
+
             const categoryCounts = {};
-            updatedFetchedData.forEach(data => {
-                if (data.is_exist === 1) {
-                    categoryCounts[data.category] = (categoryCounts[data.category] || 0) + 1;
-                }
+            filteredData.forEach(data => {
+                categoryCounts[data.category] = (categoryCounts[data.category] || 0) + 1;
             });
             const promoCategories = Object.keys(categoryCounts)
                 .sort((a, b) => categoryCounts[b] - categoryCounts[a])
                 .slice(0, 4); 
             setPromoPosition(promoCategories);
             const fetchComicData = async (comic) => {
-                if (comic.is_exist === 1 && promoCategories.includes(comic.category)) {
+                if (promoCategories.includes(comic.category)) {
                     try {
                         // Fetch the main comic image
                         const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.filename}`, { responseType: 'blob', headers });
@@ -63,10 +63,10 @@ const HomePage = () => {
                     }
                 }
             };
-            await Promise.all(updatedFetchedData.map(fetchComicData));
-            updatedFetchedData.sort((a, b) => b.total - a.total);
-            console.log(updatedFetchedData);
-            setCurrent(updatedFetchedData);
+            await Promise.all(filteredData.map(fetchComicData));
+            filteredData.sort((a, b) => b.total - a.total);
+            console.log(filteredData);
+            setCurrent(filteredData);
             setLoading(false);
         } catch (error) {
             console.error('Error initializing contract:', error);

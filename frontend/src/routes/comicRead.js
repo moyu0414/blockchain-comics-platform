@@ -105,7 +105,11 @@ const ComicRead = () => {
                     if (chapter.creator === currentAccount) {
                         isBuying = t('閱讀');
                         creator = t('您是本作品的創作者');
-                        chapterPrice = chapter.chapterPrice;
+                        if (chapter.chapterPrice == 0) {
+                            chapterPrice = t('免費');
+                        } else {
+                            chapterPrice = chapter.chapterPrice;
+                        }
                     } else if (chapter.chapterPrice == 0) {
                         isBuying = t('閱讀');
                         creator = chapter.creator
@@ -366,7 +370,7 @@ const ComicRead = () => {
             <>
                 <div className='no-padding-bottom'>
                     <Navbar className={`comic-custom-navbar ${showNavbar ? 'show' : 'hide'}`} expand="lg">
-                        <Navbar.Brand href="#" className="navbar-left">
+                        <Navbar.Brand className="navbar-left">
                             <Link to={`/comicDetail/${comicID}`}>
                                 <ChevronLeft className="icon" size={36} />
                             </Link>

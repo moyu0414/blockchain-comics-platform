@@ -299,6 +299,10 @@ span {
   .step-item {
     padding: 0 15%!important;
   }
+
+  .comicManagement .hash-cell-text{
+    max-width: 290px!important;
+  }
 }
 
 @media only screen and (max-width: 400px) {
@@ -309,6 +313,10 @@ span {
 
   .step-item {
     padding: 0 12%!important;
+  }
+
+  .comicManagement .hash-cell-text{
+    max-width: 250px!important;
   }
 }
 
@@ -2881,8 +2889,37 @@ a:link{
     -webkit-line-clamp: 2;
   }
 
+  .comicManagement .address-cell{
+    max-width: 208px;
+    overflow-wrap: break-word; 
+  }
+  
+  .comicManagement .hash-cell {
+    display: none; /* 隐藏默认情况下的 Hash */
+  }
+
+  .comicManagement .hash-cell.expanded {
+    display: table-row; /* 点击行时显示详细信息 */
+  }
+
+  .comicManagement .author-cell{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80px;
+  }
+
+  .comicManagement .hash-cell-text{
+    max-width: 390px;
+    overflow-wrap: break-word;
+  }
+
   .comicManagement .table td .del-btn {
-    width: 95%;
+    width: 60%;
+  }
+
+  .comicManagement .table td .del-btn-comic {
+    width: 100%;
   }
 
   .comicManagement .btn-section{
@@ -2952,6 +2989,28 @@ a:link{
 
 .comicManagement .table td .del-btn:hover {
   background-color: #bb2d3b;
+}
+
+.comicManagement .table td .del-btn-comic {
+  background-color: #F44336;
+}
+
+.comicManagement .table td .del-btn-comic:hover {
+  background-color: #bb2d3b;
+}
+
+.comicManagement .comicManagement-search {
+  background-color: #27b0b4;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  margin-left: 10px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  transform: scale(1.3);
 }
 
 .comicManagement .pagination {
