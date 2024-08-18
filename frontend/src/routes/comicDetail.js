@@ -21,7 +21,6 @@ function ComicDetail() {
     const [isFavorited, setIsFavorited] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const { t } = useTranslation();
-    const language = localStorage.getItem('language') || i18n.language;
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};

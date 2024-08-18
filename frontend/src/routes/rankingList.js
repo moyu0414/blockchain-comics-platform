@@ -15,7 +15,6 @@ const RankingList = () => {
     const [newData, setNewData] = useState([]);
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
-    const language = localStorage.getItem('language') || i18n.language;
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
     const headers = {'api-key': API_KEY};

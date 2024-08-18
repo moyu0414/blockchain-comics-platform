@@ -25,7 +25,6 @@ const ComicManagement = ({ contractAddress }) => {
   const [web3Instance, setWeb3Instance] = useState('');
   const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
-  const language = localStorage.getItem('language') || i18n.language;
   const headers = {'api-key': API_KEY};
   let modifiedArray = [];
 

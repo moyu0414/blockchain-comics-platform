@@ -13,7 +13,6 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 function Analysis() {
     const [creatorLogArray, setCreatorLogArray] = useState([]);
     const { t } = useTranslation();
-    const language = localStorage.getItem('language') || i18n.language;
     const currentAccount = localStorage.getItem("currentAccount");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // 每頁顯示的收益數量

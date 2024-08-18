@@ -19,7 +19,6 @@ function NftDetail() {
     const [loading, setLoading] = useState(true);
     const [isFavorited, setIsFavorited] = useState('');
     const { t } = useTranslation();
-    const language = localStorage.getItem('language') || i18n.language;
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
     const buttonData = [
@@ -106,7 +105,7 @@ function NftDetail() {
             const [name, ...descriptionParts] = line.split(':');
             const description = descriptionParts.join(':').trim();
             return {
-                name: name.trim(),
+                name: t(name.trim()),
                 description,
             };
         });

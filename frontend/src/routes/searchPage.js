@@ -19,7 +19,6 @@ function SearchPage() {
     const [isSearch, setIsSearch] = useState(false);
     const [searchHistory, setSearchHistory] = useState([]);
     const { t } = useTranslation();
-    const language = localStorage.getItem('language') || i18n.language;
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
     const fetchedData = [];

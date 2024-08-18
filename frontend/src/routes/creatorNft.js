@@ -17,7 +17,6 @@ function CreatorNft() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // 每頁顯示的收益數量
     const { t } = useTranslation();
-    const language = localStorage.getItem('language') || i18n.language;
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
 

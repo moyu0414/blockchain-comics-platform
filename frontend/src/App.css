@@ -277,6 +277,7 @@ span {
   .label-style{
     width: 30%!important;
     margin-bottom: 4%;
+    white-space: nowrap;
   }
 
   .label-container input, .label-container select{
@@ -1677,6 +1678,9 @@ a:link{
   background-color: rgba(6, 157, 103, 0.89);
   box-shadow: 5px 5px rgba(6, 157, 103, 0.42);
   border-radius: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .manageComic .cta-button:focus {

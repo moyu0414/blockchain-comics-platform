@@ -13,7 +13,6 @@ function NftMarket() {
     const [material, setMaterial] = useState([]);
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
-    const language = localStorage.getItem('language') || i18n.language;
     const [selectedGrading, setSelectedGrading] = useState(t('角色商品化'));
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);

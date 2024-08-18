@@ -23,7 +23,6 @@ const CustomToggle = React.forwardRef(({ onClick }, ref) => (
 
 function ReaderPage() {
     const { t } = useTranslation();
-    const language = localStorage.getItem('language') || i18n.language;
     const [isButtonEnabled, setIsButtonEnabled] = useState(false);
 
     useEffect(() => {

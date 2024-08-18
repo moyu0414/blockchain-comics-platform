@@ -17,7 +17,6 @@ const PurchaseHistory = () => {
   const [beingComic, setBeingComic] = useState(true);
   const [beingNFT, setBeingNFT] = useState(true);
   const { t } = useTranslation();
-  const language = localStorage.getItem('language') || i18n.language;
   const currentAccount = localStorage.getItem("currentAccount");
   const storedArrayJSON = localStorage.getItem('comicDatas');
   const storedArray = JSON.parse(storedArrayJSON);

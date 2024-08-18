@@ -13,7 +13,6 @@ function MessagePage() {
     const [loading, setLoading] = useState(true);
     const [being, setBeing] = useState(true);
     const { t } = useTranslation();
-    const language = localStorage.getItem('language') || i18n.language;
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
     const currentAccount = localStorage.getItem("currentAccount");

@@ -13,7 +13,6 @@ function Bookcase() {
     const [current, setCurrent] = useState([]);
     const [isBuying, setIsBuying] = useState(true);
     const { t } = useTranslation();
-    const language = localStorage.getItem('language') || i18n.language;
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
     const readingProgress = localStorage.getItem("readingProgress");

@@ -13,7 +13,6 @@ function CollectionNft() {
     const [loading, setLoading] = useState(true);
     const [beingNFT, setBeingNFT] = useState(true);
     const { t } = useTranslation();
-    const language = localStorage.getItem('language') || i18n.language;
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
 

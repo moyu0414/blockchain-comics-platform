@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Container, Card, Button, Row,Col } from 'react-bootstrap';
 import { HouseDoor, Grid, Cart, Person, Book } from 'react-bootstrap-icons';
 import './bootstrap.min.css';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -11,6 +13,7 @@ function ManageComic() {
     const [comic, setComic] = useState([]);
     const [loading, setLoading] = useState(true);
     const [being, setBeing] = useState(true);
+    const { t } = useTranslation();
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
@@ -55,25 +58,25 @@ function ManageComic() {
     };
 
     const buttonData = [
-        '新增章節','鑄造NFT', '編輯漫畫', '編輯章節', '刪除', '詳情'
+        t('新增章節'),t('鑄造NFT'), t('編輯漫畫'), t('編輯章節'), t('刪除'), t('詳情')
     ];
 
     const pathMap = {
-        '新增章節': {
+        [t('新增章節')]: {
             pathname: '/createWork',
             state: (comicHash) => ({ showChapterForm: true, comicHash }) // 动态设置状态
         },
-        '鑄造NFT': {
+        [t('鑄造NFT')]: {
             pathname: '/mintNFT',
             state: (comicID) => ({ showChapterForm: true, comicID }) // 动态设置状态
         },
-        '編輯漫畫': {
+        [t('編輯漫畫')]: {
             pathname: '/editWork',
             state: (comicID) => ({ showChapterForm: false, comicID }) // 动态设置状态
         },
-        '編輯章節': (comicID) => ({ pathname: `/editChapter/${comicID}` }),
-        '刪除': (comicID) => ({ pathname: `/deleteChapter/${comicID}` }),
-        '詳情': (comicID) => ({ pathname: `/comicDetail/${comicID}` })
+        [t('編輯章節')]: (comicID) => ({ pathname: `/editChapter/${comicID}` }),
+        [t('刪除')]: (comicID) => ({ pathname: `/deleteChapter/${comicID}` }),
+        [t('詳情')]: (comicID) => ({ pathname: `/comicDetail/${comicID}` })
     };
 
     const handleClick = () => {
@@ -87,9 +90,9 @@ function ManageComic() {
                 <Container className='manageComic pt-4'>
                     {!being &&  
                         <Row className='pt-5 justify-content-center'>
-                            <h1 className="fw-bold text-center">目前尚未上傳漫畫!</h1>
-                            <h3 className="fw-bold text-center">點擊下方按鈕進行上傳</h3>
-                            <Button onClick={handleClick} className="fw-bold text-center">新增漫畫</Button>
+                            <h1 className="fw-bold text-center">{t('目前尚未上傳漫畫')}</h1>
+                            <h3 className="fw-bold text-center">{t('點擊下方按鈕進行上傳')}</h3>
+                            <Button onClick={handleClick} className="fw-bold text-center">{t('新增漫畫')}</Button>
                         </Row>
                     }
                     {comic.map((comic, index) => (
@@ -111,11 +114,11 @@ function ManageComic() {
                                                     ? pathMap[label](comic.comicID) // 处理动态路径
                                                     : pathMap[label].pathname
                                                 }
-                                                state={label === '新增章節'
+                                                state={label === t('新增章節')
                                                     ? pathMap[label].state(comic.comicHash) // 设置状态
-                                                    : label === '鑄造NFT'
+                                                    : label === t('鑄造NFT')
                                                     ? pathMap[label].state(comic.comicID) // 设置状态
-                                                    : label === '編輯漫畫'
+                                                    : label === t('編輯漫畫')
                                                     ? pathMap[label].state(comic.comicID) // 设置状态
                                                     : undefined
                                                 }
@@ -133,7 +136,7 @@ function ManageComic() {
             }
             {loading &&  
                 <div className="loading-container">
-                    <div>頁面加載中，請稍後...</div>
+                    <div>{t('頁面加載中')}</div>
                 </div>
             }
         </div>
