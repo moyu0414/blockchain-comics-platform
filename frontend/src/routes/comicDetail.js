@@ -153,20 +153,31 @@ function ComicDetail() {
     }, [comicID]);
 
     const handleFavoriteClick = async () => {
-        setIsFavorited(!isFavorited); // 切換收藏狀態
-        let data = chapters[chapters.length-1].create_timestamp;
-        try {
-            const response = await axios.put(`${website}/api/update/comicDetail/favorite`, null, {
-                headers: headers,
-                params: {
-                    currentAccount: currentAccount,
-                    comicHash: comic[0].comicHash,
-                    bool: !isFavorited,
-                    data: data
-                },
-            });
-        } catch (error) {
-            console.error('Error handleFavoriteClick', error);
+        const web3 = await initializeWeb3(t);
+        if (!web3) {
+            return;
+        }
+        const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
+        const accounts = await web3.eth.getAccounts();
+        if (accounts[0]) {
+            setIsFavorited(!isFavorited); // 切換收藏狀態
+            let data = chapters[chapters.length-1].create_timestamp;
+            try {
+                const response = await axios.put(`${website}/api/update/comicDetail/favorite`, null, {
+                    headers: headers,
+                    params: {
+                        currentAccount: currentAccount,
+                        comicHash: comic[0].comicHash,
+                        bool: !isFavorited,
+                        data: data
+                    },
+                });
+            } catch (error) {
+                console.error('Error handleFavoriteClick', error);
+            }
+        } else {
+            alert(t('請先登入以太坊錢包，才可以收藏'));
+            return;
         }
     };
 

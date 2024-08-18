@@ -226,8 +226,8 @@ const RankingList = () => {
                     <Tab eventKey="totalRank" title={t('總排行')}>
                         <ListGroup>
                             {totRankDatas.map((item, index) => (
-                                <Link to={`/comicDetail/${item.comicID}`}>
-                                    <ListGroup.Item key={index} className="d-flex align-items-center ranking-list">
+                                <Link to={`/comicDetail/${item.comicID}`} key={index}>
+                                    <ListGroup.Item className="d-flex align-items-center ranking-list">
                                         <span className="ranking-badge">{index + 1}</span>
                                             <div className="ranking-image">
                                                 <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
@@ -245,8 +245,8 @@ const RankingList = () => {
                     <Tab eventKey="purchaseRank" title={t('暢銷榜')}>
                         <ListGroup>
                             {purRank.map((item, index) => (
-                                <Link to={`/comicDetail/${item.comicID}`}>
-                                    <ListGroup.Item key={index} className="d-flex align-items-center ranking-list">
+                                <Link to={`/comicDetail/${item.comicID}`} key={index}>
+                                    <ListGroup.Item className="d-flex align-items-center ranking-list">
                                         <span className="ranking-badge">{index + 1}</span>
                                         <div className="ranking-image">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
@@ -264,8 +264,8 @@ const RankingList = () => {
                     <Tab eventKey="favoriteRank" title={t('愛心榜')}>
                         <ListGroup>
                             {favRank.map((item, index) => (
-                                <Link to={`/comicDetail/${item.comicID}`}>
-                                    <ListGroup.Item key={index} className="d-flex align-items-center ranking-list">
+                                <Link to={`/comicDetail/${item.comicID}`} key={index}>
+                                    <ListGroup.Item className="d-flex align-items-center ranking-list">
                                         <span className="ranking-badge">{index + 1}</span>
                                         <div className="ranking-image">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
@@ -283,8 +283,8 @@ const RankingList = () => {
                     <Tab eventKey="weekRank" title={t('週排行')}>
                         <ListGroup>
                             {weekData.map((item, index) => (
-                                <Link to={`/comicDetail/${item.comicID}`}>
-                                    <ListGroup.Item key={index} className="d-flex align-items-center ranking-list">
+                                <Link to={`/comicDetail/${item.comicID}`} key={index}>
+                                    <ListGroup.Item className="d-flex align-items-center ranking-list">
                                         <span className="ranking-badge">{index + 1}</span>
                                         <div className="ranking-image">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
@@ -302,8 +302,8 @@ const RankingList = () => {
                     <Tab eventKey="newRank" title={t('新上市')}>
                         <ListGroup>
                             {newData.map((item, index) => (
-                                <Link to={`/comicDetail/${item.comicID}`}>
-                                    <ListGroup.Item key={index} className="d-flex align-items-center ranking-list">
+                                <Link to={`/comicDetail/${item.comicID}`} key={index}>
+                                    <ListGroup.Item className="d-flex align-items-center ranking-list">
                                         <span className="ranking-badge">{index + 1}</span>
                                         <div className="ranking-image">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
