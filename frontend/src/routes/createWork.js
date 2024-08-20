@@ -3,9 +3,12 @@ import { Link } from 'react-router-dom';
 import { Form, Row, Col, Button, ProgressBar, Container } from 'react-bootstrap';
 import Web3 from 'web3';
 import { CardImage } from 'react-bootstrap-icons';
+import { disableAllButtons, enableAllButtons } from '../index';
 import comicData from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import { MdClose, MdDragHandle } from 'react-icons/md';  // 導入小叉叉圖標和拖曳圖標
@@ -30,6 +33,7 @@ const CreateWork = (props) => {
   const [coverFile, setCoverFile] = useState([]);
   const [promoPreviewImageUrl, setPromoPreviewImageUrl] = useState('');
   const fileInputRef = useRef(null);
+  const { t } = useTranslation();
   const currentAccount = localStorage.getItem("currentAccount");
   const headers = {'api-key': API_KEY};
   let mergedFile = '';
@@ -58,7 +62,7 @@ const CreateWork = (props) => {
         console.error(error);
       }
     } else {
-      alert('請安裝 MetaMask 或其他支援的錢包');
+      alert(t('請安裝MetaMask'));
     }
   };
 
@@ -74,8 +78,8 @@ const CreateWork = (props) => {
         console.error('合約實例未初始化');
         return;
       }
-      disableButton();
-      updateMessage("正在上傳漫畫至合約中...請稍後。")
+      disableAllButtons();
+      updateMessage(t('正在上傳漫畫至合約中'));
 
       console.log("comicHash：" + hashValue);
       console.log("title：" + formParams.title);
@@ -114,8 +118,8 @@ const CreateWork = (props) => {
         });
         console.log('Comic added successfully:', response.data);
 
-        alert('漫畫成功上傳！');
-        enableButton();
+        alert(t('漫畫成功上傳'));
+        enableAllButtons();
         setShowChapterForm(true);
         updateMessage("");
         updateFormParams({category:'',  title: '', description: ''});
@@ -125,9 +129,13 @@ const CreateWork = (props) => {
         console.error('Error adding comic:', error);
       }
     } catch (error) {
-      console.error('上傳漫畫時發生錯誤：', error);
-      alert('上傳漫畫時發生錯誤!' + error);
-      enableButton();
+      if (error.message.includes('User denied transaction signature')) {
+        alert(t('拒绝交易'));
+      } else {
+        console.error('上傳漫畫時發生錯誤：', error);
+        alert(t('上傳漫畫時發生錯誤') + error);
+      }
+      enableAllButtons();
       setShowChapterForm(false);
       updateMessage("");
     }
@@ -152,12 +160,12 @@ const CreateWork = (props) => {
         price_temp = parseFloat(price_temp);
         price_temp = web3.utils.toWei(price_temp.toString(), 'ether');
         if (price_temp < 10000000000000000 && formParams_1.isFree === false) {
-          alert('價格至少0.01 ETH!');
+          alert(t('價格至少0.01 ETH'));
           return;
         }
       }
-      disableButton();
-      updateMessage("正在添加章節至合約中...請稍後。")
+      disableAllButtons();
+      updateMessage(t('正在添加章節至合約中'))
 
       await handleGeneratePages();  // 等待合併圖片操作完成
       await handleFileReaderLoad();  // 等待計算 chapterHash 值操作完成
@@ -187,8 +195,7 @@ const CreateWork = (props) => {
         });
         console.log('chapter added successfully:', response.data);
 
-        alert('章節成功添加！');
-        enableButton();
+        enableAllButtons();
         updateMessage("");
         updateFormParams_1({title: '', price: ''});
         
@@ -199,27 +206,17 @@ const CreateWork = (props) => {
         console.error('章節內容添加至資料庫時發生錯誤：', error);
       }
     } catch (error) {
-      console.error('添加章節時發生錯誤：', error);
-      alert('添加章節時發生錯誤!' + error);
-      enableButton();
+      if (error.message.includes('User denied transaction signature')) {
+        alert(t('拒绝交易'));
+      } else {
+        console.error('添加章節時發生錯誤：', error);
+        alert(t('添加章節時發生錯誤') + error);
+      }
+      enableAllButtons();
       setShowChapterForm(true);
       updateMessage("");
     }
   };
-
-  async function disableButton() {
-    const listButton = document.getElementById("list-button")
-    listButton.disabled = true
-    listButton.style.backgroundColor = "grey";
-    listButton.style.opacity = 0.3;
-  }
-
-  async function enableButton() {
-      const listButton = document.getElementById("list-button")
-      listButton.disabled = false
-      listButton.style.backgroundColor = "#A500FF";
-      listButton.style.opacity = 1;
-  }
 
   // 處理單張圖片，資料驗證、預覽
   const handleFileInputChange = (event) => {
@@ -230,8 +227,8 @@ const CreateWork = (props) => {
     if (validateFileType(file)) {
       previewImage(file);
     } else {
-      alert("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
-      console.log("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
+      alert(t('文件類型不支持，請上傳...格式的圖片'));
+      console.log(t('文件類型不支持，請上傳...格式的圖片'));
       return -1;
     }
     setFiles(file);
@@ -252,8 +249,8 @@ const CreateWork = (props) => {
       if (validateFileType(file)) {
         previewImage(file);
       } else {
-        alert("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
-        console.log("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
+        alert(t('文件類型不支持，請上傳...格式的圖片'));
+        console.log(t('文件類型不支持，請上傳...格式的圖片'));
         return -1;
       }
     });
@@ -297,8 +294,8 @@ const CreateWork = (props) => {
       previewPromoCover(file);
       setCoverFile(file);
     } else {
-      alert("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
-      console.log("文件類型不支持，請上傳JPG、JPEG 或 PNG 格式的圖片。");
+      alert(t('文件類型不支持，請上傳...格式的圖片'));
+      console.log(t('文件類型不支持，請上傳...格式的圖片'));
       return -1;
     }
   };
@@ -363,14 +360,14 @@ const CreateWork = (props) => {
       const {category, title, description} = formParams;
       if( !category || !title || !description || file.length === 0)  // || 其中一個為true，即為true
       {
-        updateMessage("請填寫所有欄位！")
+        updateMessage(t('請填寫所有欄位'))
         return -1;
       }
     }else{
       const {title, price, isFree} = formParams_1;
       if (!comicHash || !title || (!formParams_1.isFree && !price) || file.length === 0)
       {
-        updateMessage("請填寫所有欄位！")
+        updateMessage(t('請填寫所有欄位'))
         return -1;
       }
     };
@@ -450,7 +447,7 @@ return (
           <div className="dot">1</div>
           <div className={`line ${stepCompleted ? 'bg-blue' : 'bg-gray'}`}></div>
         </div>
-        <div className="step-title">新增漫畫</div>
+        <div className="step-title">{t('新增漫畫')}</div>
       </div>
       <div className={`step-item ${!showChapterForm && !stepCompleted ? 'step-item-gray' : ''}`}>
         <div className="step-line">
@@ -458,7 +455,7 @@ return (
           <div className="dot">2</div>
           <div className={`line ${!showChapterForm && !stepCompleted ? 'bg-gray' : 'bg-blue'}`}></div>
         </div>
-        <div className="step-title">添加章節</div>
+        <div className="step-title">{t('添加章節')}</div>
       </div>
     </div>
     {showChapterForm ? (
@@ -466,13 +463,13 @@ return (
         <Form>
           <Form.Group as={Row} className='mb-3 label-container'>
             <Form.Label column sm={3} className='label-style col-form-label label-section'>
-                本章名稱
+                {t('本章名稱')}
             </Form.Label>
             <Col sm={9}>
               <Form.Control
                 type="text"
                 value={formParams_1.title}
-                placeholder="請輸入章節名稱"
+                placeholder={t('請輸入章節名稱')}
                 onChange={(e) => updateFormParams_1({ ...formParams_1, title: e.target.value })}
               />
             </Col>
@@ -480,13 +477,13 @@ return (
 
           <Form.Group as={Row} className='mb-2 label-container'>
             <Form.Label column sm={3} className='label-style col-form-label label-section'>
-              本章價格
+              {t('本章價格')}
             </Form.Label>
             <Col sm={9}>
               <Form.Control
                 type="number"
                 value={formParams_1.isFree ? '0' : formParams_1.price}  // 如果 isFree 為 true，顯示 '0'，否則顯示 formParams_1.price
-                placeholder="Min 0.01 ETH"
+                placeholder={t('至少 0.01 ETH')}
                 step="0.01"
                 disabled={formParams_1.isFree}  // 如果 isFree 為 true，則禁用輸入框
                 onChange={(e) => {
@@ -501,7 +498,7 @@ return (
           <Form.Group as={Row} className='mb-3'>
             <div style={{ display: 'flex' }}>
               <Form.Label column sm={3} className='label-style  '>
-                本章免費
+                {t('本章免費')}
               </Form.Label>
               <Form.Check
                 type="checkbox"
@@ -525,7 +522,7 @@ return (
                 className='label-style col-form-label'
                 style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}
               >
-                本章作品上傳
+                {t('本章作品上傳')}
               </Form.Label>
               <Form.Control
                 type="file"
@@ -580,7 +577,7 @@ return (
                     <>
                       <CardImage size={48} />
                       <div id="notimage2" className="hidden">
-                        上傳本章漫畫內容<br /><br />條漫：請上傳1整章圖檔<br />寬度：1200px、長度不限<br /><br />頁漫：請上傳多張圖檔<br />寬度：1200/張、長度：1600px
+                        {t('上傳本章漫畫內容')}<br /><br />{t('條漫：請上傳1整章圖檔')}<br />{t('寬度：1200px、長度不限')}<br /><br />{t('頁漫：請上傳多張圖檔')}<br />{t('寬度：1200/張、長度：1600px')}
                       </div>
                     </>
                   )}
@@ -590,7 +587,7 @@ return (
           </Form.Group>
 
           <div className="text-red-500 text-center">{message}</div>
-          <Button onClick={createChapter} id="list-button">確認上傳</Button>
+          <Button onClick={createChapter} id="list-button" data-backgroundcolor="#fff">{t('確認上傳')}</Button>
         </Form>
       </div>
     ) : (
@@ -598,7 +595,7 @@ return (
         <Form>
           <Form.Group as={Row} className='mb-3 label-container'>
               <Form.Label column sm={3} className='label-style label-section'>
-                漫畫名稱
+                {t('漫畫名稱')}
               </Form.Label>
               <Col sm={9}>
                 <Form.Control
@@ -611,7 +608,7 @@ return (
 
           <Form.Group as={Row} className='mb-3 label-container'>
             <Form.Label column sm={3} className='label-style label-section'>
-              漫畫類別
+              {t('漫畫類型')}
             </Form.Label>
             <Col sm={9}>
               <Form.Control
@@ -619,16 +616,16 @@ return (
                 className="form-select"
                 onChange={ChoseLevel}
               >
-                <option>請選擇漫畫類型</option>
+                <option>{t('請選擇漫畫類型')}</option>
                 {grading.map((name, index) => (
-                  <option key={index}>{name}</option>
+                  <option key={index} value={name}>{t(name)}</option>
                 ))}
               </Form.Control>
             </Col>
           </Form.Group>
 
           <Form.Group>
-            <Form.Label className='label-style mb-4 col-form-label'>漫畫簡介</Form.Label>
+            <Form.Label className='label-style mb-4 col-form-label'>{t('漫畫簡介')}</Form.Label>
             <Form.Control
               as="textarea"
               rows={5}
@@ -640,7 +637,7 @@ return (
           <Form.Group controlId="file-upload" className='pt-4'>
           <div style={{ display: 'flex' }}>
             <Form.Label className='label-style col-form-label' style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}>
-              漫畫封面
+              {t('漫畫封面')}
             </Form.Label>
             <Form.Control
               type="file"
@@ -661,7 +658,7 @@ return (
                 ) : (
                   <>
                     <CardImage size={48} />
-                    <div id="notimage" className="hidden">上傳漫畫封面</div>
+                    <div id="notimage" className="hidden">{t('上傳漫畫封面')}</div>
                   </>
                 )}
               </div>
@@ -671,7 +668,7 @@ return (
           <Form.Group controlId="file-upload" className='pt-4 pb-3'>
           <div style={{ display: 'flex' }}>
             <Form.Label className='label-style col-form-label' style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}>
-              漫畫橫向封面
+              {t('漫畫橫向封面')}
             </Form.Label>
             <Form.Control
               type="file"
@@ -692,7 +689,7 @@ return (
                 ) : (
                   <>
                     <CardImage size={48} />
-                    <div id="notimage2" className="hidden">上傳漫畫橫向封面</div>
+                    <div id="notimage2" className="hidden">{t('上傳漫畫橫向封面')}</div>
                   </>
                 )}
               </div>
@@ -700,7 +697,7 @@ return (
           </Form.Group>
 
           <div className="text-red-500 text-center">{message}</div>
-          <Button onClick={createComic} id="list-button">確認上傳</Button>
+          <Button onClick={createComic} id="list-button" data-backgroundcolor="#fff">{t('確認上傳')}</Button>
         </Form>
       </div>
     )}

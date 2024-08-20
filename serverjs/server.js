@@ -710,7 +710,7 @@ app.get('/api/messagePage', (req, res) => {
           LIMIT 1
         `;
         pool.query(sql, [comicID], (error, results) => {
-          updatedComics.push({comicHash: comicID, comicTitle: results[0].comicTitle, msg: '章節更新至：', chapterTitle: results[0].chapterTitle, filename: results[0].filename, newCreate: results[0].newCreate});
+          updatedComics.push({comicHash: comicID, comicTitle: results[0].comicTitle, chapterTitle: results[0].chapterTitle, filename: results[0].filename, newCreate: results[0].newCreate});
           completedQueries++;
           if (completedQueries === comicIDs.length) {
             res.json({ collectComic: updatedComics });
@@ -759,6 +759,254 @@ app.get('/api/nftMarket/records', (req, res) => {
       return res.json([]);
     }
     res.json(results);
+  });
+});
+
+
+app.get('/api/searchPage/LP', (req, res) => {
+  const query = `
+    SELECT category, description AS text, filename, protoFilename
+    FROM comics
+    WHERE create_timestamp = (
+        SELECT MAX(create_timestamp)
+        FROM comics AS sub
+        WHERE sub.category = comics.category AND sub.is_exist = 1
+    )
+      AND is_exist = 1
+    GROUP BY category, description, filename, protoFilename
+    ORDER BY (
+        SELECT COUNT(*)
+        FROM comics AS sub
+        WHERE sub.category = comics.category AND sub.is_exist = 1
+    ) DESC
+    LIMIT 4;
+  `;
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching latest records by category: ', error);
+      return res.status(500).json({ message: 'Error fetching latest records by category' });
+    }
+    res.json(results.length ? results : []);
+  });
+});
+
+
+app.get('/api/searchPage/Keyword', (req, res) => {
+  const searchTerm = req.query.term;
+  const query = `
+    SELECT title, description AS text, comic_id, filename, protoFilename
+    FROM comics
+    WHERE is_exist = 1 AND (
+      creator LIKE ? OR
+      title LIKE ? OR
+      description LIKE ? OR
+      category LIKE ?
+    )
+  `;
+  const searchTermPattern = `%${searchTerm}%`;
+  pool.query(query, [searchTermPattern, searchTermPattern, searchTermPattern, searchTermPattern], (error, results) => {
+    if (error) {
+      console.error('Error fetching keyword results: ', error);
+      return res.status(500).json({ message: 'Error fetching keyword results' });
+    }
+    res.json(results);
+  });
+});
+
+
+app.get('/api/rankingList/top10', (req, res) => {
+  const query = `
+      SELECT 
+          comics.comic_id, comics.creator, comics.title, comics.description, comics.filename,
+          COUNT(CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL THEN 1 END) AS totHearts,
+          COALESCE(purchase_stats.purchase_count, 0) AS totBuy,
+          COUNT(CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL THEN 1 END) + COALESCE(purchase_stats.purchase_count, 0) AS total
+      FROM 
+          comics
+      LEFT JOIN 
+          user ON JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL
+      LEFT JOIN (
+          SELECT 
+              comic_id,
+              COUNT(*) AS purchase_count
+          FROM 
+              records
+          WHERE 
+              EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND comics.is_exist = 1)
+          GROUP BY 
+              comic_id
+      ) AS purchase_stats ON purchase_stats.comic_id = comics.comic_id
+      WHERE 
+          comics.is_exist = 1
+      GROUP BY 
+          comics.comic_id
+      ORDER BY 
+          total DESC
+      LIMIT 10
+  `;
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching rankingList: ', error);
+      return res.status(500).json({ message: 'Error fetching rankingList' });
+    }
+    res.json(results.length ? results : []);
+  });
+});
+
+
+app.get('/api/rankingList/purRank', (req, res) => {
+  const query = `
+      SELECT 
+          c.comic_id, c.creator, c.title, c.description, c.filename,
+          COALESCE(purchase_stats.purchase_count, 0) AS totBuy
+      FROM 
+          comics c
+      LEFT JOIN (
+          SELECT 
+              comic_id,
+              COUNT(*) AS purchase_count
+          FROM 
+              records
+          WHERE 
+              EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND is_exist = 1)
+          GROUP BY 
+              comic_id
+      ) AS purchase_stats ON purchase_stats.comic_id = c.comic_id
+      WHERE 
+          c.is_exist = 1
+      ORDER BY 
+          totBuy DESC
+      LIMIT 10
+  `;
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching rankingList: ', error);
+      return res.status(500).json({ message: 'Error fetching rankingList' });
+    }
+    res.json(results.length ? results : []);
+  });
+});
+
+
+app.get('/api/rankingList/favoriteRank', (req, res) => {
+  const query = `
+      SELECT 
+          comics.comic_id, comics.creator, comics.title, comics.description, comics.filename,
+          COUNT(CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL THEN 1 END) AS totHearts
+      FROM 
+          comics
+      LEFT JOIN 
+          user ON JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL
+      WHERE 
+          comics.is_exist = 1
+      GROUP BY 
+          comics.comic_id
+      ORDER BY 
+          totHearts DESC
+      LIMIT 10
+  `;
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching rankingList: ', error);
+      return res.status(500).json({ message: 'Error fetching rankingList' });
+    }
+    res.json(results.length ? results : []);
+  });
+});
+
+
+app.get('/api/rankingList/weekRank', (req, res) => {
+  const query = `
+      SELECT 
+          comics.comic_id, comics.creator, comics.title, comics.description, comics.filename,
+          COALESCE(purchase_stats.purchase_count, 0) AS totBuy
+      FROM 
+          comics
+      LEFT JOIN (
+          SELECT 
+              comic_id,
+              COUNT(*) AS purchase_count
+          FROM 
+              records
+          WHERE 
+              purchase_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+              AND EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND comics.is_exist = 1)
+          GROUP BY 
+              comic_id
+      ) AS purchase_stats ON purchase_stats.comic_id = comics.comic_id
+      WHERE 
+          comics.is_exist = 1
+      GROUP BY 
+          comics.comic_id
+      ORDER BY 
+          totBuy DESC
+      LIMIT 10
+  `;
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching rankingList: ', error);
+      return res.status(500).json({ message: 'Error fetching rankingList' });
+    }
+    res.json(results.length ? results : []);
+  });
+});
+
+
+app.get('/api/rankingList/newRank', (req, res) => {
+  const query = `
+      SELECT 
+          comic_id, creator, title, description, filename
+      FROM 
+          comics
+      WHERE 
+          is_exist = 1
+      ORDER BY 
+          create_timestamp DESC
+      LIMIT 10
+  `;
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching rankingList:', error);
+      return res.status(500).json({ message: 'Error fetching rankingList' });
+    }
+    res.json(results);
+  });
+});
+
+
+app.get('/api/comicManagement/isAdmin', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const query = `
+      SELECT 
+          address
+      FROM 
+          user
+      WHERE 
+          is_admin = 1 AND address = ?
+  `;
+  pool.query(query, [currentAccount], (error, results) => {
+    if (error) {
+      console.error('Error fetching addresses:', error);
+      return res.status(500).json({ message: 'Error fetching addresses' });
+    }
+    if (results.length === 0) {
+      return res.json({ exists: false });
+    }
+    const allAddressesQuery = `
+        SELECT 
+            address
+        FROM 
+            user
+        WHERE 
+            is_admin = 1
+    `;
+    pool.query(allAddressesQuery, (error, allResults) => {
+      if (error) {
+        console.error('Error fetching all addresses:', error);
+        return res.status(500).json({ message: 'Error fetching all addresses' });
+      }
+      res.json({ exists: true, address: allResults });
+    });
   });
 });
 
@@ -1064,9 +1312,9 @@ app.put('/api/update/chapterData', upload.single('chapterIMG'), async (req, res)
 });
 
 
-// 更新漫畫存在狀態的路由
 app.put('/api/update/comicExist', async (req, res) => {
-  const { is_exist, comicHash } = req.body;
+  const comicHash = req.query.comicHash;
+  const is_exist = req.query.is_exist;
   try {
     const updateQuery = `UPDATE comics SET is_exist = ? WHERE comic_id = ?`;
     const queryResult = await new Promise((resolve, reject) => {
@@ -1081,6 +1329,48 @@ app.put('/api/update/comicExist', async (req, res) => {
     res.status(200).json({ message: 'comicExist updated successfully' });
   } catch (error) {
     console.error('Error updating comicExist:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.put('/api/update/addAdmin', async (req, res) => {
+  const address = req.query.address;
+  try {
+    const updateQuery = 'UPDATE user SET is_admin = 1 WHERE address = ?';
+    const queryResult = await new Promise((resolve, reject) => {
+      pool.query(updateQuery, [address.toLowerCase()], (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+    res.status(200).json({ message: 'addAdmin successfully' });
+  } catch (error) {
+    console.error('Error updating addAdmin:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.put('/api/update/removeAdmin', async (req, res) => {
+  const address = req.query.address;
+  try {
+    const updateQuery = 'UPDATE user SET is_admin = 0 WHERE address = ?';
+    const queryResult = await new Promise((resolve, reject) => {
+      pool.query(updateQuery, [address.toLowerCase()], (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+    res.status(200).json({ message: 'removeAdmin successfully' });
+  } catch (error) {
+    console.error('Error updating removeAdmin:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -24,12 +24,12 @@ module.exports = function override(config) {
       process: "process/browser",
       Buffer: ["buffer", "Buffer"],
     }),
-    // 如果將來需要再加入 CopyWebpackPlugin，可取消註解
-    // new CopyWebpackPlugin({
-    //   patterns: [
-    //     { from: path.resolve(__dirname, 'uploads'), to: 'uploads' } 
-    //   ]
-    // }),
+    // 添加 CopyWebpackPlugin 插件
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: path.resolve(__dirname, 'serverjs/uploads'), to: 'serverjs/uploads' } // 复制 uploads 文件夹
+      ]
+    }),
   ]);
 
   config.ignoreWarnings = [/Failed to parse source map/];

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Container, Row, Col, Button, Image } from 'react-bootstrap';
-import YesImage from '../image/Yes.png';
 
 const VerifySuccess = () => {
     const handleClick = () => {
@@ -13,7 +12,7 @@ const VerifySuccess = () => {
             <Row className="justify-content-center text-center w-100">
                 <Col xs={12} md={8}>
                     <Image 
-                    src={YesImage} 
+                    src="/Yes.png"
                     alt="圖片" 
                     fluid 
                     rounded 

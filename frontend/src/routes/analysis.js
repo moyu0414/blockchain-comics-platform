@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Container, Col, Row, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 import { formatDate, formatTime, sortByDatetime } from '../index.js';
 const website = process.env.REACT_APP_Website;
@@ -10,6 +12,7 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 
 function Analysis() {
     const [creatorLogArray, setCreatorLogArray] = useState([]);
+    const { t } = useTranslation();
     const currentAccount = localStorage.getItem("currentAccount");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // 每頁顯示的收益數量
@@ -65,7 +68,7 @@ function Analysis() {
     }, 0); // 初始值为 0
 
     if (totalPrice == 0) {
-        totalPrice = '目前無人購買'
+        totalPrice = t('目前無人購買')
     }
 
 
@@ -143,9 +146,9 @@ function Analysis() {
                         <Table size="sm">
                             <thead>
                                 <tr>
-                                    <th className='text-center fw-bold'>交易日期</th>
-                                    <th className='text-center fw-bold'>漫畫 / 章節</th>
-                                    <th className='text-center fw-bold'>收益</th>
+                                    <th className='text-center fw-bold'>{t('交易日期')}</th>
+                                    <th className='text-center fw-bold'>{t('漫畫 / 章節')}</th>
+                                    <th className='text-center fw-bold'>{t('收益')}</th>
                                 </tr>
                             </thead>
                             <tbody>

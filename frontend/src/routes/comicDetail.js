@@ -5,6 +5,8 @@ import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
 import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 import { sortByTimestamp, getTransactionTimestamp, disableAllButtons, enableAllButtons, initializeWeb3 } from '../index';
 const website = process.env.REACT_APP_Website;
@@ -18,12 +20,13 @@ function ComicDetail() {
     const [loading, setLoading] = useState(true);
     const [isFavorited, setIsFavorited] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const { t } = useTranslation();
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
     const fetchedData = [];
     const buttonData = [
-        '開始閱讀', '收藏'
+        t('開始閱讀'), t('收藏')
     ];
     let temp = [];
     let chapterInfo = [];
@@ -31,23 +34,21 @@ function ComicDetail() {
     const initData = async () => {
         try {
             const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
-            console.log(storedArray);
-
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].is_exist === 1) {
-                    const filename = storedArray[i].filename;
-                    let protoFilename;
-                    if (storedArray[i].protoFilename) {
-                        const protoResponse = await axios.get(`${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`, { responseType: 'blob', headers });
-                        protoFilename = URL.createObjectURL(protoResponse.data); 
-                    } else {
-                        const imageResponse = await axios.get(`${website}/api/comicIMG/${filename}`, { responseType: 'blob', headers });
-                        protoFilename = URL.createObjectURL(imageResponse.data);
-                    }
                     if (storedArray[i].comicID === comicID) {
+                        const filename = storedArray[i].filename;
+                        let protoFilename;
+                        if (storedArray[i].protoFilename) {
+                            const protoResponse = await axios.get(`${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`, { responseType: 'blob', headers });
+                            protoFilename = URL.createObjectURL(protoResponse.data); 
+                        } else {
+                            const imageResponse = await axios.get(`${website}/api/comicIMG/${filename}`, { responseType: 'blob', headers });
+                            protoFilename = URL.createObjectURL(imageResponse.data);
+                        }
                         let author;
                         if (storedArray[i].creator == currentAccount) {
-                            author = '您是本作品的創作者!';
+                            author = t('您是本作品的創作者');
                         } else {
                             author = storedArray[i].creator;
                         }
@@ -63,7 +64,7 @@ function ComicDetail() {
                     }
                 }
             }
-            console.log(temp);
+            //console.log(temp);
             setComic(temp);
 
             for (let i = 0; i < storedArray.length; i++) {
@@ -101,10 +102,10 @@ function ComicDetail() {
                 chapters = chapters.map((chapter, index) => {
                     let isBuying, price;
                     if (chapter.creator === currentAccount || chapter.isBuying !== null || chapter.price == 0) {
-                        isBuying = '閱讀';
-                        price = chapter.price == 0 ? '免費' : chapter.price;
+                        isBuying = t('閱讀');
+                        price = chapter.price == 0 ? t('免費') : chapter.price;
                     } else {
-                        isBuying = '購買';
+                        isBuying = t('購買');
                         price = chapter.price;
                     }
                     return {
@@ -152,36 +153,47 @@ function ComicDetail() {
     }, [comicID]);
 
     const handleFavoriteClick = async () => {
-        setIsFavorited(!isFavorited); // 切換收藏狀態
-        let data = chapters[chapters.length-1].create_timestamp;
-        try {
-            const response = await axios.put(`${website}/api/update/comicDetail/favorite`, null, {
-                headers: headers,
-                params: {
-                    currentAccount: currentAccount,
-                    comicHash: comic[0].comicHash,
-                    bool: !isFavorited,
-                    data: data
-                },
-            });
-        } catch (error) {
-            console.error('Error handleFavoriteClick', error);
+        const web3 = await initializeWeb3(t);
+        if (!web3) {
+            return;
+        }
+        const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
+        const accounts = await web3.eth.getAccounts();
+        if (accounts[0]) {
+            setIsFavorited(!isFavorited); // 切換收藏狀態
+            let data = chapters[chapters.length-1].create_timestamp;
+            try {
+                const response = await axios.put(`${website}/api/update/comicDetail/favorite`, null, {
+                    headers: headers,
+                    params: {
+                        currentAccount: currentAccount,
+                        comicHash: comic[0].comicHash,
+                        bool: !isFavorited,
+                        data: data
+                    },
+                });
+            } catch (error) {
+                console.error('Error handleFavoriteClick', error);
+            }
+        } else {
+            alert(t('請先登入以太坊錢包，才可以收藏'));
+            return;
         }
     };
 
     const handleReadClick = async () => {
-        const reading = chapters.find(chapter => chapter.isBuying === "閱讀");
+        const reading = chapters.find(chapter => chapter.isBuying === t('閱讀'));
         if (reading) {
             const readingProgress = localStorage.getItem("readingProgress");
             const readingArray = readingProgress ? JSON.parse(readingProgress) : {};
-            const exists = chapters.some(chapter => chapter.isBuying === "閱讀" && chapter.chapterID === readingArray[comicID]);
+            const exists = chapters.some(chapter => chapter.isBuying === t('閱讀') && chapter.chapterID === readingArray[comicID]);
             if (comicID in readingArray && exists === true) {  // 有購買紀錄
                 window.location.replace(`/comicRead/${comicID}/${readingArray[comicID]}`);
             } else {  // 免費閱讀
                 window.location.replace(`/comicRead/${comicID}/${reading.chapterID}`);
             }
         } else {
-            alert(`${comic[0].title}沒有提供免費試讀!\n您也尚未購買漫畫!`);
+            alert(`${comic[0].title} ${t('沒有提供免費試讀')}`);
         }
     };
 
@@ -263,12 +275,12 @@ function ComicDetail() {
         const chapter = currentChapters[chapterId]; // 使用傳遞進來的索引值來訪問章節資料
         const operationValue = chapter.isBuying;
 
-        if (operationValue === '閱讀') {
+        if (operationValue === t('閱讀')) {
         window.location.href = `/comicRead/${comicID}/${chapter.chapterID}`;
         } else {
         try {
             disableAllButtons();
-            const web3 = await initializeWeb3();
+            const web3 = await initializeWeb3(t);
             if (!web3) {
                 return;
             }
@@ -313,25 +325,29 @@ function ComicDetail() {
                             'api-key': API_KEY
                         }
                         });
-                        alert('章節購買成功！');
+                        alert(t('章節購買成功'));
                         const updatedChapters = [...currentChapters];
-                        updatedChapters[chapterId].isBuying = '閱讀'; // 更新章節的購買狀態
+                        updatedChapters[chapterId].isBuying = t('閱讀'); // 更新章節的購買狀態
                         setChapters(updatedChapters);
                     } catch (error) {
                         console.error('購買紀錄添加至資料庫時發生錯誤：', error);
                     }
                 } else {
                     console.log('餘額不足');
-                    alert('餘額不足');
+                    alert(t('餘額不足'));
                 }
             } else {
-                alert('請先登入以太坊錢包，再進行購買!!');
+                alert(t('請先登入以太坊錢包，再進行購買'));
                 return;
             }
         } catch (error) {
-            console.error('章節購買時發生錯誤：', error);
-            alert(error);
-            window.location.reload();
+            if (error.message.includes('User denied transaction signature')) {
+                alert(t('拒绝交易'));
+              } else {
+                console.error('章節購買時發生錯誤：', error);
+                alert(error);
+                window.location.reload();
+              }
         } finally {
             enableAllButtons();
         }
@@ -358,8 +374,8 @@ function ComicDetail() {
                     <Row className="pt-3 pb-3 btn-container justify-content-center">
                         {buttonData.map((label, idx) => (
                             <Col key={idx} xs={2} md={2} lg={2} className="pb-3 btn-section d-flex justify-content-center">
-                                <Button variant="outline-dark" className="custom-button" onClick={label === '收藏' ? handleFavoriteClick : handleReadClick}>
-                                    {label === '收藏' && (
+                                <Button variant="outline-dark" className="custom-button" onClick={label === t('收藏') ? handleFavoriteClick : handleReadClick} data-backgroundcolor="#fff">
+                                    {label === t('收藏') && (
                                         <>
                                             {isFavorited ? (
                                                 <HeartFill
@@ -387,7 +403,7 @@ function ComicDetail() {
                                 <React.Fragment key={index}>
                                     <h3 className="fw-bold">{comic.title}</h3>
                                     <p className="text-secondary">{comic.author}</p>
-                                    <p>最新章節：{comic.chapter}</p>
+                                    <p>{t('最新章節')}：{comic.chapter}</p>
                                     <p className="text-secondary">{comic.description}</p>
                                 </React.Fragment>
                             ))}
@@ -396,8 +412,8 @@ function ComicDetail() {
                     <Row className='pt-5 chapter-title-section'>
                         <Col>
                             <div className='d-flex justify-content-between align-items-center'>
-                                <h3 className='fw-bold mb-0'>章節目錄</h3>
-                                <p className='text-end mb-0'>查看全部章節</p>
+                                <h3 className='fw-bold mb-0'>{t('章節目錄')}</h3>
+                                <p className='text-end mb-0'>{t('查看全部章節')}</p>
                             </div>
                             <hr />
                         </Col>
@@ -408,7 +424,7 @@ function ComicDetail() {
                                 <tbody>
                                     {currentChapters.map((chapter, index) => (
                                         <tr key={index}>
-                                            <td className='text-center fw-bold'>第 {startIndex + index + 1} 章</td>
+                                            <td className='text-center fw-bold'>{t('第幾章', { chapter: startIndex + index + 1 })}</td>
                                             <td className='text-center'>{chapter.title}</td>
                                             <td className='text-center'>{chapter.price}</td>
                                             <td className='text-center'>
@@ -438,7 +454,7 @@ function ComicDetail() {
                         </Col>
                     </Row>
                     <Row>
-                        <h3 className="fw-bold">類似漫畫</h3>
+                        <h3 className="fw-bold">{t('類似漫畫')}</h3>
                     </Row>
                     <Row xs={1} md={2} className="g-4 pb-5">
                         {similComic.map((data, idx) => (
@@ -459,7 +475,7 @@ function ComicDetail() {
             )}
             {loading && (
                 <div className="loading-container">
-                    <div>頁面加載中，請稍後...</div>
+                    <div>{t('頁面加載中')}</div>
                 </div>
             )}
         </>

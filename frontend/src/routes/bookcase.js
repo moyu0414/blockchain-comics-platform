@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Card, Col, Row, Button, Figure,Tabs, Tab } from 'react-bootstrap';
 import './bootstrap.min.css';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
 const website = process.env.REACT_APP_Website;
@@ -10,6 +12,7 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 function Bookcase() {
     const [current, setCurrent] = useState([]);
     const [isBuying, setIsBuying] = useState(true);
+    const { t } = useTranslation();
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
     const readingProgress = localStorage.getItem("readingProgress");
@@ -78,11 +81,11 @@ function Bookcase() {
             <Container className='creatorPage'>
                 <Row className="pt-5 align-items-center">
                     <Col>
-                        <h3 className="fw-bold">我的書櫃</h3>
+                        <h3 className="fw-bold">{t('我的書櫃')}</h3>
                     </Col>
                 </Row>
                 <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" className="mb-3">
-                    <Tab eventKey="home" title="最近閱讀">
+                    <Tab eventKey="home" title={t('最近閱讀')}>
                         {isBuying &&
                             <Row xs={1} md={2} className="g-4 pb-5">
                                 {current
@@ -104,11 +107,11 @@ function Bookcase() {
                         }
                         {!isBuying &&
                             <div className="loading-container">
-                                <div>目前無購買漫畫，請重新刷新...</div>
+                                <div>{t('目前無購買漫畫，請重新刷新')}</div>
                             </div>
                         }
                     </Tab>
-                    <Tab eventKey="profile" title="最近購買">
+                    <Tab eventKey="profile" title={t('最近購買')}>
                         {isBuying &&
                             <Row xs={1} md={2} className="g-4 pb-5">
                                 {current.map((data, idx) => (
@@ -127,7 +130,7 @@ function Bookcase() {
                         }
                         {!isBuying &&
                             <div className="loading-container">
-                                <div>目前無購買漫畫，請重新刷新...</div>
+                                <div>{t('目前無購買漫畫，請重新刷新')}</div>
                             </div>
                         }
                     </Tab>
