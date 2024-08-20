@@ -15,6 +15,7 @@ import BottomNavbar from "./components/bottomNavbar";
 import Category from './routes/category';
 import ComicDetail from './routes/comicDetail';
 import ComicRead from './routes/comicRead';
+import ComicFlipRead from './routes/comicFlipRead';
 import ManageComic from './routes/manageComic';
 import Reader from './routes/reader';
 import Creator from './routes/creator';
@@ -60,7 +61,14 @@ const AppLayout = () => {
   const [accounts, setAccounts] = useState([]);
   const location = useLocation();
   const isComicReadPage = location.pathname.startsWith('/comicRead/');
+  const isComicFlipReadPage = location.pathname.startsWith('/comicFlipRead');
   const isSearchPage = location.pathname.startsWith('/searchPage');
+
+  console.log('isComicReadPage:', isComicReadPage); // 調試用
+  console.log('isComicFlipReadPage:', isComicFlipReadPage); // 調試用
+  console.log('isSearchPage:', isSearchPage);
+
+  const hideNavbar = isComicReadPage || isComicFlipReadPage || isSearchPage;
   const headers = {'api-key': API_KEY};
   // 處理登錄狀態的函數
   const handleLogin = () => {
@@ -93,9 +101,9 @@ const AppLayout = () => {
 
   return (
     <>
-      {isLoggedIn && !isSearchPage && !isComicReadPage && <Navigation accounts={accounts} setAccounts={setAccounts}/>}
+      {isLoggedIn && !hideNavbar && <Navigation accounts={accounts} setAccounts={setAccounts}/>}
       <Outlet />
-      {isLoggedIn && !isSearchPage && !isComicReadPage && <BottomNavbar />}
+      {isLoggedIn && !hideNavbar && <BottomNavbar />}
     </>
   );
 };
@@ -348,6 +356,9 @@ const router = createBrowserRouter([
       },{
         path: "/rankingList",
         element: <RankingList />,
+      },{
+        path: "/comicFlipRead",
+        element: <ComicFlipRead />,
       }
     ],
   },
