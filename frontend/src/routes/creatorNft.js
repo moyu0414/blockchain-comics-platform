@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Container, Card, Col, Row, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -14,6 +16,7 @@ function CreatorNft() {
     const [isSale, setIsSale] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // 每頁顯示的收益數量
+    const { t } = useTranslation();
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
 
@@ -99,7 +102,7 @@ function CreatorNft() {
         return lines.map(line => {
             const [name] = line.split(':');
             return {
-                name: name.trim(),
+                name: t(name.trim()),
             };
         });
     };
@@ -182,7 +185,7 @@ function CreatorNft() {
 
     const truncateTextForName = (text) => {
         const isChinese = (char) => /[\u4e00-\u9fa5]/.test(char);
-        const maxLength = text.split('').some(isChinese) ? 4 : 8;  // 中文4個字、英文8個字
+        const maxLength = text.split('').some(isChinese) ? 3 : 6;  // 中文3個字、英文6個字
         return truncateText(text, maxLength);
     };
 
@@ -192,11 +195,11 @@ function CreatorNft() {
             {!loading ? (
                 <Container className='creatorNft'>
                     <Row className='pt-5'>
-                        <h3 className="fw-bold">已發布NFT</h3>
+                        <h3 className="fw-bold">{t('已發行NFT')}</h3>
                     </Row>
                     {!beingNFT &&  
                         <Row className='pt-5 justify-content-center'>
-                            <h1 className="fw-bold text-center">目前尚未鑄造NFT!</h1>
+                            <h1 className="fw-bold text-center">{t('目前尚未鑄造NFT')}</h1>
                         </Row>
                     }
                     <Row className='pt-1 pb-5'>
@@ -216,11 +219,11 @@ function CreatorNft() {
                         ))}
                     </Row>
                     <Row>
-                        <h3 className="fw-bold">NFT交易情形</h3>
+                        <h3 className="fw-bold">{t('NFT交易情形')}</h3>
                     </Row>
                     {!isSale &&
                         <Row className='pt-5 justify-content-center'>
-                            <h1 className="fw-bold text-center">目前無人購買NFT!</h1>
+                            <h1 className="fw-bold text-center">{t('目前無人購買NFT')}</h1>
                         </Row>
                     }
                     <Row className='justify-content-center'>
@@ -229,9 +232,9 @@ function CreatorNft() {
                                 <thead>
                                     <tr>
                                         <th className='text-center fw-bold'>tokenId</th>
-                                        <th className='text-center fw-bold'>名稱</th>
-                                        <th className='text-center fw-bold'>收益</th>
-                                        <th className='text-center fw-bold'>詳情</th>
+                                        <th className='text-center fw-bold'>{t('名稱')}</th>
+                                        <th className='text-center fw-bold'>{t('收益')}</th>
+                                        <th className='text-center fw-bold'>{t('詳情')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -242,7 +245,7 @@ function CreatorNft() {
                                             <td className='text-center'>{data.price}</td>
                                             <td className='text-center'>
                                                 <Link to={`/nftDetail/tokenId${data.tokenId}`}>
-                                                    <button className="btn">詳情</button>
+                                                    <button className="btn">{t('詳情')}</button>
                                                 </Link>
                                             </td>
                                         </tr>
@@ -273,7 +276,7 @@ function CreatorNft() {
                 </Container>
             ) : (
                 <div className="loading-container">
-                    <div>頁面加載中，請稍後...</div>
+                    <div>{t('頁面加載中')}</div>
                 </div>
             )}
         </>

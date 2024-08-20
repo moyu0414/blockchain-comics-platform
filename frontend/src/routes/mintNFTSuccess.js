@@ -5,7 +5,6 @@ import './bootstrap.min.css';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
 import Cover from '../image/1_春風化雨/封面.jpg';
-import EmojiImage from '../image/Emoji.png';
 const website = process.env.REACT_APP_Website;
 
 function MintNFTSuccess() {
@@ -109,7 +108,7 @@ function MintNFTSuccess() {
                         <Row className="justify-content-center text-center w-100">
                             <Col xs={12} md={8}>
                                 <Image 
-                                src={EmojiImage} 
+                                src="/Emoji.png"
                                 alt="圖片" 
                                 fluid 
                                 rounded 

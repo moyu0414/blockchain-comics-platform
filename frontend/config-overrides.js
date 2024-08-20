@@ -27,7 +27,7 @@ module.exports = function override(config) {
     // 添加 CopyWebpackPlugin 插件
     new CopyWebpackPlugin({
       patterns: [
-        { from: path.resolve(__dirname, 'uploads'), to: 'uploads' } // 复制 uploads 文件夹
+        { from: path.resolve(__dirname, 'serverjs/uploads'), to: 'serverjs/uploads' } // 复制 uploads 文件夹
       ]
     }),
   ]);

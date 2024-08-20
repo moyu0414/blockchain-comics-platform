@@ -5,7 +5,9 @@ import {
   createBrowserRouter,
   RouterProvider
 } from "react-router-dom";
-import Home from './routes/Home';
+import { useTranslation } from 'react-i18next';
+import i18n from './i18n';
+//import Home from './routes/Home';
 import HomePage from './routes/homePage';
 import Navbar from "./components/Navbar";
 import Navigation from "./components/navigation";
@@ -36,6 +38,7 @@ import ChapterManagement from './routes/chapterManagement';
 import SelectChapter from './routes/selectChapter';
 import ReaderChapter from './routes/reader_Chapter';
 import Reading from './routes/reading';
+import RankingList from './routes/rankingList';
 import TransactionHistory from './routes/transactionHistory';
 import PurchaseHistory from './routes/purchaseHistory';
 import ComicManagement from './routes/comicManagement';
@@ -79,9 +82,9 @@ const AppLayout = () => {
       })
       .catch(error => {
         console.error('Error fetching comics: ', error);
-      });   
+      });
     }
-      
+
     initialData();
 
     // 處理登錄狀態
@@ -180,30 +183,44 @@ const enableAllButtons = () => {
   const buttons = document.querySelectorAll(".btn");
   buttons.forEach(button => {
     button.disabled = false;
-    button.style.backgroundColor = "#F6B93B";
+    const buttonDataColor = button.getAttribute("data-backgroundColor");
+    button.style.backgroundColor = buttonDataColor || "#F6B93B";
     button.style.opacity = 1;
   });
 };
 
-const detectEthereumProvider = () => {
+
+const detectEthereumProvider = (t) => {
   if (window.ethereum) {
-      return window.ethereum;
+    return window.ethereum;
   } else if (window.web3) {
-      return window.web3.currentProvider;
+    return window.web3.currentProvider;
   } else {
-      console.log("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
-      alert("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
-      return null;
+    console.log("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
+    alert(t('非以太坊瀏覽器')); // 使用传入的翻译函数
+    return null;
   }
 };
 
-const initializeWeb3 = async () => {
-  const provider = detectEthereumProvider();
+
+const initializeWeb3 = async (t) => {
+  const provider = detectEthereumProvider(t);
   if (provider) {
       const web3 = new Web3(provider);
       return web3;
   }
   return null;
+};
+
+
+// translation 的 key 找 value
+const getTranslationKey = (value, language) => {
+  const translations = i18n.getResourceBundle(language, 'translation');
+  const reversedTranslations = Object.entries(translations).reduce((acc, [key, val]) => {
+      acc[val] = key;
+      return acc;
+  }, {});
+  return reversedTranslations[value] || null;
 };
 
 
@@ -213,7 +230,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Home />,
+        element: <HomePage />,
       },
       {
         path: "/reader",
@@ -259,9 +276,6 @@ const router = createBrowserRouter([
       },{
         path: "/accountManagement",
         element: <AccountManagement />,
-      },{
-        path: "/homePage",
-        element: <HomePage />,
       },{
         path: "/category",
         element: <Category />,
@@ -331,6 +345,9 @@ const router = createBrowserRouter([
       },{
         path: "/editSuccess",
         element: <EditSuccess />,
+      },{
+        path: "/rankingList",
+        element: <RankingList />,
       }
     ],
   },
@@ -341,4 +358,4 @@ createRoot(document.getElementById("root")).render(
   <RouterProvider router={router} />
 );
 
-export { formatDate, formatTime, sortByTimestamp, sortByDatetime, getTransactionTimestamp, disableAllButtons, enableAllButtons, detectEthereumProvider, initializeWeb3 };
+export { formatDate, formatTime, sortByTimestamp, sortByDatetime, getTransactionTimestamp, disableAllButtons, enableAllButtons, detectEthereumProvider, initializeWeb3, getTranslationKey };

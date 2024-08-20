@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { Container, Col, Row, Image, Button } from 'react-bootstrap';
 import './bootstrap.min.css';
-import EmojiImage from '../image/Emoji.png';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -10,6 +11,7 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 function EditSuccess() {
     const [comic, setComic] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { t } = useTranslation();
     const editComicData = localStorage.getItem("editComicData");
     const editArray = JSON.parse(editComicData);
     const currentAccount = localStorage.getItem("currentAccount");
@@ -88,24 +90,24 @@ function EditSuccess() {
                         <Row className="justify-content-center text-center w-100">
                             <Col xs={12} md={8}>
                                 <Image 
-                                src={EmojiImage} 
+                                src="/Emoji.png"
                                 alt="圖片" 
                                 fluid 
                                 rounded 
                                 className="mb-4" 
                             />
                             <div className="mb-3">
-                                <h4>漫畫編輯成功！</h4>
+                                <h4>{t('漫畫編輯成功')}</h4>
                             </div>
-                            <Button onClick={handleCreator} style={{marginRight: "15px"}}>創作者專區</Button>
-                            <Button onClick={handleMGMT}>漫畫管理</Button>
+                            <Button onClick={handleCreator} style={{marginRight: "15px"}}>{t('創作者專區')}</Button>
+                            <Button onClick={handleMGMT}>{t('管理漫畫')}</Button>
                             </Col>
                         </Row>
                     </Container>
                 }
                 {loading &&  
                     <div className="loading-container">
-                        <div>頁面加載中，請稍後...</div>
+                        <div>{t('頁面加載中')}</div>
                     </div>
                 }
             </div>

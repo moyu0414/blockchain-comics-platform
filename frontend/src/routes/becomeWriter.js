@@ -1,6 +1,5 @@
 import React from 'react';
 import { Container, Row, Col, Button, Image } from 'react-bootstrap';
-import HandImage from '../image/hand.png';
 
 const BecomeWriter = () => {
   const handleClick = () => {
@@ -12,7 +11,7 @@ const BecomeWriter = () => {
       <Row className="justify-content-center text-center w-100">
         <Col xs={12} md={8}>
             <Image 
-            src={HandImage} 
+            src="/hand.png"
             alt="示範圖片" 
             fluid 
             rounded 

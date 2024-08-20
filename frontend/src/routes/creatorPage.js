@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { Container, Card, Col, Row, Button, Figure, Dropdown } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel, CartFill } from 'react-bootstrap-icons';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
-import { sortByTimestamp } from '../index';
+import { sortByTimestamp, initializeWeb3 } from '../index';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
@@ -23,51 +25,68 @@ const CustomToggle = React.forwardRef(({ onClick }, ref) => (
 
 function CreatorPage() {
     const [comic, setComic] = useState([]);
-    const [selectedCategory, setSelectedCategory] = useState('已經發布');
+    const [isButtonEnabled, setIsButtonEnabled] = useState(false);
+    const [currentAccount, setCurrentAccount] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const { t } = useTranslation();
+    const [selectedCategory, setSelectedCategory] = useState(t('已經發布'));
     const storedArrayJSON = localStorage.getItem('comicDatas');
-    const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
     let temp = [];
 
-    const initData = async () => {
-        try {
-            const storedArray = JSON.parse(storedArrayJSON);
-            for (let i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].is_exist === 1) {
-                    const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
-                    const image = URL.createObjectURL(imageResponse.data);
-                    if (storedArray[i].creator == currentAccount) {
-                        temp.push({
-                            comicHash: storedArray[i].comic_id,
-                            comicID: storedArray[i].comicID,
-                            title: storedArray[i].title,
-                            category: storedArray[i].category,
-                            image: image
-                        });
-                    }
-                }
-            }
-            console.log(temp);
-            setComic(temp);
-
-        } catch (error) {
-            console.error('Error initializing contract:', error);
-        }
-    };
-
     useEffect(() => {
-        initData();
-    }, [currentAccount]);
+        const checkAccount = async () => {
+            const web3 = await initializeWeb3(t);
+            if (web3) {
+                const accounts = await web3.eth.getAccounts();
+                let account = accounts[0];
+                if (account) {
+                    try {
+                        account = account.toLowerCase();
+                        setCurrentAccount(account);
+                        const storedArray = JSON.parse(storedArrayJSON);
+                        for (let i = 0; i < storedArray.length; i++) {
+                            if (storedArray[i].is_exist === 1) {
+                                const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
+                                const image = URL.createObjectURL(imageResponse.data);
+                                if (storedArray[i].creator == account) {
+                                    temp.push({
+                                        comicHash: storedArray[i].comic_id,
+                                        comicID: storedArray[i].comicID,
+                                        title: storedArray[i].title,
+                                        category: t(storedArray[i].category),
+                                        image: image
+                                    });
+                                }
+                            }
+                        }
+                        console.log(temp);
+                        setComic(temp);
+                        setIsButtonEnabled(true);
+                        setLoading(false);
+                    } catch (error) {
+                        console.error('Error initializing contract:', error);
+                    }
+                } else {
+                    alert(t('請先登入以太坊錢包，才開放創作者專區'));
+                    setLoading(false);
+                }
+            } else {
+                setLoading(false);
+            }
+        };
+        checkAccount();
+    }, []);
 
     const buttonData = [
-        '收益分析', '已發行NFT', '管理漫畫', '新增漫畫',
+        t('收益分析'), t('已發行NFT'), t('管理漫畫'), t('新增漫畫'),
     ];
 
     const pathMap = {
-        '收益分析': '/analysis',
-        '已發行NFT': '/creatorNft',
-        '管理漫畫': '/manageComic',
-        '新增漫畫': '/createWork'
+        [t('收益分析')]: '/analysis',
+        [t('已發行NFT')]: '/creatorNft',
+        [t('管理漫畫')]: '/manageComic',
+        [t('新增漫畫')]: '/createWork'
     };
     
     const comicCategory = () => {
@@ -83,7 +102,7 @@ function CreatorPage() {
             return countB - countA; // 按數量從多到少排序
         });
         setComic(sortedComics);
-        setSelectedCategory('漫畫類型');
+        setSelectedCategory(t('漫畫類型'));
     };
 
     const popPurchase = async () => {
@@ -110,7 +129,7 @@ function CreatorPage() {
             });
             //console.log(updatedData);
             setComic(updatedData);
-            setSelectedCategory('人氣購買');
+            setSelectedCategory(t('人氣購買'));
         } catch (error) {
             console.error('Error fetching records:', error);
         }
@@ -137,7 +156,7 @@ function CreatorPage() {
             return timestampB - timestampA;
             });
             setComic(sortedComics);
-            setSelectedCategory('最近更新');
+            setSelectedCategory(t('最近更新'));
         } catch (error) {
             console.error('Error fetching records:', error);
         }
@@ -146,6 +165,7 @@ function CreatorPage() {
 
     return (
         <>
+        {!loading &&
             <Container className='creatorPage'>
                 <Row className="pt-5">
                     <Figure>
@@ -156,12 +176,18 @@ function CreatorPage() {
                         />
                     </Figure>
                 </Row>
-                <h3><center>創作者專區</center></h3>
+                <h3><center>{t('創作者專區')}</center></h3>
                 <Row className="pt-2 pb-3 btn-container justify-content-center w-100">
                     {buttonData.map((label, idx) => (
                         <Col key={idx} xs={6} sm={6} md={3} lg={1} className="pb-3 btn-section">
-                            <Link to={pathMap[label]}>
-                                <Button variant="outline-dark" className="custom-button">{label}</Button>
+                            <Link to={isButtonEnabled ? pathMap[label] : '#'}>
+                                <Button
+                                    variant={isButtonEnabled ? "outline-dark" : "outline-secondary"}
+                                    className="custom-button"
+                                    disabled={!isButtonEnabled} // 禁用按钮
+                                >
+                                    {label}
+                                </Button>
                             </Link>
                         </Col>
                     ))}
@@ -174,9 +200,9 @@ function CreatorPage() {
                         <Dropdown>
                             <Dropdown.Toggle as={CustomToggle} />
                             <Dropdown.Menu>
-                                <Dropdown.Item onClick={comicCategory}>漫畫類型</Dropdown.Item>
-                                <Dropdown.Item onClick={popPurchase}>人氣購買</Dropdown.Item>
-                                <Dropdown.Item onClick={updateChapter}>最近更新</Dropdown.Item>
+                                <Dropdown.Item onClick={comicCategory}>{t('漫畫類型')}</Dropdown.Item>
+                                <Dropdown.Item onClick={popPurchase}>{t('人氣購買')}</Dropdown.Item>
+                                <Dropdown.Item onClick={updateChapter}>{t('最近更新')}</Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>
                     </Col>
@@ -199,6 +225,12 @@ function CreatorPage() {
                     ))}
                 </Row>
             </Container>
+        }
+        {loading &&  
+            <div className="loading-container">
+                <div>{t('頁面加載中')}</div>
+            </div>
+        }
         </>
     );
 }

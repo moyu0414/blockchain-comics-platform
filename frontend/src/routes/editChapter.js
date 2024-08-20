@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from "react-router-dom";
 import { Container, Col, Row, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
 import './bootstrap.min.css';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import axios from 'axios';
 import { sortByTimestamp } from '../index';
 const website = process.env.REACT_APP_Website;
@@ -12,6 +14,7 @@ function EditChapter() {
     const [chapters, setChapters] = useState([]);
     const { comicID } = useParams();
     const [loading, setLoading] = useState(true);
+    const { t } = useTranslation();
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
@@ -27,19 +30,10 @@ function EditChapter() {
                     const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
                     const image = URL.createObjectURL(imageResponse.data);
                     if (storedArray[i].comicID === comicID) {
-                        let author;
-                        if (storedArray[i].creator == currentAccount) {
-                            author = '您是本作品的創作者!';
-                        } else {
-                            author = storedArray[i].creator;
-                        }
                         temp.push({
                             comicHash: storedArray[i].comic_id,
                             comicID: storedArray[i].comicID,
                             title: storedArray[i].title,
-                            description: storedArray[i].description,
-                            author: author,
-                            category: storedArray[i].category,
                             image: image,
                         });
                     }
@@ -180,8 +174,8 @@ function EditChapter() {
                         <Row className='pt-4 chapter-title-section'>
                             <Col className=''>
                                 <div className='d-flex justify-content-between align-items-center'>
-                                    <h3 className='fw-bold mb-0'>章節目錄</h3>
-                                    <p className='text-end mb-0'>查看全部章節</p>
+                                    <h3 className='fw-bold mb-0'>{t('章節目錄')}</h3>
+                                    <p className='text-end mb-0'>{t('查看全部章節')}</p>
                                 </div>
                                 <hr/>
                             </Col>
@@ -192,7 +186,7 @@ function EditChapter() {
                                     <tbody>
                                         {currentChapters.map((chapter, index) => (
                                             <tr key={index}>
-                                                <td className='text-center fw-bold'>第 {startIndex + index + 1} 章</td>
+                                                <td className='text-center fw-bold'>{t('第幾章', { chapter: startIndex + index + 1 })}</td>
                                                 <td className='text-center'>{chapter.title}</td>
                                                 <td className='text-center'>{chapter.price}</td>
                                                 <td className='text-center'>
@@ -204,7 +198,7 @@ function EditChapter() {
                                                             chapterID: chapters.length > 0 ? chapter.chapterID : null
                                                         }}
                                                     >
-                                                        <button className="btn">編輯</button>
+                                                        <button className="btn">{t('編輯')}</button>
                                                     </Link>
                                                 </td>
                                             </tr>
@@ -235,7 +229,7 @@ function EditChapter() {
                 }
                 {loading &&  
                     <div className="loading-container">
-                        <div>頁面加載中，請稍後...</div>
+                        <div>{t('頁面加載中')}</div>
                     </div>
                 }
             </div>
