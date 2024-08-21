@@ -131,7 +131,7 @@ const ComicRead = () => {
 
                 for (var i = 0; i < records.length; i++) {
                     if (records[i].chapterID === chapterID && records[i].isBuying === t('閱讀')) {
-                        const chapterResponse = await axios.get(`${website}/api/chapterIMG/${records[i].filename}`, { responseType: 'blob', headers });
+                        const chapterResponse = await axios.get(`${website}/api/chapterIMG/${records[i].filename}`, { responseType: 'blob', headers: headers });
                         const image = URL.createObjectURL(chapterResponse.data);
                         read.push({
                         chapterTitle: records[i].chapterTitle,
