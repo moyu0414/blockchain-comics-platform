@@ -39,19 +39,21 @@ function NftMarket() {
             const response = await axios.get(`${website}/api/nftMarket/records`, { headers });
             let nftData = response.data;
             nftData.forEach(item => {
-                const keyData = `${item.comicHash}-${item.price}-${item.royalty}-${item.description || ""}`;
-                const updatedRecord = {
-                    ...item, // 保留原有属性
-                    isFanCreation: item.forSale ? t('原創') : t('轉售'), // 添加新属性
-                    keyData
-                };
-                allRecord.push(updatedRecord);
-                if (!comicStats[keyData]) {
-                    comicStats[keyData] = { tot: 0, sale: 0 };
-                }
-                comicStats[keyData].tot += 1;
-                if (item.forSale === 0) { // 已售出的 NFT
-                    comicStats[keyData].sale += 1;
+                if (item.forSale === 1) {
+                    const keyData = `${item.comicHash}-${item.price}-${item.royalty}-${item.description || ""}`;
+                    const updatedRecord = {
+                        ...item, // 保留原有属性
+                        isFanCreation: item.minter === item.owner ? t('原創') : t('轉售'), // 添加新属性
+                        keyData
+                    };
+                    allRecord.push(updatedRecord);
+                    if (!comicStats[keyData]) {
+                        comicStats[keyData] = { tot: 0, sale: 0 };
+                    }
+                    comicStats[keyData].tot += 1;
+                    if (item.forSale === 0) { // 已售出的 NFT
+                        comicStats[keyData].sale += 1;
+                    }
                 }
             });
             const keyhMap = allRecord.map(record => ({
@@ -151,10 +153,11 @@ function NftMarket() {
                             <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                 <Card className="effect-image-1">
                                     <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                    <div className="nftMarket-overlay-owner">{data.saleQty}/{data.totQty}</div>
-                                    <div className="nftMarket-overlay">{truncateTextForName(data.names[0])}</div>
+                                    <div className="nftMarket-overlay" style={{justifyContent: 'center'}}>{data.saleQty}/{data.totQty}
+                                        <span>{data.names[0]}</span>
+                                    </div>
                                     <Card.Body className="simple-text">
-                                        <Card.Text>{data.title}</Card.Text>
+                                        <Card.Text className="nftMarket-text">{data.title}</Card.Text>
                                     </Card.Body>
                                 </Card>
                             </Link>
@@ -180,10 +183,11 @@ function NftMarket() {
                                     <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                         <Card className="effect-image-1">
                                             <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                            <div className="nftMarket-overlay-owner">{truncateLastText(data.owner, 4)}</div>
-                                            <div className="nftMarket-overlay">{truncateTextForName(data.names[0])}</div>
+                                            <div className="nftMarket-overlay">{truncateLastText(data.owner, 4)}
+                                                <span>{data.names[0]}</span>
+                                            </div>
                                             <Card.Body className="simple-text">
-                                                <Card.Text>{data.title}</Card.Text>
+                                                <Card.Text className="nftMarket-text">{data.title}</Card.Text>
                                             </Card.Body>
                                         </Card>
                                     </Link>
@@ -198,10 +202,11 @@ function NftMarket() {
                                     <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                     <Card className="effect-image-1">
                                         <Card.Img src={data.image} alt={`image-${index + 1}`} />
-                                        <div className="nftMarket-overlay-owner">{truncateLastText(data.owner, 4)}</div>
-                                        <div className="nftMarket-overlay">{truncateTextForName(data.names[0])}</div>
+                                        <div className="nftMarket-overlay">{truncateLastText(data.owner, 4)}
+                                            <span>{data.names[0]}</span>
+                                        </div>
                                         <Card.Body className="simple-text">
-                                        <Card.Text>{data.title}</Card.Text>
+                                        <Card.Text className="nftMarket-text">{data.title}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                     </Link>
@@ -211,19 +216,22 @@ function NftMarket() {
                     </Tab>
                     <Tab eventKey="resale" title={t('轉售')}>
                         <Row className='pt-1 pb-5'>
-                            {comic.filter(data => data.isFanCreation === t('轉售')).map((data, index) => (
-                                <Col key={index} xs={6} md={3} className="pt-3">
-                                    <Link to={`/nftDetail/tokenId${data.tokenId}`}>
-                                    <Card className="effect-image-1">
-                                        <Card.Img src={data.image} alt={`image-${index + 1}`} />
-                                        <div className="nftMarket-overlay-owner">{truncateLastText(data.owner, 4)}</div>
-                                        <div className="nftMarket-overlay">{truncateTextForName(data.names[0])}</div>
-                                        <Card.Body className="simple-text">
-                                        <Card.Text>{data.title}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
-                                    </Link>
-                                </Col>
+                            {comic
+                                .filter(data => data.isFanCreation === t('轉售'))
+                                .map((data, index) => (
+                                    <Col key={index} xs={6} md={3} className="pt-3">
+                                        <Link to={`/nftDetail/tokenId${data.tokenId}`}>
+                                        <Card className="effect-image-1">
+                                            <Card.Img src={data.image} alt={`image-${index + 1}`} />
+                                            <div className="nftMarket-overlay">{truncateLastText(data.owner, 4)}
+                                                <span>{data.names[0]}</span>
+                                            </div>
+                                            <Card.Body className="simple-text">
+                                            <Card.Text className="nftMarket-text">{data.title}</Card.Text>
+                                            </Card.Body>
+                                        </Card>
+                                        </Link>
+                                    </Col>
                             ))}
                         </Row>
                     </Tab>

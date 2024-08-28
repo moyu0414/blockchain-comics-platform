@@ -43,19 +43,19 @@ function ReaderPage() {
 
     const buttonData = [
         { label: t('我的書櫃'), icon: <Book /> },
-        { label: t('漫畫收藏'), icon: <Heart /> },
         { label: t('我的購買'), icon: <FileEarmarkText /> },
-        { label: t('我的訊息'), icon: <Envelope /> },
+        { label: t('漫畫收藏'), icon: <Heart /> },
         { label: t('NFT收藏'), icon: <CardImage /> },
+        { label: t('我的訊息'), icon: <Envelope /> },
         { label: t('成為作家'), icon: <VectorPen /> }
     ];
 
     const pathMap = {
         [t('我的書櫃')]: '/bookcase',
-        [t('漫畫收藏')]: '/collectionPage',
         [t('我的購買')]: '/purchaseHistory',
-        [t('我的訊息')]: '/messagePage',
+        [t('漫畫收藏')]: '/collectionPage',
         [t('NFT收藏')]: '/collectionNft',
+        [t('我的訊息')]: '/messagePage',
         [t('成為作家')]: '/becomeWriter'
     };
     

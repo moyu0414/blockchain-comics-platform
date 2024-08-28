@@ -108,7 +108,7 @@ const MintNFT = (props) => {
       const { allSuccess, failedTokenIds } = await postNFTDataInBatches(tokenIds, {
         comicHash: NFTData.comicHash,
         minter: currentAccount,
-        price: NFTData.price,
+        price: JSON.stringify({ "1": NFTData.price }),
         description: NFTData.description,
         forSale: 1,
         royalty: NFTData.royalty,

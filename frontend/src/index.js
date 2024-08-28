@@ -51,6 +51,7 @@ import SearchPage from './routes/searchPage';
 import VerifySuccess from './routes/verifySuccess';
 import NftMarket from './routes/nftMarket';
 import NftDetail from './routes/nftDetail';
+import NftOwner from './routes/nftOwner';
 import Web3 from 'web3';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
@@ -320,6 +321,9 @@ const router = createBrowserRouter([
       },{
         path: "/nftDetail/:tokenId",
         element: <NftDetail />,
+      },{
+        path: "/nftOwner/:tokenId",
+        element: <NftOwner />,
       },{
         path: "/readerPage",
         element: <ReaderPage />,

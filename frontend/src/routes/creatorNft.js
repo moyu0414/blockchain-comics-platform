@@ -20,6 +20,7 @@ function CreatorNft() {
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
 
+    const price = 0.98;
     let allRecord = [];
     let purchased = [];
     let CountComicDetails = {};
@@ -49,14 +50,39 @@ function CreatorNft() {
                 comicStats[keyData] = { tot: 0, sale: 0 };
             }
             comicStats[keyData].tot += 1;
-            if (item.forSale === 0) {  // 已售出的 NFT
+
+            if (item.minter !== item.owner) {  // 已售出的 NFT
                 comicStats[keyData].sale += 1;
+                const price = 0.98;
+                const keys = Object.keys(item.price);
+                const lastKey = keys[keys.length - 1];
+                const secondLastKey = keys[keys.length - 2] || null; // 如果没有倒数第二个键，设置为 null
+                const lastValue = parseFloat(item.price[lastKey]);
+                let total = 0;
+                if (item.forSale === 0) {
+                    if (lastKey === '1') {
+                        total = parseFloat(item.price[lastKey]) * price;
+                    } else {
+                        total += parseFloat(item.price[keys[0]]) * price;
+                        for (const key of keys) {
+                            if (key !== keys[0]) { // 跳过第一个键
+                                total += parseFloat(item.price[key]) * (item.royalty / 100);
+                            }
+                        }
+                    }
+                } else if (item.forSale === 1) {
+                    if (secondLastKey) {
+                        total += parseFloat(item.price[keys[0]]) * price;
+                        for (const key of keys.slice(1, -1)) { // 从第二个键到倒数第二个键
+                            total += parseFloat(item.price[key]) * (item.royalty / 100);
+                        }
+                    }
+                }
                 purchased.push({
                     tokenId: item.tokenId,
                     comicHash: item.comicHash,
                     title: item.title,
-                    price: (item.price * 0.98).toFixed(3),
-                    royalty: item.royalty
+                    price: total.toFixed(3),
                 });
             }
         });
@@ -179,22 +205,12 @@ function CreatorNft() {
         return pageItems;
     };
 
-    const truncateText = (text, maxLength) => {
-        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-    };
-
-    const truncateTextForName = (text) => {
-        const isChinese = (char) => /[\u4e00-\u9fa5]/.test(char);
-        const maxLength = text.split('').some(isChinese) ? 3 : 6;  // 中文3個字、英文6個字
-        return truncateText(text, maxLength);
-    };
-
 
     return (
         <>
             {!loading ? (
                 <Container className='creatorNft'>
-                    <Row className='pt-5'>
+                    <Row className='pt-4'>
                         <h3 className="fw-bold">{t('已發行NFT')}</h3>
                     </Row>
                     {!beingNFT &&  
@@ -208,10 +224,11 @@ function CreatorNft() {
                                 <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                     <Card className="effect-image-1">
                                         <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                        <div className="nftMarket-overlay-owner">{data.saleQty}/{data.totQty}</div>
-                                        <div className="nftMarket-overlay">{truncateTextForName(data.firstName)}</div>
+                                        <div className="creatorNft-overlay">{data.saleQty}/{data.totQty}
+                                            <span>{data.firstName}</span>
+                                        </div>
                                         <Card.Body className="simple-text">
-                                            <Card.Text>{data.title}</Card.Text>
+                                            <Card.Text className="creatorNft-text">{data.title}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Link>

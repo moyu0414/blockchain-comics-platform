@@ -59,8 +59,15 @@ const PurchaseHistory = () => {
             }
         });
         let nftRecords = nftResponse.data;
-        setNFTLogArray(nftRecords);
-        if (nftRecords.length === 0) {
+        const updatedNftRecords = nftRecords.map(({ price, forSale, ...data }) => {
+          const values = Object.values(price);
+          const lastValue = values[values.length - 1];
+          const secondLastValue = values.length > 1 ? values[values.length - 2] : lastValue;
+          const selectedPrice = forSale === 1 ? secondLastValue : lastValue;
+          return { ...data, price: selectedPrice };
+        });
+        setNFTLogArray(updatedNftRecords);
+        if (updatedNftRecords.length === 0) {
           setBeingNFT(false);
         }
     } catch (error) {

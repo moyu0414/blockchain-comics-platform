@@ -37,9 +37,10 @@
 
     "bookcase_comment": "bookcase",
     "我的書櫃": "My Bookshelf",
-    "最近閱讀": "Recently Read",
-    "最近購買": "Recently Purchased",
+    "最近閱讀": "Read",
+    "最近購買": "Purchased",
     "目前無購買漫畫，請重新刷新": "No purchased comics available, please refresh...",
+    "目前無購買NFT，請重新刷新": "No NFTs purchased at the moment, please refresh...",
 
     "comicDetail_comment": "comicDetail",
     "開始閱讀": "Reading",
@@ -92,6 +93,8 @@
     "持有者": "Holder",
     "授權範圍": "License Scope",
     "授權說明": "License Description",
+    "已售完": "Sold Out",
+    "此NFT已售完": "This NFT is Sold Out!",
 
     "readerPage_comment": "readerPage",
     "請先登入以太坊錢包，才開放讀者專區": "Please log in to your Ethereum wallet to access the reader's area!",
@@ -258,7 +261,17 @@
     "漫畫編輯成功": "Comic edited successfully!",
 
     "editChapter_comment": "editChapter",
-    "編輯": "Edit"
+    "編輯": "Edit",
+
+    "nftOwner_comment": "nftOwner",
+    "已出售": "Sold",
+    "此NFT已上架": "This NFT is Listed!",
+    "NFT上架成功": "NFT Listed Successfully!",
+    "請輸入有效的價格": "Please Enter a Valid Price!",
+    "您並未持有此NFT，請重新刷新": "You Do Not Own This NFT, Please Refresh...",
+    "確定轉售NFT": "Confirm Resale of NFT?",
+    "確定": "Confirm",
+    "取消": "Cancel"
 
   }
   
