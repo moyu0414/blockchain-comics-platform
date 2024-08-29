@@ -1257,7 +1257,7 @@ app.get('/api/coverFile/:filename/:protoFilename', async (req, res) => {
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
     
     // localhost
-    const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', filename);
+    const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', 'promoCover.jpg');
 
     // web3toonapi
     //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', 'promoCover.jpg');
