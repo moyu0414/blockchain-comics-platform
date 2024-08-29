@@ -119,9 +119,9 @@ const HomePage = () => {
                         })}
                     </Carousel>
         
-                    <Row className="pt-4 pb-4 btn-container">
+                    <Row className="pt-5 pb-4 btn-container">
                         {buttonData.map((label, idx) => (
-                            <Col key={idx} xs={2} md={3} lg={1} className="pb-1 btn-section">
+                            <Col key={idx} xs={2} md={2} lg={1} className="pb-1 btn-section">
                                 <Button 
                                     variant="outline-dark"
                                     className="custom-button"
@@ -158,7 +158,7 @@ const HomePage = () => {
                                                         </div>
                                                     </Link>
                                                     <Card.Body>
-                                                        <Card.Title className='fw-bold'>{data.title}</Card.Title>
+                                                        <Card.Title className='fw-bold text-center'>{data.title}</Card.Title>
                                                     </Card.Body>
                                                 </Card>
                                             </Col>

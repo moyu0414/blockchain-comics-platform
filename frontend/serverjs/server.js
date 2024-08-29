@@ -49,8 +49,8 @@ const pool = mysql.createPool({
     database: '113-113410',
     port: 3306,
     waitForConnections: true,
-    connectionLimit: 10000,  // 設定連線池大小，預設為10
-    connectTimeout: 10000, // 增加連接超時時間為 10 秒
+    connectionLimit: 10,  // 適當設置連線池大小
+    connectTimeout: 30000, // 將連接超時時間增加到 30 秒
 });
 
 const query = promisify(pool.query).bind(pool);  // 将 pool.query 包装成返回 Promise 的函数
@@ -58,7 +58,8 @@ const query = promisify(pool.query).bind(pool);  // 将 pool.query 包装成返�
 // 檢查連線建立過程中的錯誤
 pool.getConnection((err, connection) => {
   if (err) {
-    console.error('Error connecting to database: ', err);
+    console.error('Error connecting to database: ', err.code);  // 更詳細地記錄錯誤代碼
+    console.error('Error details: ', err);  // 顯示完整的錯誤對象
     return;
   }
   console.log('Connected to MySQL database!');

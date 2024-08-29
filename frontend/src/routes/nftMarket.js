@@ -144,8 +144,9 @@ function NftMarket() {
         <>
         {!loading &&
             <Container className='nftMarket'>
-                <Row className='pt-5'>
-                    <h3 className="fw-bold">{t('大家都在買')}</h3>
+                <Row className='pt-4'>
+                    <h2 className='text-center fw-bold'>NFT市場</h2>
+                    <h3 className="fw-bold pt-3">{t('大家都在買')}</h3>
                 </Row>
                 <Row className='pt-1 pb-5'>
                     {comic.filter(data => data.isFanCreation === t('原創')).map((data, index) => (

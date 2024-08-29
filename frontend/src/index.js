@@ -28,6 +28,7 @@ import ReaderPage from './routes/readerPage';
 import Bookcase from './routes/bookcase';
 import BecomeWriter from './routes/becomeWriter';
 import Analysis from './routes/analysis';
+import DataAnalysis from './routes/dataAnalysis';
 import Dual from './routes/dual';
 import CreateWork from './routes/createWork';
 import EditWork from './routes/editWork';
@@ -358,6 +359,9 @@ const router = createBrowserRouter([
       },{
         path: "/comicFlipRead",
         element: <ComicFlipRead />,
+      },{
+        path: "/dataAnalysis",
+        element: <DataAnalysis />,
       }
     ],
   },

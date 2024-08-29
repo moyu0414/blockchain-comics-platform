@@ -84,6 +84,7 @@ function CreatorPage() {
 
     const pathMap = {
         [t('收益分析')]: '/analysis',
+        [t('數據分析')]: '/dataAnalysis',
         [t('已發行NFT')]: '/creatorNft',
         [t('管理漫畫')]: '/manageComic',
         [t('新增漫畫')]: '/createWork'

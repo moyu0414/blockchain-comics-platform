@@ -402,7 +402,7 @@ function ComicDetail() {
                             {comic.map((comic, index) => (
                                 <React.Fragment key={index}>
                                     <h3 className="fw-bold">{comic.title}</h3>
-                                    <p className="text-secondary">{comic.author}</p>
+                                    <p className="text-secondary address">{comic.author}</p>
                                     <p>{t('最新章節')}：{comic.chapter}</p>
                                     <p className="text-secondary">{comic.description}</p>
                                 </React.Fragment>
@@ -428,7 +428,7 @@ function ComicDetail() {
                                             <td className='text-center'>{chapter.title}</td>
                                             <td className='text-center'>{chapter.price}</td>
                                             <td className='text-center'>
-                                                <button onClick={() => handlePurchase(index)} className="btn" value={chapter.isBuying}>{chapter.isBuying}</button>
+                                                <button onClick={() => handlePurchase(index)} className={`btn ${chapter.isBuying === t('閱讀') ? 'read-button' : 'buy-button'}`} value={chapter.isBuying}>{chapter.isBuying}</button>
                                             </td>
                                         </tr>
                                     ))}
@@ -463,7 +463,7 @@ function ComicDetail() {
                                     <Card>
                                         <Card.Img variant="top" src={data.image} />
                                         <Card.Body>
-                                            <Card.Title>{data.title}</Card.Title>
+                                            <Card.Title className='text-center'>{data.title}</Card.Title>
                                             <Card.Text>{truncateText(data.description, 30)}</Card.Text>
                                         </Card.Body>
                                     </Card>

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@alch/alchemy-web3": "^1.4.7",
+    "@ant-design/charts": "^2.2.1",
     "@cronocode/react-box": "^2.0.3",
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@fortawesome/free-solid-svg-icons": "^6.5.1",

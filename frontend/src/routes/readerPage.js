@@ -74,7 +74,7 @@ function ReaderPage() {
             <h3><center>{t('讀者專區')}</center></h3>
             <Row className="pt-4 pb-3 btn-container justify-content-center">
                 {buttonData.map((item, idx) => (
-                    <Col key={idx} xs={6} sm={6} md={3} lg={1} className="pb-3 btn-section">
+                    <Col key={idx} xs={6} sm={6} md={2} lg={1} className="pb-3 btn-section">
                         <Link to={isButtonEnabled ? pathMap[item.label] : '#'} className="d-flex justify-content-center">
                             <Button
                                 variant={isButtonEnabled ? "outline-dark" : "outline-secondary"} // 设置颜色

@@ -244,7 +244,7 @@ function NftDetail() {
                             ))}
                         </Col>
                     </Row>
-                    <Row className="pt-1">
+                    <Row className="pt-4">
                         <Col className="text-section">
                             <h3 className="fw-bold">{t('授權範圍')}</h3>
                             <ul>
@@ -256,7 +256,7 @@ function NftDetail() {
                             </ul>
                         </Col>
                     </Row>
-                    <Row className="pt-1">
+                    <Row className="pt-4">
                         <Col className="text-section">
                             <h3 className="fw-bold">{t('授權說明')}</h3>
                                 {IP.map((item, index) => (
