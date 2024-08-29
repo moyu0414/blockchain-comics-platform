@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from "react-router-dom";
-import { Navbar, Container, Row, Col, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
+import { Container, Row, Col, Button,Navbar, Pagination } from 'react-bootstrap';
 import { ChevronLeft, List, ChevronDoubleLeft, ChevronRight, ChevronDoubleRight } from 'react-bootstrap-icons';
 import { useSwipeable } from 'react-swipeable';
 import comicData from '../contracts/ComicPlatform.json';
@@ -12,7 +12,13 @@ import { sortByTimestamp, getTransactionTimestamp, disableAllButtons, enableAllB
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
-const ComicRead = () => {
+const comics = [
+    { id: 1, src: 'https://images.pexels.com/photos/7809122/pexels-photo-7809122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', alt: 'Page 1' },
+    { id: 2, src: 'https://images.pexels.com/photos/7768663/pexels-photo-7768663.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', alt: 'Page 2' },
+    { id: 3, src: 'https://images.pexels.com/photos/4110344/pexels-photo-4110344.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2', alt: 'Page 3' },
+];
+
+const ComicFlipRead = () => {
     const [showNavbar, setShowNavbar] = useState(true);
     const [showIconBar, setShowIconBar] = useState(true);
     const [lastScrollTop, setLastScrollTop] = useState(0);
@@ -20,13 +26,9 @@ const ComicRead = () => {
     const [comic, setComic] = useState([]);
     const [allChapters, setAllChapters] = useState([]);
     const [chapter, setChapter] = useState([]);
-    const [splitImages, setSplitImages] = useState([]);
-    const [autoMode, setAutoMode] = useState(true);
-    const [pageMode, setPageMode] = useState('');
     const { comicID, chapterID } = useParams();
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
-    const [readPage, setReadPage] = useState(0);
     const itemsPerPage = 10; // 每頁顯示的章節數量
     const { t } = useTranslation();
     const storedArrayJSON = localStorage.getItem('comicDatas');
@@ -39,6 +41,25 @@ const ComicRead = () => {
     const fetchedData = [];
     let temp = [];
     let read = [];
+
+    const handleNext = () => {
+        if (currentPage < comics.length - 1) {
+        setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const handlePrev = () => {
+        if (currentPage > 0) {
+        setCurrentPage(currentPage - 1);
+        }
+    };
+
+    const swipeHandlers = useSwipeable({
+        onSwipedLeft: handleNext,
+        onSwipedRight: handlePrev,
+        preventDefaultTouchmoveEvent: true,
+        trackMouse: true,
+    });
 
     const handleScroll = () => {
         const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -89,6 +110,7 @@ const ComicRead = () => {
                 temp.push(storedArray[i]);
               };
             };
+            console.log(temp);
             setComic(temp);
             // 本漫畫的所有章節是否購買
             try {
@@ -101,6 +123,7 @@ const ComicRead = () => {
                 });
                 let records = response.data;
                 sortByTimestamp(records);
+                console.log(records);
 
                 records = records.map((chapter, index) => {
                     let isBuying, creator, chapterPrice;
@@ -129,36 +152,22 @@ const ComicRead = () => {
                         chapterPrice
                     };
                 });
+                console.log(records);
                 setAllChapters(records);
 
                 for (var i = 0; i < records.length; i++) {
                     if (records[i].chapterID === chapterID && records[i].isBuying === t('閱讀')) {
-                        const chapterResponse = await axios.get(`${website}/api/chapterIMG/${records[i].filename}`, { responseType: 'blob', headers: headers });
+                        const chapterResponse = await axios.get(`${website}/api/chapterIMG/${records[i].filename}`, { responseType: 'blob', headers });
                         const image = URL.createObjectURL(chapterResponse.data);
-                        const img = new Image();
-                        img.src = image;
-                        img.crossOrigin = 'Anonymous'; // 避免 CORS 问题
-                        await new Promise((resolve) => {
-                            img.onload = resolve;
-                        });
-                        if (autoMode) {
-                            if (img.width >= 1200) {
-                                setSplitImages(processImage(img));
-                                setPageMode(true);
-                            } else {
-                                setPageMode(false);
-                            }
-                        } else if (pageMode) {
-                            setSplitImages(processImage(img));
-                        }
                         read.push({
-                            chapterTitle: records[i].chapterTitle,
-                            chapterID: chapterID,
-                            num: (i+1),
-                            image: image
+                        chapterTitle: records[i].chapterTitle,
+                        chapterID: chapterID,
+                        num: (i+1),
+                        image: image
                         });
                     }
                 }
+                console.log(read);
                 setChapter(read);
                 setLoading(false);
             } catch (error) {
@@ -176,27 +185,7 @@ const ComicRead = () => {
             localStorage.setItem('readingProgress', JSON.stringify(newProgress));
             return newProgress;
         });
-    }, [comicID, chapterID, autoMode]);
-
-    const processImage = (img) => {
-        const splitWidth = 1200;
-        const numSplits = Math.ceil(img.width / splitWidth);
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        const newSplitImages = [];
-        for (let i = 0; i < numSplits; i++) {
-            canvas.width = splitWidth;
-            canvas.height = img.height;
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(img, -i * splitWidth, 0);
-            const splitImageURL = canvas.toDataURL();
-            newSplitImages.push({
-                id: i + 1,
-                image: splitImageURL,
-            });
-        };
-        return newSplitImages;
-    }
+    }, [comicID, chapterID]);
 
     // 章節購買 或 閱讀函數
     const handlePurchase = async (chapterId) => {
@@ -274,84 +263,17 @@ const ComicRead = () => {
             } catch (error) {
                 if (error.message.includes('User denied transaction signature')) {
                     alert(t('拒绝交易'));
-                  } else {
+                } else {
                     console.error('章節購買時發生錯誤：', error);
                     alert(error);
                     window.location.reload();
-                  }
+                }
             } finally {
                 enableAllButtons();
             }
         }
     };
 
-    const handleClickLeft = () => {
-        const total = allChapters.length.toString();
-        let id = parseInt(chapterID.replace("chapter", ""), 10);
-        if (total == 1) {
-            alert(t('目前只有這個章節'));
-            return;
-        } else if (allChapters[(id-2)]) {
-            if (allChapters[(id-2)].isBuying === t('閱讀')) {
-                window.location.replace(`/comicRead/${comicID}/chapter${id-1}`);
-            } else {
-                alert(t('您尚未購買第幾章節', { id: id - 1 }));
-                return;
-            }
-        } else {
-            alert(t('本章節為第一章'));
-            return;
-        }
-    };
-
-    const handleClickRight = () => {
-        const total = allChapters.length.toString();
-        let id = parseInt(chapterID.replace("chapter", ""), 10);
-
-        if (total == 1) {
-            alert(t('目前只有這個章節'));
-            return;
-        } else if (allChapters[(id)]) {
-            if (allChapters[(id)].isBuying === t('閱讀')) {
-                window.location.replace(`/comicRead/${comicID}/chapter${id+1}`);
-            } else {
-                alert(t('您尚未購買第幾章節', { id: id + 1 }));
-                return;
-            }
-        } else {
-            alert(t('本章節為最新章'));
-            return;
-        }
-    };
-
-    const handlePrev = () => {
-        if (readPage > 0) {
-            setReadPage(readPage - 1);
-        } else if (readPage == 0) {
-            alert(t('此為第一頁'));
-        }
-    };
-
-    const handleNext = () => {
-        if (readPage < splitImages.length - 1) {
-            setReadPage(readPage + 1);
-        } else if (readPage == splitImages.length-1) {
-            alert(t('本章節已閱讀完'));
-        }
-    };
-
-    const swipeHandlers = useSwipeable({
-        onSwipedLeft: handleNext,
-        onSwipedRight: handlePrev,
-        preventDefaultTouchmoveEvent: true,
-        trackMouse: true,
-    });
-
-    const toggleMode = () => {
-        setPageMode((prevMode) => !prevMode);
-        setAutoMode(false);
-    };
-    
     const totalPages = Math.ceil(allChapters.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const currentChapters = allChapters.slice(startIndex, startIndex + itemsPerPage);
@@ -427,107 +349,92 @@ const ComicRead = () => {
         };
     }, []);
 
+    const handleClickLeft = () => {
+        const total = allChapters.length.toString();
+        let id = parseInt(chapterID.replace("chapter", ""), 10);
+        if (total == 1) {
+            alert(t('目前只有這個章節'));
+            return;
+        } else if (allChapters[(id-2)]) {
+            if (allChapters[(id-2)].isBuying === t('閱讀')) {
+                window.location.replace(`/comicRead/${comicID}/chapter${id-1}`);
+            } else {
+                alert(t('您尚未購買第幾章節', { id: id - 1 }));
+                return;
+            }
+        } else {
+            alert(t('本章節為第一章'));
+            return;
+        }
+    };
+
+    const handleClickRight = () => {
+        const total = allChapters.length.toString();
+        let id = parseInt(chapterID.replace("chapter", ""), 10);
+
+        if (total == 1) {
+            alert(t('目前只有這個章節'));
+            return;
+        } else if (allChapters[(id)]) {
+            if (allChapters[(id)].isBuying === t('閱讀')) {
+                window.location.replace(`/comicRead/${comicID}/chapter${id+1}`);
+            } else {
+                alert(t('您尚未購買第幾章節', { id: id + 1 }));
+                return;
+            }
+        } else {
+            alert(t('本章節為最新章'));
+            return;
+        }
+    };
 
     return (
-        <>
-        {!loading && (
-            <>
-                <div className='no-padding-bottom'>
-                    <Navbar className={`comic-custom-navbar ${showNavbar ? 'show' : 'hide'}`} expand="lg">
-                        <Navbar.Brand className="navbar-left">
-                            <Link to={`/comicDetail/${comicID}`}>
-                                <ChevronLeft className="icon" size={36} />
-                            </Link>
-                        </Navbar.Brand>
-                        <div className="navbar-center">
-                            {t('第幾章', { chapter: chapter[0]?.num })}： {chapter[0]?.chapterTitle}
-                        </div>
-                        <div className="navbar-right">
-                            <List className="icon" size={36} onClick={handleListClick} />
-                        </div>
-                    </Navbar>
-                    {pageMode ? (
-                        splitImages.length > 0 && (
-                            <Col
-                                xs={12}
-                                className="comic-container"
-                                {...swipeHandlers}
-                            >
-                            <img
-                                key={splitImages[readPage].id}
-                                src={splitImages[readPage].image}
-                                alt="Page comics"
-                                className="img-fluid comic-page active"
-                                style={{ zIndex: 2 }}
-                            />
-                            </Col>
-                        )
-                    ) : (
-                        chapter.map((chapter, index) => (
-                            <div key={index} className="banner-image">
-                                <img src={chapter.image} alt="Long Banner" />
-                            </div>
-                        ))
-                    )}
-                    <div className={`icon-bar ${showIconBar ? 'show' : 'hide'}`}>
-                        <ChevronDoubleLeft onClick={handleClickLeft} className="icon" />
-                        {pageMode ? (
-                            <>
-                                <ChevronLeft className="icon" onClick={handlePrev} disabled={readPage === 0} />
-                                <ChevronRight className="icon" onClick={handleNext} disabled={readPage === splitImages.length - 1}/>
-                            </>
-                        ) : (
-                            <div style={{marginRight: "100px"}}></div>
-                        )}
-                        <ChevronDoubleRight onClick={handleClickRight} className="icon" />
-                    </div>
-        
-                    {showOverlay && (
-                        <div className="comic-overlay">
-                            <div className="overlay-content">
-                                <div className="overlay-header">
-                                    <div className="overlay-comic-title">{currentChapters[0]?.comicTitle}</div>
-                                    <div className="overlay-author-title">{currentChapters[0]?.creator}</div>
-                                    <button className="overlay-close" onClick={handleCloseOverlay}>✕</button>
-                                    <button onClick={toggleMode} className="toggleMode-button">
-                                        {t('切換模式：')}{pageMode ? t('條漫') : t('頁漫')}
-                                    </button>
-                                </div>
-                                <div className="overlay-divider"></div>
-                                <div className="overlay-body">
-                                    <Row className='justify-content-center'>
-                                        <Col className='d-flex justify-content-center chapter-table'>
-                                            <Table size="sm">
-                                                <tbody>
-                                                    {currentChapters.map((chapter, index) => (
-                                                        <tr key={index}>
-                                                            <td className='text-center fw-bold'>{t('第幾章', { chapter: startIndex + index + 1 })}</td>
-                                                            <td className='text-center'>{chapter.chapterTitle}</td>
-                                                            <td className='text-center'>{chapter.chapterPrice}</td>
-                                                            <td className='text-center'>
-                                                                <button onClick={() => handlePurchase(index)} className="btn comicRead-btn">{chapter.isBuying}</button>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </Table>
-                                        </Col>
-                                    </Row>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </>
-        )}
-    
-        {loading &&  
-            <div className="loading-container">
-                <div>{t('頁面加載中')}</div>
+        <Container fluid className="comicFlipRead text-center">
+        <Navbar className={`comic-custom-navbar ${showNavbar ? 'show' : 'hide'}`} expand="lg">
+            <Navbar.Brand className="navbar-left">
+                <Link to={`/comicDetail/${comicID}`}>
+                    <ChevronLeft className="icon" size={36} />
+                </Link>
+            </Navbar.Brand>
+            <Navbar.Brand className="navbar-center">
+                {t('第幾章', { chapter: chapter[0]?.num })}： {chapter[0]?.chapterTitle}
+            </Navbar.Brand>
+            <div className="navbar-right">
+                <List className="icon" size={36} onClick={handleListClick} />
             </div>
-        }
-        </>
+        </Navbar>
+        {chapter.map((chapter, index) => (
+            <div key={index} className="banner-image">
+                <img src={chapter.image} alt="Long Banner" />
+            </div>
+        ))}
+        <div className={`icon-bar ${showIconBar ? 'show' : 'hide'}`}>
+            <ChevronDoubleLeft onClick={handleClickLeft} className="icon" />
+            <ChevronLeft className="icon" onClick={handlePrev} disabled={currentPage === 0} />
+            <ChevronRight className="icon" onClick={handleNext} disabled={currentPage === comics.length - 1}/>
+            <ChevronDoubleRight onClick={handleClickRight} className="icon" />
+        </div>
+        <Row className="justify-content-center">
+            <Col
+                xs={12}
+                className="comic-container"
+                {...swipeHandlers}
+                >
+                {comics.map((comic, index) => (
+                    <img
+                    key={comic.id}
+                    src={comic.src}
+                    alt={comic.alt}
+                    className={`img-fluid comic-page ${
+                        index === currentPage ? 'active' : ''
+                    }`}
+                    style={{ zIndex: index === currentPage ? 2 : 1 }}
+                    />
+                ))}
+            </Col>
+        </Row>
+        </Container>
     );
 };
 
-export default ComicRead;
+export default ComicFlipRead;

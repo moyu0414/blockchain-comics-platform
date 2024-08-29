@@ -92,10 +92,11 @@ function CollectionNft() {
                                 <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                     <Card className="effect-image-1">
                                     <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                    <div className="nftMarket-overlay-owner">{data.tokenId}</div>
-                                    <div className="nftMarket-overlay">{truncateTextForName(data.descTitle)}</div>
+                                    <div className="creatorNft-overlay">{data.tokenId}
+                                        <span>{data.descTitle}</span>
+                                    </div>
                                     <Card.Body className="simple-text">
-                                        <Card.Text>{data.title}</Card.Text>
+                                        <Card.Text className="creatorNft-text">{data.title}</Card.Text>
                                     </Card.Body>
                                     </Card>
                                 </Link>

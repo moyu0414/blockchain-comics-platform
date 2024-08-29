@@ -304,6 +304,101 @@ span {
   .comicManagement .hash-cell-text{
     max-width: 290px!important;
   }
+
+  .carousel-image-container {
+    height: 200px;
+  }
+
+  .homepage .custom-button{
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    padding: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .comicDetail .text-secondary{
+    max-width: 340px;
+    overflow-wrap: break-word;
+  }
+
+  .nftDetail-text-secondary{
+    width: 350px;
+    overflow-wrap: break-word;
+  }
+
+  .overlay-author-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 290px;
+  }
+
+  .bookcase-overlay {
+    font-size: 0.9rem!important;
+    bottom: 32px!important;
+  }
+
+  .bookcase-read-text {
+    font-size: 1rem!important;
+  }
+
+  .bookcase-purchase-text {
+    font-size: 1rem!important;
+  }
+
+  .manageComic .cta-button{
+    width: 80px!important;
+    font-size: 0.9rem!important;
+  }
+
+  .custom-modal-button {
+    margin: 3% 3% 0!important;
+  }
+
+  .custom-modal-text {
+    font-size: 1.8rem!important;
+  }
+
+  .creatorNft-text {
+    font-size: 0.9rem;
+  }
+
+  .creatorNft .creatorNft-overlay {
+    font-size: 0.8rem;
+    padding: 2px 6px; 
+    bottom: 35px;
+  }
+
+  .creatorNft .creatorNft-overlay span {
+    margin-left: 5px;
+  }
+
+  .nftMarket .nftMarket-overlay {
+    font-size: 0.9rem!important;
+    padding: 3px 6px!important; 
+    bottom: 40px!important;
+  }
+
+  .nftMarket .nftMarket-overlay span {
+    margin-left: 5px;
+  }
+  
+  .nftMarket-text {
+    font-size: 1.1rem!important;
+  }
+
+  .simple-text {
+    padding: 6px 0!important;
+  }
+
+  .creatorPage-text {
+    font-size: 1rem;
+    margin-bottom: 0;
+  }
+
+  .navbar-center {
+    font-size: 1.3rem!important;
+  }
 }
 
 @media only screen and (max-width: 400px) {
@@ -318,6 +413,54 @@ span {
 
   .comicManagement .hash-cell-text{
     max-width: 250px!important;
+  }
+
+  .comicDetail .text-secondary{
+    max-width: 310px;
+  }
+
+  .overlay-author-title {
+    max-width: 250px;
+  }
+
+  .nftDetail-text-secondary{
+    width: 300px;
+  }
+
+  .manageComic .cta-button{
+    width: 70px!important;
+    margin-left: -15px!important;
+  }
+
+  .custom-modal-text {
+    font-size: 1.6rem!important;
+  }
+
+  .creatorNft-text {
+    font-size: 0.85rem!important;
+  }
+
+  .creatorNft .creatorNft-overlay {
+    font-size: 0.7rem;
+    padding: 1px 3px; 
+  }
+
+  .nftMarket .nftMarket-overlay {
+    font-size: 0.8rem!important;
+    bottom: 39px!important;
+  }
+  
+  .nftMarket-text {
+    font-size: 1rem!important;
+  }
+
+  .readerPage .btn-section{
+    width: 45%!important;
+    margin: 0!important;
+  }
+
+  .comicRead-btn {
+    max-width: 80%!important;
   }
 }
 
@@ -1109,6 +1252,10 @@ a:link{
   border-radius: 30px; /* 圓角 */
 }
 
+.homepage .custom-button{
+  white-space: nowrap;
+}
+
 @media only screen and (max-width: 768px) {
   .carousel-item img {
     height: auto;
@@ -1117,13 +1264,17 @@ a:link{
   .carousel-caption {
     font-size: 14px; /* 在手機尺寸下減少字體大小 */
     max-height: 100px; /* 減少最大高度以適應小螢幕 */
-    width: 92.5%;
+    width: 92%;
     left: 4%;
   }
 
   .btn-section{
     width: 34%;
     margin: 0 3% 0!important;
+  }
+
+  .homepage .btn-container{
+    padding: 0 3%;
   }
 
   .creatorPage .custom-button{
@@ -1400,6 +1551,18 @@ a:link{
   z-index: 1; /* 确保悬浮在图片上方 */
 }
 
+.creatorPage-text {
+  position: absolute;
+  margin-bottom: 0;
+  left: 50%; /* 水平居中 */
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* analysis */
 
 .analysis h1{
@@ -1453,6 +1616,14 @@ a:link{
   border: 2px solid #000; /* 將邊框設置回來 */
   border-top: 1px solid #000;
   border-radius: 0 0 30px 30px; /* 調整與效果圖片一致的圓角 */
+}
+
+.creatorNft-text {
+  position: relative;
+  bottom: 0px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .creatorNft thead th {
@@ -1678,9 +1849,10 @@ a:link{
   background-color: rgba(6, 157, 103, 0.89);
   box-shadow: 5px 5px rgba(6, 157, 103, 0.42);
   border-radius: 8px;
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0;
+  margin-left: -8px;
 }
 
 .manageComic .cta-button:focus {
@@ -1702,7 +1874,6 @@ a:link{
     width: 100px;
     margin-bottom: 5%;
   }
-
   
 }
 
@@ -1869,6 +2040,10 @@ a:link{
   background-color:#c7932c;
 }
 
+.custom-modal-text {
+  font-size: 2rem;
+}
+
 /* mintNFT */
 .upload-block {
   display: flex;
@@ -1922,28 +2097,53 @@ a:link{
 }
 
 /* nftMarket */
-.nftMarket-overlay {
+.nftMarket .nftMarket-overlay {
   position: absolute; 
-  bottom: 45px;
-  right: 0px;
+  display: flex;
+  bottom: 52px;
+  left: 2px;
+  justify-content: space-between; 
   background: rgba(0, 0, 0, 0.5); 
   color: #fff; 
   padding: 5px 10px; 
-  border-radius: 50px 0 0 0; 
-  font-size: 0.8rem; 
+  width: 100%;
+  font-size: 1rem; 
   z-index: 1; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.nftMarket-overlay-owner {
+.nftMarket .nftMarket-overlay span {
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nftMarket-text {
+  font-size: 1.2rem;
+  position: relative;
+  bottom: 0px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.creatorNft-overlay {
   position: absolute; 
+  text-align: center;
   bottom: 45px;
   left: 0px;
   background: rgba(0, 0, 0, 0.5); 
   color: #fff; 
   padding: 5px 10px; 
-  border-radius: 0 50px 0 0; 
+  width: 100%;
   font-size: 0.9rem; 
   z-index: 1; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* readerPage */
@@ -1982,9 +2182,13 @@ a:link{
 
 @media only screen and (max-width: 768px) {
 
-  .readerPage .btn{
-    width: 12vh;
-    height: 12vh;
+  .readerPage .btn-section{
+    width: 40%;
+  }
+
+  .readerPage .btn-section .btn{
+    width: 80%;
+    height: 6em;
   }
 
 }
@@ -2013,12 +2217,19 @@ a:link{
   display: flex;
   justify-content: flex-start;
   padding-left: 3%;
+  max-width: 10%;
 }
 
 .navbar-center {
   flex: 2;
   text-align: center;
-  color: white; 
+  color: white;
+  font-size: 1.6rem;
+  max-width: 77%;
+  overflow: hidden; /* 隐藏超出容器的内容 */
+  word-wrap: break-word; /* 确保长单词可以换行 */
+  hyphens: auto; /* 自动处理文本的连字符 */
+  white-space: normal; /* 确保文本正常换行 */
 }
 
 .navbar-right {
@@ -2026,6 +2237,7 @@ a:link{
   display: flex;
   justify-content: flex-end;
   padding-right: 3%;
+  max-width: 13%;
 }
 
 .icon {
@@ -2110,24 +2322,66 @@ a:link{
   overflow: hidden; 
 }
 
+.toggleMode-button {
+  width: 200px;
+  font-size: 18px; 
+  border: none;
+  border-radius: 10px;
+  background-color: #fff;
+  padding: 5px;
+  font-weight: bold; 
+}
+
+.toggleMode-button:hover {
+  opacity: 0.8; 
+}
+
 /* bookcase */
 .bookcase-overlay {
   position: relative;
   text-align: center;
-  bottom: 30px;
+  bottom: 40px;
   right: 0px;
   background: rgba(0, 0, 0, 0.5); /* 半透明背景 */
   color: #fff; /* 白色文字 */
-  padding: 5px 10px; /* 内边距 */
-  font-size: 0.8rem; /* 字体大小 */
+  padding: 5px 0px; /* 内边距 */
+  font-size: 1.2rem; /* 字体大小 */
   z-index: 1; /* 确保悬浮在图片上方 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.bookcase-text {
-  position: relative;
+.bookcase-read-text {
+  position: absolute;
+  font-size: 1.3rem;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
-  bottom: 30px;
-  right: 0px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.bookcase-purchase-overlay {
+  position: relative;
+  bottom: 40px;
+  height: 30px;
+}
+
+.bookcase-purchase-text {
+  position: absolute;
+  font-size: 1.3rem;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
 }
 
 /* 關閉按鈕 */
@@ -3057,4 +3311,42 @@ a:link{
 
 .comicManagement .btn-section{
   padding-right: 3%;
+}
+
+/* comicFlipRead */
+.comicFlipRead{
+  padding-top: 100px;
+}
+
+.comicFlipRead .comic-container {
+  position: relative;
+  width: 100%;
+  height: 100vh; 
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+.comicFlipRead .comic-page {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transition: all 0.5s ease-in-out;
+  opacity: 0;
+}
+
+.comicFlipRead .comic-page.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.comicFlipRead .comic-container img {
+  background-color: #000;
+}
+
+@media only screen and (max-width: 768px) {
+  .comicFlipRead .comic-page {
+    left: 0;
+    width: 100%;
+  }
 }

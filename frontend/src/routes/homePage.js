@@ -89,7 +89,7 @@ const HomePage = () => {
     return (
         <>
             {!loading &&
-                <Container className='homepage pt-4'>
+                <Container className='homepage pt-2'>
                     <Carousel>
                         {promoPosition.map(category => {
                             // max(前4個類型)，取第1個輪播
@@ -119,9 +119,9 @@ const HomePage = () => {
                         })}
                     </Carousel>
         
-                    <Row className="pt-5 pb-5 btn-container">
+                    <Row className="pt-4 pb-4 btn-container">
                         {buttonData.map((label, idx) => (
-                            <Col key={idx} xs={2} md={3} lg={1} className="pb-3 btn-section">
+                            <Col key={idx} xs={2} md={3} lg={1} className="pb-1 btn-section">
                                 <Button 
                                     variant="outline-dark"
                                     className="custom-button"
@@ -146,8 +146,8 @@ const HomePage = () => {
                                 <Carousel.Item>
                                     <div className="carousel-row">
                                         {current.filter(data => data.category === category).map((data, idx) => (
-                                            <Col key={idx} xs={6} md={3} className="pt-3 mx-1">
-                                                <Card>
+                                            <Col key={idx} xs={6} md={3} className="mx-1">
+                                                <Card style={{marginRight: "8px"}}>
                                                     <Link to={`/comicDetail/${data.comicID}`}>
                                                         <Card.Img variant="top" src={data.image} />
                                                         <div className="category-totcount">

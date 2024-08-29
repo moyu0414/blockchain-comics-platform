@@ -244,10 +244,10 @@ app.get('/api/reader/records', (req, res) => {
 app.get('/api/purchaseHistory/nftRecords', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const query = `
-    SELECT nft.tokenId, nft.price, comics.title
+    SELECT nft.tokenId, nft.price, nft.forSale , comics.title
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
-    WHERE nft.owner = ? AND nft.forSale = 0 AND comics.is_exist = 1
+    WHERE nft.owner = ? AND nft.owner <> nft.minter AND comics.is_exist = 1
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -357,6 +357,29 @@ app.get('/api/bookcase', (req, res) => {
     if (error) {
       console.error('Error fetching chapter records: ', error);
       return res.status(500).json({ message: 'Error fetching chapter records' });
+    }
+    res.json(results);
+  });
+});
+
+
+app.get('/api/bookcase/nftRecords', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const query = `
+    SELECT 
+      nft.tokenId, comics.title, nft.comicHash,
+      TRIM(LEADING '\n' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(nft.description, ':', 1), '{', -1)) AS descTitle
+    FROM nft
+    INNER JOIN comics ON nft.comicHash = comics.comic_id
+    WHERE nft.owner = ? AND nft.owner <> nft.minter AND comics.is_exist = 1
+  `;
+  pool.query(query, [currentAccount], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching creator NFT records: ', error);
+      return res.status(500).json({ message: 'Error fetching creator NFT records' });
+    }
+    if (results.length === 0) {
+      return res.json([]);
     }
     res.json(results);
   });
@@ -644,6 +667,28 @@ app.get('/api/nftDetail/isFavorited', (req, res) => {
         res.json(results.length > 0 ? results : []);
       });
     }
+  });
+});
+
+
+app.get('/api/nftOwner/records', (req, res) => {
+  const tokenId = req.query.tokenId;
+  const currentAccount = req.query.currentAccount;
+  const query = `
+    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.filename , comics.protoFilename
+    FROM nft
+    INNER JOIN comics ON nft.comicHash = comics.comic_id
+    WHERE nft.tokenId = ? AND nft.owner = ? AND comics.is_exist = 1
+  `;
+  pool.query(query, [tokenId, currentAccount], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching creator NFT records: ', error);
+      return res.status(500).json({ message: 'Error fetching creator NFT records' });
+    }
+    if (results.length === 0) {
+      return res.json([]);
+    }
+    res.json(results);
   });
 });
 
@@ -1161,7 +1206,7 @@ app.get('/api/comicIMG/:filename', async (req, res) => {
       const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', filename);
 
       // web3toonapi
-      //const imagePath = `https://web3toon.ddns.net/uploads/${comic_id}/cover/${filename}`;
+      //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', filename);
       
       // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
       const image = await fsPromises.readFile(imagePath);
@@ -1188,7 +1233,7 @@ app.get('/api/chapterIMG/:filename',async (req, res) => {
     const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'chapters', filename);
 
     // web3toonapi
-    //const imagePath = `https://web3toon.ddns.net/uploads/${comic_id}/chapters/${filename}`;
+    //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'chapters', filename);
 
     // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
     const image = await fsPromises.readFile(imagePath);
@@ -1215,7 +1260,7 @@ app.get('/api/coverFile/:filename/:protoFilename', async (req, res) => {
     const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', filename);
 
     // web3toonapi
-    //const imagePath = `https://web3toon.ddns.net/uploads/${comic_id}/cover/promoCover.jpg`;
+    //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', 'promoCover.jpg');
 
     const image = await fsPromises.readFile(imagePath);
     res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
@@ -1476,11 +1521,11 @@ app.put('/api/update/nftDetail/favorite', async (req, res) => {
 
 
 app.put('/api/update/nftDetail/owner', async (req, res) => {
-  const { tokenId, currentAccount } = req.body;
+  const { tokenId, currentAccount, price, forSale } = req.body;
   try {
-    const updateQuery = `UPDATE nft SET owner = ?, forSale = 0 WHERE tokenId = ?`;
+    const updateQuery = `UPDATE nft SET owner = ?, price = ?, forSale = ? WHERE tokenId = ?`;
     const queryResult = await new Promise((resolve, reject) => {
-      pool.query(updateQuery, [currentAccount, tokenId], (error, results, fields) => {
+      pool.query(updateQuery, [currentAccount, price, forSale, tokenId], (error, results, fields) => {
         if (error) {
           reject(error);
           return;

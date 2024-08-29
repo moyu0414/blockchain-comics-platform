@@ -96,7 +96,7 @@ function ManageComic() {
                         </Row>
                     }
                     {comic.map((comic, index) => (
-                        <Card className={`mt-4`} key={index}>
+                        <Card className={`mt-3`} key={index}>
                             {/* <Card.Img variant="top" src={comic.image}  alt="..." /> */}
                             <div className="image-container">
                                 <Card.Img variant="top" src={comic.image} alt="..." />
@@ -105,7 +105,7 @@ function ManageComic() {
                                 <div className="text-section">
                                     <Card.Title>{comic.title}</Card.Title>
                                 </div>
-                                <div className="cta-section">
+                                <div>
                                     <Row>
                                         {buttonData.map((label, idx) => (
                                             <Col xs={6} sm={4} md={4} lg={2} key={idx}>
