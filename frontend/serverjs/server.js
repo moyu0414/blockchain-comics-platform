@@ -13,10 +13,12 @@ const rename = promisify(fsPromises.rename); // 圖片重命名
 const app = express();
 const port = 5000;
 const dotenv = require('dotenv');
-const envPath = path.join('/var/www/html/src', '.env');  // web3toonapi
-//const envPath = path.join('../', '.env');  // localhost
+const envPath = path.join('../', '.env');  // localhost
+//const envPath = path.join('/var/www/html/src', '.env');  // web3toonapi
 dotenv.config({ path: envPath });
-const API_KEY = process.env.API_KEY; // 从环境变量读取API密钥
+const API_KEY = process.env.REACT_APP_API_KEY; // localhost
+//const API_KEY = process.env.API_KEY; // web3toonapi
+
 app.use(cors());
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');  // 允許所有来源的請求訪問資源
@@ -65,7 +67,8 @@ pool.getConnection((err, connection) => {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, '/var/www/html/uploads');
+    cb(null, './uploads');  // localhost
+    //cb(null, '/var/www/html/uploads');  // web3toonapi
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname); // 保持文件名不变，或者根据需要修改
@@ -77,7 +80,8 @@ const upload = multer({ storage: storage });
 
 // 异步函数，用于重命名文件并将其移动到上传目录
 async function renameFilename(file, comic_id, type, protoFilename, coverFile) {
-  const comicFolder = path.join('/var/www/html/uploads', comic_id);
+  const comicFolder = path.join('uploads', comic_id);  // localhost
+  //const comicFolder = path.join('/var/www/html/uploads', comic_id);  // web3toonapi
   const specificFolder = path.join(comicFolder, type === 'comicIMG' ? 'cover' : 'chapters');
   try {
     await fsPromises.mkdir(comicFolder, { recursive: true });
@@ -244,10 +248,10 @@ app.get('/api/reader/records', (req, res) => {
 app.get('/api/purchaseHistory/nftRecords', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const query = `
-    SELECT nft.tokenId, nft.price, comics.title
+    SELECT nft.tokenId, nft.price, nft.forSale , comics.title
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
-    WHERE nft.owner = ? AND nft.forSale = 0 AND comics.is_exist = 1
+    WHERE nft.owner = ? AND nft.owner <> nft.minter AND comics.is_exist = 1
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -357,6 +361,29 @@ app.get('/api/bookcase', (req, res) => {
     if (error) {
       console.error('Error fetching chapter records: ', error);
       return res.status(500).json({ message: 'Error fetching chapter records' });
+    }
+    res.json(results);
+  });
+});
+
+
+app.get('/api/bookcase/nftRecords', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const query = `
+    SELECT 
+      nft.tokenId, comics.title, nft.comicHash,
+      TRIM(LEADING '\n' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(nft.description, ':', 1), '{', -1)) AS descTitle
+    FROM nft
+    INNER JOIN comics ON nft.comicHash = comics.comic_id
+    WHERE nft.owner = ? AND nft.owner <> nft.minter AND comics.is_exist = 1
+  `;
+  pool.query(query, [currentAccount], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching creator NFT records: ', error);
+      return res.status(500).json({ message: 'Error fetching creator NFT records' });
+    }
+    if (results.length === 0) {
+      return res.json([]);
     }
     res.json(results);
   });
@@ -644,6 +671,28 @@ app.get('/api/nftDetail/isFavorited', (req, res) => {
         res.json(results.length > 0 ? results : []);
       });
     }
+  });
+});
+
+
+app.get('/api/nftOwner/records', (req, res) => {
+  const tokenId = req.query.tokenId;
+  const currentAccount = req.query.currentAccount;
+  const query = `
+    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.filename , comics.protoFilename
+    FROM nft
+    INNER JOIN comics ON nft.comicHash = comics.comic_id
+    WHERE nft.tokenId = ? AND nft.owner = ? AND comics.is_exist = 1
+  `;
+  pool.query(query, [tokenId, currentAccount], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching creator NFT records: ', error);
+      return res.status(500).json({ message: 'Error fetching creator NFT records' });
+    }
+    if (results.length === 0) {
+      return res.json([]);
+    }
+    res.json(results);
   });
 });
 
@@ -1158,10 +1207,10 @@ app.get('/api/comicIMG/:filename', async (req, res) => {
       const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
       
       // localhost
-      const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', filename);
+      const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', filename);
 
       // web3toonapi
-      //const imagePath = `https://web3toon.ddns.net/uploads/${comic_id}/cover/${filename}`;
+      //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', filename);
       
       // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
       const image = await fsPromises.readFile(imagePath);
@@ -1185,10 +1234,10 @@ app.get('/api/chapterIMG/:filename',async (req, res) => {
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
       
     // localhost
-    const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'chapters', filename);
+    const imagePath = path.join(__dirname, 'uploads', comic_id, 'chapters', filename);
 
     // web3toonapi
-    //const imagePath = `https://web3toon.ddns.net/uploads/${comic_id}/chapters/${filename}`;
+    //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'chapters', filename);
 
     // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
     const image = await fsPromises.readFile(imagePath);
@@ -1212,10 +1261,10 @@ app.get('/api/coverFile/:filename/:protoFilename', async (req, res) => {
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
     
     // localhost
-    const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', "promoCover.jpg");
+    const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', 'promoCover.jpg');
 
     // web3toonapi
-    //const imagePath = `https://web3toon.ddns.net/uploads/${comic_id}/cover/promoCover.jpg`;
+    //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', 'promoCover.jpg');
 
     const image = await fsPromises.readFile(imagePath);
     res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
@@ -1270,7 +1319,8 @@ app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'c
       });
     }
     if (file) {
-      await deleteFile(`/var/www/html/uploads/${id}/cover/${fileName}`);
+      await deleteFile(`uploads/${id}/cover/${fileName}`);  // localhost
+      //await deleteFile(`/var/www/html/uploads/${id}/cover/${fileName}`);  // web3toon
     }
     return res.status(200).json({ message: 'comicData updated successfully' });
   } catch (error) {
@@ -1302,7 +1352,8 @@ app.put('/api/update/chapterData', upload.single('chapterIMG'), async (req, res)
       });
     });
     if (file) {
-      await deleteFile(`/var/www/html/uploads/${comic_id}/chapters/${fileName}`);
+      await deleteFile(`uploads/${comic_id}/chapters/${fileName}`);  // localhost
+      //await deleteFile(`/var/www/html/uploads/${comic_id}/chapters/${fileName}`);  // web3toon
     }
     return res.status(200).json({ message: 'chapterData updated successfully' });
   } catch (error) {
@@ -1476,11 +1527,11 @@ app.put('/api/update/nftDetail/favorite', async (req, res) => {
 
 
 app.put('/api/update/nftDetail/owner', async (req, res) => {
-  const { tokenId, currentAccount } = req.body;
+  const { tokenId, currentAccount, price, forSale } = req.body;
   try {
-    const updateQuery = `UPDATE nft SET owner = ?, forSale = 0 WHERE tokenId = ?`;
+    const updateQuery = `UPDATE nft SET owner = ?, price = ?, forSale = ? WHERE tokenId = ?`;
     const queryResult = await new Promise((resolve, reject) => {
-      pool.query(updateQuery, [currentAccount, tokenId], (error, results, fields) => {
+      pool.query(updateQuery, [currentAccount, price, forSale, tokenId], (error, results, fields) => {
         if (error) {
           reject(error);
           return;

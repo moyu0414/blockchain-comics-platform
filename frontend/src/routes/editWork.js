@@ -31,7 +31,7 @@ const EditWork = (props) => {
   const [comic, setComic] = useState([]);
   const [chapter, setChapter] = useState([]);  // 原始 chapter
   const [newComic, setNewComic] = useState({category:'',  title: '', description: '', imgURL: ''});
-  const [newChapter, setNewChapter] = useState({chapterTitle: '', price: '', chapterHash: '', imgURL: ''});
+  const [newChapter, setNewChapter] = useState({chapterTitle: '', price: '', chapterHash: '', imgURL: '', isFree: false});
   const [coverFile, setCoverFile] = useState('');
   const [promoPreviewImageUrl, setPromoPreviewImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -209,9 +209,14 @@ const EditWork = (props) => {
       if(fillFile === -1){
         return;
       }
-      if (newChapter.price < 0.01) {
-        alert('價格至少0.01 ETH!');
-        return;
+      let price_temp = newChapter.price;
+      if (price_temp && !isNaN(parseFloat(price_temp))) {
+        price_temp = parseFloat(price_temp);
+        price_temp = web3.utils.toWei(price_temp.toString(), 'ether');
+        if (price_temp < 10000000000000000 && newChapter.isFree === false) {
+          alert(t('價格至少0.01 ETH'));
+          return;
+        }
       }
       disableAllButtons();
       updateMessage(t('正在編輯章節資料中'))
@@ -223,8 +228,6 @@ const EditWork = (props) => {
         return -1;
       } else if (chapter.price != newChapter.price || chapter.chapterTitle != newChapter.chapterTitle) {  // 章節價格或標題有變動
         try {
-          let price_temp = parseFloat(newChapter.price);
-          price_temp = web3.utils.toWei(price_temp, 'ether');
           await contract.methods.editChapter(comic[0].comic_id, chapter.chapterHash, newChapter.chapterTitle, price_temp).send({ from: currentAccount });
 
           const formData = new FormData();
@@ -410,7 +413,7 @@ const EditWork = (props) => {
     }else{
       const {chapterTitle, price} = newChapter;
       // 檔案不可為空
-      if(!comicHash || !chapterTitle || !price)
+      if(!comicHash || !chapterTitle || (!newChapter.isFree && !price))
       {
         updateMessage(t('請填寫所有欄位'))
         return -1;
@@ -556,14 +559,36 @@ const EditWork = (props) => {
                   <Col sm={9}>
                     <Form.Control
                       type="number"
-                      value={newChapter.price}
+                      value={newChapter.price == 0 ? '0' : newChapter.price}  // 如果 isFree 為 true，顯示 '0'，否則顯示 formParams_1.price
                       placeholder={t('至少 0.01 ETH')}
                       step="0.01"
+                      disabled={newChapter.isFree}
                       onChange={(e) => setNewChapter({ ...newChapter, price: e.target.value })}
                     />
                   </Col>
                 </Form.Group>
   
+                <Form.Group as={Row} className='mb-3'>
+                  <div style={{ display: 'flex' }}>
+                    <Form.Label column sm={3} className='label-style  '>
+                      {t('本章免費')}
+                    </Form.Label>
+                    <Form.Check
+                      type="checkbox"
+                      onChange={(e) => {
+                        const isFree = e.target.checked;
+                        setNewChapter({
+                          ...newChapter,
+                          isFree: isFree,
+                          price: isFree ? 0 : newChapter.price // 如果是免费，则将价格设为 0，否则保持原来的价格
+                        });
+                      }}
+                      checked={newChapter.isFree}
+                      style={{ transform: 'scale(1.8)', marginTop: '12px', marginLeft: '1.3rem' }}
+                    />
+                  </div>
+                </Form.Group>
+
                 <Form.Group className='mb-4'>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <Form.Label className='label-style mb-3 col-form-label'>

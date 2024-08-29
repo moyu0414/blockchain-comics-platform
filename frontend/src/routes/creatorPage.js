@@ -207,7 +207,7 @@ function CreatorPage() {
                         </Dropdown>
                     </Col>
                 </Row>
-                <Row xs={1} md={2} className="g-4 pb-5">
+                <Row xs={1} md={2} className="pb-5">
                     {comic.map((data, idx) => (
                         <Col key={idx} xs={4} md={3} className="pt-3">
                             <Link to={`/comicDetail/${data.comicID}`}>
@@ -217,7 +217,7 @@ function CreatorPage() {
                                         <div className="category-overlay">{data.category}{data.totBuy}</div>
                                     </div>
                                     <Card.Body>
-                                        <Card.Title className='text-center'>{data.title}</Card.Title>
+                                        <Card.Title className='creatorPage-text'>{data.title}</Card.Title>
                                     </Card.Body>
                                 </Card>
                             </Link>

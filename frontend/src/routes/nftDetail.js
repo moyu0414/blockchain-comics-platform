@@ -15,6 +15,7 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 function NftDetail() {
     const [NFT, setNFT] = useState([]);
     const [IP, setIP] = useState([]);
+    const [initPrice, setInitPrice] = useState('');
     const { tokenId } = useParams();
     const [loading, setLoading] = useState(true);
     const [isFavorited, setIsFavorited] = useState('');
@@ -22,7 +23,7 @@ function NftDetail() {
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
     const buttonData = [
-        `$ ${NFT[0]?.price}`, t('收藏')
+        NFT[0]?.forSale === 0 ? t('已售完') : `$ ${parseFloat(NFT[0]?.price).toFixed(2)}`, t('收藏')
     ];
     let records = [];
     let temp = [];
@@ -35,9 +36,10 @@ function NftDetail() {
             }
         });
         let nftData = response.data;
+        setInitPrice(nftData[0].price);
 
         const { minter: initialMinter, owner: initialOwner, price, forSale, protoFilename, filename } = nftData[0];
-        const currentState = forSale === 0 ? t('二次轉售') : t('原創授權');
+        const currentState = initialMinter === initialOwner ? t('原創授權') : t('二次轉售');
         const currentOwner = initialOwner === currentAccount ? t('您擁有此NFT') : initialOwner;
         const currentMinter = initialMinter === currentAccount ? t('您是本作品的創作者') : initialMinter;
         const url = protoFilename === 1
@@ -45,8 +47,10 @@ function NftDetail() {
             : `${website}/api/comicIMG/${filename}`;
         const imageResponse = await axios.get(url, { responseType: 'blob', headers });
         const image = URL.createObjectURL(imageResponse.data);
+        const lastPriceValue = Object.values(price).pop();
         const newData = nftData.map(data => ({
             ...data,
+            price: lastPriceValue,
             minter: currentMinter,
             owner: currentOwner,
             state: currentState,
@@ -124,6 +128,10 @@ function NftDetail() {
 
     const handlePurchase = async () => {
         if (NFT[0].owner !== t('您擁有此NFT') && NFT[0].minter !== t('您是本作品的創作者')) {
+            if (buttonData[0] === t('已售完')) {
+                alert(t('此NFT已售完'));
+                return;
+            }
             try {
                 disableAllButtons();
                 const web3 = await initializeWeb3(t);
@@ -141,11 +149,13 @@ function NftDetail() {
                         let id = tokenId.replace("tokenId", "");
                         price = web3.utils.toWei(price, 'ether');
                         await web3Instance.methods.purchaseNFT(id).send({from: currentAccount, value: price,});
-                
+
                         try {
                             const response = await axios.put(`${website}/api/update/nftDetail/owner`, {
                             tokenId: id,
-                            currentAccount: currentAccount
+                            currentAccount: currentAccount,
+                            price: JSON.stringify(initPrice),
+                            forSale: 0
                             }, {
                             headers: headers
                             });
@@ -153,6 +163,7 @@ function NftDetail() {
                             const updatedNFT = [...NFT];
                             updatedNFT[0].owner = t('您擁有此NFT'); // 更新購買狀態
                             updatedNFT[0].state = t('二次轉售');
+                            updatedNFT[0].forSale = 0;
                             setNFT(updatedNFT);
                         } catch (error) {
                             console.error('Error updating NFT:', error);
@@ -226,9 +237,9 @@ function NftDetail() {
                                 <React.Fragment key={index}>
                                     <h3 className="fw-bold">{data.title}</h3>
                                     <h4 className="fw-bold">{data.state}</h4>
-                                    <p className="text-secondary">{t('作者')}:<br />{data.minter}</p>
-                                    <p className="text-secondary">{t('持有者')}:<br />{data.owner}</p>
-                                    <p className="text-secondary">{data.comicDesc}</p>
+                                    <p className="nftDetail-text-secondary">{t('作者')}：{data.minter}</p>
+                                    <p className="nftDetail-text-secondary">{t('持有者')}：{data.owner}</p>
+                                    <p className="nftDetail-text-secondary">{data.comicDesc}</p>
                                 </React.Fragment>
                             ))}
                         </Col>

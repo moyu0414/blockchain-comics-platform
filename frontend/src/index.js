@@ -15,6 +15,7 @@ import BottomNavbar from "./components/bottomNavbar";
 import Category from './routes/category';
 import ComicDetail from './routes/comicDetail';
 import ComicRead from './routes/comicRead';
+import ComicFlipRead from './routes/comicFlipRead';
 import ManageComic from './routes/manageComic';
 import Reader from './routes/reader';
 import Creator from './routes/creator';
@@ -50,6 +51,7 @@ import SearchPage from './routes/searchPage';
 import VerifySuccess from './routes/verifySuccess';
 import NftMarket from './routes/nftMarket';
 import NftDetail from './routes/nftDetail';
+import NftOwner from './routes/nftOwner';
 import Web3 from 'web3';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
@@ -60,7 +62,9 @@ const AppLayout = () => {
   const [accounts, setAccounts] = useState([]);
   const location = useLocation();
   const isComicReadPage = location.pathname.startsWith('/comicRead/');
+  const isComicFlipReadPage = location.pathname.startsWith('/comicFlipRead');
   const isSearchPage = location.pathname.startsWith('/searchPage');
+  const hideNavbar = isComicReadPage || isComicFlipReadPage || isSearchPage;
   const headers = {'api-key': API_KEY};
   // 處理登錄狀態的函數
   const handleLogin = () => {
@@ -93,9 +97,9 @@ const AppLayout = () => {
 
   return (
     <>
-      {isLoggedIn && !isSearchPage && !isComicReadPage && <Navigation accounts={accounts} setAccounts={setAccounts}/>}
+      {isLoggedIn && !hideNavbar && <Navigation accounts={accounts} setAccounts={setAccounts}/>}
       <Outlet />
-      {isLoggedIn && !isSearchPage && !isComicReadPage && <BottomNavbar />}
+      {isLoggedIn && !hideNavbar && <BottomNavbar />}
     </>
   );
 };
@@ -313,6 +317,9 @@ const router = createBrowserRouter([
         path: "/nftDetail/:tokenId",
         element: <NftDetail />,
       },{
+        path: "/nftOwner/:tokenId",
+        element: <NftOwner />,
+      },{
         path: "/readerPage",
         element: <ReaderPage />,
       },{
@@ -348,6 +355,9 @@ const router = createBrowserRouter([
       },{
         path: "/rankingList",
         element: <RankingList />,
+      },{
+        path: "/comicFlipRead",
+        element: <ComicFlipRead />,
       }
     ],
   },

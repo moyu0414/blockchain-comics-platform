@@ -12,6 +12,8 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 function Bookcase() {
     const [current, setCurrent] = useState([]);
     const [isBuying, setIsBuying] = useState(true);
+    const [NFTLogArray, setNFTLogArray] = useState([]);
+    const [beingNFT, setBeingNFT] = useState(true);
     const { t } = useTranslation();
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
@@ -67,6 +69,32 @@ function Bookcase() {
         initData();
     }, [currentAccount]);
 
+    const handleSelect = async (eventKey) => {
+        if (eventKey === "NFT") {
+            const nftResponse = await axios.get(`${website}/api/bookcase/nftRecords`, {
+                headers: headers,
+                params: {
+                    currentAccount: currentAccount
+                }
+            });
+            let nftRecords = nftResponse.data;
+            console.log(nftRecords);
+            const comicMap = new Map(storedArray.map(comic => [comic.comic_id, comic]));
+            for (const data of nftRecords) {
+                const comic = comicMap.get(data.comicHash);
+                if (comic) {
+                    const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.filename}`, { responseType: 'blob', headers });
+                    const image = URL.createObjectURL(imageResponse.data);
+                    data.image = image;
+                }
+            }
+            setNFTLogArray(nftRecords);
+            if (nftRecords.length === 0) {
+              setBeingNFT(false);
+            }
+        }
+    };
+
     function sortByPurchase(array) {
         return array.sort((a, b) => {
             const dateA = new Date(a.purchase_date);
@@ -79,29 +107,29 @@ function Bookcase() {
     return (
         <>
             <Container className='creatorPage'>
-                <Row className="pt-5 align-items-center">
+                <Row className="pt-4 align-items-center">
                     <Col>
                         <h3 className="fw-bold">{t('我的書櫃')}</h3>
                     </Col>
                 </Row>
-                <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" className="mb-3">
+                <Tabs defaultActiveKey="profile" onSelect={handleSelect} className="mb-3">
                     <Tab eventKey="home" title={t('最近閱讀')}>
                         {isBuying &&
-                            <Row xs={1} md={2} className="g-4 pb-5">
+                            <Row xs={1} md={2}>
                                 {current
                                     .filter(data => data.chapter) // 過濾出有 chapter 的數據
                                     .map((data, idx) => (
-                                    <Col key={idx} xs={4} md={3} className="pt-3">
-                                        <Link to={`/comicRead/${data.comicID}/${data.chapter}`}>
-                                        <Card>
-                                            <Card.Img variant="top" src={data.image} />
-                                            <div className="bookcase-overlay">{data.chapter}</div>
-                                            <Card.Body>
-                                            <Card.Title className='bookcase-text'>{data.title}</Card.Title>
-                                            </Card.Body>
-                                        </Card>
-                                        </Link>
-                                    </Col>
+                                        <Col key={idx} xs={4} md={3}>
+                                            <Link to={`/comicRead/${data.comicID}/${data.chapter}`}>
+                                                <Card>
+                                                    <Card.Img variant="top" src={data.image} />
+                                                    <div className="bookcase-overlay">{data.chapter}</div>
+                                                    <Card.Body>
+                                                        <Card.Title className='bookcase-read-text'>{data.title}</Card.Title>
+                                                    </Card.Body>
+                                                </Card>
+                                            </Link>
+                                        </Col>
                                 ))}
                             </Row>
                         }
@@ -113,14 +141,15 @@ function Bookcase() {
                     </Tab>
                     <Tab eventKey="profile" title={t('最近購買')}>
                         {isBuying &&
-                            <Row xs={1} md={2} className="g-4 pb-5">
+                            <Row xs={1} md={2}>
                                 {current.map((data, idx) => (
-                                    <Col key={idx} xs={4} md={3} className="pt-3">
+                                    <Col key={idx} xs={4} md={3}>
                                         <Link to={`/comicDetail/${data.comicID}`}>
                                             <Card>
                                                 <Card.Img variant="top" src={data.image} />
+                                                <div className="bookcase-purchase-overlay"></div>
                                                 <Card.Body>
-                                                    <Card.Title className='text-center'>{data.title}</Card.Title>
+                                                    <Card.Title className='bookcase-purchase-text'>{data.title}</Card.Title>
                                                 </Card.Body>
                                             </Card>
                                         </Link>
@@ -131,6 +160,30 @@ function Bookcase() {
                         {!isBuying &&
                             <div className="loading-container">
                                 <div>{t('目前無購買漫畫，請重新刷新')}</div>
+                            </div>
+                        }
+                    </Tab>
+                    <Tab eventKey="NFT" title='NFT'>
+                        {isBuying &&
+                            <Row xs={1} md={2}>
+                                {NFTLogArray.map((data, idx) => (
+                                    <Col key={idx} xs={4} md={3}>
+                                        <Link to={`/nftOwner/tokenId${data.tokenId}`}>
+                                            <Card>
+                                                <Card.Img variant="top" src={data.image} />
+                                                <div className="bookcase-overlay">{data.tokenId} / {t(data.descTitle)}</div>
+                                                <Card.Body>
+                                                    <Card.Title className='bookcase-purchase-text'>{data.title}</Card.Title>
+                                                </Card.Body>
+                                            </Card>
+                                        </Link>
+                                    </Col>
+                                ))}
+                            </Row>
+                        }
+                        {!beingNFT &&
+                            <div className="loading-container">
+                                <div>{t('目前無購買NFT，請重新刷新')}</div>
                             </div>
                         }
                     </Tab>
