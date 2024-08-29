@@ -64,11 +64,6 @@ const AppLayout = () => {
   const isComicReadPage = location.pathname.startsWith('/comicRead/');
   const isComicFlipReadPage = location.pathname.startsWith('/comicFlipRead');
   const isSearchPage = location.pathname.startsWith('/searchPage');
-
-  console.log('isComicReadPage:', isComicReadPage); // 調試用
-  console.log('isComicFlipReadPage:', isComicFlipReadPage); // 調試用
-  console.log('isSearchPage:', isSearchPage);
-
   const hideNavbar = isComicReadPage || isComicFlipReadPage || isSearchPage;
   const headers = {'api-key': API_KEY};
   // 處理登錄狀態的函數

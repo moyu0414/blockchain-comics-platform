@@ -395,6 +395,10 @@ span {
     font-size: 1rem;
     margin-bottom: 0;
   }
+
+  .navbar-center {
+    font-size: 1.3rem!important;
+  }
 }
 
 @media only screen and (max-width: 400px) {
@@ -453,6 +457,10 @@ span {
   .readerPage .btn-section{
     width: 45%!important;
     margin: 0!important;
+  }
+
+  .comicRead-btn {
+    max-width: 80%!important;
   }
 }
 
@@ -2209,12 +2217,19 @@ a:link{
   display: flex;
   justify-content: flex-start;
   padding-left: 3%;
+  max-width: 10%;
 }
 
 .navbar-center {
   flex: 2;
   text-align: center;
-  color: white; 
+  color: white;
+  font-size: 1.6rem;
+  max-width: 77%;
+  overflow: hidden; /* 隐藏超出容器的内容 */
+  word-wrap: break-word; /* 确保长单词可以换行 */
+  hyphens: auto; /* 自动处理文本的连字符 */
+  white-space: normal; /* 确保文本正常换行 */
 }
 
 .navbar-right {
@@ -2222,6 +2237,7 @@ a:link{
   display: flex;
   justify-content: flex-end;
   padding-right: 3%;
+  max-width: 13%;
 }
 
 .icon {
@@ -2304,6 +2320,20 @@ a:link{
   justify-content: center;
   align-items: center;
   overflow: hidden; 
+}
+
+.toggleMode-button {
+  width: 200px;
+  font-size: 18px; 
+  border: none;
+  border-radius: 10px;
+  background-color: #fff;
+  padding: 5px;
+  font-weight: bold; 
+}
+
+.toggleMode-button:hover {
+  opacity: 0.8; 
 }
 
 /* bookcase */
