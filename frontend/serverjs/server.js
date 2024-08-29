@@ -13,11 +13,10 @@ const rename = promisify(fsPromises.rename); // 圖片重命名
 const app = express();
 const port = 5000;
 const dotenv = require('dotenv');
-//const envPath = path.join('/var/www/html/src', '.env');  // web3toonapi
-const envPath = path.join('../', '.env');  // localhost
+const envPath = path.join('/var/www/html/src', '.env');  // web3toonapi
+//const envPath = path.join('../', '.env');  // localhost
 dotenv.config({ path: envPath });
-const API_KEY = process.env.REACT_APP_API_KEY; // 从环境变量读取API密钥
-
+const API_KEY = process.env.API_KEY; // 从环境变量读取API密钥
 app.use(cors());
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');  // 允許所有来源的請求訪問資源
@@ -66,7 +65,7 @@ pool.getConnection((err, connection) => {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './uploads');
+    cb(null, '/var/www/html/uploads');
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname); // 保持文件名不变，或者根据需要修改
@@ -78,7 +77,7 @@ const upload = multer({ storage: storage });
 
 // 异步函数，用于重命名文件并将其移动到上传目录
 async function renameFilename(file, comic_id, type, protoFilename, coverFile) {
-  const comicFolder = path.join('uploads', comic_id);
+  const comicFolder = path.join('/var/www/html/uploads', comic_id);
   const specificFolder = path.join(comicFolder, type === 'comicIMG' ? 'cover' : 'chapters');
   try {
     await fsPromises.mkdir(comicFolder, { recursive: true });
@@ -1159,7 +1158,7 @@ app.get('/api/comicIMG/:filename', async (req, res) => {
       const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
       
       // localhost
-      const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', filename);
+      const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', filename);
 
       // web3toonapi
       //const imagePath = `https://web3toon.ddns.net/uploads/${comic_id}/cover/${filename}`;
@@ -1186,7 +1185,7 @@ app.get('/api/chapterIMG/:filename',async (req, res) => {
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
       
     // localhost
-    const imagePath = path.join(__dirname, 'uploads', comic_id, 'chapters', filename);
+    const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'chapters', filename);
 
     // web3toonapi
     //const imagePath = `https://web3toon.ddns.net/uploads/${comic_id}/chapters/${filename}`;
@@ -1213,7 +1212,7 @@ app.get('/api/coverFile/:filename/:protoFilename', async (req, res) => {
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
     
     // localhost
-    const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', 'promoCover.jpg');
+    const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', "promoCover.jpg");
 
     // web3toonapi
     //const imagePath = `https://web3toon.ddns.net/uploads/${comic_id}/cover/promoCover.jpg`;
@@ -1271,7 +1270,7 @@ app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'c
       });
     }
     if (file) {
-      await deleteFile(`uploads/${id}/cover/${fileName}`);
+      await deleteFile(`/var/www/html/uploads/${id}/cover/${fileName}`);
     }
     return res.status(200).json({ message: 'comicData updated successfully' });
   } catch (error) {
@@ -1303,7 +1302,7 @@ app.put('/api/update/chapterData', upload.single('chapterIMG'), async (req, res)
       });
     });
     if (file) {
-      await deleteFile(`uploads/${comic_id}/chapters/${fileName}`);
+      await deleteFile(`/var/www/html/uploads/${comic_id}/chapters/${fileName}`);
     }
     return res.status(200).json({ message: 'chapterData updated successfully' });
   } catch (error) {
