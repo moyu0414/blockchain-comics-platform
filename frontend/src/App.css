@@ -403,6 +403,10 @@ span {
   .navbar-center {
     font-size: 1.3rem!important;
   }
+  
+  .flip-comic img {
+    width: 100%!important; 
+  }
 }
 
 @media only screen and (max-width: 400px) {
@@ -1263,12 +1267,24 @@ a:link{
 }
 
 .homepage .card-img-top{
-  height: 25.5rem;
+  width: 100%; /* 图片宽度自动适应父级宽度 */
+  height: 26rem; /* 固定高度，可以调整为你需要的高度 */
+  object-fit: cover; /* 保持图片的纵横比，并裁剪溢出的部分 */
+}
+
+.comicDetail .card-img-top{
+  width: 100%; /* 图片宽度自动适应父级宽度 */
+  height: 26rem; /* 固定高度，可以调整为你需要的高度 */
+  object-fit: cover; /* 保持图片的纵横比，并裁剪溢出的部分 */
 }
 
 @media only screen and (max-width: 1200px) {
   .homepage .card-img-top{
     height: 20rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 18rem!important;
   }
 
   .homepage .btn-section{
@@ -1277,6 +1293,16 @@ a:link{
 
   .homepage .btn-section .btn{
     width: 100%;
+  }
+}
+
+@media only screen and (max-width: 1000px) {
+  .homepage .card-img-top{
+    height: 15rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 14rem!important;
   }
 }
 
@@ -1340,11 +1366,23 @@ a:link{
     text-overflow: ellipsis;
   }
 
+  .homepage .card-img-top{
+    height: 18rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 18rem!important;
+  }
+
 }
 
 @media only screen and (max-width: 550px) {
   .homepage .card-img-top{
     height: 18rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 18rem!important;
   }
 }
 
@@ -1352,11 +1390,40 @@ a:link{
   .homepage .card-img-top{
     height: 15rem;
   }
+
+  .comicDetail .card-img-top{
+    height: 15rem!important;
+  }
+}
+
+@media only screen and (max-width: 425px) {
+  .homepage .card-img-top{
+    height: 14rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 14rem!important;
+  }
 }
 
 @media only screen and (max-width: 400px) {
   .homepage .card-img-top{
     height: 13rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 13rem!important;
+  }
+}
+
+@media only screen and (max-width: 380px) {
+  .homepage .card-img-top{
+    
+    height: 12rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 12rem!important;
   }
 }
 
@@ -2325,6 +2392,37 @@ a:link{
 .banner-image img {
   width: 100%; 
   height: auto; 
+}
+
+.flip-comic {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.flip-comic img {
+  padding-top: 100px;
+  width: 20%; 
+  height: auto;
+  max-height: 88%; 
+  /* object-fit: cover; */
+}
+
+/* .split-image {
+  top: 0;
+  width: 100%;
+  height: auto;
+  max-height: 75vh; 
+  object-fit: cover;
+} */
+
+@media (max-width: 600px) {
+  /* .split-image {
+      max-height: 50vh; 
+  } */
+
+  
 }
 
 .icon-bar {
@@ -3390,7 +3488,7 @@ a:link{
   padding-top: 100px;
 }
 
-.comicFlipRead .comic-container {
+.comicRead .comic-container {
   position: relative;
   width: 100%;
   height: 100vh; 
@@ -3399,7 +3497,7 @@ a:link{
   justify-content: center;
 }
 
-.comicFlipRead .comic-page {
+.comicRead .comic-page {
   position: absolute;
   top: 0;
   height: 100%;
@@ -3407,19 +3505,30 @@ a:link{
   opacity: 0;
 }
 
-.comicFlipRead .comic-page.active {
+.comicRead .comic-page.active {
   opacity: 1;
   transform: scale(1);
 }
 
-.comicFlipRead .comic-container img {
-  background-color: #000;
-}
+/* .comicRead .comic-container img {
+  width: 100%;
+  height: auto;
+} */
+
+
 
 @media only screen and (max-width: 768px) {
-  .comicFlipRead .comic-page {
+  .comicRead .comic-page {
     left: 0;
     width: 100%;
+  }
+
+  .authorProfile .card-header .row{
+    padding: 2% 4%;
+  }
+
+  .post-author{
+    padding: 0 8%;
   }
 }
 
@@ -3432,3 +3541,63 @@ a:link{
 .dataAnalysis select{
   width: 40%;
 }
+
+/* authorProfile */
+.profile-section, .post-author {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-text-section {
+  display: flex;
+  align-items: center;
+}
+
+.profile-section img, .post-author img {
+  border-radius: 50%; /* 圆形 */
+  object-fit: cover; /* 保持图片比例 */
+}
+
+.profile-section img {
+  height: auto; /* 高度自适应 */
+  max-width: 200px; /* 最大宽度 */
+  aspect-ratio: 1 / 1; /* 1:1 比例 */
+}
+
+
+
+.post-author img{
+  height: auto; /* 高度自适应 */
+  max-width: 60px; /* 最大宽度 */
+  aspect-ratio: 1 / 1; /* 1:1 比例 */
+  
+}
+
+.post-content img {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  border-radius: 10px; /* 圆角效果，可根据需要调整 */
+}
+
+.post-content {
+  padding: 1rem;
+}
+
+.post-section{
+  width: 100%;
+}
+
+.post-image{
+  width: 100%;
+}
+
+.post-image img{
+  width: 100%;
+}
+
+.authorProfile .card-header{
+  background-color: #F3FCF3;
+}
+

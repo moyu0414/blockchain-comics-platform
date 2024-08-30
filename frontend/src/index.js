@@ -29,6 +29,7 @@ import Bookcase from './routes/bookcase';
 import BecomeWriter from './routes/becomeWriter';
 import Analysis from './routes/analysis';
 import DataAnalysis from './routes/dataAnalysis';
+import AuthorProfile from './routes/authorProfile';
 import Dual from './routes/dual';
 import CreateWork from './routes/createWork';
 import EditWork from './routes/editWork';
@@ -362,6 +363,9 @@ const router = createBrowserRouter([
       },{
         path: "/dataAnalysis",
         element: <DataAnalysis />,
+      },{
+        path: "/authorProfile",
+        element: <AuthorProfile />,
       }
     ],
   },

@@ -464,7 +464,7 @@ function ComicDetail() {
                                         <Card.Img variant="top" src={data.image} />
                                         <Card.Body>
                                             <Card.Title className='text-center'>{data.title}</Card.Title>
-                                            <Card.Text>{truncateText(data.description, 30)}</Card.Text>
+                                            <Card.Text className='text-secondary'>{truncateText(data.description, 30)}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Link>

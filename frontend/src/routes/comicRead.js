@@ -54,6 +54,7 @@ const ComicRead = () => {
         setLastScrollTop(currentScrollTop <= 0 ? 0 : currentScrollTop);
     };
 
+    
     const handleClick = () => {
         setShowNavbar(true);
         setShowIconBar(true);
@@ -179,24 +180,46 @@ const ComicRead = () => {
     }, [comicID, chapterID, autoMode]);
 
     const processImage = (img) => {
-        const splitWidth = 1200;
-        const numSplits = Math.ceil(img.width / splitWidth);
+        const splitHeight = window.innerHeight * 1.6; // 设置为视口高度的75%
+        const numSplits = Math.ceil(img.height / splitHeight);
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         const newSplitImages = [];
+        
         for (let i = 0; i < numSplits; i++) {
-            canvas.width = splitWidth;
-            canvas.height = img.height;
+            canvas.width = img.width;
+            canvas.height = splitHeight;
             context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(img, -i * splitWidth, 0);
+            context.drawImage(img, 0, -i * splitHeight);
             const splitImageURL = canvas.toDataURL();
             newSplitImages.push({
                 id: i + 1,
                 image: splitImageURL,
             });
-        };
+        }
+        
         return newSplitImages;
-    }
+    };
+
+    // const processImage = (img) => {
+    //     const splitWidth = 600;
+    //     const numSplits = Math.ceil(img.width / splitWidth);
+    //     const canvas = document.createElement('canvas');
+    //     const context = canvas.getContext('2d');
+    //     const newSplitImages = [];
+    //     for (let i = 0; i < numSplits; i++) {
+    //         canvas.width = splitWidth;
+    //         canvas.height = img.height;
+    //         context.clearRect(0, 0, canvas.width, canvas.height);
+    //         context.drawImage(img, -i * splitWidth, 0);
+    //         const splitImageURL = canvas.toDataURL();
+    //         newSplitImages.push({
+    //             id: i + 1,
+    //             image: splitImageURL,
+    //         });
+    //     };
+    //     return newSplitImages;
+    // }
 
     // 章節購買 或 閱讀函數
     const handlePurchase = async (chapterId) => {
@@ -428,11 +451,14 @@ const ComicRead = () => {
     }, []);
 
 
+    
+
+
     return (
         <>
         {!loading && (
             <>
-                <div className='no-padding-bottom'>
+                <div className='comicRead no-padding-bottom'>
                     <Navbar className={`comic-custom-navbar ${showNavbar ? 'show' : 'hide'}`} expand="lg">
                         <Navbar.Brand className="navbar-left">
                             <Link to={`/comicDetail/${comicID}`}>
@@ -448,19 +474,18 @@ const ComicRead = () => {
                     </Navbar>
                     {pageMode ? (
                         splitImages.length > 0 && (
-                            <Col
-                                xs={12}
-                                className="comic-container"
+                            <div
+                                className="flip-comic"
                                 {...swipeHandlers}
                             >
                             <img
                                 key={splitImages[readPage].id}
                                 src={splitImages[readPage].image}
                                 alt="Page comics"
-                                className="img-fluid comic-page active"
+                                className="split-image active"
                                 style={{ zIndex: 2 }}
                             />
-                            </Col>
+                            </div>
                         )
                     ) : (
                         chapter.map((chapter, index) => (
@@ -483,7 +508,7 @@ const ComicRead = () => {
                     </div>
         
                     {showOverlay && (
-                        <div className="comic-overlay">
+                        <div className=" comic-overlay">
                             <div className="overlay-content">
                                 <div className="overlay-header">
                                     <div className="overlay-comic-title">{currentChapters[0]?.comicTitle}</div>
