@@ -121,10 +121,6 @@ function NftMarket() {
         }
     });
 
-    const truncateText = (text, maxLength) => {
-        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-    };
-
     const truncateLastText = (text, maxLength) => {
         if (text.length > maxLength) {
             const end = text.slice(-maxLength); // 获取最后 maxLength 个字符
@@ -133,24 +129,18 @@ function NftMarket() {
         return text;
     };
 
-    const truncateTextForName = (text) => {
-        const isChinese = (char) => /[\u4e00-\u9fa5]/.test(char);
-        const maxLength = text.split('').some(isChinese) ? 6 : 12;  // 中文6個字、英文12個字
-        return truncateText(text, maxLength);
-    };
-
 
     return (
         <>
         {!loading &&
             <Container className='nftMarket'>
-                <Row className='pt-4'>
-                    <h2 className='text-center fw-bold'>NFT市場</h2>
+                <h2 className='text-center fw-bold' style={{backgroundColor: "green"}}>NFT市場</h2>
+                <Row>
                     <h3 className="fw-bold pt-3">{t('大家都在買')}</h3>
                 </Row>
                 <Row className='pt-1 pb-5'>
                     {comic.filter(data => data.isFanCreation === t('原創')).map((data, index) => (
-                        <Col xs={6} md={3} className="pt-3">
+                        <Col xs={6} md={3} className="pt-3" key={index}>
                             <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                 <Card className="effect-image-1">
                                     <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />

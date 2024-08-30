@@ -15,10 +15,7 @@ import BottomNavbar from "./components/bottomNavbar";
 import Category from './routes/category';
 import ComicDetail from './routes/comicDetail';
 import ComicRead from './routes/comicRead';
-import ComicFlipRead from './routes/comicFlipRead';
 import ManageComic from './routes/manageComic';
-import Reader from './routes/reader';
-import Creator from './routes/creator';
 import CreatorPage from './routes/creatorPage';
 import CollectionPage from './routes/collectionPage';
 import CollectionNft from './routes/collectionNft';
@@ -29,22 +26,14 @@ import Bookcase from './routes/bookcase';
 import BecomeWriter from './routes/becomeWriter';
 import Analysis from './routes/analysis';
 import DataAnalysis from './routes/dataAnalysis';
-import Dual from './routes/dual';
 import CreateWork from './routes/createWork';
 import EditWork from './routes/editWork';
 import EditChapter from './routes/editChapter';
 import EditSuccess from './routes/editSuccess';
 import DeleteChapter from './routes/deleteChapter';
-import WorkManagement from './routes/workManagement';
-import ChapterManagement from './routes/chapterManagement';
-import SelectChapter from './routes/selectChapter';
-import ReaderChapter from './routes/reader_Chapter';
-import Reading from './routes/reading';
 import RankingList from './routes/rankingList';
-import TransactionHistory from './routes/transactionHistory';
 import PurchaseHistory from './routes/purchaseHistory';
 import ComicManagement from './routes/comicManagement';
-import AccountManagement from './routes/accountManagement';
 import MintNFT from './routes/mintNFT';
 import MessagePage from './routes/messagePage';
 import VerifyPage from './routes/verifyPage';
@@ -63,9 +52,8 @@ const AppLayout = () => {
   const [accounts, setAccounts] = useState([]);
   const location = useLocation();
   const isComicReadPage = location.pathname.startsWith('/comicRead/');
-  const isComicFlipReadPage = location.pathname.startsWith('/comicFlipRead');
   const isSearchPage = location.pathname.startsWith('/searchPage');
-  const hideNavbar = isComicReadPage || isComicFlipReadPage || isSearchPage;
+  const hideNavbar = isComicReadPage || isSearchPage;
   const headers = {'api-key': API_KEY};
   // 處理登錄狀態的函數
   const handleLogin = () => {
@@ -236,18 +224,6 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <HomePage />,
-      },
-      {
-        path: "/reader",
-        element: <Reader />,
-      },
-      {
-        path: "/creator",
-        element: <Creator />,
-      },
-      {
-        path: "/dual",
-        element: <Dual />,
       },{
         path: "/createWork",
         element: <CreateWork />,
@@ -255,32 +231,11 @@ const router = createBrowserRouter([
         path: "/editWork",
         element: <EditWork />,
       },{
-        path: "/workManagement",
-        element: <WorkManagement />,
-      },{
-        path: "/selectChapter/:comicID",
-        element: <SelectChapter />,
-      },{
-        path: "/reader_Chapter/:comicID",
-        element: <ReaderChapter />,
-      },{
-        path: "/reading/:comicID/:chapterID",
-        element: <Reading />,
-      },{
-        path: "/transactionHistory",
-        element: <TransactionHistory />,
-      },{
         path: "/purchaseHistory",
         element: <PurchaseHistory />,
       },{
-        path: "/chapterManagement/:comicID",
-        element: <ChapterManagement />,
-      },{
         path: "/comicManagement",
         element: <ComicManagement />,
-      },{
-        path: "/accountManagement",
-        element: <AccountManagement />,
       },{
         path: "/category",
         element: <Category />,
@@ -356,9 +311,6 @@ const router = createBrowserRouter([
       },{
         path: "/rankingList",
         element: <RankingList />,
-      },{
-        path: "/comicFlipRead",
-        element: <ComicFlipRead />,
       },{
         path: "/dataAnalysis",
         element: <DataAnalysis />,
