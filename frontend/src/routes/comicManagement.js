@@ -324,7 +324,7 @@ const ComicManagement = ({ contractAddress }) => {
                   <tr>
                     <th></th>
                     <th>#</th>
-                    <th>{t('漫畫標題')}</th>
+                    <th>{t('漫畫')}</th>
                     <th>{t('作者')}</th>
                     {!isMobile &&
                       <td>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from "react-router-dom";
-import { Container, Card, Col, Row, Button, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
+import { Container, Card, Col, Row, Button, Table, ButtonToolbar, Pagination, Tooltip, OverlayTrigger } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
 import comicData from '../contracts/ComicPlatform.json';
@@ -58,13 +58,15 @@ function ComicDetail() {
                             title: storedArray[i].title,
                             description: storedArray[i].description,
                             author: author,
+                            penName: storedArray[i].penName,
                             category: storedArray[i].category,
                             protoFilename: protoFilename,
+                            date: storedArray[i].date
                         });
                     }
                 }
             }
-            //console.log(temp);
+            console.log(temp);
             setComic(temp);
 
             for (let i = 0; i < storedArray.length; i++) {
@@ -76,9 +78,10 @@ function ComicDetail() {
                         comicID: storedArray[i].comicID,
                         title: storedArray[i].title,
                         description: storedArray[i].description,
-                        author: storedArray[i].creator,
+                        penName: storedArray[i].penName,
                         category: storedArray[i].category,
                         image: image,
+                        date: storedArray[i].date
                     });
                 }
                 if (fetchedData.length == 4) {
@@ -197,79 +200,6 @@ function ComicDetail() {
         }
     };
 
-    const itemsPerPage = 10; // 每頁顯示的章節數量
-    const totalPages = Math.ceil(chapters.length / itemsPerPage);
-
-    const handlePageChange = (page) => {
-        setCurrentPage(page);
-    };
-
-    // 計算當前頁面的章節切片的起始索引
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const currentChapters = chapters.slice(startIndex, startIndex + itemsPerPage);
-
-    const getPageItems = () => {
-        const pageItems = [];
-        const maxPagesToShow = 5; // 顯示的最大頁碼數量
-    
-        if (totalPages <= maxPagesToShow) {
-            // 如果總頁數小於等於最大顯示頁碼數，則顯示所有頁碼
-            for (let i = 1; i <= totalPages; i++) {
-                pageItems.push(
-                    <Pagination.Item key={i} active={i === currentPage} onClick={() => handlePageChange(i)}>
-                        {i}
-                    </Pagination.Item>
-                );
-            }
-        } else {
-            // 計算中間的頁碼範圍
-            const middlePages = Math.floor(maxPagesToShow / 2);
-            let startPage = Math.max(2, currentPage - middlePages);
-            let endPage = Math.min(totalPages - 1, currentPage + middlePages);
-    
-            if (currentPage - startPage <= middlePages) {
-                endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 2);
-            }
-    
-            if (endPage - currentPage <= middlePages) {
-                startPage = Math.max(2, endPage - maxPagesToShow + 2);
-            }
-    
-            // 第一頁
-            pageItems.push(
-                <Pagination.Item key={1} active={currentPage === 1} onClick={() => handlePageChange(1)}>
-                    1
-                </Pagination.Item>
-            );
-    
-            if (startPage > 2) {
-                pageItems.push(<Pagination.Ellipsis key="ellipsis-start" />);
-            }
-    
-            // 中間的頁碼
-            for (let i = startPage; i <= endPage; i++) {
-                pageItems.push(
-                    <Pagination.Item key={i} active={i === currentPage} onClick={() => handlePageChange(i)}>
-                        {i}
-                    </Pagination.Item>
-                );
-            }
-    
-            if (endPage < totalPages - 1) {
-                pageItems.push(<Pagination.Ellipsis key="ellipsis-end" />);
-            }
-    
-            // 最後一頁
-            pageItems.push(
-                <Pagination.Item key={totalPages} active={currentPage === totalPages} onClick={() => handlePageChange(totalPages)}>
-                    {totalPages}
-                </Pagination.Item>
-            );
-        }
-    
-        return pageItems;
-    };
-
     // 章節購買 或 閱讀函數
     const handlePurchase = async (chapterId) => {
         const chapter = currentChapters[chapterId]; // 使用傳遞進來的索引值來訪問章節資料
@@ -343,20 +273,96 @@ function ComicDetail() {
         } catch (error) {
             if (error.message.includes('User denied transaction signature')) {
                 alert(t('拒绝交易'));
-              } else {
+                } else {
                 console.error('章節購買時發生錯誤：', error);
                 alert(error);
                 window.location.reload();
-              }
+                }
         } finally {
             enableAllButtons();
         }
         }
     };
 
-    const truncateText = (text, maxLength) => {
-        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    const itemsPerPage = 10; // 每頁顯示的章節數量
+    const totalPages = Math.ceil(chapters.length / itemsPerPage);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
     };
+
+    // 計算當前頁面的章節切片的起始索引
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const currentChapters = chapters.slice(startIndex, startIndex + itemsPerPage);
+
+    const getPageItems = () => {
+        const pageItems = [];
+        const maxPagesToShow = 5; // 顯示的最大頁碼數量
+    
+        if (totalPages <= maxPagesToShow) {
+            // 如果總頁數小於等於最大顯示頁碼數，則顯示所有頁碼
+            for (let i = 1; i <= totalPages; i++) {
+                pageItems.push(
+                    <Pagination.Item key={i} active={i === currentPage} onClick={() => handlePageChange(i)}>
+                        {i}
+                    </Pagination.Item>
+                );
+            }
+        } else {
+            // 計算中間的頁碼範圍
+            const middlePages = Math.floor(maxPagesToShow / 2);
+            let startPage = Math.max(2, currentPage - middlePages);
+            let endPage = Math.min(totalPages - 1, currentPage + middlePages);
+    
+            if (currentPage - startPage <= middlePages) {
+                endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 2);
+            }
+    
+            if (endPage - currentPage <= middlePages) {
+                startPage = Math.max(2, endPage - maxPagesToShow + 2);
+            }
+    
+            // 第一頁
+            pageItems.push(
+                <Pagination.Item key={1} active={currentPage === 1} onClick={() => handlePageChange(1)}>
+                    1
+                </Pagination.Item>
+            );
+    
+            if (startPage > 2) {
+                pageItems.push(<Pagination.Ellipsis key="ellipsis-start" />);
+            }
+    
+            // 中間的頁碼
+            for (let i = startPage; i <= endPage; i++) {
+                pageItems.push(
+                    <Pagination.Item key={i} active={i === currentPage} onClick={() => handlePageChange(i)}>
+                        {i}
+                    </Pagination.Item>
+                );
+            }
+    
+            if (endPage < totalPages - 1) {
+                pageItems.push(<Pagination.Ellipsis key="ellipsis-end" />);
+            }
+    
+            // 最後一頁
+            pageItems.push(
+                <Pagination.Item key={totalPages} active={currentPage === totalPages} onClick={() => handlePageChange(totalPages)}>
+                    {totalPages}
+                </Pagination.Item>
+            );
+        }
+    
+        return pageItems;
+    };
+
+    const renderTooltip = (description) => (props) => (
+        <Tooltip id="button-tooltip" {...props}>
+            {description}
+        </Tooltip>
+    );
+
 
     return (
         <>
@@ -402,8 +408,11 @@ function ComicDetail() {
                             {comic.map((comic, index) => (
                                 <React.Fragment key={index}>
                                     <h3 className="fw-bold">{comic.title}</h3>
-                                    <p className="text-secondary address">{comic.author}</p>
-                                    <p>{t('最新章節')}：{comic.chapter}</p>
+                                    <p>
+                                        <span className="comicDetail-penName">{comic.penName}</span> 
+                                        <span className="text-secondary address">({comic.author})</span>
+                                    </p>
+                                    <p>{t('最新章節')}：{comic.chapter}<span className="text-secondary">...{comic.date}</span></p>
                                     <p className="text-secondary">{comic.description}</p>
                                 </React.Fragment>
                             ))}
@@ -460,11 +469,15 @@ function ComicDetail() {
                         {similComic.map((data, idx) => (
                             <Col key={idx} xs={6} md={3} className="pt-3">
                                 <Link to={`/comicDetail/${data.comicID}`}>
-                                    <Card>
-                                        <Card.Img variant="top" src={data.image} />
+                                    <Card className="ranking-thumbnail-position">
+                                        <OverlayTrigger placement="top" overlay={renderTooltip(data.description)}>
+                                            <Card.Img variant="top" src={data.image} />
+                                        </OverlayTrigger>
+                                        <div className="comicDetail-createTime" style={{marginBottom: "-5px"}}>{data.penName}</div>
+                                        <div className="comicDetail-createTime">{data.date}</div>
                                         <Card.Body>
                                             <Card.Title className='text-center'>{data.title}</Card.Title>
-                                            <Card.Text className='text-secondary'>{truncateText(data.description, 30)}</Card.Text>
+                                            <Card.Text className="comicDetail-text">{data.description}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Link>

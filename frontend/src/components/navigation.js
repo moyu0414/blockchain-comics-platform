@@ -75,7 +75,7 @@ function Navigation() {
                     setIsLogged(true);
                     try {
                         const response = await axios.post(`${website}/api/add/user`, {
-                            address: accounts[0]
+                            address: accounts[0].toLowerCase()
                         }, {
                             headers: headers
                         });

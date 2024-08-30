@@ -1,10 +1,8 @@
 import React from 'react';
 import { Container, Row, Col, Button, Image } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 const BecomeWriter = () => {
-  const handleClick = () => {
-    window.location.replace("/verifyPage");
-  };
 
   return (
     <Container className='becomeWriter'>
@@ -23,7 +21,9 @@ const BecomeWriter = () => {
             <h4>為了保障我們的讀者與創作者</h4>
             <h4>我們需要進行一些驗證</h4>
           </div>
-          <Button onClick={handleClick} variant="primary">開始驗證</Button>
+          <Link to="/verifyPage">
+            <Button variant="primary">開始驗證</Button>
+          </Link>
         </Col>
       </Row>
     </Container>
