@@ -127,14 +127,12 @@ const VerifyPage = () => {
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
-        console.log('aa');
         if (!file) {
             return;
         }
         if (validateFileType(file)) {
             setFile(file);
             previewPromoCover(file);
-            console.log(file);
         } else {
             alert(t('文件類型不支持，請上傳...格式的圖片'));
             console.log(t('文件類型不支持，請上傳...格式的圖片'));

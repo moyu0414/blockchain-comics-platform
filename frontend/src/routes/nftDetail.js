@@ -237,7 +237,11 @@ function NftDetail() {
                                 <React.Fragment key={index}>
                                     <h3 className="fw-bold">{data.title}</h3>
                                     <h4 className="fw-bold">{data.state}</h4>
-                                    <p className="nftDetail-text-secondary">{t('作者')}：{data.minter}</p>
+                                    <p className="nftDetail-text-secondary">{t('作者')}：
+                                        <Link to={`/authorProfile/${data.minter === t('您是本作品的創作者') ? currentAccount : data.minter}`}>
+                                            {data.minter}
+                                        </Link>
+                                    </p>
                                     <p className="nftDetail-text-secondary">{t('持有者')}：{data.owner}</p>
                                     <p className="nftDetail-text-secondary">{data.comicDesc}</p>
                                 </React.Fragment>

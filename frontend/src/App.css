@@ -1727,6 +1727,7 @@ a:link{
   font-size: 1.4rem!important;
   overflow-wrap: break-word;
   margin-left: 0;
+  color: #722bd4;
 }
 
 .comicDetail .comicDetail-text{
@@ -1750,6 +1751,10 @@ a:link{
   height: 35px;
   font-size: 1.2rem; 
   z-index: 1; 
+}
+
+.comicDetail .address{
+  color: #722bd4!important;
 }
 
 @media only screen and (max-width: 768px) {

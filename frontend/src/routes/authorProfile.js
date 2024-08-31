@@ -45,17 +45,18 @@ const AuthorProfile = () => {
                     setEditableInfo({
                         penName: updateInfo[0].penName,
                         email: updateInfo[0].email,
-                        intro: updateInfo[0].intro ? updateInfo[0].intro : null,
+                        intro: updateInfo[0].intro ? updateInfo[0].intro : '',
                     });
-                    const reversedEntries = Object.entries(infoData[0].info.BBS)
-                        .reverse() // 反转数组
-                        .map(([date, msg]) => ({
-                            date,
-                            msg,
-                    }));
-                    //console.log(reversedEntries);
+                    const reversedEntries = (infoData[0].info.BBS ? 
+                        Object.entries(infoData[0].info.BBS) : []
+                    ).reverse() // 反转数组
+                      .map(([date, msg]) => ({
+                          date,
+                          msg,
+                      }));
+                    console.log(reversedEntries);
                     setMsg(reversedEntries);
-                    //console.log(updateInfo[0]);
+                    console.log(updateInfo[0]);
                     setInfo(updateInfo[0]);
                     setIsBeing(true);
                     setLoading(false);
@@ -203,7 +204,12 @@ const AuthorProfile = () => {
                                             onChange={handleChange}
                                         />
                                     ) : (
-                                        <div dangerouslySetInnerHTML={{ __html: info.intro.replace(/\n/g, '<br/>') || '這是一段簡短的作者介紹。' }} style={{marginLeft: "20px"}} />
+                                        <div
+                                            dangerouslySetInnerHTML={{
+                                                __html: (info.intro || '').replace(/\n/g, '<br/>') || '這是一段簡短的作者介紹。'
+                                            }}
+                                            style={{ marginLeft: "20px" }}
+                                        />
                                     )}
                                 </Card.Text>
                                 {currentAccount === account && (

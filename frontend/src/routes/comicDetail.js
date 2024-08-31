@@ -408,10 +408,12 @@ function ComicDetail() {
                             {comic.map((comic, index) => (
                                 <React.Fragment key={index}>
                                     <h3 className="fw-bold">{comic.title}</h3>
-                                    <p>
-                                        <span className="comicDetail-penName">{comic.penName}</span> 
-                                        <span className="text-secondary address">({comic.author})</span>
-                                    </p>
+                                    <Link to={`/authorProfile/${comic.author === t('您是本作品的創作者') ? currentAccount : comic.author}`}>
+                                        <p>
+                                            <span className="comicDetail-penName">{comic.penName}</span> 
+                                            <span className="text-secondary address">({comic.author})</span>
+                                        </p>
+                                    </Link>
                                     <p>{t('最新章節')}：{comic.chapter}<span className="text-secondary">...{comic.date}</span></p>
                                     <p className="text-secondary">{comic.description}</p>
                                 </React.Fragment>
