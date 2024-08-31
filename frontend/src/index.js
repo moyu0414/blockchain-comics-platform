@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import i18n from './i18n';
-//import Home from './routes/Home';
 import HomePage from './routes/homePage';
 import Navbar from "./components/Navbar";
 import Navigation from "./components/navigation";
@@ -111,7 +110,7 @@ function formatDate(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  return `${year}/${month}/${day}`;
+  return `${year}-${month}-${day}`;
 };
 
 //日期轉換格式 hh：mm：ss
@@ -316,7 +315,7 @@ const router = createBrowserRouter([
         path: "/dataAnalysis",
         element: <DataAnalysis />,
       },{
-        path: "/authorProfile",
+        path: "/authorProfile/:account",
         element: <AuthorProfile />,
       }
     ],

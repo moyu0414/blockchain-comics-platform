@@ -147,14 +147,21 @@ const HomePage = () => {
                                     <div className="carousel-row">
                                         {current.filter(data => data.category === category).map((data, idx) => (
                                             <Col key={idx} xs={6} md={3} className="mx-1">
-                                                <Card style={{marginRight: "8px"}}>
+                                                <Card style={{marginRight: "8%"}} className="ranking-thumbnail-position">
                                                     <Link to={`/comicDetail/${data.comicID}`}>
                                                         <Card.Img variant="top" src={data.image} />
-                                                        <div className="category-totcount">
-                                                            <CartFill style={{ marginRight: '5px' }} />
-                                                            {data.totBuy}<br />
-                                                            <HeartFill style={{ marginRight: '5px' }} />
+                                                        <div className="homepage-penName">
+                                                            {data.penName}<br />
+                                                            <CartFill style={{ marginRight: '5px', marginBottom: "3px" }} />
+                                                            {data.totBuy}
+                                                            <HeartFill style={{ marginLeft: "5px",marginRight: '5px', marginBottom: "3px" }} />
                                                             {data.totHearts}
+                                                        </div>
+                                                        <div className="card-overlay">
+                                                            <h5 style={{marginTop: "15px"}}>{data.title}</h5>
+                                                            <p className="card-overlay-penName">{data.penName}</p>
+                                                            <hr />
+                                                            <p>{data.description}</p>
                                                         </div>
                                                     </Link>
                                                     <Card.Body>

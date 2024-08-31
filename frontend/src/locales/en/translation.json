@@ -280,7 +280,35 @@
     "您並未持有此NFT，請重新刷新": "You Do Not Own This NFT, Please Refresh...",
     "確定轉售NFT": "Confirm Resale of NFT?",
     "確定": "Confirm",
-    "取消": "Cancel"
+    "取消": "Cancel",
+
+    "becomeWriter_comment": "becomeWriter",
+    "您好～": "Hello~",
+    "歡迎您成為我們的創作者！": "Welcome to be our creator!",
+    "為了保障我們的讀者與創作者的權益": "To protect the rights of our readers and creators",
+    "我們需要進行一些驗證": "We need to perform some verification",
+    "開始驗證": "Start",
+
+    "verifyPage_comment": "verifyPage",
+    "驗證碼15分鐘內有效!": "Verification code is valid for 15 minutes!",
+    "email發送錯誤，請重新再試!": "Email sending error, please try again!",
+    "請先登入以太坊錢包，才開放創作者認證": "Please log in to your Ethereum wallet to enable creator verification.",
+    "驗證失敗，請重新再試！": "Verification failed, please try again!",
+    "真實姓名": "Real Name",
+    "請輸入真實姓名": "Please enter your real name",
+    "筆名（30字以內）": "Pen Name (within 30 characters)",
+    "請輸入創作者筆名": "Please enter the creator's pen name",
+    "電子郵件": "Email",
+    "請輸入電子郵件": "Please enter your email",
+    "信箱驗證": "Email",
+    "信箱驗證碼": "Email Verification Code",
+    "驗證": "Verify",
+    "60秒後再啟動按鈕-幾秒": "Button will be reactivated in 60 seconds ({{secondsLeft}} seconds)",
+
+    "verifySuccess_comment": "verifySuccess",
+    "驗證成功": "Verification Successful",
+    "謝謝您成為我們的創作者！": "Thank you for becoming our creator!",
+    "進入創作者頁面開始我們的旅程吧": "Go to the creator page and start our journey"
 
   }
   

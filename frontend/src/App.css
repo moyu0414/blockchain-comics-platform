@@ -269,6 +269,32 @@ span {
   border: none;
 }
 
+@media only screen and (max-width: 1000px) {
+  .homepage .card-img-top{
+    height: 15rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 14rem!important;
+  }
+
+  .comicDetail .comicDetail-createTime {
+    height: 25px!important;
+    font-size: 1rem!important; 
+  }
+
+  .homepage-penName {
+    top: -60px!important;
+    height: 60px!important;
+    padding: 5px!important;
+    font-size: 1.1rem!important; 
+  }
+
+  .homepage .card-body{
+    margin-top: 15px;
+  }
+}
+
 @media only screen and (max-width: 768px) {
   .upload-form{
     padding: 8% 5%;
@@ -290,6 +316,7 @@ span {
   }
 
 }
+
 
 @media only screen and (max-width: 500px) {
   .step-item .step-line::after{
@@ -315,6 +342,17 @@ span {
     padding: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .homepage-penName {
+    top: -50px!important;
+    height: 50px!important;
+    padding: 1px!important;
+    font-size: 0.95rem!important; 
+  }
+
+  .homepage .card-body{
+    margin-top: 30px!important;
   }
 
   .comicDetail .text-secondary{
@@ -412,6 +450,11 @@ span {
   .flip-comic img {
     width: 100%!important; 
   }
+
+  .ranking-author {
+    max-width: 210px!important;
+  }
+
 }
 
 @media only screen and (max-width: 400px) {
@@ -483,6 +526,20 @@ span {
 
   .ranking-author {
     max-width: 180px!important;
+  }
+
+  .homepage-penName {
+    top: -44px!important;
+    height: 44px!important;
+    font-size: 0.9rem!important; 
+  }
+
+  .homepage .card-body{
+    margin-top: 25px!important;
+  }
+
+  .comicDetail .comicDetail-createTime {
+    font-size: 0.9rem!important; 
   }
 }
 
@@ -1290,6 +1347,59 @@ a:link{
   object-fit: cover; /* 保持图片的纵横比，并裁剪溢出的部分 */
 }
 
+.homepage-penName {
+  position: relative; 
+  text-align: center;
+  padding: 10px;
+  top: -80px;
+  left: 0;
+  margin-bottom: -75px;
+  background: rgba(178, 115, 8, 0.9); 
+  color: #fff; 
+  width: 100%;
+  height: 80px;
+  font-size: 1.3rem; 
+  z-index: 1; 
+}
+
+.card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 26rem;
+  background-color: rgba(0, 0, 0, 0.7); /* 半透明黑色背景 */
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  text-align: center;
+  overflow: hidden;
+  padding: 10px;
+  z-index: 1; 
+}
+
+.ranking-thumbnail-position:hover .card-overlay {
+  opacity: 1;
+}
+
+.card-overlay p {
+  display: -webkit-box;
+  -webkit-line-clamp: 12; /* 最大行数 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-overlay hr {
+  width: 80%;
+  border-top: 2px solid white;
+  margin-top: -5px;
+  margin-bottom: 20px;
+}
+
 @media only screen and (max-width: 1200px) {
   .homepage .card-img-top{
     height: 20rem;
@@ -1306,15 +1416,13 @@ a:link{
   .homepage .btn-section .btn{
     width: 100%;
   }
-}
 
-@media only screen and (max-width: 1000px) {
-  .homepage .card-img-top{
-    height: 15rem;
-  }
-
-  .comicDetail .card-img-top{
-    height: 14rem!important;
+  .card-overlay {
+    height: 20rem;
+  }  
+  
+  .card-overlay p {
+    -webkit-line-clamp: 7; /* 最大行数 */
   }
 }
 
@@ -1386,6 +1494,18 @@ a:link{
     height: 18rem!important;
   }
 
+  .card-overlay {
+    height: 18rem;
+  }
+  
+  .card-overlay p {
+    -webkit-line-clamp: 6;
+  }
+
+  .card-overlay hr {
+    margin-bottom: 15px;
+  }
+
 }
 
 @media only screen and (max-width: 550px) {
@@ -1395,6 +1515,14 @@ a:link{
 
   .comicDetail .card-img-top{
     height: 18rem!important;
+  }
+
+  .readerPage h4{
+    font-size: 18px;
+  }
+
+  .readerPage h5{
+    font-size: 15px;
   }
 }
 
@@ -1406,6 +1534,18 @@ a:link{
   .comicDetail .card-img-top{
     height: 15rem!important;
   }
+
+  .card-overlay {
+    height: 15rem;
+  }
+  
+  .card-overlay p {
+    -webkit-line-clamp: 4;
+  }
+
+  .readerPage h4{
+    font-size: 15px;
+  }
 }
 
 @media only screen and (max-width: 425px) {
@@ -1415,6 +1555,10 @@ a:link{
 
   .comicDetail .card-img-top{
     height: 14rem!important;
+  }
+
+  .card-overlay {
+    height: 14rem;
   }
 }
 
@@ -1426,6 +1570,19 @@ a:link{
   .comicDetail .card-img-top{
     height: 13rem!important;
   }
+  
+  .card-overlay {
+    height: 13rem;
+  }
+  
+  .card-overlay p {
+    -webkit-line-clamp: 3;
+  }
+
+  .readerPage h4{
+    max-width: 180px;
+    overflow-wrap: break-word;
+  }
 }
 
 @media only screen and (max-width: 380px) {
@@ -1436,6 +1593,23 @@ a:link{
 
   .comicDetail .card-img-top{
     height: 12rem!important;
+  }
+
+  .card-overlay {
+    height: 12rem;
+  }
+  
+  .card-overlay p {
+    -webkit-line-clamp: 2;
+  }
+
+  .card-overlay hr {
+    margin-top: -8px;
+    margin-bottom: 8px;
+  }
+
+  .card-overlay-penName {
+    overflow-wrap: break-word;
   }
 }
 
@@ -1502,12 +1676,13 @@ a:link{
 
 .category-totcount {
   position: absolute; /* 绝对定位 */
-  top: 0px;
+  top: 130px;
   right: 0px;
+  width: 100%;
+  text-align: center;
   background: rgba(0, 0, 0, 0.4); /* 半透明背景 */
   color: #fff; /* 白色文字 */
-  padding: 10px; /* 内边距 */
-  border-radius: 0 0 0 25px; /* 調整與效果圖片一致的圓角 */
+  padding: 5px; /* 内边距 */
   font-size: 0.9rem; /* 字体大小 */
   z-index: 1; /* 确保悬浮在图片上方 */
 }
@@ -1566,14 +1741,14 @@ a:link{
   position: relative; 
   text-align: center;
   padding: 2px;
-  top: -20px;
+  top: -40px;
   left: 0;
-  margin-bottom: -23px;
+  margin-bottom: -43px;
   background: rgb(178, 115, 8); 
   color: #fff; 
   width: 100%;
-  height: 25px;
-  font-size: 0.9rem; 
+  height: 35px;
+  font-size: 1.2rem; 
   z-index: 1; 
 }
 
@@ -2890,6 +3065,10 @@ a:link{
   font-weight: 900;
   border: 1px #000 solid;
   border-radius: 15px;
+}
+
+.verifyPage .file-upload {
+  height: 35vh;
 }
 
 .verification-code-inputs{

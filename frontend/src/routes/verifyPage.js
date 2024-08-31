@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
-import { useTranslation } from 'react-i18next';
+import { CardImage } from 'react-bootstrap-icons';
 import { initializeWeb3 } from '../index';
 import comicData from '../contracts/ComicPlatform.json';
+import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
@@ -11,6 +12,10 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 const VerifyPage = () => {
     const [formData, setFormData] = useState({name: '', penName: '', email: '', account: ''});
     const [account, setAccount] = useState('');
+    const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+    const [secondsLeft, setSecondsLeft] = useState(0);
+    const [file, setFile] = useState([]);
+    const [previewImg, setPreviewImg] = useState('');
     const inputRefs = useRef([]);
     const { t } = useTranslation();
     const headers = {'api-key': API_KEY};
@@ -23,7 +28,12 @@ const VerifyPage = () => {
     };
 
     const isFormComplete = () => {
-        return formData.name && formData.penName && formData.email;
+        return formData.name && formData.penName && formData.email && file.length !== 0;
+    };
+
+    const isComplete = () => {
+        const verificationCode = inputRefs.current.map(input => input.value).join('');
+        return formData.name && formData.penName && formData.email && file.length !== 0 && verificationCode.length === 6;
     };
 
     const handleSubmit = async (e) => {
@@ -38,13 +48,12 @@ const VerifyPage = () => {
             setAccount(accounts[0].toLowerCase());
             try {
                 const updatedFormData = { ...formData, account: accounts[0].toLowerCase() };
-                console.log(updatedFormData);
                 const response = await axios.post(`${website}/api/send-verification-email`, updatedFormData, { headers });
-                console.log(response.data);
                 if (response.data.state) {
-                    alert('驗證碼15分鐘內有效!')
+                    alert(t('驗證碼15分鐘內有效!'))
+                    startCountdown();
                 } else {
-                    alert('email發送錯誤，請重新再試!')
+                    alert(t('email發送錯誤，請重新再試!'))
                 }
             } catch (error) {
                 console.error('Mailbox verification error:', error);
@@ -53,6 +62,21 @@ const VerifyPage = () => {
             alert(t('請先登入以太坊錢包，才開放創作者認證'));
             return;
         }
+    };
+
+    const startCountdown = () => {
+        setIsButtonDisabled(true);
+        setSecondsLeft(60);
+        const interval = setInterval(() => {
+            setSecondsLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    setIsButtonDisabled(false);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
     };
 
     const handleInputChange = (e, index) => {
@@ -72,25 +96,55 @@ const VerifyPage = () => {
 
     const handleClick = async () => {
         try {
-            console.log(account);
             const verificationCode = inputRefs.current.map(input => input.value).join('');
-            const response = await axios.get(`${website}/api/verify-email`, {
-                headers: headers,
-                params: {
-                    token: verificationCode,
-                    account: account
-                }
-            });
+
+            const formData = new FormData();
+            formData.append('creatorIMG', file);
+            formData.append('token', verificationCode);
+            formData.append('account', account);
+
+            const response = await axios.post(`${website}/api/verify-email`, formData, { headers });
+            
             let state = response.data.state;
             console.log(response.data);
             if (state) {
                 window.location.replace("/verifySuccess");
             } else {
-                alert('驗證失敗，請重新再試！');
+                alert(t('驗證失敗，請重新再試！'));
             }
         } catch (error) {
             console.error('Verify email error:', error);
         }
+    };
+
+    const previewPromoCover = (file) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = () => {
+            setPreviewImg(reader.result);
+        };
+    };
+
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        console.log('aa');
+        if (!file) {
+            return;
+        }
+        if (validateFileType(file)) {
+            setFile(file);
+            previewPromoCover(file);
+            console.log(file);
+        } else {
+            alert(t('文件類型不支持，請上傳...格式的圖片'));
+            console.log(t('文件類型不支持，請上傳...格式的圖片'));
+            return -1;
+        }
+    };
+
+    const validateFileType = (file) => {
+        const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+        return allowedTypes.includes(file.type);
     };
     
     
@@ -98,36 +152,68 @@ const VerifyPage = () => {
         <Container className='verifyPage'>
             <Row className="justify-content-center">
                 <Col xs={12} md={8}>
+
+
+
+                <Form.Group controlId="file-upload" className='pt-4 pb-3'>
+                    <div style={{ display: 'flex' }}>
+                        <Form.Label className='label-style col-form-label' style={{ marginRight: '1rem'}}>
+                            {t('個人封面')}
+                        </Form.Label>
+                        <Form.Control
+                            type="file"
+                            style={{ flex: 1, marginBottom: '1rem' }}
+                            onChange={handleFileChange}
+                        />
+                    </div>
+                    <div className='file-upload'>
+                        {previewImg ? (
+                            <img
+                                src={previewImg}
+                                alt="Cover Preview"
+                                style={{ height:'28vh' }}
+                            />
+                        ) : (
+                            <>
+                            <CardImage size={48} />
+                            <div id="notimage2" className="hidden">{t('上傳個人封面')}</div>
+                            </>
+                        )}
+                    </div>
+                </Form.Group>
+
+
+
                     <Form.Group controlId="formRealName" className="mb-3">
-                        <Form.Label>真實姓名</Form.Label>
+                        <Form.Label>{t('真實姓名')}</Form.Label>
                         <Form.Control
                             type="text"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
-                            placeholder="輸入真實姓名"
+                            placeholder={t('請輸入真實姓名')}
                         />
                     </Form.Group>
 
                     <Form.Group controlId="formPenName" className="mb-3">
-                        <Form.Label>筆名（30字以內）</Form.Label>
+                        <Form.Label>{t('筆名（30字以內）')}</Form.Label>
                         <Form.Control
                             type="text"
                             name="penName"
                             value={formData.penName}
                             onChange={handleChange}
-                            placeholder="輸入創作者筆名"
+                            placeholder={t('請輸入創作者筆名')}
                         />
                     </Form.Group>
 
                     <Form.Group controlId="formEmail" className="mb-3">
-                        <Form.Label>電子郵件</Form.Label>
+                        <Form.Label>{t('電子郵件')}</Form.Label>
                         <Form.Control
                             type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder="輸入電子郵件"
+                            placeholder={t('請輸入電子郵件')}
                         />
                     </Form.Group>
 
@@ -135,13 +221,16 @@ const VerifyPage = () => {
                         onClick={handleSubmit}
                         className="mb-5 float-end"
                         variant={isFormComplete() ? 'success' : 'secondary'}
-                        disabled={!isFormComplete()}
+                        disabled={!isFormComplete()  || isButtonDisabled}
                     >
-                        信箱驗證
+                        {t('信箱驗證')}
                     </Button>
 
                     <Form.Group controlId="formVerificationCode" className=" mb-3">
-                        <Form.Label className="verification">信箱驗證碼</Form.Label>
+                        {isButtonDisabled && (
+                            <p className="mt-4 " style={{ marginBottom: "-10px" }}>{t('60秒後再啟動按鈕-幾秒', { secondsLeft: secondsLeft })}</p>
+                        )}
+                        <Form.Label className="verification">{t('信箱驗證碼')}</Form.Label>
                         <div className="verification-code-inputs w-100">
                         {[...Array(6)].map((_, index) => (
                             <Form.Control
@@ -157,7 +246,12 @@ const VerifyPage = () => {
                     </Form.Group>
 
                     <div className="verification-btn-section mt-4 w-100">
-                        <Button onClick={handleClick} className="verify-btn">驗證</Button>
+                        <Button 
+                            onClick={handleClick}
+                            variant={isComplete() ? 'success' : 'secondary'}
+                            disabled={!isComplete()}
+                            className="verify-btn"
+                        >{t('驗證')}</Button>
                     </div>
                 </Col>
             </Row>

@@ -473,7 +473,7 @@ function ComicDetail() {
                                         <OverlayTrigger placement="top" overlay={renderTooltip(data.description)}>
                                             <Card.Img variant="top" src={data.image} />
                                         </OverlayTrigger>
-                                        <div className="comicDetail-createTime" style={{marginBottom: "-5px"}}>{data.penName}</div>
+                                        <div className="comicDetail-createTime" style={{marginBottom: "0px"}}>{data.penName}</div>
                                         <div className="comicDetail-createTime">{data.date}</div>
                                         <Card.Body>
                                             <Card.Title className='text-center'>{data.title}</Card.Title>

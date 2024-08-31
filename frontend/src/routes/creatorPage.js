@@ -39,33 +39,47 @@ function CreatorPage() {
             const web3 = await initializeWeb3(t);
             if (web3) {
                 const accounts = await web3.eth.getAccounts();
-                let account = accounts[0];
-                if (account) {
+                if (accounts[0]) {
+                    let account = accounts[0].toLowerCase();
                     try {
-                        account = account.toLowerCase();
-                        setCurrentAccount(account);
-                        const storedArray = JSON.parse(storedArrayJSON);
-                        for (let i = 0; i < storedArray.length; i++) {
-                            if (storedArray[i].is_exist === 1) {
-                                const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
-                                const image = URL.createObjectURL(imageResponse.data);
-                                if (storedArray[i].creator == account) {
-                                    temp.push({
-                                        comicHash: storedArray[i].comic_id,
-                                        comicID: storedArray[i].comicID,
-                                        title: storedArray[i].title,
-                                        category: t(storedArray[i].category),
-                                        image: image
-                                    });
-                                }
+                        const response = await axios.get(`${website}/api/isCreator`, {
+                            headers: headers,
+                            params: {
+                                currentAccount: account
                             }
+                        });
+                        if (response.data[0].is_creator === 1) {
+                            try {
+                                setCurrentAccount(account);
+                                const storedArray = JSON.parse(storedArrayJSON);
+                                for (let i = 0; i < storedArray.length; i++) {
+                                    if (storedArray[i].is_exist === 1) {
+                                        const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
+                                        const image = URL.createObjectURL(imageResponse.data);
+                                        if (storedArray[i].creator == account) {
+                                            temp.push({
+                                                comicHash: storedArray[i].comic_id,
+                                                comicID: storedArray[i].comicID,
+                                                title: storedArray[i].title,
+                                                category: t(storedArray[i].category),
+                                                image: image
+                                            });
+                                        }
+                                    }
+                                }
+                                console.log(temp);
+                                setComic(temp);
+                                setIsButtonEnabled(true);
+                                setLoading(false);
+                            } catch (error) {
+                                console.error('Error initializing contract:', error);
+                            }
+                        } else {
+                            alert(t('請先進行創作者驗證，才開放創作者專區'));
+                            setLoading(false);
                         }
-                        console.log(temp);
-                        setComic(temp);
-                        setIsButtonEnabled(true);
-                        setLoading(false);
                     } catch (error) {
-                        console.error('Error initializing contract:', error);
+                        console.error('Error fetching isCreator:', error);
                     }
                 } else {
                     alert(t('請先登入以太坊錢包，才開放創作者專區'));
@@ -79,7 +93,7 @@ function CreatorPage() {
     }, []);
 
     const buttonData = [
-        t('收益分析'), t('已發行NFT'), t('管理漫畫'), t('新增漫畫'),
+        t('收益分析'), t('數據分析'), t('已發行NFT'), t('管理漫畫'), t('新增漫畫'), t('個人主頁')
     ];
 
     const pathMap = {
@@ -87,8 +101,18 @@ function CreatorPage() {
         [t('數據分析')]: '/dataAnalysis',
         [t('已發行NFT')]: '/creatorNft',
         [t('管理漫畫')]: '/manageComic',
-        [t('新增漫畫')]: '/createWork'
+        [t('新增漫畫')]: '/createWork',
+        [t('個人主頁')]: `/authorProfile/${currentAccount}`
     };
+
+    const becomeWriter = {
+        name: t('成為作家'),
+        pathMap: '/becomeWriter'
+    };
+
+    const otherLinksEnabled = buttonData.some(label => label !== t('成為作家') && isButtonEnabled);
+    const isBecomeCreatorEnabled = !otherLinksEnabled && isButtonEnabled;
+
     
     const comicCategory = () => {
         // 計算每個 category 的漫畫數量
@@ -179,6 +203,15 @@ function CreatorPage() {
                 </Row>
                 <h3><center>{t('創作者專區')}</center></h3>
                 <Row className="pt-2 pb-3 btn-container justify-content-center w-100">
+                    {!isButtonEnabled && (
+                        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                            <Link to={becomeWriter.pathMap}>
+                                <Button variant="outline-dark" className="custom-button">
+                                    {becomeWriter.name}
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
                     {buttonData.map((label, idx) => (
                         <Col key={idx} xs={6} sm={6} md={3} lg={1} className="pb-3 btn-section">
                             <Link to={isButtonEnabled ? pathMap[label] : '#'}>

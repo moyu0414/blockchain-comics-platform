@@ -141,6 +141,23 @@ async function calculateHash(filePath) {
   }
 }
 
+async function creatorFile(file, account) {
+  const creatorFolder = path.join('uploads', 'creator');  // localhost
+  //const comicFolder = path.join('/var/www/html/uploads', comic_id);  // web3toonapi
+  const fileExtension = getFileExtension(file.originalname);
+  const filename = `${account}.${fileExtension}`;
+  const filePath = path.join(creatorFolder, filename);
+  try {
+    await fsPromises.mkdir(creatorFolder, { recursive: true });
+    await fsPromises.rename(file.path, filePath);
+    return filename;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw error;
+    return false;
+  }
+}
+
 // 获取文件扩展名的函数
 function getFileExtension(filename) {
   return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2);
@@ -177,7 +194,7 @@ app.post('/api/send-verification-email', async (req, res) => {
   try {
     await transporter.sendMail(mailOptions);
     const verificationData = JSON.stringify({ email, name, penName, code, expires });
-    const updateQuery = 'UPDATE user SET email = ? WHERE address = ?';
+    const updateQuery = 'UPDATE user SET info = ? WHERE address = ?';
     const queryResult = await new Promise((resolve, reject) => {
       pool.query(updateQuery, [verificationData, account], (error, results, fields) => {
         if (error) {
@@ -194,9 +211,14 @@ app.post('/api/send-verification-email', async (req, res) => {
 });
 
 
-app.get('/api/verify-email', (req, res) => {
-  const { token, account } = req.query;
-  const query = 'SELECT email FROM user WHERE address = ?';
+app.post('/api/verify-email', upload.single('creatorIMG'),async (req, res) => {
+  const file = req.file;
+  const { token, account } = req.body;
+  const image = await creatorFile(file, account, 'creatorIMG');
+  if (!image){
+    return res.status(500).json({ state: false, message: 'Error upload image' });
+  }
+  const query = 'SELECT info FROM user WHERE address = ?';
   pool.query(query, [account], (error, results) => {
     if (error) {
       console.error('Error fetching user data:', error);
@@ -205,16 +227,16 @@ app.get('/api/verify-email', (req, res) => {
     if (results.length === 0) {
       return res.json({ state: false, message: 'Account not found' });
     }
-    const code = results[0].email.code;
-    const expires = results[0].email.expires;
+    const code = results[0].info.code;
+    const expires = results[0].info.expires;
     if (code !== parseInt(token) || new Date() > new Date(expires)) {
       return res.json({ state: false, message: 'Invalid or expired token' });
     }
-    const name = results[0].email.name;
-    const email = results[0].email.email;
-    const penName = results[0].email.penName;
-    const info = JSON.stringify({ name, email });
-    const updateQuery = 'UPDATE user SET email = ?, is_creator = 1, penName = ? WHERE address = ?';
+    const name = results[0].info.name;
+    const email = results[0].info.email;
+    const penName = results[0].info.penName;
+    const info = JSON.stringify({ name, email, image });
+    const updateQuery = 'UPDATE user SET info = ?, is_creator = 1, penName = ? WHERE address = ?';
     pool.query(updateQuery, [info, penName, account], (error, results) => {
       if (error) {
         console.error('Error updating user data:', error);
@@ -437,6 +459,31 @@ app.get('/api/coverFile/:filename/:protoFilename', async (req, res) => {
   } catch (error) {
     console.error('Error fetching comic image:', error);
     res.status(500).json({ message: 'Error fetching comic image' });
+  }
+});
+
+
+app.get('/api/creatorIMG/:account', async (req, res) => {
+  const { account } = req.params;
+  try {
+      const [results] = await query('SELECT info FROM user WHERE address = ?', [account]);
+      if (results.length === 0) {
+          return res.status(404).json({ message: 'Image not found.' });
+      }
+      const filename = results.info.image;
+      // localhost
+      const imagePath = path.join(__dirname, 'uploads', 'creator', filename);
+
+      // web3toonapi
+      //const imagePath = path.join('/var/www/html/', 'uploads', 'creator', filename);
+      
+      // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
+      const image = await fsPromises.readFile(imagePath);
+      res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
+      res.send(image);
+  } catch (error) {
+      console.error('Error fetching comic image path:', error);
+      res.status(500).json({ message: 'Error fetching comic image path' });
   }
 });
 
@@ -712,6 +759,78 @@ app.put('/api/update/nftDetail/owner', async (req, res) => {
 });
 
 
+app.put('/api/update/EditProfile', async (req, res) => {
+  const editableInfo = req.body;
+  try {
+      const { penName, email: emailEdit, intro, account } = editableInfo;
+      // 1. 获取当前用户的现有数据
+      const currentUserResult = await new Promise((resolve, reject) => {
+          pool.query('SELECT penName, info FROM user WHERE address = ?', [account], (error, results) => {
+              if (error) {
+                  reject(error);
+                  return;
+              }
+              resolve(results);
+          });
+      });
+      const { info } = currentUserResult[0];
+      const currentInfo = info;
+      // 2. 更新信息
+      const updatedInfo = { ...currentInfo };
+      if (emailEdit) updatedInfo.email = emailEdit;
+      if (intro) updatedInfo.intro = intro;
+      // 将 updatedInfo 转回 JSON 字符串
+      const updatedInfoJson = JSON.stringify(updatedInfo);
+      // 3. 更新数据库
+      await new Promise((resolve, reject) => {
+          pool.query('UPDATE user SET penName = ?, info = ? WHERE address = ?', [penName, updatedInfoJson, account], (error, results) => {
+              if (error) {
+                  reject(error);
+                  return res.json({ state: false });;
+              }
+              resolve(results);
+          });
+      });
+      res.json({ state: true });
+  } catch (error) {
+      console.error('Error updating profile:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.put('/api/update/AddProfile', async (req, res) => {
+  const { date, msg, account } = req.body;
+  try {
+      // 1. 获取当前用户的现有数据
+      const [currentUserResult] = await new Promise((resolve, reject) => {
+          pool.query('SELECT info FROM user WHERE address = ?', [account], (error, results) => {
+              if (error) return reject(error);
+              if (results.length === 0) return reject(new Error('User not found'));
+              resolve(results);
+          });
+      });
+      const currentInfo = currentUserResult.info;
+      // 2. 更新信息
+      if (!currentInfo.BBS) {
+        currentInfo.BBS = {};
+      }
+      currentInfo.BBS[date] = msg;
+      // 3. 更新数据库
+      await new Promise((resolve, reject) => {
+          pool.query('UPDATE user SET info = ? WHERE address = ?', [JSON.stringify(currentInfo), account], (error) => {
+              if (error) return reject(error);
+              resolve();
+          });
+      });
+      res.json({ state: true });
+  } catch (error) {
+      console.error('Error updating profile:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 // 讀取所有漫畫
 app.get('/api/comics', (req, res) => {
   // 執行 COUNT(*) 查詢以確定資料庫中是否有資料
@@ -978,6 +1097,19 @@ app.get('/api/editWork/chapters', (req, res) => {
     if (error) {
       console.error('Error fetching chapter records: ', error);
       return res.status(500).json({ message: 'Error fetching chapter records' });
+    }
+    res.json(results);
+  });
+});
+
+
+app.get('/api/isCreator', async (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const query = `SELECT user.is_creator FROM user WHERE user.address = ?`;
+  pool.query(query, [currentAccount], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching creator status: ', error);
+      return res.status(500).json({ message: 'Error fetching creator status' });
     }
     res.json(results);
   });
@@ -1631,6 +1763,26 @@ app.get('/api/comicManagement/isAdmin', (req, res) => {
       }
       res.json({ exists: true, address: allResults });
     });
+  });
+});
+
+
+app.get('/api/authorProfile', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const query = `
+    SELECT user.penName, user.info
+    FROM user
+    WHERE user.is_creator = 1 AND user.address = ?
+  `;
+  pool.query(query, [currentAccount], (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching user records: ', error);
+      return res.status(500).json({ message: 'Error fetching user records' });
+    }
+    if (results.length === 0) {
+      return res.json([]);
+    }
+    res.json(results);
   });
 });
 

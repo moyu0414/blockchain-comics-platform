@@ -6,6 +6,9 @@ import { Funnel, Book, Heart, FileEarmarkText, Envelope, CardImage, VectorPen } 
 import { initializeWeb3 } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
+import axios from 'axios';
+const website = process.env.REACT_APP_Website;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 const CustomToggle = React.forwardRef(({ onClick }, ref) => (
     <div
@@ -24,15 +27,35 @@ const CustomToggle = React.forwardRef(({ onClick }, ref) => (
 function ReaderPage() {
     const { t } = useTranslation();
     const [isButtonEnabled, setIsButtonEnabled] = useState(false);
+    const [isCreator, setIsCreator] = useState(false);
+    const [currentAccount, setCurrentAccount] = useState(false);
+    const [ethBalance, setEthBalance] = useState('');
+    const headers = {'api-key': API_KEY};
 
     useEffect(() => {
         const checkAccount = async () => {
             const web3 = await initializeWeb3(t);
             if (web3) {
                 const accounts = await web3.eth.getAccounts();
-                const currentAccount = accounts[0];
-                if (currentAccount) {
-                    setIsButtonEnabled(true);
+                if (accounts[0]) {
+                    let account = accounts[0].toLowerCase();
+                    try {
+                        const response = await axios.get(`${website}/api/isCreator`, {
+                            headers: headers,
+                            params: {
+                                currentAccount: account
+                            }
+                        });
+                        if (response.data[0].is_creator === 1) {
+                            setIsCreator(true);
+                        }
+                        const balance = await web3.eth.getBalance(account);
+                        setEthBalance(parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(3));
+                        setCurrentAccount(account);
+                        setIsButtonEnabled(true);
+                    } catch (error) {
+                        console.error('Error fetching isCreator:', error);
+                    }
                 } else {
                     alert(t('請先登入以太坊錢包，才開放讀者專區'));
                 }
@@ -56,9 +79,11 @@ function ReaderPage() {
         [t('漫畫收藏')]: '/collectionPage',
         [t('NFT收藏')]: '/collectionNft',
         [t('我的訊息')]: '/messagePage',
-        [t('成為作家')]: '/becomeWriter'
     };
     
+    const becomeWriter = {
+        pathMap: '/becomeWriter'
+    };
 
     return (
         <Container className='readerPage'>
@@ -72,14 +97,38 @@ function ReaderPage() {
                 </Figure>
             </Row>
             <h3><center>{t('讀者專區')}</center></h3>
+
+            {isButtonEnabled && (
+                <div><center>
+                    <h4 className="text-secondary">{currentAccount}</h4>
+                    <h5 className="text-secondary">{ethBalance} SepoliaETH</h5>
+                </center></div>
+            )}
             <Row className="pt-4 pb-3 btn-container justify-content-center">
                 {buttonData.map((item, idx) => (
                     <Col key={idx} xs={6} sm={6} md={2} lg={1} className="pb-3 btn-section">
-                        <Link to={isButtonEnabled ? pathMap[item.label] : '#'} className="d-flex justify-content-center">
+                        <Link
+                            to={
+                                item.label === t('成為作家')
+                                    ? (!isCreator && isButtonEnabled ? becomeWriter.pathMap : '#')
+                                    : (isButtonEnabled ? pathMap[item.label] : '#')
+                            }
+                            className="d-flex justify-content-center"
+                        >
                             <Button
-                                variant={isButtonEnabled ? "outline-dark" : "outline-secondary"} // 设置颜色
+                                variant={
+                                    item.label === t('成為作家')
+                                        ? (isButtonEnabled
+                                            ? (isCreator ? "outline-secondary" : "outline-dark")
+                                            : "outline-secondary")
+                                        : (isButtonEnabled ? "outline-dark" : "outline-secondary")
+                                }
                                 className="custom-button"
-                                disabled={!isButtonEnabled} // 禁用按钮
+                                disabled={
+                                    item.label === t('成為作家')
+                                        ? (isButtonEnabled ? isCreator : true)
+                                        : !isButtonEnabled
+                                }
                             >
                                 <div className="icon-label">
                                     {item.icon}

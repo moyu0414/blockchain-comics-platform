@@ -29,8 +29,7 @@ function MessagePage() {
                 }
             });
             let data = response.data.collectComic;
-            console.log(data);
-            if (response.data.message == t('請先收藏漫畫')) {
+            if (response.data.message == '請先收藏漫畫!') {
                 setBeing(false);
                 setLoading(false);
             } else {
