@@ -388,15 +388,19 @@ const CreateWork = (props) => {
   async function checkFile() {
     if(showChapterForm == false){
       const {category, title, description} = formParams;
-      if( !category || !title || !description || file.length === 0)  // || 其中一個為true，即為true
-      {
+      if (title && title.length > 50) {
+        alert(t('標題命名不可超過50個字!'));
+        return -1;
+      } else if( !category || !title || !description || file.length === 0) {
         updateMessage(t('請填寫所有欄位'))
         return -1;
-      }
+      } 
     }else{
       const {title, price, isFree} = formParams_1;
-      if (!comicHash || !title || (!formParams_1.isFree && !price) || file.length === 0)
-      {
+      if (title && title.length > 50) {
+        alert(t('標題命名不可超過50個字!'));
+        return -1;
+      } else if (!comicHash || !title || (!formParams_1.isFree && !price) || file.length === 0) {
         updateMessage(t('請填寫所有欄位'))
         return -1;
       }

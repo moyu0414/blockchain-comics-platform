@@ -235,13 +235,15 @@ function NftDetail() {
                         <Col xs={8} className="text-section ">
                             {NFT.map((data, index) => (
                                 <React.Fragment key={index}>
-                                    <h3 className="fw-bold">{data.title}</h3>
-                                    <h4 className="fw-bold">{data.state}</h4>
-                                    <p className="nftDetail-text-secondary">{t('作者')}：
+                                    <div className="nftDetail-text-secondary">
+                                        <h3 className="fw-bold">{data.tokenTitle}</h3>
+                                        <h4 className="fw-bold">{data.title}－{data.state}</h4>
+                                        {t('作者')}：
                                         <Link to={`/authorProfile/${data.minter === t('您是本作品的創作者') ? currentAccount : data.minter}`}>
-                                            {data.minter}
+                                            <span className="comicDetail-penName" style={{ marginRight: "10px"}}>{data.penName}</span> 
+                                            <span style={{color: "#722bd4", marginLeft: "0"}}>({data.minter})</span>
                                         </Link>
-                                    </p>
+                                    </div>
                                     <p className="nftDetail-text-secondary">{t('持有者')}：{data.owner}</p>
                                     <p className="nftDetail-text-secondary">{data.comicDesc}</p>
                                 </React.Fragment>

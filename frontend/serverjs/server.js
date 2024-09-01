@@ -248,6 +248,68 @@ app.post('/api/verify-email', upload.single('creatorIMG'),async (req, res) => {
 });
 
 
+app.post('/api/authorProfile-send-verification-email', async (req, res) => {
+  const { name, penName, editEamil, account } = req.body;
+  const code = Math.floor(100000 + Math.random() * 900000);  // 隨機生成 6 位數驗證碼
+  const expires = new Date(Date.now() + 15 * 60 * 1000); // 驗證碼 15 分鐘內有效
+  const mailOptions = {
+    from: emailAccount,
+    to: editEamil,
+    subject: 'web3toon 信箱認證',
+    text: `Hello ~~,\n\nPen Name: ${penName}\n\nWe are the web3toon platform. There has been a change to the email in your profile information, we need to verify your email address.\n\nYour verification code is: ${code}\nThe verification code is valid for 15 minutes.\n\nLet's start our journey!\n\nBest regards,\nweb3toon`
+  };
+  try {
+    await transporter.sendMail(mailOptions);
+    const [currentInfoResult] = await new Promise((resolve, reject) => {
+      pool.query('SELECT info FROM user WHERE address = ?', [account], (error, results) => {
+        if (error) reject(error);
+        else resolve(results);
+      });
+    });
+
+    let currentInfo = {};
+    currentInfo = currentInfoResult.info;
+    const verificationData = { editEamil, code, expires };
+    const updatedInfo = { ...currentInfo, verificationData };
+    await new Promise((resolve, reject) => {
+      pool.query('UPDATE user SET info = ? WHERE address = ?', [JSON.stringify(updatedInfo), account], (error) => {
+        if (error) reject(error);
+        else resolve();
+      });
+    });
+    res.status(200).json({ state: true });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Error sending email or updating database' });
+  }
+});
+
+
+app.post('/api/authorProfile-verify-email', (req, res) => {
+  const { token, account } = req.body;
+  if (!token || !account) {
+    return res.status(400).json({ state: false, message: 'Token and account are required' });
+  }
+  const query = 'SELECT info FROM user WHERE address = ?';
+  pool.query(query, [account], (error, results) => {
+    if (error) {
+      console.error('Error fetching user data:', error);
+      return res.status(500).json({ state: false, message: 'Error fetching user data' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ state: false, message: 'Account not found' });
+    }
+    const info = results[0].info.verificationData;
+    const code = info.code;
+    const expires = new Date(info.expires);
+    if (parseInt(token) !== code || new Date() > expires) {
+      return res.json({ state: false, message: 'Invalid or expired token' });
+    }
+    res.json({ state: true, message: 'Verification successful' });
+  });
+});
+
+
 // 新增一筆 comics 資料、添加漫画信息到数据库的路由
 app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {
   const file = req.files['comicIMG'] ? req.files['comicIMG'][0] : null;
@@ -336,10 +398,10 @@ app.post('/api/add/NFT', upload.any(), (req, res) => {
   }
   // 构建批量插入的 SQL 语句
   const values = nftData.map(data => [
-    data.tokenId, data.comicHash, data.minter, data.price, data.description, data.forSale, data.royalty, data.owner
+    data.tokenId, data.comicHash, data.minter, data.price, data.tokenTitle, data.description, data.forSale, data.royalty, data.owner
   ]);
   const sql = `
-    INSERT INTO nft (tokenId, comicHash, minter, price, description, forSale, royalty, owner)
+    INSERT INTO nft (tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner)
     VALUES ?
   `;
   pool.query(sql, [values], (error, results) => {
@@ -399,9 +461,21 @@ app.get('/api/comicIMG/:filename', async (req, res) => {
       // web3toonapi
       //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', filename);
       
+      const extname = path.extname(filename).toLowerCase();
+      let contentType = 'application/octet-stream'; // 默認為通用二進位流
+      switch (extname) {
+        case '.jpg':
+        case '.jpeg':
+          contentType = 'image/jpeg';
+          break;
+        case '.png':
+          contentType = 'image/png';
+          break;
+      }
+
       // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
       const image = await fsPromises.readFile(imagePath);
-      res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
+      res.setHeader('Content-Type', contentType);
       res.send(image);
   } catch (error) {
       console.error('Error fetching comic image path:', error);
@@ -426,9 +500,21 @@ app.get('/api/chapterIMG/:filename',async (req, res) => {
     // web3toonapi
     //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'chapters', filename);
 
+    const extname = path.extname(filename).toLowerCase();
+    let contentType = 'application/octet-stream'; // 默認為通用二進位流
+    switch (extname) {
+      case '.jpg':
+      case '.jpeg':
+        contentType = 'image/jpeg';
+        break;
+      case '.png':
+        contentType = 'image/png';
+        break;
+    }
+
     // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
     const image = await fsPromises.readFile(imagePath);
-    res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
+    res.setHeader('Content-Type', contentType);
     res.send(image);
   } catch (error) {
     console.error('Error fetching chapterIMG:', error);
@@ -452,9 +538,9 @@ app.get('/api/coverFile/:filename/:protoFilename', async (req, res) => {
 
     // web3toonapi
     //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', 'promoCover.jpg');
-
+    
     const image = await fsPromises.readFile(imagePath);
-    res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
+    res.setHeader('Content-Type', 'image/jpeg');
     res.send(image);
   } catch (error) {
     console.error('Error fetching comic image:', error);
@@ -471,15 +557,28 @@ app.get('/api/creatorIMG/:account', async (req, res) => {
           return res.status(404).json({ message: 'Image not found.' });
       }
       const filename = results.info.image;
+
       // localhost
       const imagePath = path.join(__dirname, 'uploads', 'creator', filename);
 
       // web3toonapi
       //const imagePath = path.join('/var/www/html/', 'uploads', 'creator', filename);
-      
+
+      const extname = path.extname(filename).toLowerCase();
+      let contentType = 'application/octet-stream'; // 默認為通用二進位流
+      switch (extname) {
+        case '.jpg':
+        case '.jpeg':
+          contentType = 'image/jpeg';
+          break;
+        case '.png':
+          contentType = 'image/png';
+          break;
+      }
+
       // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
       const image = await fsPromises.readFile(imagePath);
-      res.setHeader('Content-Type', 'image/jpeg'); // 假设是 JPEG 格式的图片
+      res.setHeader('Content-Type', contentType);
       res.send(image);
   } catch (error) {
       console.error('Error fetching comic image path:', error);
@@ -762,7 +861,7 @@ app.put('/api/update/nftDetail/owner', async (req, res) => {
 app.put('/api/update/EditProfile', async (req, res) => {
   const editableInfo = req.body;
   try {
-      const { penName, email: emailEdit, intro, account } = editableInfo;
+      const { penName, email, intro, account } = editableInfo;
       // 1. 获取当前用户的现有数据
       const currentUserResult = await new Promise((resolve, reject) => {
           pool.query('SELECT penName, info FROM user WHERE address = ?', [account], (error, results) => {
@@ -777,7 +876,7 @@ app.put('/api/update/EditProfile', async (req, res) => {
       const currentInfo = info;
       // 2. 更新信息
       const updatedInfo = { ...currentInfo };
-      if (emailEdit) updatedInfo.email = emailEdit;
+      if (email) updatedInfo.email = email;
       if (intro) updatedInfo.intro = intro;
       // 将 updatedInfo 转回 JSON 字符串
       const updatedInfoJson = JSON.stringify(updatedInfo);
@@ -1318,9 +1417,10 @@ app.get('/api/comicDetail/isFavorited', (req, res) => {
 app.get('/api/nftDetail/records', (req, res) => {
   const tokenId = req.query.tokenId;
   const query = `
-    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.filename , comics.protoFilename
+    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.filename , comics.protoFilename, user.penName
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
+    INNER JOIN user ON nft.minter = user.address
     WHERE nft.tokenId = ? AND comics.is_exist = 1
   `;
   pool.query(query, [tokenId], (error, results, fields) => {
@@ -1501,9 +1601,10 @@ app.get('/api/creatorNft/records', (req, res) => {
 
 app.get('/api/nftMarket/records', (req, res) => {
   const query = `
-    SELECT nft.*, comics.title, comics.filename , comics.protoFilename
+    SELECT nft.*, comics.title, comics.filename , comics.protoFilename, user.penName
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
+    INNER JOIN user ON nft.minter = user.address
     WHERE comics.is_exist = 1
   `;
   pool.query(query, (error, results, fields) => {

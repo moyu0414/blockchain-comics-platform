@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Card, Form, Button, Image } from 'react-bootstrap';
 import { useParams } from "react-router-dom";
-import { formatDate } from '../index';
+import { formatDate, disableAllButtons, enableAllButtons } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
@@ -15,9 +15,13 @@ const AuthorProfile = () => {
     const [isAdding, setIsAdding] = useState(false);
     const [editableInfo, setEditableInfo] = useState([]);
     const [addMsgInfo, setAddMsgInfo] = useState({date: '', msg: ''});
+    const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+    const [secondsLeft, setSecondsLeft] = useState(0);
+    const [isEditEmail, setIsEditEmail] = useState(false);
     const [isBeing, setIsBeing] = useState(false);
     const [loading, setLoading] = useState(true);
     const { account } = useParams();
+    const inputRefs = useRef([]);
     const currentAccount = localStorage.getItem("currentAccount");
     const { t } = useTranslation();
     const headers = {'api-key': API_KEY};
@@ -54,7 +58,6 @@ const AuthorProfile = () => {
                           date,
                           msg,
                       }));
-                    console.log(reversedEntries);
                     setMsg(reversedEntries);
                     console.log(updateInfo[0]);
                     setInfo(updateInfo[0]);
@@ -102,14 +105,49 @@ const AuthorProfile = () => {
 
     const handleEdit = async () => {
         try {
-            const updatedFormData = { ...editableInfo, account: currentAccount };
-            const response = await axios.put(`${website}/api/update/EditProfile`, updatedFormData, { headers });
-            if (response.data.state) {
-                alert(t('資料更新成功!'));
-                window.location.reload();
+            disableAllButtons();
+            if (editableInfo.email === '') {
+                alert(t('email不可為空!'))
+                enableAllButtons();
+                return;
+            } else if (editableInfo.penName === '') {
+                alert(t('筆名不可為空!'))
+                enableAllButtons();
+                return;
+            } else if (editableInfo.penName === info.penName && editableInfo.email === info.email && editableInfo.intro === info.intro) {
+                alert(t('目前您未編輯任何東西'));
+                enableAllButtons();
+                return;
+            } else if (editableInfo.email !== info.email) {
+                try {
+                    const editEamil = { editEamil: editableInfo.email, account: currentAccount, penName: editableInfo.penName };
+                    const response = await axios.post(`${website}/api/authorProfile-send-verification-email`, editEamil, { headers });
+                    if (response.data.state) {
+                        alert(t('驗證碼15分鐘內有效!'))
+                        setIsEditEmail(true);
+                        startCountdown();
+                    } else {
+                        alert(t('email發送錯誤，請重新再試!'))
+                    }
+                } catch (error) {
+                    console.error('Mailbox verification error:', error);
+                }
             } else {
-                alert(t('資料更新失敗!'));
+                try {
+                    const updatedFormData = { ...editableInfo, account: currentAccount };
+                    const response = await axios.put(`${website}/api/update/EditProfile`, updatedFormData, { headers });
+                    if (response.data.state) {
+                        alert(t('資料更新成功!'));
+                        window.location.reload();
+                    } else {
+                        alert(t('資料更新失敗!'));
+                    }
+                } catch (error) {
+                    console.error('Mailbox verification error:', error);
+                }
+                setIsEditing(false);
             }
+            enableAllButtons();
         } catch (error) {
             console.error('Mailbox verification error:', error);
         }
@@ -121,6 +159,7 @@ const AuthorProfile = () => {
             alert(t('目前您未編輯任何東西'));
             return;
         }
+        disableAllButtons();
         const date = new Date().toISOString().replace('T', ' ').split('.')[0];
         const updateMsgInfo = {
             ...addMsgInfo,
@@ -136,10 +175,75 @@ const AuthorProfile = () => {
             } else {
                 alert(t('訊息新增失敗!'));
             }
+            enableAllButtons();
         } catch (error) {
             console.error('Mailbox verification error:', error);
         }
         setIsAdding(false);
+    };
+
+    const startCountdown = () => {
+        setIsButtonDisabled(true);
+        setSecondsLeft(60);
+        const interval = setInterval(() => {
+            setSecondsLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    setIsButtonDisabled(false);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    };
+
+    const handleClick = async () => {
+        try {
+          const verificationCode = inputRefs.current.map(input => input.value).join('');
+          if (!verificationCode || !currentAccount) {
+            alert('Verification code and account are required.');
+            return;
+          }
+          const formData = { token: verificationCode, account: currentAccount };
+          const response = await axios.post(`${website}/api/authorProfile-verify-email`, formData, { headers });
+      
+          const { state, message } = response.data;
+          if (state) {
+            try {
+                const updatedFormData = { ...editableInfo, account: currentAccount };
+                const response = await axios.put(`${website}/api/update/EditProfile`, updatedFormData, { headers });
+                if (response.data.state) {
+                    alert(t('資料更新成功!'));
+                    window.location.reload();
+                } else {
+                    alert(t('資料更新失敗!'));
+                }
+            } catch (error) {
+                console.error('Mailbox verification error:', error);
+            }
+          } else {
+            alert(`Verification failed: ${message}`);
+          }
+        } catch (error) {
+          console.error('Verify email error:', error);
+          alert('An error occurred while verifying email. Please try again.');
+        }
+      };
+      
+
+    const handleInputChange = (e, index) => {
+        const inputs = inputRefs.current;
+        if (e.target.value.length === 1 && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+        }
+        if (e.target.value.length === 0 && index > 0) {
+            inputs[index - 1].focus();
+        }
+    };
+
+    const isComplete = () => {
+        const verificationCode = inputRefs.current.map(input => input.value).join('');
+        return verificationCode.length === 6;
     };
 
 
@@ -213,7 +317,7 @@ const AuthorProfile = () => {
                                     )}
                                 </Card.Text>
                                 {currentAccount === account && (
-                                    <>
+                                    <div className="authorProfile-btn">
                                         {isEditing ? (
                                             <>
                                                 <Button variant="primary" onClick={handleEdit}>提交</Button>
@@ -230,7 +334,37 @@ const AuthorProfile = () => {
                                         ) : (
                                                 <Button variant="primary" onClick={handleAddToggle}>新增訊息</Button>
                                         )}
-                                    </>
+                                        {isEditEmail && (
+                                            <>
+                                            <Form.Group controlId="formVerificationCode" className=" mb-3">
+                                                {isButtonDisabled && (
+                                                    <p className="mt-4 " style={{ marginBottom: "-10px" }}>{t('60秒後再啟動按鈕-幾秒', { secondsLeft: secondsLeft })}</p>
+                                                 )}
+                                                <Form.Label className="verification">{t('信箱驗證碼')}</Form.Label>
+                                                <div className="verification-code-inputs w-100">
+                                                    {[...Array(6)].map((_, index) => (
+                                                        <Form.Control
+                                                        key={index}
+                                                        type="text"
+                                                        maxLength="1"
+                                                        className="verification-code-input"
+                                                        ref={(el) => (inputRefs.current[index] = el)}
+                                                        onChange={(e) => handleInputChange(e, index)}
+                                                    />
+                                                    ))}
+                                                </div>
+                                            </Form.Group>
+                                            <div className="verification-btn-section mt-4 w-100">
+                                                <Button 
+                                                    onClick={handleClick}
+                                                    variant={isComplete() ? 'success' : 'secondary'}
+                                                    disabled={!isComplete()}
+                                                    className="verify-btn"
+                                                >{t('驗證')}</Button>
+                                            </div>
+                                            </>
+                                        )}
+                                    </div>
                                 )}
                             </Card.Body>
                         </Card>

@@ -22,7 +22,7 @@ const MintNFT = (props) => {
   const currentAccount = localStorage.getItem("currentAccount");
   const [comic, setComic] = useState([]);
   const [newComic, setNewComic] = useState({category:'',  title: '', description: '', imgURL: ''});
-  const [NFTData, setNFTData] = useState({price:'', description: '',quantity: '',royalty: '', comicHash:''});
+  const [NFTData, setNFTData] = useState({title: '', price:'', description: '',quantity: '',royalty: '', comicHash:''});
   const [descForK, setDescForK] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -89,9 +89,10 @@ const MintNFT = (props) => {
       disableAllButtons();
       updateMessage(t('正在鑄造NFT中'))
       
+      console.log("title：" + NFTData.title);
       console.log("price：" + NFTData.price);
       console.log("description：" + NFTData.description);  // DB用
-      console.log("description：" + descForK.description);  // 合約用
+      //console.log("description：" + descForK.description);  // 合約用
       console.log("royalty：" + NFTData.royalty);
       console.log("quantity：" + NFTData.quantity);
       console.log("comicHash：" + NFTData.comicHash);
@@ -109,6 +110,7 @@ const MintNFT = (props) => {
         comicHash: NFTData.comicHash,
         minter: currentAccount,
         price: JSON.stringify({ "1": NFTData.price }),
+        tokenTitle: NFTData.title,
         description: NFTData.description,
         forSale: 1,
         royalty: NFTData.royalty,
@@ -173,9 +175,15 @@ const MintNFT = (props) => {
   }
 
   async function checkFile() {
-    const {price, description, quantity, royalty} = NFTData;
+    const {title, price, description, quantity, royalty} = NFTData;
     // 檔案不可為空
-    if (!price || !description || !quantity || !royalty) {
+    if (title && title.length > 50) {
+      alert(t('標題命名不可超過50個字!'));
+      return -1;
+    } else if (quantity > 50) {
+      alert(t('發行數量一次最多50個!'));
+      return -1;
+    } else if (!title || !price || !description || !quantity || !royalty) {
       updateMessage(t('請填寫所有欄位'));
       return -1;
     }
@@ -305,7 +313,7 @@ const MintNFT = (props) => {
                     type="text"
                     defaultValue={newComic.title}
                     style={{ marginLeft: '10px' }}
-                    readOnly
+                    disabled={true}
                 />
             </div>
         </Form.Group>
@@ -319,7 +327,7 @@ const MintNFT = (props) => {
                     className="form-select"
                     defaultValue={t(newComic.category)}
                     style={{ marginLeft: '10px' }}
-                    readOnly
+                    disabled={true}
                 />
             </div>
         </Form.Group>
@@ -334,7 +342,7 @@ const MintNFT = (props) => {
                     rows={5}
                     defaultValue={newComic.description}
                     style={{ marginLeft: '10px' }}
-                    readOnly
+                    disabled={true}
                 />
             </div>
         </Form.Group>
@@ -371,7 +379,19 @@ const MintNFT = (props) => {
         </Form.Group>
 
         {/* ) : ( */}
-        <Form.Group as={Row} className='mb-4'>
+        <Form.Group as={Row} className='mb-3'>
+            <Form.Label>
+                {t('NFT名稱')}
+            </Form.Label>
+            <Form.Control
+                type="text"
+                placeholder={t('請輸入NFT標題名稱')}
+                value={NFTData.title}
+                onChange={(e) => setNFTData({ ...NFTData, title: e.target.value })}
+            />
+        </Form.Group>
+
+        <Form.Group as={Row} className='mb-3'>
             <Form.Label>
                 {t('NFT價格')}
             </Form.Label>
@@ -391,7 +411,6 @@ const MintNFT = (props) => {
                     <Form.Label>
                         {t('IP種類')}<br />({t('您選的第一個IP權將作為宣傳主類')})
                     </Form.Label>
-                    <Button id="list-button" data-backgroundcolor="#fff">{t('IP對照表')}</Button>
                 </div>
 
                 <Col>
@@ -457,16 +476,17 @@ const MintNFT = (props) => {
             </Form.Label>
             <Form.Control
                 type="number"
-                placeholder={t('數量至少一個')}
+                placeholder={t('至少1個、至多50個')}
                 step="1"
                 min="1"
+                max="50"
                 value={NFTData.quantity}
                 onChange={(e) => setNFTData({ ...NFTData, quantity: e.target.value })}
             />
         </Form.Group>
 
         <Form.Group as={Row} className='mt-4 mb-2'>
-            <Form.Label>
+            <Form.Label title={t('第2次轉售時可抽成的比例')}>
                 {t('抽成比例(上限10%)，單位：％')}
             </Form.Label>
             <Form.Control
@@ -477,6 +497,7 @@ const MintNFT = (props) => {
                 max="10"
                 value={NFTData.royalty}
                 onChange={(e) => setNFTData({ ...NFTData, royalty: e.target.value })}
+                title={t('這是您的抽成比例，最多可設為 10%')}
             />
         </Form.Group>
         <div className="text-red-500 text-center">{message}</div>

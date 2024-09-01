@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Carousel, Card, Col, Row, Tabs, Tab, Form } from 'react-bootstrap';
+import { Container, Carousel, Card, Col, Row, Tabs, Tab, Form, Button, OverlayTrigger, Tooltip, Modal } from 'react-bootstrap';
 import './bootstrap.min.css';
+import { Search } from 'react-bootstrap-icons';
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -11,6 +12,9 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 function NftMarket() {
     const [comic, setComic] = useState([]);
     const [material, setMaterial] = useState([]);
+    const [show, setShow] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
     const [selectedGrading, setSelectedGrading] = useState(t('角色商品化'));
@@ -41,10 +45,12 @@ function NftMarket() {
             nftData.forEach(item => {
                 if (item.forSale === 1) {
                     const keyData = `${item.comicHash}-${item.price}-${item.royalty}-${item.description || ""}`;
+                    const lastPriceValue = Object.values(item.price).pop();
                     const updatedRecord = {
                         ...item, // 保留原有属性
                         isFanCreation: item.minter === item.owner ? t('原創') : t('轉售'), // 添加新属性
-                        keyData
+                        keyData,
+                        price: lastPriceValue
                     };
                     allRecord.push(updatedRecord);
                     if (!comicStats[keyData]) {
@@ -129,37 +135,151 @@ function NftMarket() {
         return text;
     };
 
+    const TooltipWrapper = ({ text, children }) => (
+        <OverlayTrigger 
+            placement="top" 
+            overlay={<Tooltip id="tooltip">{text}</Tooltip>}
+        >
+            {children}
+        </OverlayTrigger>
+    );
 
+    const tooltips = {
+        material: t('IP種類篩選'),
+        copyright: t('作者原創授權NFT'),
+        resale: t('持有者轉售NFT'),
+    };
+
+    const handleClick = (label) => {
+        setShow(true);
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchTerm.trim() === '') {
+            setSearchResults([]);
+            setShow(false);
+            return;
+        }
+        const results = material.filter(item => 
+            item.title.includes(searchTerm) ||
+            item.minter.includes(searchTerm) ||
+            item.penName.includes(searchTerm) ||
+            item.price.includes(searchTerm) ||
+            item.names.some(name => name.includes(searchTerm)) ||
+            item.tokenTitle.includes(searchTerm) ||
+            item.isFanCreation.includes(searchTerm)
+          );
+          setSearchResults(results);
+          setShow(false);
+    };
+
+    
     return (
         <>
         {!loading &&
             <Container className='nftMarket'>
                 <h2 className='text-center fw-bold' style={{backgroundColor: "green"}}>NFT市場</h2>
                 <Row>
-                    <h3 className="fw-bold pt-3">{t('大家都在買')}</h3>
+                    <div style={{display: "flex"}}>
+                        <Search onClick={handleClick} className="nftMarket-search" />
+                        <h3 className="fw-bold pt-3">{t('大家都在買')}</h3>
+                    </div>
+                    <Modal
+                        show={show}
+                        onHide={() => setShow(false)}
+                        dialogClassName="custom-modal-content"
+                    >
+                        <Modal.Body>
+                            <Form.Group>
+                                <Form.Label>{t('搜尋NFT')}</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    placeholder={t('請輸入')}
+                                />
+                            </Form.Group>
+                        </Modal.Body>
+                        <Modal.Footer className="custom-modal-footer">
+                            <Button
+                                className="mt-3"
+                                onClick={handleSearch}
+                            >
+                                {t('確定')}
+                            </Button>
+                            <Button
+                                className="mt-3"
+                                onClick={() => setShow(false)}
+                            >
+                                {t('取消')}
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+
+
                 </Row>
                 <Row className='pt-1 pb-5'>
-                    {comic.filter(data => data.isFanCreation === t('原創')).map((data, index) => (
+                    {searchResults.length === 0 && (
+                        comic.filter(data => data.isFanCreation === t('原創')).map((data, index) => (
+                            <Col xs={6} md={3} className="pt-3" key={index}>
+                                <Link to={`/nftDetail/tokenId${data.tokenId}`}>
+                                    <Card className="effect-image-1">
+                                        <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
+                                        <div className="nftMarket-overlay-promo">
+                                            <span>$ {data.price}</span>
+                                            <span>{data.title}</span>
+                                        </div>
+                                        <Card.Body className="simple-text-promo">
+                                            <Card.Text className="nftMarket-text">
+                                                {data.tokenTitle}<br />
+                                                已售：{data.saleQty} 總數：{data.totQty}
+                                            </Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </Link>
+                            </Col>
+                        ))                 
+                    )}
+
+
+
+                    {searchResults.length > 0 && searchResults.map((data, index) => (
                         <Col xs={6} md={3} className="pt-3" key={index}>
                             <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                 <Card className="effect-image-1">
                                     <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                    <div className="nftMarket-overlay" style={{justifyContent: 'center'}}>{data.saleQty}/{data.totQty}
-                                        <span>{data.names[0]}</span>
+                                    <div className="nftMarket-overlay">
+                                        <span>$ {data.price}</span>
+                                        <span>{data.title}</span>
                                     </div>
                                     <Card.Body className="simple-text">
-                                        <Card.Text className="nftMarket-text">{data.title}</Card.Text>
+                                        <Card.Text className="nftMarket-text">
+                                            {data.tokenTitle}
+                                        </Card.Text>
                                     </Card.Body>
                                 </Card>
                             </Link>
                         </Col>
                     ))}
+
+
+
+
+
                 </Row>
                 <Row className='pt-5'>
                     <h3 className="fw-bold">{t('推薦NFT')}</h3>
                 </Row>
                 <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" className="mb-3">
-                    <Tab eventKey="material" title={t('素材')}>
+                    <Tab 
+                        eventKey="material" 
+                        title={
+                            <TooltipWrapper text={tooltips.material}>
+                                <div>{t('素材')}</div>
+                            </TooltipWrapper>
+                        }
+                    >
                         <Form.Group>
                             <Form.Label>{t('IP種類')}</Form.Label>
                             <Form.Control as="select" value={t(selectedGrading)} onChange={handleGradingChange}>
@@ -174,11 +294,12 @@ function NftMarket() {
                                     <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                         <Card className="effect-image-1">
                                             <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                            <div className="nftMarket-overlay">{truncateLastText(data.owner, 4)}
-                                                <span>{data.names[0]}</span>
+                                            <div className="nftMarket-overlay">
+                                                <span>$ {data.price}</span>
+                                                <span>{data.title}</span>
                                             </div>
                                             <Card.Body className="simple-text">
-                                                <Card.Text className="nftMarket-text">{data.title}</Card.Text>
+                                                <Card.Text className="nftMarket-text">{data.tokenTitle}</Card.Text>
                                             </Card.Body>
                                         </Card>
                                     </Link>
@@ -186,41 +307,57 @@ function NftMarket() {
                             ))}
                         </Row>
                     </Tab>
-                    <Tab eventKey="copyright" title={t('原創')}>
+                    <Tab 
+                        eventKey="copyright" 
+                        title={
+                            <TooltipWrapper text={tooltips.copyright}>
+                                <div>{t('原創')}</div>
+                            </TooltipWrapper>
+                        }
+                    >
                         <Row className='pt-1 pb-5'>
                             {comic.filter(data => data.isFanCreation === t('原創')).map((data, index) => (
                                 <Col key={index} xs={6} md={3} className="pt-3">
                                     <Link to={`/nftDetail/tokenId${data.tokenId}`}>
-                                    <Card className="effect-image-1">
-                                        <Card.Img src={data.image} alt={`image-${index + 1}`} />
-                                        <div className="nftMarket-overlay">{truncateLastText(data.owner, 4)}
-                                            <span>{data.names[0]}</span>
-                                        </div>
-                                        <Card.Body className="simple-text">
-                                        <Card.Text className="nftMarket-text">{data.title}</Card.Text>
-                                        </Card.Body>
-                                    </Card>
+                                        <Card className="effect-image-1">
+                                            <Card.Img src={data.image} alt={`image-${index + 1}`} />
+                                            <div className="nftMarket-overlay">
+                                                <span>$ {data.price}</span>
+                                                <span>{data.title}</span>
+                                            </div>
+                                            <Card.Body className="simple-text">
+                                            <Card.Text className="nftMarket-text">{data.tokenTitle}</Card.Text>
+                                            </Card.Body>
+                                        </Card>
                                     </Link>
                                 </Col>
                             ))}
                         </Row>
                     </Tab>
-                    <Tab eventKey="resale" title={t('轉售')}>
+                    <Tab 
+                        eventKey="resale" 
+                        title={
+                            <TooltipWrapper text={tooltips.resale}>
+                                <div>{t('轉售')}</div>
+                            </TooltipWrapper>
+                        }
+                    >
                         <Row className='pt-1 pb-5'>
                             {comic
                                 .filter(data => data.isFanCreation === t('轉售'))
                                 .map((data, index) => (
                                     <Col key={index} xs={6} md={3} className="pt-3">
                                         <Link to={`/nftDetail/tokenId${data.tokenId}`}>
-                                        <Card className="effect-image-1">
-                                            <Card.Img src={data.image} alt={`image-${index + 1}`} />
-                                            <div className="nftMarket-overlay">{truncateLastText(data.owner, 4)}
-                                                <span>{data.names[0]}</span>
-                                            </div>
-                                            <Card.Body className="simple-text">
-                                            <Card.Text className="nftMarket-text">{data.title}</Card.Text>
-                                            </Card.Body>
-                                        </Card>
+                                            <Card className="effect-image-1">
+                                                <Card.Img src={data.image} alt={`image-${index + 1}`} />
+                                                <div className="nftMarket-overlay">
+                                                    <span>$ {data.price}</span>
+                                                    <span>{data.title}</span>
+                                                </div>
+                                                <Card.Body className="simple-text">
+                                                <Card.Text className="nftMarket-text">{data.tokenTitle}</Card.Text>
+                                                </Card.Body>
+                                            </Card>
                                         </Link>
                                     </Col>
                             ))}
