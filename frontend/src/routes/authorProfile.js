@@ -5,6 +5,7 @@ import { formatDate, disableAllButtons, enableAllButtons } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
+import './bootstrap.min.css';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
@@ -35,6 +36,7 @@ const AuthorProfile = () => {
                         currentAccount: account
                     }
                 });
+                console.log('Account:', account);
                 let infoData = response.data;
                 if (infoData.length !== 0) {
                     const imageResponse = await axios.get(`${website}/api/creatorIMG/${account}`, { responseType: 'blob', headers });
@@ -320,19 +322,19 @@ const AuthorProfile = () => {
                                     <div className="authorProfile-btn">
                                         {isEditing ? (
                                             <>
-                                                <Button variant="primary" onClick={handleEdit}>提交</Button>
-                                                <Button variant="secondary" onClick={handleEditToggle}>取消</Button>
+                                                <Button className='profile-send' variant="primary" onClick={handleEdit}>提交</Button>
+                                                <Button className='profile-cancel' variant="secondary" onClick={handleEditToggle}>取消</Button>
                                             </>
                                         ) : (
-                                                <Button variant="primary" onClick={handleEditToggle}>個資編輯</Button>
+                                                <Button className='profile-edit' variant="primary" onClick={handleEditToggle}>個資編輯</Button>
                                         )}
                                         {isAdding ? (
                                             <>
-                                                <Button variant="primary" onClick={handleAdd}>提交</Button>
-                                                <Button variant="secondary" onClick={handleAddToggle}>取消</Button>
+                                                <Button className='profile-send' variant="primary" onClick={handleAdd}>提交</Button>
+                                                <Button className='profile-cancel' variant="secondary" onClick={handleAddToggle}>取消</Button>
                                             </>
                                         ) : (
-                                                <Button variant="primary" onClick={handleAddToggle}>新增訊息</Button>
+                                                <Button className='profile-add' variant="primary" onClick={handleAddToggle}>新增訊息</Button>
                                         )}
                                         {isEditEmail && (
                                             <>

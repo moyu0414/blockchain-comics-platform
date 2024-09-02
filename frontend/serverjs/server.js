@@ -77,6 +77,9 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: emailAccount,
     pass: emailPassword
+  },
+  tls: {
+    rejectUnauthorized: false // 忽略自簽名證書錯誤
   }
 });
 
@@ -205,6 +208,7 @@ app.post('/api/send-verification-email', async (req, res) => {
     subject: 'web3toon 信箱認證',
     text: `Hello ${name},\n\nPen Name: ${penName}\n\nWe are the web3toon platform. To become a creator on our platform, we need to verify your email address.\n\nYour verification code is: ${code}\nThe verification code is valid for 15 minutes.\n\nLet's start our journey!\n\nBest regards,\nweb3toon`
   };
+
   try {
     await transporter.sendMail(mailOptions);
     const verificationData = JSON.stringify({ email, name, penName, code, expires });
@@ -569,6 +573,7 @@ app.get('/api/creatorIMG/:account', async (req, res) => {
 
       // localhost
       const imagePath = path.join(__dirname, 'uploads', 'creator', filename);
+      console.log('Image Path:', imagePath);
 
       // web3toonapi
       //const imagePath = path.join('/var/www/html/', 'uploads', 'creator', filename);
