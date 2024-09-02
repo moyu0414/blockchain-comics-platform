@@ -3914,3 +3914,32 @@ a:link{
 .authorProfile .card-header{
   background-color: #F3FCF3;
 }
+
+.authorProfile-btn .btn{
+  margin-right: 4%;
+  margin-bottom: 4%;
+}
+
+.authorProfile-btn .profile-add{
+  background-color: #F6B93B;
+}
+
+.authorProfile-btn .profile-add:hover{
+  background-color: #c7932c;
+}
+
+.authorProfile-btn .profile-send{
+  background-color: #007bff;
+}
+
+.authorProfile-btn .profile-send:hover{
+  background-color: #0056b3;
+}
+
+.authorProfile-btn .profile-cancel{
+  background-color: #6c757d;
+}
+
+.authorProfile-btn .profile-cancel:hover{
+  background-color: #5a6268;
+}
