@@ -27,6 +27,7 @@ function CreatorPage() {
     const [comic, setComic] = useState([]);
     const [isButtonEnabled, setIsButtonEnabled] = useState(false);
     const [currentAccount, setCurrentAccount] = useState(false);
+    const [ethBalance, setEthBalance] = useState('');
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
     const [selectedCategory, setSelectedCategory] = useState(t('已經發布'));
@@ -50,6 +51,8 @@ function CreatorPage() {
                         });
                         if (response.data[0].is_creator === 1) {
                             try {
+                                const balance = await web3.eth.getBalance(account);
+                                setEthBalance(parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(3));
                                 setCurrentAccount(account);
                                 const storedArray = JSON.parse(storedArrayJSON);
                                 for (let i = 0; i < storedArray.length; i++) {
@@ -60,6 +63,7 @@ function CreatorPage() {
                                             temp.push({
                                                 comicHash: storedArray[i].comic_id,
                                                 comicID: storedArray[i].comicID,
+                                                penName: storedArray[i].penName,
                                                 title: storedArray[i].title,
                                                 category: t(storedArray[i].category),
                                                 image: image
@@ -202,6 +206,13 @@ function CreatorPage() {
                     </Figure>
                 </Row>
                 <h3><center>{t('創作者專區')}</center></h3>
+                {isButtonEnabled && (
+                    <div><center>
+                        <h4>{comic[0].penName}</h4>
+                        <h4 className="display-account">{currentAccount}</h4>
+                        <h5 className="display-ethBalance">{ethBalance} SepoliaETH</h5>
+                    </center></div>
+                )}
                 <Row className="pt-2 pb-3 btn-container justify-content-center w-100">
                     {!isButtonEnabled && (
                         <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>

@@ -28,6 +28,9 @@ const MintNFT = (props) => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showDescription, setShowDescription] = useState(false);
   const [inputValues, setInputValues] = useState({}); // 用于存储每个输入框的值
+  const [isCheck, setIsCheck] = useState(false);
+  const [nftFile, setNftFile] = useState([]);
+  const [previewImageUrl, setPreviewImageUrl] = useState('');
   const { t } = useTranslation();
   const headers = {'api-key': API_KEY};
   const BATCH_SIZE = 10; // 每批处理的最大数量
@@ -119,13 +122,13 @@ const MintNFT = (props) => {
 
       if (allSuccess) {
         alert(t('鑄造NFT成功'));
-        enableAllButtons();
         updateMessage("");
         window.location.replace("/creatorNft");
       } else {
         alert(t('部分NFT鑄造失敗，請檢查控制台了解詳情'));
         console.log('Failed token IDs:', failedTokenIds);
       }
+      enableAllButtons();
     } catch (error) {
       if (error.message.includes('User denied transaction signature')) {
         alert(t('拒绝交易'));
@@ -138,33 +141,29 @@ const MintNFT = (props) => {
     }
   };
 
-  async function postNFTDataBatch(nftDataBatch) {
-    try {
-      const response = await axios.post(`${website}/api/add/NFT`, { nftData: nftDataBatch }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'api-key': API_KEY
-        }
-      });
-      console.log(response.data);
-      return { success: true };
-    } catch (error) {
-      console.error('批量添加 NFT 資料時發生錯誤：', error);
-      return { success: false, error };
-    }
-  }
-
   async function postNFTDataInBatches(tokenIds, formData) {
     let allSuccess = true;
     const failedTokenIds = [];
     for (let i = 0; i < tokenIds.length; i += BATCH_SIZE) {
       const batch = tokenIds.slice(i, i + BATCH_SIZE);
-      const nftDataBatch = batch.map(tokenId => ({
-        tokenId,
-        ...formData
-      }));
-
-      const result = await postNFTDataBatch(nftDataBatch);
+      const batchFormData = new FormData();
+      batch.forEach((tokenId) => {
+        batchFormData.append('tokenId[]', tokenId);
+        batchFormData.append('comicHash', formData.comicHash);
+        batchFormData.append('minter', formData.minter);
+        batchFormData.append('price', formData.price);
+        batchFormData.append('tokenTitle', formData.tokenTitle);
+        batchFormData.append('description', formData.description);
+        batchFormData.append('forSale', formData.forSale);
+        batchFormData.append('royalty', formData.royalty);
+        batchFormData.append('owner', formData.owner);
+        if (nftFile.length != 0) {
+          batchFormData.append('nftIMG', nftFile);
+        }
+      });
+      console.log(nftFile);
+      console.log(batchFormData);
+      const result = await postNFTDataBatch(batchFormData);
       if (!result.success) {
         allSuccess = false;
         batch.forEach(tokenId => failedTokenIds.push(tokenId));
@@ -172,6 +171,21 @@ const MintNFT = (props) => {
       }
     }
     return { allSuccess, failedTokenIds };
+  }
+  
+  async function postNFTDataBatch(formData) {
+    try {
+      const response = await axios.post(`${website}/api/add/NFT`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'api-key': API_KEY
+        }
+      });
+      console.log(response.data);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error };
+    }
   }
 
   async function checkFile() {
@@ -279,6 +293,34 @@ const MintNFT = (props) => {
   const handleInputChange = (e, category) => {
     const { value } = e.target;
     setInputValues(prevValues => ({...prevValues, [category]: value}));
+  };
+
+  const handleCheckboxChange = (e) => {
+    setIsCheck(e.target.checked);
+  };
+
+  const createPromoCover = (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      setPreviewImageUrl('');
+      return;
+    }
+    if (validateFileType(file)) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImageUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+      setNftFile(file);
+    } else {
+      alert(t('文件類型不支持，請上傳...格式的圖片'));
+      console.log(t('文件類型不支持，請上傳...格式的圖片'));
+    }
+  };
+
+  const validateFileType = (file) => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+    return allowedTypes.includes(file.type);
   };
 
 
@@ -491,7 +533,7 @@ const MintNFT = (props) => {
             </Form.Label>
             <Form.Control
                 type="number"
-                placeholder={t('至少 1')}
+                placeholder={t('至少 1%，至多10%')}
                 step="1"
                 min="1"
                 max="10"
@@ -500,6 +542,49 @@ const MintNFT = (props) => {
                 title={t('這是您的抽成比例，最多可設為 10%')}
             />
         </Form.Group>
+
+        <Form.Group controlId="file-upload" className='pb-3'>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Form.Label className='col-form-label' title={t('上傳圖片作為NFT的封面')} style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}>
+              {t('NFT封面')}
+            </Form.Label>
+            <Form.Check
+              type="checkbox"
+              onChange={handleCheckboxChange}
+              checked={isCheck}
+              style={{ transform: 'scale(1.8)', marginRight: '1rem' }}
+            />
+            {isCheck && (
+              <Form.Control
+                type="file"
+                name="fileUpload"
+                accept="image/*"
+                style={{ flex: 1, marginBottom: '0' }}
+                onChange={createPromoCover}
+              />
+            )}
+          </div>
+          
+          {isCheck && (
+            <div className='file-upload mintNFT-img-height' style={{ display: 'flex', flexDirection: 'column', marginTop: '1rem' }}>
+              <div id="start" style={{ display: 'block' }}>
+                {previewImageUrl ? (
+                  <img
+                      src={previewImageUrl}
+                      alt="Cover Preview"
+                      style={{ height:'28vh' }}
+                  />
+                ) : (
+                  <>
+                    <CardImage size={48} />
+                    <div id="notimage2" className="hidden">{t('上傳NFT橫向封面')}</div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </Form.Group>
+
         <div className="text-red-500 text-center">{message}</div>
         <Button onClick={createNFT} id="list-button" data-backgroundcolor="#fff">{t('確定鑄造')}</Button>
         {/* )} */}

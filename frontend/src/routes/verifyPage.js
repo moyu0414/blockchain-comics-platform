@@ -128,6 +128,7 @@ const VerifyPage = () => {
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (!file) {
+            setPreviewImg('');
             return;
         }
         if (validateFileType(file)) {
@@ -150,37 +151,32 @@ const VerifyPage = () => {
         <Container className='verifyPage'>
             <Row className="justify-content-center">
                 <Col xs={12} md={8}>
-
-
-
-                <Form.Group controlId="file-upload" className='pt-4 pb-3'>
-                    <div style={{ display: 'flex' }}>
-                        <Form.Label className='label-style col-form-label' style={{ marginRight: '1rem'}}>
-                            {t('個人封面')}
-                        </Form.Label>
-                        <Form.Control
-                            type="file"
-                            style={{ flex: 1, marginBottom: '1rem' }}
-                            onChange={handleFileChange}
-                        />
-                    </div>
-                    <div className='file-upload'>
-                        {previewImg ? (
-                            <img
-                                src={previewImg}
-                                alt="Cover Preview"
-                                style={{ height:'28vh' }}
+                    <Form.Group controlId="file-upload" className='pt-4 pb-3'>
+                        <div style={{ display: 'flex' }}>
+                            <Form.Label className='label-style col-form-label' style={{ marginRight: '1rem'}}>
+                                {t('個人封面')}
+                            </Form.Label>
+                            <Form.Control
+                                type="file"
+                                style={{ flex: 1, marginBottom: '1rem' }}
+                                onChange={handleFileChange}
                             />
-                        ) : (
-                            <>
-                            <CardImage size={48} />
-                            <div id="notimage2" className="hidden">{t('上傳個人封面')}</div>
-                            </>
-                        )}
-                    </div>
-                </Form.Group>
-
-
+                        </div>
+                        <div className='file-upload'>
+                            {previewImg ? (
+                                <img
+                                    src={previewImg}
+                                    alt="Cover Preview"
+                                    style={{ height:'28vh' }}
+                                />
+                            ) : (
+                                <>
+                                <CardImage size={48} />
+                                <div id="notimage2" className="hidden">{t('上傳個人封面')}</div>
+                                </>
+                            )}
+                        </div>
+                    </Form.Group>
 
                     <Form.Group controlId="formRealName" className="mb-3">
                         <Form.Label>{t('真實姓名')}</Form.Label>

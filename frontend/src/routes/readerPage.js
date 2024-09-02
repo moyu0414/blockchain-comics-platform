@@ -100,8 +100,8 @@ function ReaderPage() {
 
             {isButtonEnabled && (
                 <div><center>
-                    <h4 className="text-secondary">{currentAccount}</h4>
-                    <h5 className="text-secondary">{ethBalance} SepoliaETH</h5>
+                    <h4 className="display-account">{currentAccount}</h4>
+                    <h5 className="display-ethBalance">{ethBalance} SepoliaETH</h5>
                 </center></div>
             )}
             <Row className="pt-4 pb-3 btn-container justify-content-center">

@@ -252,6 +252,7 @@ const CreateWork = (props) => {
   const handleFileInputChange = (event) => {
     const file = event.target.files[0];
     if (!file) {
+      setPreviewImageUrl('');
       return;
     }
     if (validateFileType(file)) {
@@ -318,6 +319,7 @@ const CreateWork = (props) => {
   const createPromoCover = (event) => {
     const file = event.target.files[0];
     if (!file) {
+      setPromoPreviewImageUrl('');
       return;
     }
     if (validateFileType(file)) {

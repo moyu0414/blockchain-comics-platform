@@ -154,7 +154,21 @@ async function creatorFile(file, account) {
   } catch (error) {
     console.error('Error uploading file:', error);
     throw error;
-    return false;
+  }
+}
+
+async function nftFile(file, comic_id, tokenId) {
+  const creatorFolder = path.join('uploads', comic_id, 'NFT');  // localhost
+  // const comicFolder = path.join('/var/www/html/uploads', comic_id, 'NFT');  // web3toonapi
+  const filename = `${tokenId}.jpg`;
+  const filePath = path.join(creatorFolder, filename);
+  try {
+    await fsPromises.mkdir(creatorFolder, { recursive: true });
+    await fsPromises.rename(file.path, filePath);
+    return filename;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw error;
   }
 }
 
@@ -390,21 +404,16 @@ app.post('/api/add/records',upload.any(), (req, res) => {
 
 
 // 新增 NFT 資料
-app.post('/api/add/NFT', upload.any(), (req, res) => {
-  const { nftData } = req.body;
-  // 假设传入的数据是一个数组
-  if (!Array.isArray(nftData)) {
-    return res.status(400).json({ message: '請求資料格式不正確' });
-  }
-  // 构建批量插入的 SQL 语句
-  const values = nftData.map(data => [
-    data.tokenId, data.comicHash, data.minter, data.price, data.tokenTitle, data.description, data.forSale, data.royalty, data.owner
-  ]);
+app.post('/api/add/NFT', upload.single('nftIMG'),async (req, res) => {
+  const { tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner} = req.body;
+  if (req.file) {
+    const response = await nftFile(req.file, comicHash, tokenId, 'nftIMG');
+  };
   const sql = `
     INSERT INTO nft (tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner)
-    VALUES ?
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
-  pool.query(sql, [values], (error, results) => {
+  pool.query(sql, [tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner], (error, results) => {
     if (error) {
       console.error('Error inserting into nft: ', error);
       return res.status(500).json({ message: 'Error inserting into nft' });
@@ -1486,9 +1495,10 @@ app.get('/api/nftOwner/records', (req, res) => {
   const tokenId = req.query.tokenId;
   const currentAccount = req.query.currentAccount;
   const query = `
-    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.filename , comics.protoFilename
+    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.filename , comics.protoFilename, user.penName
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
+    INNER JOIN user ON nft.minter = user.address
     WHERE nft.tokenId = ? AND nft.owner = ? AND comics.is_exist = 1
   `;
   pool.query(query, [tokenId, currentAccount], (error, results, fields) => {

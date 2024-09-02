@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Container, Col, Row, Button, Modal, Form } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
@@ -293,8 +293,14 @@ function NftOwner() {
                                 <Col xs={8} className="text-section ">
                                     {NFT.map((data, index) => (
                                         <React.Fragment key={index}>
-                                            <h3 className="fw-bold">{data.title}</h3>
-                                            <p className="nftDetail-text-secondary">{t('作者')}：{data.minter}</p>
+                                            <h3 className="fw-bold">{data.tokenTitle}</h3>
+                                            <h4 className="fw-bold">{data.title}</h4>
+                                            <p className="nftDetail-text-secondary">{t('作者')}：
+                                                <Link to={`/authorProfile/${data.minter}`}>
+                                                    <span className="comicDetail-penName" style={{ marginRight: "10px"}}>{data.penName}</span> 
+                                                    <span style={{color: "#722bd4", marginLeft: "0"}}>({data.minter})</span>
+                                                </Link>
+                                            </p>
                                             <p className="nftDetail-text-secondary">{t('持有者')}：{data.owner}</p>
                                             <p className="nftDetail-text-secondary">{data.comicDesc}</p>
                                         </React.Fragment>

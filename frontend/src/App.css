@@ -817,6 +817,7 @@ a:link{
   justify-content: center;
   align-items: center;
   width: 30%;
+  margin-bottom: 50px;
   background-color: #fff;
   border-radius: 0;
   color: #000;
@@ -1430,6 +1431,14 @@ a:link{
   .card-overlay p {
     -webkit-line-clamp: 7; /* 最大行数 */
   }
+
+  #list-button {
+    margin-bottom: 80px;
+  }
+
+  .verifyPage .verify-btn{
+    margin-bottom: 80px!important;
+  }
 }
 
 
@@ -1512,6 +1521,13 @@ a:link{
     margin-bottom: 15px;
   }
 
+  #list-button {
+    margin-bottom: 0px;
+  }
+
+  .verifyPage .verify-btn{
+    margin-bottom: 0px!important;
+  }
 }
 
 @media only screen and (max-width: 550px) {
@@ -1523,11 +1539,11 @@ a:link{
     height: 18rem!important;
   }
 
-  .readerPage h4{
+  .display-account{
     font-size: 18px;
   }
 
-  .readerPage h5{
+  .display-ethBalance{
     font-size: 15px;
   }
 }
@@ -1549,7 +1565,7 @@ a:link{
     -webkit-line-clamp: 4;
   }
 
-  .readerPage h4{
+  .display-account{
     font-size: 15px;
   }
 }
@@ -1589,7 +1605,7 @@ a:link{
     -webkit-line-clamp: 1!important;
   }
 
-  .readerPage h4{
+  .display-account{
     max-width: 180px;
     overflow-wrap: break-word;
   }
@@ -2432,6 +2448,10 @@ a:link{
   font-weight: bold;
 }
 
+.mintNFT-img-height {
+  height: 35vh;
+}
+
 /* nftDetail */
 .text-section{
   margin-left: 8%;
@@ -3120,6 +3140,7 @@ a:link{
   margin-top: 2%;
   width: 40%;
   height: 45px;
+  margin-bottom: 50px;
   background-color: #F6B93B;
   color: rgba(0, 0, 0, 0.82);
   font-weight: 900;
