@@ -407,30 +407,27 @@ span {
   }
 
   .creatorNft-text {
-    font-size: 0.9rem;
+    font-size: 1rem!important;
   }
 
   .creatorNft .creatorNft-overlay {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     padding: 2px 6px; 
-    bottom: 35px;
+    bottom: 38px;
   }
 
-  .creatorNft .creatorNft-overlay span {
-    margin-left: 5px;
+  .collectionNft-overlay {
+    font-size: 1rem!important;
+    padding: 2px 6px!important; 
+    bottom: 38px!important;
   }
 
   .nftMarket .nftMarket-overlay {
-    font-size: 0.9rem!important;
-    bottom: 40px!important;
-  }
-
-  .nftMarket .nftMarket-overlay-promo {
-    bottom: 65px!important;
+    bottom: 62px!important;
   }
 
   .nftMarket-text {
-    font-size: 1.1rem!important;
+    font-size: 1rem!important;
   }
 
   .simple-text {
@@ -497,20 +494,22 @@ span {
   }
 
   .creatorNft-text {
-    font-size: 0.85rem!important;
+    font-size: 0.9rem!important;
   }
 
   .creatorNft .creatorNft-overlay {
     font-size: 0.7rem;
-    padding: 1px 3px; 
+    padding: 1px 0; 
+    bottom: 35px;
+  }
+
+  .collectionNft-overlay {
+    font-size: 0.8rem!important;
+    padding: 1px 0!important; 
+    bottom: 35px!important;
   }
 
   .nftMarket .nftMarket-overlay {
-    bottom: 39px!important;
-  }
-
-  .nftMarket .nftMarket-overlay-promo {
-    bottom: 60px!important;
     font-size: 0.95rem!important;
   }
   
@@ -1981,16 +1980,6 @@ a:link{
 .simple-text {
   background-color: rgba(6, 157, 103, 0.89); 
   text-align: center;
-  padding: 10px 0;
-  color: #fff;
-  border: 2px solid #000; /* 將邊框設置回來 */
-  border-top: 1px solid #000;
-  border-radius: 0 0 30px 30px; /* 調整與效果圖片一致的圓角 */
-}
-
-.simple-text-promo {
-  background-color: rgba(6, 157, 103, 0.89); 
-  text-align: center;
   padding: 5px 0;
   color: #fff;
   border: 2px solid #000; /* 將邊框設置回來 */
@@ -2004,6 +1993,7 @@ a:link{
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 1.2rem;
 }
 
 .creatorNft thead th {
@@ -2484,27 +2474,6 @@ a:link{
 .nftMarket .nftMarket-overlay {
   position: absolute; 
   text-align: center;
-  bottom: 52px;
-  justify-content: space-between; 
-  background: rgba(0, 0, 0, 0.5); 
-  color: #fff; 
-  width: 100%;
-  font-size: 1rem; 
-  z-index: 1; 
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.nftMarket .nftMarket-overlay span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.nftMarket .nftMarket-overlay-promo {
-  position: absolute; 
-  text-align: center;
   bottom: 70px;
   justify-content: space-between; 
   background: rgba(0, 0, 0, 0.5); 
@@ -2517,7 +2486,7 @@ a:link{
   text-overflow: ellipsis;
 }
 
-.nftMarket .nftMarket-overlay-promo span {
+.nftMarket .nftMarket-overlay span {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2562,17 +2531,39 @@ a:link{
 .creatorNft-overlay {
   position: absolute; 
   text-align: center;
-  bottom: 45px;
+  bottom: 50px;
   left: 0px;
   background: rgba(0, 0, 0, 0.5); 
   color: #fff; 
   padding: 5px 10px; 
   width: 100%;
-  font-size: 0.9rem; 
+  font-size: 1.2rem; 
   z-index: 1; 
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* collectionNft */
+.collectionNft-overlay {
+  position: absolute; 
+  text-align: center;
+  bottom: 40px;
+  left: 0px;
+  background: rgba(0, 0, 0, 0.5); 
+  color: #fff; 
+  padding: 5px 10px; 
+  width: 100%;
+  font-size: 1.2rem; 
+  z-index: 1; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#button-tooltip hr {
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
 
 /* readerPage */

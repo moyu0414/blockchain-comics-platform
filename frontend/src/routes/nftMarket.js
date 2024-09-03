@@ -67,7 +67,10 @@ function NftMarket() {
                 ...(record.isFanCreation === t('原創') ? {
                     totQty: comicStats[record.keyData]?.tot || 0,
                     saleQty: comicStats[record.keyData]?.sale || 0
-                } : {})
+                } : {
+                    totQty: 1,
+                    saleQty: 0
+                })
             }));
             keyhMap.forEach(record => {
                 const { isFanCreation, keyData } = record;
@@ -80,16 +83,24 @@ function NftMarket() {
                     temp.push(record);
                 }
             });
-            const fetchImageAndNames = async (data) => {
-                const url = data.protoFilename === 1
-                    ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
-                    : `${website}/api/comicIMG/${data.filename}`;
-                const response = await axios.get(url, { responseType: 'blob', headers });
-                const protoFilename = URL.createObjectURL(response.data);
-                data.image = protoFilename;
+            const fetchImage = async (data) => {
+                const nftImgResponse = await axios.get(`${website}/api/nftIMG/${data.comicHash}/${data.tokenId}`, {
+                    responseType: 'blob',
+                    headers,
+                  });
+                  if (nftImgResponse.data.type === 'image/jpeg') {
+                    data.image = URL.createObjectURL(nftImgResponse.data);
+                  } else {
+                    const url = data.protoFilename === 1
+                      ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
+                      : `${website}/api/comicIMG/${data.filename}`;
+                    const coverImgResponse = await axios.get(url, { responseType: 'blob', headers });
+                    data.image = URL.createObjectURL(coverImgResponse.data);
+                }
                 data.names = parseAuthorizations(data.description).map(auth => auth.name);
             };
-            await Promise.all(temp.map(fetchImageAndNames));
+            await Promise.all(temp.map(fetchImage));
+
             console.log(temp);
             setComic(temp);
             setMaterial(temp);
@@ -97,7 +108,6 @@ function NftMarket() {
         } catch (error) {
             console.error('Error initializing contract:', error);
         }
-    
     };
 
     useEffect(() => {
@@ -149,6 +159,16 @@ function NftMarket() {
         copyright: t('作者原創授權NFT'),
         resale: t('持有者轉售NFT'),
     };
+
+    const renderTooltip = (title, names) => (props) => (
+        <Tooltip id="button-tooltip" {...props}>
+            {title}
+            <hr />
+            {names.map((name, index) => (
+                <div key={index}>{name}</div>
+            ))}
+        </Tooltip>
+    );
 
     const handleClick = (label) => {
         setShow(true);
@@ -225,48 +245,47 @@ function NftMarket() {
                             <Col xs={6} md={3} className="pt-3" key={index}>
                                 <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                     <Card className="effect-image-1">
-                                        <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                        <div className="nftMarket-overlay-promo">
-                                            <span>$ {data.price}</span>
-                                            <span>{data.title}</span>
-                                        </div>
-                                        <Card.Body className="simple-text-promo">
-                                            <Card.Text className="nftMarket-text">
-                                                {data.tokenTitle}<br />
-                                                已售：{data.saleQty} 總數：{data.totQty}
-                                            </Card.Text>
-                                        </Card.Body>
+                                        <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names)}>
+                                            <div>
+                                                <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
+                                                <div className="nftMarket-overlay">
+                                                    <span>已售：{data.saleQty} 總數：{data.totQty}</span>
+                                                </div>
+                                                <Card.Body className="simple-text">
+                                                    <Card.Text className="nftMarket-text">
+                                                        {data.tokenTitle}<br />
+                                                        $ {data.price} ...購物車
+                                                    </Card.Text>
+                                                </Card.Body>
+                                            </div>
+                                        </OverlayTrigger>
                                     </Card>
                                 </Link>
                             </Col>
                         ))                 
                     )}
-
-
-
                     {searchResults.length > 0 && searchResults.map((data, index) => (
                         <Col xs={6} md={3} className="pt-3" key={index}>
                             <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                 <Card className="effect-image-1">
-                                    <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                    <div className="nftMarket-overlay">
-                                        <span>$ {data.price}</span>
-                                        <span>{data.title}</span>
-                                    </div>
-                                    <Card.Body className="simple-text">
-                                        <Card.Text className="nftMarket-text">
-                                            {data.tokenTitle}
-                                        </Card.Text>
-                                    </Card.Body>
+                                    <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names)}>
+                                        <div>
+                                            <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
+                                            <div className="nftMarket-overlay">
+                                                <span>已售：{data.saleQty} 總數：{data.totQty}</span>
+                                            </div>
+                                            <Card.Body className="simple-text">
+                                                <Card.Text className="nftMarket-text">
+                                                    {data.tokenTitle}<br />
+                                                    $ {data.price} ...購物車
+                                                </Card.Text>
+                                            </Card.Body>
+                                        </div>
+                                    </OverlayTrigger>
                                 </Card>
                             </Link>
                         </Col>
                     ))}
-
-
-
-
-
                 </Row>
                 <Row className='pt-5'>
                     <h3 className="fw-bold">{t('推薦NFT')}</h3>
@@ -293,14 +312,20 @@ function NftMarket() {
                                 <Col xs={6} md={3} className="pt-3" key={index}>
                                     <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                         <Card className="effect-image-1">
-                                            <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                            <div className="nftMarket-overlay">
-                                                <span>$ {data.price}</span>
-                                                <span>{data.title}</span>
-                                            </div>
-                                            <Card.Body className="simple-text">
-                                                <Card.Text className="nftMarket-text">{data.tokenTitle}</Card.Text>
-                                            </Card.Body>
+                                            <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names)}>
+                                                <div>
+                                                    <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
+                                                    <div className="nftMarket-overlay">
+                                                        <span>已售：{data.saleQty} 總數：{data.totQty}</span>
+                                                    </div>
+                                                    <Card.Body className="simple-text">
+                                                        <Card.Text className="nftMarket-text">
+                                                            {data.tokenTitle}<br />
+                                                            $ {data.price} ...購物車
+                                                        </Card.Text>
+                                                    </Card.Body>
+                                                </div>
+                                            </OverlayTrigger>
                                         </Card>
                                     </Link>
                                 </Col>
@@ -320,14 +345,20 @@ function NftMarket() {
                                 <Col key={index} xs={6} md={3} className="pt-3">
                                     <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                         <Card className="effect-image-1">
-                                            <Card.Img src={data.image} alt={`image-${index + 1}`} />
-                                            <div className="nftMarket-overlay">
-                                                <span>$ {data.price}</span>
-                                                <span>{data.title}</span>
-                                            </div>
-                                            <Card.Body className="simple-text">
-                                            <Card.Text className="nftMarket-text">{data.tokenTitle}</Card.Text>
-                                            </Card.Body>
+                                            <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names)}>
+                                                <div>
+                                                    <Card.Img src={data.image} alt={`image-${index + 1}`} />
+                                                    <div className="nftMarket-overlay">
+                                                        <span>已售：{data.saleQty} 總數：{data.totQty}</span>
+                                                    </div>
+                                                    <Card.Body className="simple-text">
+                                                    <Card.Text className="nftMarket-text">
+                                                        {data.tokenTitle}<br />
+                                                        $ {data.price} ...購物車
+                                                    </Card.Text>
+                                                    </Card.Body>
+                                                </div>
+                                            </OverlayTrigger>     
                                         </Card>
                                     </Link>
                                 </Col>
@@ -349,14 +380,20 @@ function NftMarket() {
                                     <Col key={index} xs={6} md={3} className="pt-3">
                                         <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                             <Card className="effect-image-1">
-                                                <Card.Img src={data.image} alt={`image-${index + 1}`} />
-                                                <div className="nftMarket-overlay">
-                                                    <span>$ {data.price}</span>
-                                                    <span>{data.title}</span>
-                                                </div>
-                                                <Card.Body className="simple-text">
-                                                <Card.Text className="nftMarket-text">{data.tokenTitle}</Card.Text>
-                                                </Card.Body>
+                                                <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names)}>
+                                                    <div>
+                                                        <Card.Img src={data.image} alt={`image-${index + 1}`} />
+                                                        <div className="nftMarket-overlay">
+                                                            <span>已售：{data.saleQty} 總數：{data.totQty}</span>
+                                                        </div>
+                                                        <Card.Body className="simple-text">
+                                                        <Card.Text className="nftMarket-text">
+                                                            {data.tokenTitle}<br />
+                                                            $ {data.price} ...購物車
+                                                        </Card.Text>
+                                                        </Card.Body>
+                                                    </div>
+                                                </OverlayTrigger>   
                                             </Card>
                                         </Link>
                                     </Col>

@@ -324,12 +324,14 @@ const AuthorProfile = () => {
                                             <>
                                                 <Button className='profile-send' variant="primary" onClick={handleEdit}>提交</Button>
                                                 <Button className='profile-cancel' variant="secondary" onClick={handleEditToggle}>取消</Button>
+                                                <br />
                                             </>
                                         ) : (
                                                 <Button className='profile-edit' variant="primary" onClick={handleEditToggle}>個資編輯</Button>
                                         )}
                                         {isAdding ? (
                                             <>
+                                                <br />
                                                 <Button className='profile-send' variant="primary" onClick={handleAdd}>提交</Button>
                                                 <Button className='profile-cancel' variant="secondary" onClick={handleAddToggle}>取消</Button>
                                             </>

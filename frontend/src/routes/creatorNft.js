@@ -39,12 +39,12 @@ function CreatorNft() {
 
         nftData.forEach(item => {
             const descTitle = parseAuthorizations(item.description);
-            const firstName = descTitle[0]?.name || '';
             const keyData = `${item.comicHash}-${item.price}-${item.royalty}-${item.description || ""}`;
+            const lastPriceValue = Object.values(item.price).pop();
             allRecord.push({
                 ...item,
-                firstName,
                 keyData,
+                price: lastPriceValue
             });
             if (!comicStats[keyData]) {
                 comicStats[keyData] = { tot: 0, sale: 0 };
@@ -98,11 +98,19 @@ function CreatorNft() {
             }
         });
         const fetchImage = async (data) => {
-            const url = data.protoFilename === 1
-                ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
-                : `${website}/api/comicIMG/${data.filename}`;
-            const response = await axios.get(url, { responseType: 'blob', headers });
-            data.image = URL.createObjectURL(response.data);
+            const nftImgResponse = await axios.get(`${website}/api/nftIMG/${data.comicHash}/${data.tokenId}`, {
+                responseType: 'blob',
+                headers,
+              });
+              if (nftImgResponse.data.type === 'image/jpeg') {
+                data.image = URL.createObjectURL(nftImgResponse.data);
+              } else {
+                const url = data.protoFilename === 1
+                  ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
+                  : `${website}/api/comicIMG/${data.filename}`;
+                const coverImgResponse = await axios.get(url, { responseType: 'blob', headers });
+                data.image = URL.createObjectURL(coverImgResponse.data);
+            }
         };
         await Promise.all(currentComic.map(fetchImage));
 
@@ -224,11 +232,12 @@ function CreatorNft() {
                                 <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                     <Card className="effect-image-1">
                                         <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                        <div className="creatorNft-overlay">{data.saleQty}/{data.totQty}
-                                            <span>{data.firstName}</span>
+                                        <div className="creatorNft-overlay">
+                                            <span>{data.saleQty}/{data.totQty}</span>
+                                            <span>$ {data.price}</span>
                                         </div>
                                         <Card.Body className="simple-text">
-                                            <Card.Text className="creatorNft-text">{data.title}</Card.Text>
+                                            <Card.Text className="creatorNft-text">{data.tokenTitle}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Link>

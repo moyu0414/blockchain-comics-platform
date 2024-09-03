@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Card, Col, Row, Button, Figure,Tabs, Tab } from 'react-bootstrap';
+import { Container, Card, Col, Row, Button, Figure,Tabs, Tab, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -86,13 +86,26 @@ function Bookcase() {
                     const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.filename}`, { responseType: 'blob', headers });
                     const image = URL.createObjectURL(imageResponse.data);
                     data.image = image;
+                    data.names = parseAuthorizations(data.description).map(auth => auth.name);
                 }
             }
+            console.log(nftRecords);
             setNFTLogArray(nftRecords);
             if (nftRecords.length === 0) {
               setBeingNFT(false);
             }
         }
+    };
+
+    const parseAuthorizations = (text) => {
+        text = text.trim();
+        const lines = text.includes('\n') ? text.split('\n') : [text];
+        return lines.map(line => {
+            const [name] = line.split(':');
+            return {
+                name: t(name.trim()),
+            };
+        });
     };
 
     function sortByPurchase(array) {
@@ -102,6 +115,16 @@ function Bookcase() {
             return dateB.getTime() - dateA.getTime();  // 降序排序
         });
     }
+
+    const renderTooltip = (title, names) => (props) => (
+        <Tooltip id="button-tooltip" {...props}>
+            {title}
+            <hr />
+            {names.map((name, index) => (
+                <div key={index}>{name}</div>
+            ))}
+        </Tooltip>
+    );
 
     
     return (
@@ -170,11 +193,15 @@ function Bookcase() {
                                     <Col key={idx} xs={4} md={3}>
                                         <Link to={`/nftOwner/tokenId${data.tokenId}`}>
                                             <Card>
-                                                <Card.Img variant="top" src={data.image} />
-                                                <div className="bookcase-overlay">{data.tokenId} / {t(data.descTitle)}</div>
-                                                <Card.Body>
-                                                    <Card.Title className='bookcase-purchase-text'>{data.title}</Card.Title>
-                                                </Card.Body>
+                                                <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names)}>
+                                                    <div>
+                                                        <Card.Img variant="top" src={data.image} />
+                                                        <div className="bookcase-overlay">{data.title}</div>
+                                                        <Card.Body>
+                                                            <Card.Title className='bookcase-purchase-text'>{data.tokenTitle}</Card.Title>
+                                                        </Card.Body>
+                                                    </div>
+                                                </OverlayTrigger>
                                             </Card>
                                         </Link>
                                     </Col>

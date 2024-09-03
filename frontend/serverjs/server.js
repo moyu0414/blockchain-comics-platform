@@ -161,16 +161,17 @@ async function creatorFile(file, account) {
 }
 
 async function nftFile(file, comic_id, tokenId) {
-  const creatorFolder = path.join('uploads', comic_id, 'NFT');  // localhost
+  const creatorFolder = path.join('uploads', comic_id, 'NFT');  //localhost
   // const comicFolder = path.join('/var/www/html/uploads', comic_id, 'NFT');  // web3toonapi
   const filename = `${tokenId}.jpg`;
   const filePath = path.join(creatorFolder, filename);
   try {
     await fsPromises.mkdir(creatorFolder, { recursive: true });
-    await fsPromises.rename(file.path, filePath);
+    await fsPromises.access(file.path);
+    await fsPromises.copyFile(file.path, filePath);
     return filename;
   } catch (error) {
-    console.error('Error uploading file:', error);
+    console.error('Error handling file:', error);
     throw error;
   }
 }
@@ -408,22 +409,41 @@ app.post('/api/add/records',upload.any(), (req, res) => {
 
 
 // 新增 NFT 資料
-app.post('/api/add/NFT', upload.single('nftIMG'),async (req, res) => {
-  const { tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner} = req.body;
-  if (req.file) {
-    const response = await nftFile(req.file, comicHash, tokenId, 'nftIMG');
-  };
-  const sql = `
-    INSERT INTO nft (tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-  pool.query(sql, [tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner], (error, results) => {
-    if (error) {
-      console.error('Error inserting into nft: ', error);
-      return res.status(500).json({ message: 'Error inserting into nft' });
+app.post('/api/add/NFT', upload.single('nftIMG'), async (req, res) => {
+  const { tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner } = req.body;
+  const tokenIds = Array.isArray(tokenId) ? tokenId : [tokenId];
+  const file = req.file;
+  try {
+    if (file) {
+      await Promise.all(tokenIds.map(async (id) => {
+        if (typeof id === 'string') {
+          await nftFile(file, comicHash, id);
+        } else {
+          throw new Error('Invalid tokenId format');
+        }
+      }));
+      await deleteFile(`uploads/${file.filename}`);  // localhost
+      //await deleteFile(`/var/www/html/uploads/${file.filename}`);  // web3toon
     }
-    res.json({ message: 'NFT 记录成功添加。' });
-  });
+    const sql = `
+      INSERT INTO nft (tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner)
+      VALUES ?
+    `;
+    // 准备批量插入的数据
+    const values = tokenIds.map(id => [
+      id, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner
+    ]);
+    pool.query(sql, [values], (error) => {
+      if (error) {
+        console.error('Error inserting into nft: ', error);
+        return res.status(500).json({ message: 'Error inserting into nft' });
+      }
+      res.json({ message: 'NFT added successfully.' });
+    });
+  } catch (error) {
+    console.error('Error adding NFT img:', error);
+    res.status(500).json({ message: 'Error adding NFT img.' });
+  }
 });
 
 
@@ -597,6 +617,32 @@ app.get('/api/creatorIMG/:account', async (req, res) => {
   } catch (error) {
       console.error('Error fetching comic image path:', error);
       res.status(500).json({ message: 'Error fetching comic image path' });
+  }
+});
+
+
+app.get('/api/nftIMG/:comicHash/:tokenId', async (req, res) => {
+  const { comicHash, tokenId } = req.params;
+  try {
+      const filename = `${tokenId}.jpg`;
+
+      // localhost
+      const imagePath = path.join(__dirname, 'uploads', comicHash, 'NFT', filename);
+
+      // web3toonapi
+      //const imagePath = path.join('/var/www/html/', comicHash, 'NFT', filename);
+
+      await fsPromises.access(imagePath);
+      const image = await fsPromises.readFile(imagePath);
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.send(image);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      res.json({ state: false });
+    } else {
+      console.error('Error fetching NFT image path:', error);
+      res.json({ state: false });
+    }
   }
 });
 
@@ -1178,8 +1224,7 @@ app.get('/api/bookcase/nftRecords', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const query = `
     SELECT 
-      nft.tokenId, comics.title, nft.comicHash,
-      TRIM(LEADING '\n' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(nft.description, ':', 1), '{', -1)) AS descTitle
+      nft.tokenId, nft.tokenTitle ,comics.title, nft.comicHash, nft.description
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     WHERE nft.owner = ? AND nft.owner <> nft.minter AND comics.is_exist = 1
@@ -1479,7 +1524,7 @@ app.get('/api/nftDetail/isFavorited', (req, res) => {
       const placeholders = tokenIds.map(() => '?').join(',');
       const queryString = `
         SELECT 
-          comics.title, comics.filename, comics.protoFilename, nft.tokenId, nft.description
+          comics.title, comics.comic_id , comics.filename, comics.protoFilename, nft.tokenId, nft.tokenTitle, nft.price ,nft.description, nft.forSale ,nft.minter, nft.owner
         FROM nft
         INNER JOIN comics ON nft.comicHash = comics.comic_id
         WHERE nft.tokenId IN (${placeholders}) AND comics.is_exist = 1
@@ -1489,7 +1534,11 @@ app.get('/api/nftDetail/isFavorited', (req, res) => {
           console.error('Error fetching chapters and comics info: ', error);
           return res.status(500).json({ message: 'Error fetching chapters and comics info' });
         }
-        res.json(results.length > 0 ? results : []);
+        const processedResults = results.map(result => ({
+          ...result,
+          status: [result.minter, result.owner].includes(currentAccount) ? true : false
+      }));
+        res.json(processedResults.length > 0 ? processedResults : []);
       });
     }
   });

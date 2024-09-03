@@ -29,6 +29,7 @@ function NftOwner() {
         `${NFT[0]?.state}`, t('收藏')
     ];
     let records = [];
+    let imageUrl = '';
 
     const initData = async () => {
         const response = await axios.get(`${website}/api/nftOwner/records`, {
@@ -39,23 +40,36 @@ function NftOwner() {
             }
         });
         let nftData = response.data;
+        console.log(nftData[0]);
         setUpdatePrice(nftData[0].price);
 
         if (nftData.length !== 0) {
-            const { minter: initialMinter, price, forSale, protoFilename, filename } = nftData[0];
+            const { minter: initialMinter, price, forSale, protoFilename, filename, comicHash, tokenId: token } = nftData[0];
             const currentState = forSale === 0 ? t('轉售') : t('已出售');
             const currentMinter = initialMinter === currentAccount ? t('您是本作品的創作者') : initialMinter;
-            const url = protoFilename === 1
-                ? `${website}/api/coverFile/${filename}/${protoFilename}`
-                : `${website}/api/comicIMG/${filename}`;
-            const imageResponse = await axios.get(url, { responseType: 'blob', headers });
-            const image = URL.createObjectURL(imageResponse.data);
+            try {
+                const nftImgResponse = await axios.get(`${website}/api/nftIMG/${comicHash}/${token}`, {
+                    responseType: 'blob',
+                    headers,
+                });
+                if (nftImgResponse.data.type === 'image/jpeg') {
+                    imageUrl = URL.createObjectURL(nftImgResponse.data);
+                } else {
+                    const imageUrlPath = protoFilename === 1
+                        ? `${website}/api/coverFile/${filename}/${protoFilename}`
+                        : `${website}/api/comicIMG/${filename}`;
+                    const coverImgResponse = await axios.get(imageUrlPath, { responseType: 'blob', headers });
+                    imageUrl = URL.createObjectURL(coverImgResponse.data);
+                }
+            } catch (error) {
+            console.error('Error fetching image:', error);
+            }
             const newData = nftData.map(data => ({
                 ...data,
                 minter: currentMinter,
                 owner: t('您擁有此NFT'),
                 state: currentState,
-                image
+                image: imageUrl
             }));
             console.log(newData);
             setNFT(newData);

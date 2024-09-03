@@ -148,21 +148,19 @@ const MintNFT = (props) => {
       const batch = tokenIds.slice(i, i + BATCH_SIZE);
       const batchFormData = new FormData();
       batch.forEach((tokenId) => {
-        batchFormData.append('tokenId[]', tokenId);
-        batchFormData.append('comicHash', formData.comicHash);
-        batchFormData.append('minter', formData.minter);
-        batchFormData.append('price', formData.price);
-        batchFormData.append('tokenTitle', formData.tokenTitle);
-        batchFormData.append('description', formData.description);
-        batchFormData.append('forSale', formData.forSale);
-        batchFormData.append('royalty', formData.royalty);
-        batchFormData.append('owner', formData.owner);
-        if (nftFile.length != 0) {
-          batchFormData.append('nftIMG', nftFile);
-        }
+        batchFormData.append('tokenId', tokenId);
       });
-      console.log(nftFile);
-      console.log(batchFormData);
+      batchFormData.append('comicHash', formData.comicHash);
+      batchFormData.append('minter', formData.minter);
+      batchFormData.append('price', formData.price);
+      batchFormData.append('tokenTitle', formData.tokenTitle);
+      batchFormData.append('description', formData.description);
+      batchFormData.append('forSale', formData.forSale);
+      batchFormData.append('royalty', formData.royalty);
+      batchFormData.append('owner', formData.owner);
+      if (nftFile.length != 0) {
+        batchFormData.append('nftIMG', nftFile);
+      }
       const result = await postNFTDataBatch(batchFormData);
       if (!result.success) {
         allSuccess = false;
@@ -451,7 +449,7 @@ const MintNFT = (props) => {
             <Form.Group as={Row} className='mb-2'>
                 <div style={{ display: 'flex' }}>
                     <Form.Label>
-                        {t('IP種類')}<br />({t('您選的第一個IP權將作為宣傳主類')})
+                        {t('IP種類')}
                     </Form.Label>
                 </div>
 
