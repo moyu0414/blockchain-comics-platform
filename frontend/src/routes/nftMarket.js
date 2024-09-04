@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Carousel, Card, Col, Row, Tabs, Tab, Form, Button, OverlayTrigger, Tooltip, Modal } from 'react-bootstrap';
+import { Container, Carousel, Card, Col, Row, Tabs, Tab, Form, Button, OverlayTrigger, Tooltip, Modal,Table, Dropdown } from 'react-bootstrap';
 import './bootstrap.min.css';
-import { Search } from 'react-bootstrap-icons';
+import { Search, Cart, Trash, Funnel, SortNumericDown, SortNumericUp  } from 'react-bootstrap-icons';
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -22,6 +22,8 @@ function NftMarket() {
     const storedArray = JSON.parse(storedArrayJSON);
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
+    const [quantity, setQuantity] = useState(2); 
+    const [isAscending, setIsAscending] = useState(true);
     const [grading, setGrading] = useState([
         t('角色商品化'),
         t('改編權'),
@@ -174,6 +176,17 @@ function NftMarket() {
         setShow(true);
     };
 
+    const handleSort = () => {
+        setIsAscending(!isAscending);
+    };
+
+    const handleClose = () => setShow(false);
+
+    const handleQuantityChange = (e) => {
+        setQuantity(e.target.value); // 更新 quantity 狀態
+    };
+
+
     const handleSearch = (e) => {
         e.preventDefault();
         if (searchTerm.trim() === '') {
@@ -201,39 +214,76 @@ function NftMarket() {
             <Container className='nftMarket'>
                 <h2 className='text-center fw-bold' style={{backgroundColor: "green"}}>NFT市場</h2>
                 <Row>
-                    <div style={{display: "flex"}}>
-                        <Search onClick={handleClick} className="nftMarket-search" />
-                        <h3 className="fw-bold pt-3">{t('大家都在買')}</h3>
+                    <div className='d-flex justify-content-between align-items-center'>
+                        <div className='d-flex'>
+                            <Search onClick={handleClick} className="nftMarket-search" />
+                            <h3 className="fw-bold pt-3">{t('大家都在買')}</h3>
+                        </div>
+                        <Cart 
+                            size={36} 
+                            className='d-flex align-items-center' 
+                            onClick={() => setShow(true)} 
+                        />
                     </div>
                     <Modal
                         show={show}
-                        onHide={() => setShow(false)}
-                        dialogClassName="custom-modal-content"
+                        onHide={handleClose}
+                        size="xl"
+                        centered
+                        aria-labelledby="exampleModalLabel"
+                        className='nftMarket-modal'
                     >
+                        <Modal.Header closeButton className="border-bottom-0">
+                        <Modal.Title id="exampleModalLabel">
+                            購物車
+                        </Modal.Title>
+                        </Modal.Header>
                         <Modal.Body>
-                            <Form.Group>
-                                <Form.Label>{t('搜尋NFT')}</Form.Label>
+                        <Table className="table-image">
+                            <thead>
+                            <tr>
+                                <th onClick={handleSort}>{isAscending ? <SortNumericUp size={24} color='black' /> : <SortNumericDown size={24} color='black' />}</th>
+                                <th>產品描述</th>
+                                <th>價格</th>
+                                <th>數量</th>
+                                <th>總額</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td className="modal-img">
+                                    <img
+                                        src="https://images.pexels.com/photos/7809122/pexels-photo-7809122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+                                        className="img-fluid img-thumbnail"
+                                        alt="Sheep"
+                                    />
+                                </td>
+                                <td>漫畫名稱</td>
+                                <td>89$</td>
+                                <td className="qty">
                                 <Form.Control
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder={t('請輸入')}
+                                    type="number"
+                                    value={quantity}
+                                    onChange={handleQuantityChange} 
+
                                 />
-                            </Form.Group>
+                                </td>
+                                <td>178$</td>
+                                <td>
+                                <Trash size={24}/>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </Table>
+                        <div className="d-flex justify-content-end">
+                            <h5>總額: <span className="price text-success">89$</span></h5>
+                        </div>
                         </Modal.Body>
-                        <Modal.Footer className="custom-modal-footer">
-                            <Button
-                                className="mt-3"
-                                onClick={handleSearch}
-                            >
-                                {t('確定')}
-                            </Button>
-                            <Button
-                                className="mt-3"
-                                onClick={() => setShow(false)}
-                            >
-                                {t('取消')}
-                            </Button>
+                        <Modal.Footer className="border-top-0 d-flex justify-content-end">
+                        <Button variant="success">
+                            確認
+                        </Button>
                         </Modal.Footer>
                     </Modal>
 
@@ -299,6 +349,9 @@ function NftMarket() {
                             </TooltipWrapper>
                         }
                     >
+                        <div onClick={handleSort} className='d-flex justify-content-end'>
+                            {isAscending ? <SortNumericUp size={36} /> : <SortNumericDown size={36} />}
+                        </div>
                         <Form.Group>
                             <Form.Label>{t('IP種類')}</Form.Label>
                             <Form.Control as="select" value={t(selectedGrading)} onChange={handleGradingChange}>
@@ -340,6 +393,9 @@ function NftMarket() {
                             </TooltipWrapper>
                         }
                     >
+                        <div onClick={handleSort} className='d-flex justify-content-end'>
+                            {isAscending ? <SortNumericUp size={36} /> : <SortNumericDown size={36} />}
+                        </div>
                         <Row className='pt-1 pb-5'>
                             {comic.filter(data => data.isFanCreation === t('原創')).map((data, index) => (
                                 <Col key={index} xs={6} md={3} className="pt-3">
@@ -373,6 +429,9 @@ function NftMarket() {
                             </TooltipWrapper>
                         }
                     >
+                        <div onClick={handleSort} className='d-flex justify-content-end'>
+                            {isAscending ? <SortNumericUp size={36} /> : <SortNumericDown size={36} />}
+                        </div>
                         <Row className='pt-1 pb-5'>
                             {comic
                                 .filter(data => data.isFanCreation === t('轉售'))

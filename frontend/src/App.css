@@ -426,8 +426,20 @@ span {
     bottom: 62px!important;
   }
 
+  .nftMarket-authorization{
+    display: block!important;
+  }
+  
   .nftMarket-text {
     font-size: 1rem!important;
+  }
+
+  .nftMarket-modal .table>:not(caption)>*>*{
+    border: none;
+  }
+
+  .nftMarket-modal .modal-img{
+    width: 100%!important;
   }
 
   .simple-text {
@@ -2526,6 +2538,67 @@ a:link{
 
 .nftMarket .custom-modal-button:hover{
   background-color: rgba(6, 157, 103, 0.89)!important;
+}
+
+.nftMarket svg{
+  cursor: pointer;
+}
+
+.nftMarket-modal .modal-footer{
+  width: 100%;
+}
+
+.nftMarket-modal svg{
+  color: #a1a1a1;
+  cursor: pointer;
+}
+
+.nftMarket-modal .modal-img {
+  width: 25%;
+  height: 25%;
+  aspect-ratio: 1 / 1; 
+  overflow: hidden; 
+}
+
+.nftMarket-modal .modal-img img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border: none;
+}
+
+.nftMarket-modal .qty{
+  width: 10%;
+}
+
+.nftMarket-authorization{
+  display: flex;
+  justify-self: center;
+}
+
+.nftMarket-authorization .btn{
+  background-color: #fff;
+}
+
+.nftMarket-authorization:active .btn{
+  background-color: #fff;
+}
+
+.nftMarket-authorization:checked .btn{
+  background-color: #fff;
+}
+
+.nftMarket-authorization:focus .btn{
+  background-color: #fff;
+}
+
+.nftMarket-authorization svg{
+  color: #000;
+}
+
+.modal-body .table>tbody{
+  vertical-align: middle!important;
 }
 
 .creatorNft-overlay {
