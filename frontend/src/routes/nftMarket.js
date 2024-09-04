@@ -349,9 +349,6 @@ function NftMarket() {
                             </TooltipWrapper>
                         }
                     >
-                        <div onClick={handleSort} className='d-flex justify-content-end'>
-                            {isAscending ? <SortNumericUp size={36} /> : <SortNumericDown size={36} />}
-                        </div>
                         <Form.Group>
                             <Form.Label>{t('IP種類')}</Form.Label>
                             <Form.Control as="select" value={t(selectedGrading)} onChange={handleGradingChange}>
