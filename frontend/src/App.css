@@ -1605,6 +1605,13 @@ a:link{
   .card-overlay {
     height: 14rem;
   }
+
+  .nftMarket .sort-section{
+    position: absolute;
+    bottom: 240px!important;
+    right: 20px!important;
+    display: flex;
+  }
 }
 
 @media only screen and (max-width: 400px) {
@@ -1631,6 +1638,13 @@ a:link{
   .display-account{
     max-width: 180px;
     overflow-wrap: break-word;
+  }
+
+  .nftMarket .sort-section{
+    position: absolute;
+    bottom: 250px!important;
+    right: 20px!important;
+    display: flex;
   }
 }
 
@@ -2612,6 +2626,8 @@ a:link{
   color: #000;
 }
 
+
+
 .modal-body .table>tbody{
   vertical-align: middle!important;
 }
@@ -2683,6 +2699,13 @@ a:link{
   font-size: 0.875rem; 
 }
 
+.nftMarket .sort-section{
+  position: absolute;
+  bottom: 180px;
+  right: 300px;
+  display: flex;
+}
+
 @media (max-width: 450px) {
   .nftMarket-modal .table-xs tr,
   .nftMarket-modal .table-xs td,
@@ -2747,6 +2770,16 @@ a:link{
 
   .nftMarket-modal thead tr th{
     display: none!important;
+  }
+  
+}
+
+@media (max-width: 375px) {
+  .nftMarket .sort-section{
+    position: absolute;
+    bottom: 260px!important;
+    right: 20px!important;
+    display: flex;
   }
 }
 

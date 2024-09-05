@@ -481,7 +481,6 @@ function NftMarket() {
                     <h3 className="fw-bold">{t('推薦NFT')}</h3>
                 </Row>
                 <Row>
-                    <Col xs={10}>
                         <Tabs defaultActiveKey="copyright" id="uncontrolled-tab-example">
                             <Tab 
                                 eventKey="material" 
@@ -634,18 +633,19 @@ function NftMarket() {
                                 </Row>
                             </Tab>
                         </Tabs>
-                    </Col>
-
-                    {/* 排序按鈕 占 2 格 */}
-                    <Col xs={2} className="d-flex justify-content-end">
-                        <div onClick={handleSort}>
+                    <div className='sort-container'>
+                        <div
+                            onClick={handleSort}
+                            className='sort-section'
+                        >
                             {isAscending ? (
                                 <SortNumericUp size={36} />
                             ) : (
                                 <SortNumericDown size={36} />
                             )}
                         </div>
-                    </Col>
+                    </div>
+                    
                 </Row>
             </Container>
         }
