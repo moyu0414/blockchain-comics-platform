@@ -4,7 +4,6 @@ import { Container, Card, Col, Row, Button, Table, ButtonToolbar, Pagination, To
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
 import comicData from '../contracts/ComicPlatform.json';
-import Web3 from 'web3';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
@@ -35,7 +34,7 @@ function ComicDetail() {
         try {
             const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
             for (let i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].is_exist === 1) {
+                if (storedArray[i].is_exist === 0) {
                     if (storedArray[i].comicID === comicID) {
                         const filename = storedArray[i].filename;
                         let protoFilename;

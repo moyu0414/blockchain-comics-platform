@@ -48,7 +48,7 @@ function Category() {
             let rewind = getTranslationKey(currentCategory, language);
             setRewind(rewind);
             for (var i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].is_exist == 1 && storedArray[i].category == rewind) {
+                if (storedArray[i].is_exist == 0 && storedArray[i].category == rewind) {
                     const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
                     const image = URL.createObjectURL(imageResponse.data);
                     fetchedData.push({ comicHash: storedArray[i].comic_id, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, category: storedArray[i].category, image: image, penName: storedArray[i].penName});

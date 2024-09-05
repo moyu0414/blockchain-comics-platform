@@ -187,7 +187,7 @@ function Bookcase() {
                         }
                     </Tab>
                     <Tab eventKey="NFT" title='NFT'>
-                        {isBuying &&
+                        {beingNFT &&
                             <Row xs={1} md={2}>
                                 {NFTLogArray.map((data, idx) => (
                                     <Col key={idx} xs={4} md={3}>

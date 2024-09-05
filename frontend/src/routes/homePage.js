@@ -35,7 +35,7 @@ const HomePage = () => {
                 ...totalCountMap[data.comic_id],
                 total: (totalCountMap[data.comic_id]?.totHearts || 0) + (totalCountMap[data.comic_id]?.totBuy || 0)
             }));
-            const filteredData = updatedFetchedData.filter(data => data.is_exist === 1);
+            const filteredData = updatedFetchedData.filter(data => data.is_exist === 0);
 
             const categoryCounts = {};
             filteredData.forEach(data => {

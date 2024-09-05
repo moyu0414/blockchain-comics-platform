@@ -206,7 +206,7 @@ app.post('/api/send-verification-email', async (req, res) => {
   const mailOptions = {
     from: emailAccount,
     to: email,
-    subject: 'web3toon email verification',
+    subject: 'web3toon 信箱認證',
     text: `Hello ${name},\n\nPen Name: ${penName}\n\nWe are the web3toon platform. To become a creator on our platform, we need to verify your email address.\n\nYour verification code is: ${code}\nThe verification code is valid for 15 minutes.\n\nLet's start our journey!\n\nBest regards,\nweb3toon`
   };
 
@@ -593,6 +593,7 @@ app.get('/api/creatorIMG/:account', async (req, res) => {
 
       // localhost
       const imagePath = path.join(__dirname, 'uploads', 'creator', filename);
+      console.log('Image Path:', imagePath);
 
       // web3toonapi
       //const imagePath = path.join('/var/www/html/', 'uploads', 'creator', filename);
@@ -917,29 +918,6 @@ app.put('/api/update/nftDetail/owner', async (req, res) => {
 });
 
 
-app.put('/api/update/nftMarket/owner', async (req, res) => {
-  const { tokenId, currentAccount, forSale } = req.body;
-  try {
-    const placeholders = tokenId.map(() => '?').join(',');
-    const updateQuery = `UPDATE nft SET owner = ?, forSale = ? WHERE tokenId IN (${placeholders})`;
-    const values = [currentAccount, forSale, ...tokenId];
-    const queryResult = await new Promise((resolve, reject) => {
-        pool.query(updateQuery, values, (error, results, fields) => {
-            if (error) {
-                reject(error);
-                return;
-            }
-            resolve(results);
-        });
-    });
-    res.status(200).json({ message: 'NFT updated DB successfully' });
-  } catch (error) {
-    console.error('Error updating DB NFT:', error);
-    res.status(500).json({ error: 'Error updating DB NFT' });
-  }
-});
-
-
 app.put('/api/update/EditProfile', async (req, res) => {
   const editableInfo = req.body;
   try {
@@ -1061,7 +1039,7 @@ app.get('/api/chapters', (req, res) => {
     SELECT chapters.chapter_id AS chapterHash, chapters.title AS chapterTitle, chapters.price, chapters.filename, comics.title AS comicTitle, comics.creator
     FROM chapters
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
-    WHERE comics.comic_id = ? AND comics.is_exist = 0
+    WHERE comics.comic_id = ? AND comics.is_exist = 1
   `;
   pool.query(query, [comicHash], (error, results, fields) => {
     if (error) {
@@ -1083,7 +1061,7 @@ app.get('/api/creator/records', (req, res) => {
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
-    WHERE comics.creator = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 0
+    WHERE comics.creator = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 1
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -1105,7 +1083,7 @@ app.get('/api/reader/records', (req, res) => {
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
-    WHERE records.buyer = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 0
+    WHERE records.buyer = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 1
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -1126,7 +1104,7 @@ app.get('/api/purchaseHistory/nftRecords', (req, res) => {
     SELECT nft.tokenId, nft.price, nft.forSale , comics.title
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
-    WHERE nft.owner = ? AND nft.owner <> nft.minter AND comics.is_exist = 0
+    WHERE nft.owner = ? AND nft.owner <> nft.minter AND comics.is_exist = 1
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -1150,7 +1128,7 @@ app.get('/api/selectChapter/records', (req, res) => {
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
-    WHERE records.buyer = ? AND comics.comic_id = ? AND comics.is_exist = 0
+    WHERE records.buyer = ? AND comics.comic_id = ? AND comics.is_exist = 1
   `;
   pool.query(query, [currentAccount, comicHash], (error, results, fields) => {
     if (error) {
@@ -1174,7 +1152,7 @@ app.get('/api/reading/records', (req, res) => {
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
-    WHERE records.buyer = ? AND comics.comic_id = ? AND comics.is_exist = 0
+    WHERE records.buyer = ? AND comics.comic_id = ? AND comics.is_exist = 1
   `;
   pool.query(query, [currentAccount, comicHash], (error, results, fields) => {
     if (error) {
@@ -1197,7 +1175,7 @@ app.get('/api/comicDetail', (req, res) => {
     FROM chapters
     LEFT JOIN records ON chapters.chapter_id = records.chapter_id AND records.buyer = ?
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
-    WHERE comics.comic_id = ? AND comics.is_exist = 0
+    WHERE comics.comic_id = ? AND comics.is_exist = 1
   `;
   pool.query(query, [currentAccount, comicHash], (error, results, fields) => {
     if (error) {
@@ -1228,7 +1206,7 @@ app.get('/api/bookcase', (req, res) => {
       GROUP BY records.comic_id
     ) AS ranked_records 
     ON comics.comic_id = ranked_records.comic_id
-    WHERE comics.is_exist = 0
+    WHERE comics.is_exist = 1
       AND ranked_records.purchase_date IS NOT NULL
     ORDER BY comics.create_timestamp ASC
   `;
@@ -1249,7 +1227,7 @@ app.get('/api/bookcase/nftRecords', (req, res) => {
       nft.tokenId, nft.tokenTitle ,comics.title, nft.comicHash, nft.description
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
-    WHERE nft.owner = ? AND nft.owner <> nft.minter AND comics.is_exist = 0
+    WHERE nft.owner = ? AND nft.owner <> nft.minter AND comics.is_exist = 1
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -1271,7 +1249,7 @@ app.get('/api/editWork/chapters', (req, res) => {
     SELECT chapters.title, chapters.price, comics.comic_id AS comicHash, chapters.chapter_id AS chapterHash, chapters.create_timestamp, chapters.filename
     FROM chapters
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
-    WHERE comics.comic_id = ? AND comics.creator = ? AND comics.is_exist = 0
+    WHERE comics.comic_id = ? AND comics.creator = ? AND comics.is_exist = 1
   `;
   pool.query(query, [comicHash, currentAccount], (error, results, fields) => {
     if (error) {
@@ -1307,7 +1285,7 @@ app.get('/api/creatorPage/popPurchase', async (req, res) => {
       LEFT JOIN records ON comics.comic_id = records.comic_id
       LEFT JOIN user ON records.buyer = user.address
       WHERE 
-          comics.creator = ? AND comics.is_exist = 0
+          comics.creator = ? AND comics.is_exist = 1
       GROUP BY 
           comics.comic_id
   `;
@@ -1332,7 +1310,7 @@ app.get('/api/creatorPage/updateChapter', (req, res) => {
         ROW_NUMBER() OVER (PARTITION BY comics.comic_id ORDER BY chapters.create_timestamp DESC) AS rn
       FROM chapters
       INNER JOIN comics ON chapters.comic_id = comics.comic_id
-      WHERE comics.creator = ? AND comics.is_exist = 0
+      WHERE comics.creator = ? AND comics.is_exist = 1
     ) AS subquery
     WHERE rn = 1
     ORDER BY create_timestamp DESC
@@ -1364,12 +1342,12 @@ app.get('/api/homepage/updateStats', (req, res) => {
           FROM 
               records
           WHERE 
-              EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND comics.is_exist = 0)
+              EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND comics.is_exist = 1)
           GROUP BY 
               comic_id
       ) AS purchase_stats ON purchase_stats.comic_id = comics.comic_id
       WHERE 
-          comics.is_exist = 0
+          comics.is_exist = 1
       GROUP BY 
           comics.comic_id
   `;
@@ -1394,7 +1372,7 @@ app.get('/api/category/updateChapter', (req, res) => {
         ROW_NUMBER() OVER (PARTITION BY comics.comic_id ORDER BY chapters.create_timestamp DESC) AS rn
       FROM chapters
       INNER JOIN comics ON chapters.comic_id = comics.comic_id
-      WHERE comics.category = ? AND comics.is_exist = 0
+      WHERE comics.category = ? AND comics.is_exist = 1
     ) AS subquery
     WHERE rn = 1
     ORDER BY create_timestamp DESC
@@ -1414,7 +1392,7 @@ app.get('/api/category/updateComic', (req, res) => {
   const query = `
       SELECT comic_id AS comicHash, create_timestamp
       FROM comics
-      WHERE category = ? AND is_exist = 0
+      WHERE category = ? AND is_exist = 1
       ORDER BY create_timestamp DESC
   `;
   pool.query(query, [currentCategory], (error, results, fields) => {
@@ -1449,12 +1427,12 @@ app.get('/api/category/updateStats', (req, res) => {
           INNER JOIN 
               user ON records.buyer = user.address
           WHERE 
-              comics.category = ? AND comics.is_exist = 0
+              comics.category = ? AND comics.is_exist = 1
           GROUP BY 
               records.comic_id
       ) AS purchase_stats ON purchase_stats.comic_id = comics.comic_id
       WHERE 
-          comics.category = ? AND comics.is_exist = 0
+          comics.category = ? AND comics.is_exist = 1
       GROUP BY 
           comics.comic_id
   `;
@@ -1502,7 +1480,7 @@ app.get('/api/nftDetail/records', (req, res) => {
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     INNER JOIN user ON nft.minter = user.address
-    WHERE nft.tokenId = ? AND comics.is_exist = 0
+    WHERE nft.tokenId = ? AND comics.is_exist = 1
   `;
   pool.query(query, [tokenId], (error, results, fields) => {
     if (error) {
@@ -1549,7 +1527,7 @@ app.get('/api/nftDetail/isFavorited', (req, res) => {
           comics.title, comics.comic_id , comics.filename, comics.protoFilename, nft.tokenId, nft.tokenTitle, nft.price ,nft.description, nft.forSale ,nft.minter, nft.owner
         FROM nft
         INNER JOIN comics ON nft.comicHash = comics.comic_id
-        WHERE nft.tokenId IN (${placeholders}) AND comics.is_exist = 0
+        WHERE nft.tokenId IN (${placeholders}) AND comics.is_exist = 1
       `;
       pool.query(queryString, tokenIds, (error, results) => {
         if (error) {
@@ -1575,7 +1553,7 @@ app.get('/api/nftOwner/records', (req, res) => {
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     INNER JOIN user ON nft.minter = user.address
-    WHERE nft.tokenId = ? AND nft.owner = ? AND comics.is_exist = 0
+    WHERE nft.tokenId = ? AND nft.owner = ? AND comics.is_exist = 1
   `;
   pool.query(query, [tokenId, currentAccount], (error, results, fields) => {
     if (error) {
@@ -1607,7 +1585,7 @@ app.get('/api/comicRead', (req, res) => {
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
     LEFT JOIN records ON chapters.chapter_id = records.chapter_id AND records.buyer = ?
     WHERE comics.comic_id = ?
-    AND comics.is_exist = 0
+    AND comics.is_exist = 1
   `;
   pool.query(query, [currentAccount, comicHash], (error, results, fields) => {
     if (error) {
@@ -1647,7 +1625,7 @@ app.get('/api/messagePage', (req, res) => {
           SELECT chapters.title AS chapterTitle, chapters.create_timestamp AS newCreate, comics.title AS comicTitle, comics.filename
           FROM chapters
           INNER JOIN comics ON chapters.comic_id = comics.comic_id
-          WHERE chapters.comic_id = ? AND comics.is_exist = 0
+          WHERE chapters.comic_id = ? AND comics.is_exist = 1
           ORDER BY chapters.create_timestamp DESC 
           LIMIT 1
         `;
@@ -1670,7 +1648,7 @@ app.get('/api/creatorNft/records', (req, res) => {
     SELECT nft.*, comics.title, comics.filename , comics.protoFilename
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
-    WHERE nft.minter = ? AND comics.is_exist = 0
+    WHERE nft.minter = ? AND comics.is_exist = 1
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -1691,7 +1669,7 @@ app.get('/api/nftMarket/records', (req, res) => {
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     INNER JOIN user ON nft.minter = user.address
-    WHERE comics.is_exist = 0
+    WHERE comics.is_exist = 1
   `;
   pool.query(query, (error, results, fields) => {
     if (error) {
@@ -1713,14 +1691,14 @@ app.get('/api/searchPage/LP', (req, res) => {
     WHERE create_timestamp = (
         SELECT MAX(create_timestamp)
         FROM comics AS sub
-        WHERE sub.category = comics.category AND sub.is_exist = 0
+        WHERE sub.category = comics.category AND sub.is_exist = 1
     )
-      AND is_exist = 0
+      AND is_exist = 1
     GROUP BY category, description, filename, protoFilename
     ORDER BY (
         SELECT COUNT(*)
         FROM comics AS sub
-        WHERE sub.category = comics.category AND sub.is_exist = 0
+        WHERE sub.category = comics.category AND sub.is_exist = 1
     ) DESC
     LIMIT 4;
   `;
@@ -1739,7 +1717,7 @@ app.get('/api/searchPage/Keyword', (req, res) => {
   const query = `
     SELECT title, description AS text, comic_id, filename, protoFilename
     FROM comics
-    WHERE is_exist = 0 AND (
+    WHERE is_exist = 1 AND (
       creator LIKE ? OR
       title LIKE ? OR
       description LIKE ? OR
@@ -1775,12 +1753,12 @@ app.get('/api/rankingList/top10', (req, res) => {
           FROM 
               records
           WHERE 
-              EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND comics.is_exist = 0)
+              EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND comics.is_exist = 1)
           GROUP BY 
               comic_id
       ) AS purchase_stats ON purchase_stats.comic_id = comics.comic_id
       WHERE 
-          comics.is_exist = 0
+          comics.is_exist = 1
       GROUP BY 
           comics.comic_id
       ORDER BY 
@@ -1811,12 +1789,12 @@ app.get('/api/rankingList/purRank', (req, res) => {
           FROM 
               records
           WHERE 
-              EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND is_exist = 0)
+              EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND is_exist = 1)
           GROUP BY 
               comic_id
       ) AS purchase_stats ON purchase_stats.comic_id = c.comic_id
       WHERE 
-          c.is_exist = 0
+          c.is_exist = 1
       ORDER BY 
           totBuy DESC
       LIMIT 10
@@ -1841,7 +1819,7 @@ app.get('/api/rankingList/favoriteRank', (req, res) => {
       LEFT JOIN 
           user ON JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL
       WHERE 
-          comics.is_exist = 0
+          comics.is_exist = 1
       GROUP BY 
           comics.comic_id
       ORDER BY 
@@ -1873,12 +1851,12 @@ app.get('/api/rankingList/weekRank', (req, res) => {
               records
           WHERE 
               purchase_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-              AND EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND comics.is_exist = 0)
+              AND EXISTS (SELECT 1 FROM comics WHERE records.comic_id = comics.comic_id AND comics.is_exist = 1)
           GROUP BY 
               comic_id
       ) AS purchase_stats ON purchase_stats.comic_id = comics.comic_id
       WHERE 
-          comics.is_exist = 0
+          comics.is_exist = 1
       GROUP BY 
           comics.comic_id
       ORDER BY 
@@ -1902,7 +1880,7 @@ app.get('/api/rankingList/newRank', (req, res) => {
       FROM 
           comics
       WHERE 
-          is_exist = 0
+          is_exist = 1
       ORDER BY 
           create_timestamp DESC
       LIMIT 10

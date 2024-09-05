@@ -28,6 +28,7 @@ function CreatorPage() {
     const [isButtonEnabled, setIsButtonEnabled] = useState(false);
     const [currentAccount, setCurrentAccount] = useState(false);
     const [ethBalance, setEthBalance] = useState('');
+    const [profileInfo, setProfileInfo] = useState('');
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
     const [selectedCategory, setSelectedCategory] = useState(t('已經發布'));
@@ -56,20 +57,35 @@ function CreatorPage() {
                                 setCurrentAccount(account);
                                 const storedArray = JSON.parse(storedArrayJSON);
                                 for (let i = 0; i < storedArray.length; i++) {
-                                    if (storedArray[i].is_exist === 1) {
+                                    if (storedArray[i].is_exist === 0) {
                                         const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
                                         const image = URL.createObjectURL(imageResponse.data);
                                         if (storedArray[i].creator == account) {
                                             temp.push({
                                                 comicHash: storedArray[i].comic_id,
                                                 comicID: storedArray[i].comicID,
-                                                penName: storedArray[i].penName,
                                                 title: storedArray[i].title,
                                                 category: t(storedArray[i].category),
                                                 image: image
                                             });
                                         }
                                     }
+                                }
+                                if (temp.length === 0) {
+                                    const response = await axios.get(`${website}/api/authorProfile`, {
+                                        headers: headers,
+                                        params: {
+                                            currentAccount: account
+                                        }
+                                    });
+                                    console.log(response.data);
+                                    const imageResponse = await axios.get(`${website}/api/creatorIMG/${account}`, { responseType: 'blob', headers });
+                                    const image = URL.createObjectURL(imageResponse.data);
+                                    setProfileInfo({penName: response.data[0].penName, image: image})
+                                } else {
+                                    const imageResponse = await axios.get(`${website}/api/creatorIMG/${account}`, { responseType: 'blob', headers });
+                                    const image = URL.createObjectURL(imageResponse.data);
+                                    setProfileInfo({penName: storedArray[0].penName, image: image})
                                 }
                                 console.log(temp);
                                 setComic(temp);
@@ -196,19 +212,20 @@ function CreatorPage() {
         <>
         {!loading &&
             <Container className='creatorPage'>
-                <Row className="pt-5">
-                    <Figure>
-                        <Figure.Image
-                            className="d-block mx-auto img-fluid rounded-circle"
-                            alt="400x400"
-                            src="https://via.placeholder.com/200x200?text=Banner Image"
+                <Row className="pt-5 mb-3">
+                    <Col className="profile-section">
+                        <img 
+                            src={profileInfo.image ? profileInfo.image : "https://via.placeholder.com/200x200?text=Banner Image"} 
+                            className="rounded-circle" 
+                            fluid="true" 
+                            alt="Author"
                         />
-                    </Figure>
+                    </Col>
                 </Row>
                 <h3><center>{t('創作者專區')}</center></h3>
                 {isButtonEnabled && (
                     <div><center>
-                        <h4>{comic[0].penName}</h4>
+                        <h4>{profileInfo.penName}</h4>
                         <h4 className="display-account">{currentAccount}</h4>
                         <h5 className="display-ethBalance">{ethBalance} SepoliaETH</h5>
                     </center></div>

@@ -128,7 +128,7 @@ const CreateWork = (props) => {
       formData.append('title', formParams.title);
       formData.append('description', formParams.description);
       formData.append('category', formParams.category);
-      formData.append('is_exist', 1);
+      formData.append('is_exist', 0);
       formData.append('comic_id', hashValue);
       formData.append('timestamp', timestamp);
       if (coverFile.length != 0) {

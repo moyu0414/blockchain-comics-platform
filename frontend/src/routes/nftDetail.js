@@ -4,7 +4,6 @@ import { Container, Carousel, Card, Col, Row, ListGroup, Button } from 'react-bo
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
 import { initializeWeb3, disableAllButtons, enableAllButtons } from '../index';
-import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -151,7 +150,6 @@ function NftDetail() {
                 if (!web3) {
                     return;
                 }
-                const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
                 const accounts = await web3.eth.getAccounts();
                 const account = accounts[0];
                 if (account) {
@@ -161,16 +159,17 @@ function NftDetail() {
                     if (balance > price) {
                         let id = tokenId.replace("tokenId", "");
                         price = web3.utils.toWei(price, 'ether');
-                        await web3Instance.methods.purchaseNFT(id).send({from: currentAccount, value: price,});
+                        const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
+                        await web3Instance.methods.purchaseNFT([id]).send({from: currentAccount, value: price});
 
                         try {
                             const response = await axios.put(`${website}/api/update/nftDetail/owner`, {
-                            tokenId: id,
-                            currentAccount: currentAccount,
-                            price: JSON.stringify(initPrice),
-                            forSale: 0
+                                tokenId: id,
+                                currentAccount: currentAccount,
+                                price: JSON.stringify(initPrice),
+                                forSale: 0
                             }, {
-                            headers: headers
+                                headers: headers
                             });
                             alert(t('NFT購買成功'));
                             const updatedNFT = [...NFT];
@@ -179,7 +178,7 @@ function NftDetail() {
                             updatedNFT[0].forSale = 0;
                             setNFT(updatedNFT);
                         } catch (error) {
-                            console.error('Error updating NFT:', error);
+                            console.error('Error updating DB NFT:', error);
                         }
                     } else {
                         console.log('餘額不足');

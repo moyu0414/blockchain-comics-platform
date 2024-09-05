@@ -23,7 +23,7 @@ function ManageComic() {
         try {
             const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
             for (let i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].is_exist === 1 && storedArray[i].creator == currentAccount) {
+                if (storedArray[i].is_exist === 0 && storedArray[i].creator == currentAccount) {
                     const protoFilenameResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
                     const image = URL.createObjectURL(protoFilenameResponse.data);
                     temp.push({
@@ -79,10 +79,6 @@ function ManageComic() {
         [t('詳情')]: (comicID) => ({ pathname: `/comicDetail/${comicID}` })
     };
 
-    const handleClick = () => {
-        window.location.replace("/createWork");
-    };
-
     
     return (
         <div>
@@ -92,7 +88,13 @@ function ManageComic() {
                         <Row className='pt-5 justify-content-center'>
                             <h1 className="fw-bold text-center">{t('目前尚未上傳漫畫')}</h1>
                             <h3 className="fw-bold text-center">{t('點擊下方按鈕進行上傳')}</h3>
-                            <Button onClick={handleClick} className="fw-bold text-center">{t('新增漫畫')}</Button>
+                            <Link to="/createWork">
+                                <center>
+                                    <Button variant="outline-dark" className="custom-button">
+                                        {t('新增漫畫')}
+                                    </Button>
+                                </center>
+                            </Link>
                         </Row>
                     }
                     {comic.map((comic, index) => (
