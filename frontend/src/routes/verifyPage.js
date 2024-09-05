@@ -171,15 +171,17 @@ const VerifyPage = () => {
                         </div>
                         <div className='file-upload'>
                             {previewImg ? (
-                                <img
-                                    src={previewImg}
-                                    alt="Cover Preview"
-                                    style={{ height:'28vh' }}
-                                />
+                                <div className='profile-section'>
+                                    <img
+                                        src={previewImg}
+                                        alt="Cover Preview"
+                                    />
+                                </div>
+                                
                             ) : (
                                 <>
-                                <CardImage size={48} />
-                                <div id="notimage2" className="hidden">{t('上傳個人封面')}</div>
+                                    <CardImage size={48} />
+                                    <div id="notimage2" className="hidden">{t('上傳個人封面')}</div>
                                 </>
                             )}
                         </div>

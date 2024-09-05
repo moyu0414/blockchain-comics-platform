@@ -696,7 +696,6 @@ return (
                   <img
                     src={previewImageUrl}
                     alt="Preview"
-                    style={{ width: '50%' }}
                   />
                 ) : (
                   <>
@@ -728,7 +727,6 @@ return (
                   <img
                     src={promoPreviewImageUrl}
                     alt="Promo Cover Preview"
-                    style={{ height:'28vh', paddingBottom: '3%' }}
                   />
                 ) : (
                   <>

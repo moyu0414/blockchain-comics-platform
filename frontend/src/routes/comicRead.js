@@ -530,7 +530,7 @@ const ComicRead = () => {
                                                             <td className='text-center'>{chapter.chapterTitle}</td>
                                                             <td className='text-center'>{chapter.chapterPrice}</td>
                                                             <td className='text-center'>
-                                                                <button onClick={() => handlePurchase(index)} className="btn comicRead-btn">{chapter.isBuying}</button>
+                                                                <button onClick={() => handlePurchase(index)} className={`btn ${chapter.isBuying === t('閱讀') ? 'read-button' : 'buy-button'}`} value={chapter.isBuying}>{chapter.isBuying}</button>
                                                             </td>
                                                         </tr>
                                                     ))}
