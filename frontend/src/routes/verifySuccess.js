@@ -7,7 +7,7 @@ const VerifySuccess = () => {
     const { t } = useTranslation();
 
     const handleClick = () => {
-        window.location.replace("/creatorPage");
+        window.location.replace("/");
     };
 
 
@@ -24,10 +24,10 @@ const VerifySuccess = () => {
                 />
                 <div className="mb-3">
                     <h2>{t('驗證成功')}</h2>
-                    <h2>{t('謝謝您成為我們的創作者！')}</h2>
-                    <h4>{t('進入創作者頁面開始我們的旅程吧')}</h4>
+                    <h2>{t('還差一步您就能成為我們的創作者！')}</h2>
+                    <h4>{t('管理者審核至多1天')}</h4>
                 </div>
-                <Button onClick={handleClick} variant="primary" style={{width: "200px"}}>{t('創作者專區')}</Button>
+                <Button onClick={handleClick} variant="primary" style={{width: "200px"}}>{t('首頁')}</Button>
                 </Col>
             </Row>
         </Container>

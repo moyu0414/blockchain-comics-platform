@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from "react-router-dom";
 import { Container, Card, Col, Row, Button, Table, ButtonToolbar, Pagination, Tooltip, OverlayTrigger } from 'react-bootstrap';
 import './bootstrap.min.css';
-import { Heart, HeartFill } from 'react-bootstrap-icons';
+import { Heart, HeartFill, CardImage } from 'react-bootstrap-icons';
 import comicData from '../contracts/ComicPlatform.json';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
-import { sortByTimestamp, getTransactionTimestamp, disableAllButtons, enableAllButtons, initializeWeb3 } from '../index';
+import { sortByTimestamp, getTransactionTimestamp, formatDate, disableAllButtons, enableAllButtons, initializeWeb3 } from '../index';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
@@ -19,6 +19,7 @@ function ComicDetail() {
     const [loading, setLoading] = useState(true);
     const [isFavorited, setIsFavorited] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [piracy, setPiracy] = useState([]);
     const { t } = useTranslation();
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
@@ -60,89 +61,103 @@ function ComicDetail() {
                             penName: storedArray[i].penName,
                             category: storedArray[i].category,
                             protoFilename: protoFilename,
-                            date: storedArray[i].date
+                            release: storedArray[i].date
                         });
                     }
                 }
             }
-            console.log(temp);
-            setComic(temp);
+            if (temp.length !== 0){
+                console.log(temp);
+                setComic(temp);
 
-            for (let i = 0; i < storedArray.length; i++) {
-                // 類似漫畫 依據類型跟同作者取前4本
-                if ((storedArray[i].category == temp[0].category || storedArray[i].creator == temp[0].author) && storedArray[i].comicID != comicID) {
-                    const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
-                    const image = URL.createObjectURL(imageResponse.data);
-                    fetchedData.push({
-                        comicID: storedArray[i].comicID,
-                        title: storedArray[i].title,
-                        description: storedArray[i].description,
-                        penName: storedArray[i].penName,
-                        category: storedArray[i].category,
-                        image: image,
-                        date: storedArray[i].date
+                for (let i = 0; i < storedArray.length; i++) {
+                    // 類似漫畫 依據類型跟同作者取前4本
+                    if ((storedArray[i].category == temp[0].category || storedArray[i].creator == temp[0].author) && storedArray[i].comicID != comicID && storedArray[i].is_exist === 0) {
+                        const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
+                        const image = URL.createObjectURL(imageResponse.data);
+                        fetchedData.push({
+                            comicID: storedArray[i].comicID,
+                            title: storedArray[i].title,
+                            description: storedArray[i].description,
+                            penName: storedArray[i].penName,
+                            category: storedArray[i].category,
+                            image: image,
+                            date: storedArray[i].date
+                        });
+                    }
+                    if (fetchedData.length == 4) {
+                        break;
+                    }
+                }
+                setSimilComic(fetchedData);
+    
+                // 章節購買者
+                try {
+                    const response = await axios.get(`${website}/api/comicDetail`, {
+                        headers: headers,
+                        params: {
+                            comicHash: temp[0].comicHash,
+                            currentAccount: currentAccount
+                        }
                     });
+                    let chapters = response.data;
+                    sortByTimestamp(chapters);
+                    console.log(chapters);
+    
+                    chapters = chapters.map((chapter, index) => {
+                        let isBuying, price;
+                        if (chapter.creator === currentAccount || chapter.isBuying !== null || chapter.price == 0) {
+                            isBuying = t('閱讀');
+                            price = chapter.price == 0 ? t('免費') : chapter.price;
+                        } else {
+                            isBuying = t('購買');
+                            price = chapter.price;
+                        }
+                        return {
+                            ...chapter,
+                            chapterID: `chapter${index + 1}`,
+                            isBuying,
+                            price
+                        };
+                    });
+                    console.log(chapters);
+                    setChapters(chapters);
+    
+                    let lastChapterInfo = chapters[chapters.length - 1];
+                    let updatedComic = temp.map(comic => {
+                        return {...comic, chapter: lastChapterInfo.title, date: formatDate(new Date(Number(lastChapterInfo.create_timestamp)))};
+                    });
+                    console.log(updatedComic);
+                    setComic(updatedComic);
+                } catch (error) {
+                    console.error('Error fetching records:', error);
                 }
-                if (fetchedData.length == 4) {
-                    break;
+    
+                // 資料庫查詢收藏狀態
+                try {
+                    const response = await axios.get(`${website}/api/comicDetail/isFavorited`, {
+                        headers: headers,
+                        params: {
+                            currentAccount: currentAccount,
+                            comicHash: temp[0].comicHash
+                        }
+                    });
+                    //console.log(response.data.isFavorited);
+                    setIsFavorited(response.data.isFavorited);
+                } catch (error) {
+                    console.error('Error fetching records:', error);
                 }
-            }
-            setSimilComic(fetchedData);
-
-            // 章節購買者
-            try {
-                const response = await axios.get(`${website}/api/comicDetail`, {
-                    headers: headers,
-                    params: {
-                        comicHash: temp[0].comicHash,
-                        currentAccount: currentAccount
-                    }
-                });
-                let chapters = response.data;
-                sortByTimestamp(chapters);
-
-                chapters = chapters.map((chapter, index) => {
-                    let isBuying, price;
-                    if (chapter.creator === currentAccount || chapter.isBuying !== null || chapter.price == 0) {
-                        isBuying = t('閱讀');
-                        price = chapter.price == 0 ? t('免費') : chapter.price;
-                    } else {
-                        isBuying = t('購買');
-                        price = chapter.price;
-                    }
-                    return {
-                        ...chapter,
-                        chapterID: `chapter${index + 1}`,
-                        isBuying,
-                        price
-                    };
-                });
-                console.log(chapters);
-                setChapters(chapters);
-
-                let lastChapterInfo = chapters[chapters.length - 1];
-                let updatedComic = temp.map(comic => {
-                    return {...comic, chapter: lastChapterInfo.title};
-                });
-                setComic(updatedComic);
-                console.log(updatedComic);
-            } catch (error) {
-                console.error('Error fetching records:', error);
-            }
-
-            // 資料庫查詢收藏狀態
-            try {
-                const response = await axios.get(`${website}/api/comicDetail/isFavorited`, {
-                    headers: headers,
-                    params: {
-                        currentAccount: currentAccount,
-                        comicHash: temp[0].comicHash
-                    }
-                });
-                //console.log(response.data.isFavorited);
-                setIsFavorited(response.data.isFavorited);
-            } catch (error) {
-                console.error('Error fetching records:', error);
+            } else {
+                const temp = storedArray
+                    .filter(item => item.comicID === comicID)
+                    .map(item => ({
+                    title: item.title,
+                    description: item.description,
+                    author: item.creator,
+                    penName: item.penName,
+                    state: item.is_exist === 2 ? "盜版漫畫，已下架，已退款" : "漫畫查核中，暫不開放，敬請見諒"
+                    }));
+                setComic(temp);
             }
             setLoading(false);
         } catch (error) {
@@ -369,17 +384,32 @@ function ComicDetail() {
                 <Container className='comicDetail'>
                     <Row className="pt-5">
                         <div className="d-block mx-auto img-fluid carousel-image-container">
-                            <img
-                                className="d-block mx-auto img-fluid"
-                                src={comic[0].protoFilename}
-                                alt="800x400"
-                            />
+                            {comic[0].state ? (
+                                <div className='file-upload' style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <div id="start" style={{ display: 'block'}}>
+                                        <CardImage size={48} />
+                                        <div id="notimage" className="hidden">{t(comic[0].state)}</div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <img
+                                    className="d-block mx-auto img-fluid"
+                                    src={comic[0].protoFilename}
+                                    alt="800x400"
+                                />
+                            )}
                         </div>
                     </Row>
                     <Row className="pt-3 pb-3 btn-container justify-content-center">
                         {buttonData.map((label, idx) => (
                             <Col key={idx} xs={2} md={2} lg={2} className="pb-3 btn-section d-flex justify-content-center">
-                                <Button variant="outline-dark" className="custom-button" onClick={label === t('收藏') ? handleFavoriteClick : handleReadClick} data-backgroundcolor="#fff">
+                                <Button 
+                                    variant="outline-dark"
+                                    className="custom-button"
+                                    onClick={label === t('收藏') ? handleFavoriteClick : handleReadClick}
+                                    data-backgroundcolor="#fff"
+                                    disabled={comic[0].state ? true : false}
+                                >
                                     {label === t('收藏') && (
                                         <>
                                             {isFavorited ? (
@@ -413,6 +443,7 @@ function ComicDetail() {
                                             <span className="text-secondary address">({comic.author})</span>
                                         </p>
                                     </Link>
+                                    <p>{t('發布日期')}：{comic.release}</p>
                                     <p>{t('最新章節')}：{comic.chapter}<span className="text-secondary">...{comic.date}</span></p>
                                     <p className="text-secondary">{comic.description}</p>
                                 </React.Fragment>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Card, Button, Row,Col } from 'react-bootstrap';
-import { HouseDoor, Grid, Cart, Person, Book } from 'react-bootstrap-icons';
+import { SortDown, SortDownAlt } from 'react-bootstrap-icons';
 import './bootstrap.min.css';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -11,6 +11,7 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 
 function ManageComic() {
     const [comic, setComic] = useState([]);
+    const [isAscending, setIsAscending] = useState(true);
     const [loading, setLoading] = useState(true);
     const [being, setBeing] = useState(true);
     const { t } = useTranslation();
@@ -30,12 +31,13 @@ function ManageComic() {
                         comicHash: storedArray[i].comic_id,
                         comicID: storedArray[i].comicID,
                         title: storedArray[i].title,
-                        image: image
+                        image: image,
+                        date: storedArray[i].date
                     });
                 }
             }
-            setComic(temp);
             console.log(temp);
+            setComic(temp);
             if (temp.length === 0) {
                 setBeing(false);
             }
@@ -79,11 +81,33 @@ function ManageComic() {
         [t('詳情')]: (comicID) => ({ pathname: `/comicDetail/${comicID}` })
     };
 
+    const handleSort = () => {
+        setIsAscending(prev => !prev);
+        if (being) {
+            const sortedComic = [...comic].sort((a, b) => {
+                const dateA = new Date(a.date).getTime();
+                const dateB = new Date(b.date).getTime();
+                return isAscending ? dateA - dateB : dateB - dateA;
+            });
+            setComic(sortedComic);
+        }
+    };
     
+
     return (
         <div>
             {!loading &&
-                <Container className='manageComic pt-4'>
+                <Container className='manageComic'>
+                    <div className='manageComic-title'>
+                        <div onClick={handleSort} className="sort-date">
+                            {isAscending ? (
+                                <SortDownAlt size={36} />
+                            ) : (
+                                <SortDown size={36} />
+                            )}
+                        </div>
+                        <h2 className='text-center fw-bold' style={{backgroundColor: "green"}}>{t('漫畫管理')}</h2>
+                    </div>
                     {!being &&  
                         <Row className='pt-5 justify-content-center'>
                             <h1 className="fw-bold text-center">{t('目前尚未上傳漫畫')}</h1>
@@ -100,8 +124,9 @@ function ManageComic() {
                     {comic.map((comic, index) => (
                         <Card className={`mt-3`} key={index}>
                             {/* <Card.Img variant="top" src={comic.image}  alt="..." /> */}
-                            <div className="image-container">
-                                <Card.Img variant="top" src={comic.image} alt="..." />
+                            <div className="image-container ranking-thumbnail-position">
+                                <Card.Img variant="top" src={comic.image} alt="comic" />
+                                <div className="manageComic-overlay">{comic.date}</div>
                             </div>
                             <Card.Body >
                                 <div className="text-section">

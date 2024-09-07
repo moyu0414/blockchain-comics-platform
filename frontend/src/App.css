@@ -293,6 +293,10 @@ span {
   .homepage .card-body{
     margin-top: 15px;
   }
+
+  .manageComic .manageComic-overlay { 
+    margin-left: -3px!important;
+  }
 }
 
 @media only screen and (max-width: 768px) {
@@ -423,7 +427,7 @@ span {
   }
 
   .nftMarket .nftMarket-overlay {
-    bottom: 62px!important;
+    bottom: 64px!important;
   }
 
   .nftMarket-authorization{
@@ -1462,6 +1466,17 @@ a:link{
   .verifyPage .verify-btn{
     margin-bottom: 80px!important;
   }
+
+  .manageComic .manageComic-overlay { 
+    width: 18.4%!important;
+  }
+
+  .nftMarket-carousel .carousel-control-prev,
+  .nftMarket-carousel .carousel-control-next {
+    margin-left: -7%!important;
+    margin-right: -7.5%!important;
+    margin-top: 22.5%!important;
+  }
 }
 
 
@@ -1606,12 +1621,6 @@ a:link{
     height: 14rem;
   }
 
-  .nftMarket .sort-section{
-    position: absolute;
-    bottom: 240px!important;
-    right: 20px!important;
-    display: flex;
-  }
 }
 
 @media only screen and (max-width: 400px) {
@@ -1638,13 +1647,6 @@ a:link{
   .display-account{
     max-width: 180px;
     overflow-wrap: break-word;
-  }
-
-  .nftMarket .sort-section{
-    position: absolute;
-    bottom: 250px!important;
-    right: 20px!important;
-    display: flex;
   }
 }
 
@@ -2215,7 +2217,6 @@ a:link{
     margin-left: 80%;
   }
   
-  
 }
 
 /* manageComic */
@@ -2237,6 +2238,22 @@ a:link{
   width: 100%;
   height: auto;
   border-radius: 0.7em;
+}
+
+.manageComic .manageComic-overlay {
+  position: absolute; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  left: 0.4em;
+  bottom: 0.4em;
+  background: rgba(53, 182, 211, 0.9); 
+  color: #fff; 
+  width: 18.8%;
+  height: 30px;
+  font-size: 1.2rem; 
+  z-index: 1; 
 }
 
 .manageComic .card-body{
@@ -2268,6 +2285,22 @@ a:link{
   background-color: rgba(6, 157, 103);
 }
 
+.manageComic .manageComic-title h2{
+  position: relative;
+  color: #ffffff;
+  background-color: #F6B93B;
+  line-height: 2;
+}
+
+.manageComic .sort-date{
+  position: absolute;
+  color: #fff;
+  line-height: 3.5;
+  z-index: 1;
+}
+
+
+
 @media only screen and (max-width: 768px) {
   .manageComic  .text-section{
     margin-left: 0!important;
@@ -2282,6 +2315,15 @@ a:link{
   .manageComic .cta-button{
     width: 100px;
     margin-bottom: 5%;
+  }
+
+  .manageComic .manageComic-overlay {
+    margin-left: 0!important;
+    width: 135px!important;
+  }
+
+  .manageComic .sort-date{
+    line-height: 3!important;
   }
   
 }
@@ -2626,8 +2668,6 @@ a:link{
   color: #000;
 }
 
-
-
 .modal-body .table>tbody{
   vertical-align: middle!important;
 }
@@ -2635,7 +2675,7 @@ a:link{
 .creatorNft-overlay {
   position: absolute; 
   text-align: center;
-  bottom: 50px;
+  bottom: 40px;
   left: 0px;
   background: rgba(0, 0, 0, 0.5); 
   color: #fff; 
@@ -2699,11 +2739,60 @@ a:link{
   font-size: 0.875rem; 
 }
 
-.nftMarket .sort-section{
-  position: absolute;
-  bottom: 180px;
-  right: 300px;
+.nftMarket-carousel .carousel-control-prev,
+.nftMarket-carousel .carousel-control-next {
+  margin-left: -5%;
+  margin-right: -5.5%;
+  margin-top: 21%;
+  width: 70px;
+  height: 50px;
+}
+
+.nftMarket-carousel .carousel-control-prev-icon,
+.nftMarket-carousel .carousel-control-next-icon {
+  width: 70px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #00c8ff;
+}
+
+.nftMarket-carousel {
+  padding: 0;
+}
+
+.nftMarket-carousel-row {
   display: flex;
+}
+
+.nftMarket-carousel-row .card {
+  max-width: 100%;
+  margin-bottom: 1rem; /* 每列底部的间距 */
+}
+
+@media only screen and (max-width: 992px) {
+  .nftMarket-carousel .carousel-control-prev,
+  .nftMarket-carousel .carousel-control-next {
+    margin-left: -8.5%!important;
+    margin-right: -9%!important;
+    margin-top: 24%!important;
+    width: 60px;
+    height: 40px;
+  }
+
+  .nftMarket-carousel .carousel-control-prev-icon,
+  .nftMarket-carousel .carousel-control-next-icon {
+    width: 60px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nftMarket-carousel .carousel-control-prev,
+  .nftMarket-carousel .carousel-control-next {
+    margin-left: -60px!important;
+    margin-right: -65px!important;
+    margin-top: 44%!important;
+  }
 }
 
 @media (max-width: 450px) {
@@ -2771,15 +2860,17 @@ a:link{
   .nftMarket-modal thead tr th{
     display: none!important;
   }
-  
+
+  .nftMarket-carousel .carousel-control-prev,
+  .nftMarket-carousel .carousel-control-next {
+    margin-top: 45.5%!important;
+  }
 }
 
-@media (max-width: 375px) {
-  .nftMarket .sort-section{
-    position: absolute;
-    bottom: 260px!important;
-    right: 20px!important;
-    display: flex;
+@media (max-width: 400px) {
+  .nftMarket-carousel .carousel-control-prev,
+  .nftMarket-carousel .carousel-control-next {
+    margin-top: 48.5%!important;
   }
 }
 
@@ -4104,6 +4195,13 @@ a:link{
 }
 
 /* dataAnalysis */
+.dataAnalysis .dataAnalysis-title h2{
+  position: relative;
+  color: #ffffff;
+  background-color: #F6B93B;
+  line-height: 2;
+}
+
 .dataAnalysis .analysis-chart{
   width: 100%;
   height: 10rem!important;

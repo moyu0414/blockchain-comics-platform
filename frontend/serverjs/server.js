@@ -255,7 +255,7 @@ app.post('/api/verify-email', upload.single('creatorIMG'),async (req, res) => {
     const email = results[0].info.email;
     const penName = results[0].info.penName;
     const info = JSON.stringify({ name, email, image });
-    const updateQuery = 'UPDATE user SET info = ?, is_creator = 1, penName = ? WHERE address = ?';
+    const updateQuery = 'UPDATE user SET info = ?, is_creator = 2, penName = ? WHERE address = ?';
     pool.query(updateQuery, [info, penName, account], (error, results) => {
       if (error) {
         console.error('Error updating user data:', error);
@@ -797,6 +797,28 @@ app.put('/api/update/removeAdmin', async (req, res) => {
 });
 
 
+app.put('/api/update/userAccount', async (req, res) => {
+  const address = req.query.address;
+  const state = req.query.state;
+  try {
+    const updateQuery = 'UPDATE user SET is_creator = ? WHERE address = ?';
+    const queryResult = await new Promise((resolve, reject) => {
+      pool.query(updateQuery, [state, address.toLowerCase()], (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+    res.status(200).json({ message: 'addAdmin successfully' });
+  } catch (error) {
+    console.error('Error updating addAdmin:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 app.put('/api/update/comicDetail/favorite', async (req, res) => {
   const { currentAccount, comicHash, bool, data } = req.query;
   if (!currentAccount || !comicHash || bool === undefined) {
@@ -1101,11 +1123,11 @@ app.get('/api/creator/records', (req, res) => {
 app.get('/api/reader/records', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const query = `
-    SELECT comics.title AS comicTitle, chapters.title AS chapterTitle, records.purchase_date, records.price
+    SELECT comics.title AS comicTitle, chapters.title AS chapterTitle, comics.is_exist, records.purchase_date, records.price
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
-    WHERE records.buyer = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 0
+    WHERE records.buyer = ? AND comics.comic_id = records.comic_id
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -1217,6 +1239,7 @@ app.get('/api/bookcase', (req, res) => {
       comics.title, 
       comics.filename, 
       comics.create_timestamp, 
+      comics.is_exist,
       ranked_records.purchase_date
     FROM comics
     LEFT JOIN (
@@ -1228,8 +1251,7 @@ app.get('/api/bookcase', (req, res) => {
       GROUP BY records.comic_id
     ) AS ranked_records 
     ON comics.comic_id = ranked_records.comic_id
-    WHERE comics.is_exist = 0
-      AND ranked_records.purchase_date IS NOT NULL
+    WHERE ranked_records.purchase_date IS NOT NULL
     ORDER BY comics.create_timestamp ASC
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
@@ -1631,35 +1653,44 @@ app.get('/api/messagePage', (req, res) => {
   `;
   pool.query(selectQuery, [currentAccount], (selectError, selectResults) => {
     if (selectError) {
-      console.error('查询 collectComic 字段時發生錯誤：', selectError);
-      return res.status(500).json({ message: '查询 collectComic 字段時發生錯誤：' });
+      console.error('查询 collectComic 字段时发生错误：', selectError);
+      return res.status(500).json({ message: '查询 collectComic 字段时发生错误' });
     }
-    if (!selectResults.length > 0 || selectResults[0].collectComic === null || Object.keys(selectResults[0].collectComic).length === 0) {
-      res.json({ message: '請先收藏漫畫!' });
-    } else {
-      const collectComic = selectResults[0].collectComic;
-      const comicUpdates = {};
-      const comicIDs = Object.keys(collectComic);
-      let completedQueries = 0;
-      const updatedComics = [];
-      comicIDs.forEach(comicID => {
-        const sql = `
-          SELECT chapters.title AS chapterTitle, chapters.create_timestamp AS newCreate, comics.title AS comicTitle, comics.filename
-          FROM chapters
-          INNER JOIN comics ON chapters.comic_id = comics.comic_id
-          WHERE chapters.comic_id = ? AND comics.is_exist = 0
-          ORDER BY chapters.create_timestamp DESC 
-          LIMIT 1
-        `;
-        pool.query(sql, [comicID], (error, results) => {
-          updatedComics.push({comicHash: comicID, comicTitle: results[0].comicTitle, chapterTitle: results[0].chapterTitle, filename: results[0].filename, newCreate: results[0].newCreate});
-          completedQueries++;
-          if (completedQueries === comicIDs.length) {
-            res.json({ collectComic: updatedComics });
-          }
-        });
+    if (!selectResults.length || !selectResults[0].collectComic) {
+      return res.json({ message: '請先收藏漫畫!' });
+    }
+    const collectComic = selectResults[0].collectComic;
+    const comicIDs = Object.keys(collectComic);
+    const updatedComics = [];
+    let completedQueries = 0;
+    comicIDs.forEach(comicID => {
+      const sql = `
+        SELECT chapters.title AS chapterTitle, 
+               chapters.create_timestamp AS newCreate, 
+               comics.title AS comicTitle, 
+               comics.filename
+        FROM chapters
+        INNER JOIN comics ON chapters.comic_id = comics.comic_id
+        WHERE chapters.comic_id = ? 
+          AND comics.is_exist = 0
+        ORDER BY chapters.create_timestamp DESC 
+        LIMIT 1
+      `;
+      pool.query(sql, [comicID], (error, results) => {
+        if (error) {
+          console.error(`Error occurred while querying the collect status for comicID ${comicID}:`, error);
+          return res.status(500).json({ message: 'Error occurred while querying the collect status' });
+        }
+        if (results.length) {
+          const { comicTitle, chapterTitle, filename, newCreate } = results[0];
+          updatedComics.push({ comicHash: comicID, comicTitle, chapterTitle, filename, newCreate });
+        }
+        completedQueries++;
+        if (completedQueries === comicIDs.length) {
+          res.json({ collectComic: updatedComics });
+        }
       });
-    };
+    });
   });
 });
 
@@ -1937,11 +1968,9 @@ app.get('/api/comicManagement/isAdmin', (req, res) => {
     }
     const allAddressesQuery = `
         SELECT 
-            address
+            address, is_creator, is_admin
         FROM 
             user
-        WHERE 
-            is_admin = 1
     `;
     pool.query(allAddressesQuery, (error, allResults) => {
       if (error) {
@@ -1950,6 +1979,25 @@ app.get('/api/comicManagement/isAdmin', (req, res) => {
       }
       res.json({ exists: true, address: allResults });
     });
+  });
+});
+
+
+app.get('/api/comicManagement/totalCost', (req, res) => {
+  const comicHash = req.query.comicHash;
+  const query = `
+    SELECT COALESCE(SUM(records.price), 0) AS totalCost
+    FROM records
+    INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
+    INNER JOIN comics ON chapters.comic_id = comics.comic_id
+    WHERE comics.comic_id = ?
+  `;
+  pool.query(query, [comicHash], (error, results) => {
+    if (error) {
+      console.error('Error fetching total cost: ', error);
+      return res.status(500).json({ message: 'Error fetching total cost' });
+    }
+    res.json(results[0].totalCost);
   });
 });
 

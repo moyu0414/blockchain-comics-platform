@@ -10,8 +10,6 @@ const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
 const VerifyPage = () => {
-    const [web3, setWeb3] = useState('');
-    const [web3Instance, setWeb3Instance] = useState('');
     const [formData, setFormData] = useState({name: '', penName: '', email: '', account: ''});
     const [account, setAccount] = useState('');
     const [isButtonDisabled, setIsButtonDisabled] = useState(false);
@@ -44,9 +42,7 @@ const VerifyPage = () => {
         if (!web3) {
             return;
         }
-        setWeb3(web3);
         const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
-        setWeb3Instance(web3Instance);
         const accounts = await web3.eth.getAccounts();
         if (accounts[0]) {
             setAccount(accounts[0].toLowerCase());
@@ -113,7 +109,6 @@ const VerifyPage = () => {
             console.log(response.data);
             if (state) {
                 disableAllButtons();
-                await web3Instance.methods.addCreator(account).send({from: account});
                 window.location.replace("/verifySuccess");
             } else {
                 alert(t('驗證失敗，請重新再試！'));

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Card, Col, Row, Button, Figure,Tabs, Tab, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import './bootstrap.min.css';
+import { CardImage } from 'react-bootstrap-icons';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
@@ -34,11 +35,15 @@ function Bookcase() {
                     }
                 });
                 bookcase = response.data;
-                console.log(bookcase);
-
                 const comicMap = new Map(storedArray.map(comic => [comic.comic_id, comic]));
                 const readingMap = new Map(Object.entries(readingArray));
                 for (const data of bookcase) {
+                    let state = "存在";
+                    if (data.is_exist === 2) {
+                        state = "盜版漫畫，已下架";
+                    } else if (data.is_exist === 1) {
+                        state = "查核中，暫不開放";
+                    }
                     const comic = comicMap.get(data.comicHash);
                     if (comic) {
                         const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.filename}`, { responseType: 'blob', headers });
@@ -48,11 +53,13 @@ function Bookcase() {
                         const readingValue = readingMap.get(comic.comicID);
                         if (readingValue) {
                             data.chapter = readingValue;
-                        }
+                        };
+                        data.state = state;
                     }
                 }
-                console.log(bookcase);
                 sortByPurchase(bookcase);
+                bookcase.sort((a, b) => (a.is_exist > 0) - (b.is_exist > 0));
+                console.log(bookcase);
                 setCurrent(bookcase);
             } catch (error) {
                 console.error('Error fetching records:', error);
@@ -145,7 +152,16 @@ function Bookcase() {
                                         <Col key={idx} xs={4} md={3}>
                                             <Link to={`/comicRead/${data.comicID}/${data.chapter}`}>
                                                 <Card>
-                                                    <Card.Img variant="top" src={data.image} />
+                                                    {data.state === "存在" ? (
+                                                        <Card.Img variant="top" src={data.image} />
+                                                    ) : (
+                                                        <div className='file-upload' style={{ display: 'flex', flexDirection: 'column' }}>
+                                                            <div id="start" style={{ display: 'block'}}>
+                                                                <CardImage size={48} />
+                                                                <div id="notimage" className="hidden">{t(data.state)}</div>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                     <div className="bookcase-overlay">{data.chapter}</div>
                                                     <Card.Body>
                                                         <Card.Title className='bookcase-read-text'>{data.title}</Card.Title>
@@ -169,7 +185,16 @@ function Bookcase() {
                                     <Col key={idx} xs={4} md={3}>
                                         <Link to={`/comicDetail/${data.comicID}`}>
                                             <Card>
-                                                <Card.Img variant="top" src={data.image} />
+                                                {data.state === "存在" ? (
+                                                    <Card.Img variant="top" src={data.image} />
+                                                ) : (
+                                                    <div className='file-upload' style={{ display: 'flex', flexDirection: 'column' }}>
+                                                        <div id="start" style={{ display: 'block'}}>
+                                                            <CardImage size={48} />
+                                                            <div id="notimage" className="hidden">{t(data.state)}</div>
+                                                        </div>
+                                                    </div>
+                                                )}
                                                 <div className="bookcase-purchase-overlay"></div>
                                                 <Card.Body>
                                                     <Card.Title className='bookcase-purchase-text'>{data.title}</Card.Title>
