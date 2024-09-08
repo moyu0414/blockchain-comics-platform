@@ -1269,19 +1269,22 @@ const getComicsForBuyer = (buyerId) => {
         <Container className='dataAnalysis'>
           <div className='dataAnalysis-title'>
             <h2 className='text-center fw-bold' style={{backgroundColor: "green"}}>{t('數據分析')}</h2>
-            <Form.Select className='mt-4' value={timePeriod} onChange={handlePeriodChange}>
-              <option value="year">年</option>
-              <option value="quarter">季</option>
-              <option value="month">月</option>
-              <option value="day">日</option>
-            </Form.Select>
+            
           </div>
           <Tabs defaultActiveKey="comic" id="data-analysis-tabs" className="mt-4 mb-3 w-100">
             <Tab eventKey="comic" title="漫畫">
               <Tabs defaultActiveKey="comicSales" className="mb-3 w-100 custom-tabs second-tabs">
                 <Tab className='second-tab' eventKey="comicSales" title="銷售額">
                   <div style={{marginBottom: "50px"}}>
-                    <h1>{t('漫畫總銷售額')}</h1>
+                    <div className='d-flex align-items-center justify-content-between'>
+                      <h1>{t('漫畫總銷售額')}</h1>
+                      <Form.Select value={timePeriod} onChange={handlePeriodChange}>
+                        <option value="year">年</option>
+                        <option value="quarter">季</option>
+                        <option value="month">月</option>
+                        <option value="day">日</option>
+                      </Form.Select>
+                    </div>
                     {salesData && salesData.labels.length > 0 ? (
                       <>
                         {renderLineChart(salesData, options)}
@@ -1344,15 +1347,15 @@ const getComicsForBuyer = (buyerId) => {
                 
                 <Tab className='second-tab' eventKey="comicCustomer" title="客户群">
                   <div>
-                    <h1>買家銷售總覽</h1>
+                    <h1 className='mb-2'>買家銷售總覽</h1>
                     <div>
                       {Object.keys(buyer).map(period => (
-                        <button key={period} onClick={() => setBuyerPeriod(period)}>
+                        <Button className='mb-2' key={period} onClick={() => setBuyerPeriod(period)}>
                           {period}
-                        </button>
+                        </Button>
                       ))}
                     </div>
-                    <div>
+                    <div className='customer-text'>
                       <h5>區間：{buyerPeriod}</h5>
                       <h4>買家數量：{summary.buyerCount}</h4>
                       <h4>總收益： ${summary.total_amount.toFixed(3)}</h4>
@@ -1365,7 +1368,7 @@ const getComicsForBuyer = (buyerId) => {
                         <Select.Option value="sales">銷售額排序</Select.Option>
                         <Select.Option value="count">購買量排序</Select.Option>
                       </Select>
-                      <Table>
+                      <Table striped hover>
                         <thead>
                           <tr>
                             <th>買家</th>
@@ -1377,9 +1380,9 @@ const getComicsForBuyer = (buyerId) => {
                           {sortedBuyers.map(([buyerId, stats]) => (
                             <React.Fragment key={buyerId}>
                               <tr onClick={() => setSelectedBuyer(buyerId === selectedBuyer ? null : buyerId)}>
-                                <td>{buyerId}</td>
-                                <td>${stats.total_amount.toFixed(3)}</td>
-                                <td>{stats.count}</td>
+                                <td data-label="買家">{buyerId}</td>
+                                <td data-label="銷售額">${stats.total_amount.toFixed(3)}</td>
+                                <td data-label="總數量">{stats.count}</td>
                               </tr>
                               {selectedBuyer === buyerId && (
                                 getComicsForBuyer(buyerId).map(([comicTitle, comicStats]) => (
@@ -1424,21 +1427,23 @@ const getComicsForBuyer = (buyerId) => {
                         </div>
                       </Col>
                     </Row>
-                    <Button
-                      type="primary"
-                      onClick={filterDataByRange}
-                      disabled={!dates || !dates[0] || !dates[1]}
-                    >
-                      顯示資料
-                    </Button>
-                    <Select
-                      defaultValue="sales"
-                      style={{ width: 200, marginBottom: 16 }}
-                      onChange={handleSortChange}
-                    >
-                      <Select.Option value="sales">銷售額排序</Select.Option>
-                      <Select.Option value="count">購買量排序</Select.Option>
-                    </Select>
+                    <div className='d-flex align-items-center justify-content-between'>
+                      <Button
+                        type="primary"
+                        onClick={filterDataByRange}
+                        disabled={!dates || !dates[0] || !dates[1]}
+                      >
+                        顯示資料
+                      </Button>
+                      <Select
+                        defaultValue="sales"
+                        style={{ width: 200}}
+                        onChange={handleSortChange}
+                      >
+                        <Select.Option value="sales">銷售額排序</Select.Option>
+                        <Select.Option value="count">購買量排序</Select.Option>
+                      </Select>
+                    </div>
                     <div style={{ marginTop: 16 }}>
                       <h3>符合條件的資料：</h3>
                       {Object.keys(rankFilterData).length > 0 ? (

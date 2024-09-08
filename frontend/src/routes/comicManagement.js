@@ -549,8 +549,8 @@ const ComicManagement = ({ contractAddress }) => {
                     <tr key={index}>
                       <th></th>
                       <th>{index + 1}</th>
-                      <td className="address-cell">{data}</td>
-                      <td className="text-end">
+                      <td data-label="帳號" className="address-cell">{data}</td>
+                      <td data-label="狀態" className="text-end">
                         <Button onClick={() => removeAdmin(data)} className='del-btn' variant="outline-danger" data-backgroundcolor="#0FC2C0">
                           <TrashFill title="Delete" /> <span className="del-text">{t('刪除')}</span>
                         </Button>
@@ -599,18 +599,22 @@ const ComicManagement = ({ contractAddress }) => {
                         style={{ cursor: 'pointer' }}
                       >
                         <th></th>
-                        <th>{index + 1}</th>
-                        <td>{data.title}</td>
-                        <td className="author-cell">{data.author}</td>
+                        <th data-label="ID">{index + 1}</th>
+                        <td data-label="漫畫">{data.title}</td>
+                        <td data-label="作者" className="author-cell">{data.author}</td>
                         {!isMobile &&
-                          <td>
+                          <td data-label="漫畫Hash">
                             {data.hash}
                           </td>
                         }
-                        <td className="text-end">
+                        <td data-label="狀態" className="text-end">
                           <Button
                             onClick={() => handleShow(data)}
-                            className='del-btn-comic btn'
+                            className={`btn ${
+                              data.exists === t('刪除') ? 'del-btn' :
+                              data.exists === t('查核') ? 'war-btn' :
+                              data.exists === t('盜版') ? 'piracy' : ''
+                            }`}
                             variant="outline-danger"
                             data-backgroundcolor="#0FC2C0"
                             disabled={data.exists === t('盜版')}
@@ -702,16 +706,16 @@ const ComicManagement = ({ contractAddress }) => {
                     <th></th>
                     <th>#</th>
                     <th>{t('帳號')}</th>
-                    <th>{t('狀態')}</th>
+                    <th className="text-end">{t('狀態')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {userSearchResults.map((data, index) => (
                     <tr key={index}>
-                      <th></th>
-                      <th>{index + 1}</th>
-                      <td className="address-cell">{data.address}</td>
-                      <td className="text-end">
+                      <th data-label="編號"></th>
+                      <th data-label="編號">{index + 1}</th>
+                      <td data-label="帳號" className="address-cell">{data.address}</td>
+                      <td data-label="狀態" className="text-end">
                         <Button 
                           onClick={() => accountChange(data.address, data.is_creator)} 
                           className={`del-btn ${getButtonClass(data.is_creator)}`} 

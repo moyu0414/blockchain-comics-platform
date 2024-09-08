@@ -191,11 +191,14 @@ function Bookcase() {
                                                 {data.state === "存在" ? (
                                                     <Card.Img variant="top" src={data.image} />
                                                 ) : (
-                                                    <div className='file-upload' style={{ display: 'flex', flexDirection: 'column' }}>
-                                                        <div id="start" style={{ display: 'block'}}>
-                                                            <CardImage size={48} />
-                                                            <div id="notimage" className="hidden">{t(data.state)}</div>
-                                                        </div>
+                                                    <div className='card-remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
+                                                        <img src='/cry-Emoji.svg' />
+                                                        {/* <div id="notimage" className="hidden" dangerouslySetInnerHTML={{ __html: data.state }}>{t(data.state)}</div> */}
+                                                        <div
+                                                            id="notimage"
+                                                            className="hidden text-center"
+                                                            dangerouslySetInnerHTML={{ __html: data.state }}
+                                                        />
                                                     </div>
                                                 )}
                                                 <div className="bookcase-purchase-overlay"></div>

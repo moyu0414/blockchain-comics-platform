@@ -4040,7 +4040,7 @@ a:link{
   }
 
   .comicManagement .address-cell{
-    max-width: 208px;
+    /* max-width: 208px; */
     overflow-wrap: break-word; 
   }
   
@@ -4056,7 +4056,7 @@ a:link{
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 80px;
+    /* max-width: 80px; */
   }
 
   .comicManagement .hash-cell-text{
@@ -4189,6 +4189,59 @@ a:link{
   padding-right: 3%;
 }
 
+@media screen and (max-width: 600px) {
+  .comicManagement table, .dataAnalysis table{
+    width: 100%;
+    border: 0;
+  }
+
+  .comicManagement table caption, .dataAnalysis table caption{
+    font-size: 1.3em;
+  }
+  
+  .comicManagement table thead, .dataAnalysis table thead {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+  }
+  
+  .comicManagement table tr, .dataAnalysis table tr {
+    border-bottom: 3px solid #ddd;
+    display: block;
+    margin-bottom: .625em;
+  }
+  
+  .comicManagement table td, .dataAnalysis table td {
+    border-bottom: 1px solid #ddd;
+    display: block;
+    font-size: .8em;
+    text-align: right;
+  }
+  
+  .comicManagement table td::before, .dataAnalysis table td::before {
+    /*
+    * aria-label has no advantage, it won't be read inside a table
+    content: attr(aria-label);
+    */
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  .comicManagement table td:last-child, .dataAnalysis table td:last-child {
+    border-bottom: 0;
+  }
+
+  .comicManagement table th, .comicManagement table td, .dataAnalysis table th, .dataAnalysis table td{
+    width: 100%!important;
+  }
+}
+
 /* comicFlipRead */
 .comicFlipRead{
   padding-top: 100px;
@@ -4235,6 +4288,10 @@ a:link{
 
   .post-author{
     padding: 0 8%;
+  }
+
+  .dataAnalysis .second-tab button{
+    width: 32%!important;
   }
 }
 
@@ -4290,6 +4347,42 @@ a:link{
 .dataAnalysis .second-tabs .nav-link:focus{
   color: #008F8C;
   background-color: #F3FCF3;
+}
+
+.dataAnalysis h1{
+  margin-bottom: 0;
+}
+
+.dataAnalysis .second-tab .form-select{
+  margin-right: 1.5%;
+}
+
+.dataAnalysis .second-tab button{
+  margin-right: 1%;
+  width: 10%;
+  height: 40px;
+  font-size: 18px;
+  background-color: #0FC2C0;
+  color: #ffffff;
+  text-align: center;
+}
+
+.dataAnalysis .second-tab button:hover{
+  background-color: #008F8C!important;
+  color: white!important;
+  border: none;
+}
+
+.dataAnalysis .second-tab span{
+  margin-left: 0;
+}
+
+.dataAnalysis .customer-text h4,.dataAnalysis .customer-text h5{
+  padding: 0.5% 0;
+}
+
+.dataAnalysis canvas{
+  max-width: 1200px;
 }
 
 /* authorProfile */
@@ -4389,7 +4482,7 @@ a:link{
 }
 
 .war-btn{
-  background-color: #d9b340;
+  background-color: #FFC107;
 }
 
 .war-btn:hover{
@@ -4405,9 +4498,14 @@ a:link{
 }
 
 .cancel-btn{
-  background-color: #6c757d;
+  background-color: #6c757d!important;
 }
 
 .cancel-btn:hover{
-  background-color: #5a6268;
+  background-color: #5a6268!important;
+}
+
+.piracy{
+  color: #dc3545!important;
+  background-color: #c3c0c0!important;
 }
