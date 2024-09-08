@@ -255,10 +255,11 @@ function NftMarket() {
             let price = totalAmount;
             if (balance > price) {
                 const tokenIds = cartItems.flatMap(({ tokenId, saleQty }) =>
-                    Array.from({ length: saleQty }, (_, j) => tokenId - j)
+                    Array.from({ length: saleQty }, (_, j) => tokenId + j)
                 );
                 price = web3.utils.toWei(price, 'ether');
-                //console.log('tokenIds', tokenIds);  // 所有的tokenId
+                console.log(totalAmount);
+                console.log('tokenIds', tokenIds);  // 所有的tokenId
                 const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
                 await web3Instance.methods.purchaseNFT(tokenIds).send({from: currentAccount, value: price});
  
