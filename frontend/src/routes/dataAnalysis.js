@@ -25,7 +25,7 @@ const initAllComicData = (comicOrigin) => {
     const income = (parseFloat(price) * 0.9).toFixed(3);
     const updateData = (type, key) => {
       if (!acc[type][key]) {
-        acc[type][key] = { date: key, sales: 0, count: 0, title: []};
+        acc[type][key] = { date: key, sales: 0, count: 0, title: [] };
       }
       const titleEntry = acc[type][key].title.find(t => t.title === comicTitle);
       if (titleEntry) {
@@ -858,7 +858,7 @@ const DataAnalysis = () => {
 
       //const processedData = initAllComicData(comicOrigin);
       const processedData = initAllComicData(test_data_1);
-      //console.log(processedData);
+      console.log(processedData);
       setDataByPeriod(processedData);
 
       
@@ -1269,17 +1269,17 @@ const getComicsForBuyer = (buyerId) => {
         <Container className='dataAnalysis'>
           <div className='dataAnalysis-title'>
             <h2 className='text-center fw-bold' style={{backgroundColor: "green"}}>{t('數據分析')}</h2>
-            <Form.Select value={timePeriod} onChange={handlePeriodChange}>
+            <Form.Select className='mt-4' value={timePeriod} onChange={handlePeriodChange}>
               <option value="year">年</option>
               <option value="quarter">季</option>
               <option value="month">月</option>
               <option value="day">日</option>
             </Form.Select>
           </div>
-          <Tabs defaultActiveKey="comic" id="data-analysis-tabs" className="mb-3 w-100">
+          <Tabs defaultActiveKey="comic" id="data-analysis-tabs" className="mt-4 mb-3 w-100">
             <Tab eventKey="comic" title="漫畫">
-              <Tabs defaultActiveKey="comicSales" className="mb-3 w-100 custom-tabs">
-                <Tab eventKey="comicSales" title="銷售額">
+              <Tabs defaultActiveKey="comicSales" className="mb-3 w-100 custom-tabs second-tabs">
+                <Tab className='second-tab' eventKey="comicSales" title="銷售額">
                   <div style={{marginBottom: "50px"}}>
                     <h1>{t('漫畫總銷售額')}</h1>
                     {salesData && salesData.labels.length > 0 ? (
@@ -1311,8 +1311,8 @@ const getComicsForBuyer = (buyerId) => {
                       <p>{t('目前沒有購買紀錄')}</p>
                     )}
 
-                    <h3>{t('篩選漫畫')}</h3>
-                    <Form.Select value={selectedComic} onChange={handleComicChange}>
+                    <h3 className='mt-5'>{t('篩選漫畫')}</h3>
+                    <Form.Select className='mt-4 mb-4' value={selectedComic} onChange={handleComicChange}>
                       <option value="">{t('請選擇漫畫')}</option>
                       {Object.keys(comics).map((comic, index) => (
                         <option key={index} value={comic}>{comic}</option>
@@ -1342,7 +1342,7 @@ const getComicsForBuyer = (buyerId) => {
                   </div>
                 </Tab>
                 
-                <Tab eventKey="comicCustomer" title="客户群">
+                <Tab className='second-tab' eventKey="comicCustomer" title="客户群">
                   <div>
                     <h1>買家銷售總覽</h1>
                     <div>
@@ -1399,7 +1399,7 @@ const getComicsForBuyer = (buyerId) => {
                 </Tab>
 
 
-                <Tab eventKey="comicRank" title="排行榜">
+                <Tab className='second-tab' eventKey="comicRank" title="排行榜">
                   <div>
                     <h2>選擇日期區間</h2>
                     <Row gutter={16}>

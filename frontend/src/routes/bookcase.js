@@ -40,9 +40,9 @@ function Bookcase() {
                 for (const data of bookcase) {
                     let state = "存在";
                     if (data.is_exist === 2) {
-                        state = "盜版漫畫，已下架";
+                        state = "盜版漫畫<br>已下架";
                     } else if (data.is_exist === 1) {
-                        state = "查核中，暫不開放";
+                        state = "查核中<br>暫不開放";
                     }
                     const comic = comicMap.get(data.comicHash);
                     if (comic) {
@@ -155,11 +155,14 @@ function Bookcase() {
                                                     {data.state === "存在" ? (
                                                         <Card.Img variant="top" src={data.image} />
                                                     ) : (
-                                                        <div className='file-upload' style={{ display: 'flex', flexDirection: 'column' }}>
-                                                            <div id="start" style={{ display: 'block'}}>
-                                                                <CardImage size={48} />
-                                                                <div id="notimage" className="hidden">{t(data.state)}</div>
-                                                            </div>
+                                                        <div className='card-remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
+                                                            <img src='/cry-Emoji.svg' />
+                                                            {/* <div id="notimage" className="hidden" dangerouslySetInnerHTML={{ __html: data.state }}>{t(data.state)}</div> */}
+                                                            <div
+                                                                id="notimage"
+                                                                className="hidden text-center"
+                                                                dangerouslySetInnerHTML={{ __html: data.state }}
+                                                            />
                                                         </div>
                                                     )}
                                                     <div className="bookcase-overlay">{data.chapter}</div>

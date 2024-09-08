@@ -385,11 +385,11 @@ function ComicDetail() {
                     <Row className="pt-5">
                         <div className="d-block mx-auto img-fluid carousel-image-container">
                             {comic[0].state ? (
-                                <div className='file-upload' style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <div id="start" style={{ display: 'block'}}>
-                                        <CardImage size={48} />
+                                <div className='remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
+                                    {/* <div id="start" style={{ display: 'block'}}> */}
+                                        <img src='/cry-Emoji.svg' />
                                         <div id="notimage" className="hidden">{t(comic[0].state)}</div>
-                                    </div>
+                                    {/* </div> */}
                                 </div>
                             ) : (
                                 <img
