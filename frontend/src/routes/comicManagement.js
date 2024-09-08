@@ -290,10 +290,10 @@ const ComicManagement = ({ contractAddress }) => {
       case t('刪除'):
         return (
           <>
-            <Button className="mt-3" onClick={() => handleShow(modalState.data, true)}>
+            <Button className="mt-3 del-btn" onClick={() => handleShow(modalState.data, true)}>
               {t('刪除')}
             </Button>
-            <Button className="mt-3" onClick={() => handleToggle(hash, 1)}>
+            <Button className="mt-3 war-btn" onClick={() => handleToggle(hash, 1)}>
               {t('待查核')}
             </Button>
           </>
@@ -302,10 +302,10 @@ const ComicManagement = ({ contractAddress }) => {
       case t('查核'):
         return (
           <>
-            <Button className="mt-3" onClick={() => handleToggle(hash, 0)}>
+            <Button className="mt-3 return-btn" onClick={() => handleToggle(hash, 0)}>
               {t('復原')}
             </Button>
-            <Button className="mt-3" onClick={() => handleToggle(hash, 2)}>
+            <Button className="mt-3 del-btn" onClick={() => handleToggle(hash, 2)}>
               {t('刪除')}
             </Button>
           </>
@@ -442,6 +442,20 @@ const ComicManagement = ({ contractAddress }) => {
       setDeleteUser(address);
     }
     enableAllButtons();
+  };
+
+
+  const getButtonClass = (state) => {
+    switch (state) {
+      case t('否'):
+        return 'cancel-btn'; // 灰色
+      case t('禁用'):
+        return 'del-btn'; // 深灰色
+      case t('審核'):
+        return 'war-btn'; // 黃色
+      case t('是'):
+        return 'pri-btn'; // 綠色
+    }
   };
 
   const handleClose = () => {
@@ -629,15 +643,15 @@ const ComicManagement = ({ contractAddress }) => {
                             <Modal.Footer className="custom-modal-footer">
                               {modalState.isConfirm ? (
                                 <>
-                                  <Button onClick={handleConfirm} variant="success">
+                                  <Button className='pri-btn' onClick={handleConfirm}>
                                     {t('確定')}
                                   </Button>
-                                  <Button onClick={handleHide}>
+                                  <Button className='cancel-btn' onClick={handleHide}>
                                     {t('取消')}
                                   </Button>
                                 </>
                               ) : (
-                                <Button className="mt-3" onClick={handleHide}>
+                                <Button className="mt-3 cancel-btn" onClick={handleHide}>
                                   {t('取消')}
                                 </Button>
                               )}
@@ -698,7 +712,11 @@ const ComicManagement = ({ contractAddress }) => {
                       <th>{index + 1}</th>
                       <td className="address-cell">{data.address}</td>
                       <td className="text-end">
-                        <Button onClick={() => accountChange(data.address, data.is_creator)} className='del-btn' variant="outline-danger" data-backgroundcolor="#0FC2C0">
+                        <Button 
+                          onClick={() => accountChange(data.address, data.is_creator)} 
+                          className={`del-btn ${getButtonClass(data.is_creator)}`} 
+                          data-backgroundcolor="#0FC2C0"
+                        >
                           {data.is_creator}
                         </Button>
                       </td>
@@ -710,10 +728,10 @@ const ComicManagement = ({ contractAddress }) => {
                             <h3>刪除創作者帳號</h3>
                         </Modal.Body>
                         <Modal.Footer className="custom-modal-footer">
-                            <Button onClick={userDeleteConfirm}>
+                            <Button className='pri-btn' onClick={userDeleteConfirm}>
                                 確定
                             </Button>
-                            <Button onClick={handleClose}>
+                            <Button className='cancel-btn' onClick={handleClose}>
                                 取消
                             </Button>
                         </Modal.Footer>

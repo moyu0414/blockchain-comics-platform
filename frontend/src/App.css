@@ -1819,6 +1819,42 @@ a:link{
   color: #722bd4!important;
 }
 
+.comicDetail .remove-section{
+  background-color: #a1a4a6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.remove-section img{
+  width: 320px;
+  height: 320px;
+}
+
+.remove-section .hidden{
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.card-remove-section{
+  background-color: #a1a4a6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.card-remove-section img{
+  width: 120px;
+  height: 120px;
+}
+
+.card-remove-section .hidden{
+  font-size: 12px;
+  font-weight: bold;
+}
+
 @media only screen and (max-width: 768px) {
 
   .comicDetail .row{
@@ -1851,6 +1887,13 @@ a:link{
 
   .comicDetail .card-img-top{
     height: 13rem;
+  }
+
+  .remove-section img{
+    width: 120px;
+    height: 120px;
+    display: flex;
+    justify-content: center;
   }
 }
 
@@ -2154,7 +2197,7 @@ a:link{
 }
 
 .nav-link.active{
-  color: #008F8C;
+  color: #008F8C!important;
 }
 
 .nav-link.active:hover{
@@ -4090,16 +4133,17 @@ a:link{
   color: #2196F3;
 }
 
-.comicManagement .table td .del-btn {
+.del-btn {
   background-color: #F44336;
 }
 
-.comicManagement .table td .del-btn:hover {
+.del-btn:hover {
   background-color: #bb2d3b;
 }
 
 .comicManagement .table td .del-btn-comic {
   background-color: #F44336;
+  color: #fff;
 }
 
 .comicManagement .table td .del-btn-comic:hover {
@@ -4211,6 +4255,43 @@ a:link{
   width: 40%;
 }
 
+.dataAnalysis .nav-tabs .nav-link:focus{
+  color: #008F8C;
+}
+
+.dataAnalysis .second-tabs{
+  border:none
+}
+
+.dataAnalysis .second-tab{
+  border:none
+}
+
+.dataAnalysis .second-tab:hover{
+  border:none
+}
+
+.dataAnalysis .second-tabs .nav-link{
+  border: none;
+  font-weight: 500;
+  border-radius: 30px;
+}
+
+.dataAnalysis .second-tabs .nav-link:hover{
+  color: #008F8C;
+  background-color: #F3FCF3;
+}
+
+.dataAnalysis .second-tabs .nav-link.active{
+  color: #008F8C!important;
+  background-color: #F3FCF3;
+}
+
+.dataAnalysis .second-tabs .nav-link:focus{
+  color: #008F8C;
+  background-color: #F3FCF3;
+}
+
 /* authorProfile */
 .profile-section, .post-author {
   display: flex;
@@ -4296,5 +4377,37 @@ a:link{
 }
 
 .authorProfile-btn .profile-cancel:hover{
+  background-color: #5a6268;
+}
+
+.return-btn{
+  background-color: #069D67;
+}
+
+.return-btn:hover{
+  background-color: #218838;
+}
+
+.war-btn{
+  background-color: #d9b340;
+}
+
+.war-btn:hover{
+  background-color: #c7932c;
+}
+
+.pri-btn {
+  background-color: #0d6efd; 
+}
+
+.pri-btn:hover {
+  background-color: #0b5ed7;
+}
+
+.cancel-btn{
+  background-color: #6c757d;
+}
+
+.cancel-btn:hover{
   background-color: #5a6268;
 }
