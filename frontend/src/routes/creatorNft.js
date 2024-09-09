@@ -59,10 +59,10 @@ function CreatorNft() {
                 const secondLastKey = keys[keys.length - 2] || null; // 如果没有倒数第二个键，设置为 null
                 const lastValue = parseFloat(item.price[lastKey]);
                 let total = 0;
-                if (item.forSale === 0) {
-                    if (lastKey === '1') {
+                if (item.forSale === 0) {  // 已售
+                    if (lastKey === '1') {  // 只賣一個(首賣)
                         total = parseFloat(item.price[lastKey]) * price;
-                    } else {
+                    } else {  // 賣一個以上(首賣&轉手)
                         total += parseFloat(item.price[keys[0]]) * price;
                         for (const key of keys) {
                             if (key !== keys[0]) { // 跳过第一个键
@@ -70,10 +70,10 @@ function CreatorNft() {
                             }
                         }
                     }
-                } else if (item.forSale === 1) {
-                    if (secondLastKey) {
-                        total += parseFloat(item.price[keys[0]]) * price;
-                        for (const key of keys.slice(1, -1)) { // 从第二个键到倒数第二个键
+                } else if (item.forSale === 1) {  // 未售
+                    if (secondLastKey) {  // 存在第二筆價格
+                        total += parseFloat(item.price[keys[0]]) * price;  // 首賣
+                        for (const key of keys.slice(1, -1)) { // 从第二筆到倒数第二筆，最後一筆未售，不用加
                             total += parseFloat(item.price[key]) * (item.royalty / 100);
                         }
                     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Line, Pie } from 'react-chartjs-2';
+import { Line, Pie, Bar } from 'react-chartjs-2';
 import Chart from 'chart.js/auto';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { Container, Form, Tabs, Tab, Table } from 'react-bootstrap';
@@ -813,6 +813,12 @@ const test_data_1 = [
 //7.異界遊俠 冒險 /test/comic7.png
 //8.天啟之門 古風 /test/comic8.png
 
+const revenueData = [
+  { title: '漫畫A', totalRevenue: 5000, resaleRevenue: 1500 },
+  { title: '漫畫B', totalRevenue: 3000, resaleRevenue: 800 },
+  { title: '漫畫C', totalRevenue: 4000, resaleRevenue: 1200 },
+];
+
 
 const DataAnalysis = () => {
   const [dataByPeriod, setDataByPeriod] = useState({ year: {}, quarter: {}, month: {}, day: {} });
@@ -822,7 +828,7 @@ const DataAnalysis = () => {
   const [pieData, setPieData] = useState(null);
   const [pieTop5, setPieTop5] = useState(null);
   const [selectedComic, setSelectedComic] = useState('');
-  const [chartData, setChartData] = useState({});
+  const [lineData, setLineData] = useState({});
   const [detailData, setDetailData] = useState(null);
   const [lowestDetailData, setLowestDetailData] = useState(null);
   const [comicPeriod, setComicPeriod] = useState('year');
@@ -837,6 +843,14 @@ const DataAnalysis = () => {
   const [rankFilterData, setRankFilterData] = useState([]);
   const [rankSort, setRankSort] = useState('sales');
 
+
+  const comicTitles = revenueData.map(item => item.title);
+  const totalRevenue = revenueData.map(item => item.totalRevenue);
+  const resaleRevenue = revenueData.map(item => item.resaleRevenue);
+  console.log(comicTitles);
+
+
+
   const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
   const currentAccount = localStorage.getItem("currentAccount");
@@ -849,26 +863,31 @@ const DataAnalysis = () => {
         params: { currentAccount }
       });
       const comicOrigin = response.data;
-      //console.log(comicOrigin);
+      console.log(comicOrigin);
       
-      //if (comicOrigin.length === 0) {
-      if (test_data_1.length === 0) {
-        message.info(t('目前沒有購買紀錄'));
+      if (comicOrigin.comics === 0) {
+      //if (test_data_1.comics === 0) {
+        message.info(t('目前沒有漫畫購買紀錄'));
+      } else if (comicOrigin.nft === 0) {
+      //} else if (test_data_1.nft === 0) {
+        message.info(t('目前沒有NFT購買紀錄'));
       }; 
+      const comic = comicOrigin.comics;
+      const nft = comicOrigin.nft;
 
-      //const processedData = initAllComicData(comicOrigin);
-      const processedData = initAllComicData(test_data_1);
+      const processedData = initAllComicData(comic);
+      //const processedData = initAllComicData(test_data_1);
       console.log(processedData);
       setDataByPeriod(processedData);
 
       
-      //const comics = initFilterComicData(comicOrigin);
-      const comics = initFilterComicData(test_data_1);
-      //console.log(comics);
+      const comics = initFilterComicData(comic);
+      //const comics = initFilterComicData(test_data_1);
+      console.log(comics);
       setComics(comics);
 
-      //await initBuyerData(comicOrigin);
-      await initBuyerData(test_data_1);
+      await initBuyerData(comic);
+      //await initBuyerData(test_data_1);
 
       const filtered = {};
       for (const key in comics) {
@@ -883,9 +902,23 @@ const DataAnalysis = () => {
       //console.log(filtered);
       setCimicRank(filtered);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
       setLoading(false);
     } catch (error) {
       console.error('Error fetching records:', error);
+      message.warning('頁面加載失敗，請重新在試!');
       setLoading(false);
     }
   };
@@ -904,7 +937,7 @@ const DataAnalysis = () => {
       return;
     }
     const data = computeComicData(comics, selectedComic, timePeriod);
-    setChartData(data);
+    setLineData(data);
   }, [selectedComic, timePeriod]);
 
   const handleChartClick = (event, currentPeriod) => {
@@ -1126,7 +1159,7 @@ const DataAnalysis = () => {
   const handlePeriodChange = (e) => {
     const period = e.target.value;
     if (period === 'quarter') {
-      setChartData({});
+      setLineData({});
     }
     setTimePeriod(period);
     setComicPeriod(period);
@@ -1146,58 +1179,55 @@ const DataAnalysis = () => {
 
 
 
-// 漫畫－客戶群
-const initBuyerData = (data) => {
-  const today = new Date();
-  const periods = {
-    '7天': [new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000), today],
-    '28天': [new Date(today.getTime() - 28 * 24 * 60 * 60 * 1000), today],
-    '90天': [new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000), today],
-    '180天': [new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000), today],
-    '2023': [new Date('2023-01-01T00:00:00Z'), new Date('2023-12-31T23:59:59Z')],
-    '2024': [new Date('2024-01-01T00:00:00Z'), new Date('2024-12-31T23:59:59Z')],
-    '發布至今': [new Date('2023-01-01T00:00:00Z'), today],
+  // 漫畫－客戶群
+  const initBuyerData = (data) => {
+    const today = new Date();
+    const periods = {
+      '7天': [new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000), today],
+      '28天': [new Date(today.getTime() - 28 * 24 * 60 * 60 * 1000), today],
+      '90天': [new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000), today],
+      '180天': [new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000), today],
+      '2023': [new Date('2023-01-01T00:00:00Z'), new Date('2023-12-31T23:59:59Z')],
+      '2024': [new Date('2024-01-01T00:00:00Z'), new Date('2024-12-31T23:59:59Z')],
+      '發布至今': [new Date('2023-01-01T00:00:00Z'), today],
+    };
+    const salesData = {};
+    for (const [period, [start, end]] of Object.entries(periods)) {
+      salesData[period] = calculateSales(data, start, end);
+    }
+    setBuyer(salesData);
   };
-  const salesData = {};
-  for (const [period, [start, end]] of Object.entries(periods)) {
-    salesData[period] = calculateSales(data, start, end);
-  }
-  setBuyer(salesData);
-};
 
-const getSummary = (periodData) => {
-  const summary = { total_amount: 0, count: 0, buyerCount: 0 };
-  Object.values(periodData || {}).forEach(({ total_amount, count }) => {
-    summary.total_amount += total_amount;
-    summary.count += count;
-  });
-  summary.buyerCount = Object.keys(periodData || {}).length;
-  return summary;
-};
+  const getSummary = (periodData) => {
+    const summary = { total_amount: 0, count: 0, buyerCount: 0 };
+    Object.values(periodData || {}).forEach(({ total_amount, count }) => {
+      summary.total_amount += total_amount;
+      summary.count += count;
+    });
+    summary.buyerCount = Object.keys(periodData || {}).length;
+    return summary;
+  };
 
-const currentPeriodData = buyer[buyerPeriod] || {};
-const summary = getSummary(currentPeriodData);
+  const currentPeriodData = buyer[buyerPeriod] || {};
+  const summary = getSummary(currentPeriodData);
 
-const sortedBuyers = Object.entries(currentPeriodData).sort(([, a], [, b]) =>
-  rankSort === 'sales' ? b.total_amount - a.total_amount : b.count - a.count
-);
+  const sortedBuyers = Object.entries(currentPeriodData).sort(([, a], [, b]) =>
+    rankSort === 'sales' ? b.total_amount - a.total_amount : b.count - a.count
+  );
 
-const sortedBuyerComics = selectedBuyer ? Object.entries(currentPeriodData[selectedBuyer].comics || {})
-.sort(([, a], [, b]) => b.total_amount - a.total_amount) : [];
+  const totalStats = Object.values(currentPeriodData).reduce(
+    (acc, { total_amount, count }) => {
+      acc.total_amount += total_amount;
+      acc.count += count;
+      return acc;
+    },
+    { total_amount: 0, count: 0 }
+  );
 
-const totalStats = Object.values(currentPeriodData).reduce(
-  (acc, { total_amount, count }) => {
-    acc.total_amount += total_amount;
-    acc.count += count;
-    return acc;
-  },
-  { total_amount: 0, count: 0 }
-);
-
-const getComicsForBuyer = (buyerId) => {
-  const buyer = sortedBuyers.find(([id]) => id === buyerId);
-  return buyer ? Object.entries(buyer[1].comics) : [];
-};
+  const getComicsForBuyer = (buyerId) => {
+    const buyer = sortedBuyers.find(([id]) => id === buyerId);
+    return buyer ? Object.entries(buyer[1].comics) : [];
+  };
 
 
 
@@ -1261,6 +1291,50 @@ const getComicsForBuyer = (buyerId) => {
     }
     return entries;
   };
+
+
+
+
+  // NFT－收益分布
+  const chartData = {
+    labels: comicTitles,
+    datasets: [
+      {
+        label: '總收益',
+        data: totalRevenue,
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1,
+      },
+      {
+        label: '轉手收益',
+        data: resaleRevenue,
+        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+        borderColor: 'rgba(153, 102, 255, 1)',
+        borderWidth: 1,
+      }
+    ]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            return `${context.dataset.label}: ${context.raw}`;
+          }
+        }
+      }
+    }
+  };
+
+
+
+
   
 
   return (
@@ -1322,9 +1396,9 @@ const getComicsForBuyer = (buyerId) => {
                       ))}
                     </Form.Select>
 
-                    {chartData && Object.keys(chartData).length > 0 && (
+                    {lineData && Object.keys(lineData).length > 0 && (
                       <>
-                        {renderChart(chartData, options, timePeriod)}
+                        {renderChart(lineData, options, timePeriod)}
                         {renderChart(detailData, filterOptions, timePeriod === 'year' ? 'month' : comicPeriod)}
 
                         {timePeriod === 'year' && (comicPeriod === 'month' || comicPeriod === 'day') && (
@@ -1473,8 +1547,30 @@ const getComicsForBuyer = (buyerId) => {
                 </Tab>
               </Tabs>
             </Tab>
+
+
             <Tab eventKey="nft" title="NFT">
-              {/* NFT 的相关内容 */}
+              <Tabs defaultActiveKey="revenueDist" className="mb-3 w-100 custom-tabs second-tabs">
+                <Tab className='second-tab' eventKey="revenueDist" title="收益分布">
+                  
+                  
+                  <div>
+                    <h1>NFT 收益分析</h1>
+                    <Bar data={chartData} options={chartOptions} />
+                  </div>
+
+
+                </Tab>
+                <Tab className='second-tab' eventKey="revenueTrend" title="收益趨勢">
+
+
+                </Tab>
+                <Tab className='second-tab' eventKey="resaleRate" title="轉手抽成">
+
+
+
+                </Tab>
+              </Tabs>
             </Tab>
           </Tabs>
         </Container>

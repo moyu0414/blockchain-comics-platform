@@ -2024,22 +2024,48 @@ app.get('/api/authorProfile', (req, res) => {
 
 app.get('/api/dataAnalysis/records', (req, res) => {
   const currentAccount = req.query.currentAccount;
-  const query = `
-    SELECT comics.title AS comicTitle, comics.category, comics.filename, chapters.title AS chapterTitle , records.purchase_date, records.price, records.buyer
+  const recordsQuery = `
+    SELECT comics.title AS comicTitle, comics.category, comics.filename, 
+           chapters.title AS chapterTitle, records.purchase_date, records.price, records.buyer
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
     WHERE comics.creator = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 0
   `;
-  pool.query(query, [currentAccount], (error, results, fields) => {
-    if (error) {
-      console.error('Error fetching creator records: ', error);
-      return res.status(500).json({ message: 'Error fetching creator records' });
-    }
-    if (results.length === 0) {
-      return res.json([]);
-    }
-    res.json(results);
+  const nftQuery = `
+    SELECT nft.tokenTitle, nft.price, nft.forSale, nft.royalty ,comics.title
+    FROM nft
+    INNER JOIN comics ON nft.comicHash = comics.comic_id
+    WHERE comics.is_exist = 0
+  `;
+  Promise.all([
+    new Promise((resolve, reject) => {
+      pool.query(recordsQuery, [currentAccount], (error, results) => {
+        if (error) {
+          return reject({ error: 'Error fetching creator records', details: error });
+        }
+        resolve(results);
+      });
+    }),
+    new Promise((resolve, reject) => {
+      pool.query(nftQuery, (error, results) => {
+        if (error) {
+          return reject({ error: 'Error fetching NFT data', details: error });
+        }
+        resolve(results);
+      });
+    })
+  ])
+  .then(([recordsResults, nftResults]) => {
+    res.json({
+      comics: recordsResults,
+      nft: nftResults
+    });
+  })
+  .catch((err) => {
+    // 錯誤處理
+    console.error(err.error, err.details);
+    res.status(500).json({ message: err.error });
   });
 });
 

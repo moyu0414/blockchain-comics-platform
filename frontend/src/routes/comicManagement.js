@@ -3,6 +3,7 @@ import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
 import {  Container, Table, Button, Form, Tabs, Tab, InputGroup, FormControl, Modal} from 'react-bootstrap';
 import { PlusLg, TrashFill, Search } from 'react-bootstrap-icons';
+import { message } from 'antd';
 import { disableAllButtons, enableAllButtons } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -106,7 +107,7 @@ const ComicManagement = ({ contractAddress }) => {
             console.error(error);
           }
         } else {
-          alert(t('您並非管理者'));
+          message.info(t('您並非管理者'));
           return;
         }
       } catch (error) {
@@ -136,7 +137,7 @@ const ComicManagement = ({ contractAddress }) => {
   const handleToggle = async (comicHash, exists, creator) => {
     console.log(exists);
     disableAllButtons();
-    if (exists === 2) {
+    if (exists === 2) {  // 漫畫是盜版
       try{
         const response = await axios.get(`${website}/api/comicManagement/totalCost`, {
           headers: headers,
@@ -162,7 +163,7 @@ const ComicManagement = ({ contractAddress }) => {
             : comic
         );
         setSearchResults(updatedComics);
-        alert(t('漫畫刪除成功'));
+        message.info(t('漫畫刪除成功'));
         const updatedArray = storedArray.map(item =>
           item.comic_id === comicHash
             ? { ...item, is_exist: 2 }
@@ -172,7 +173,7 @@ const ComicManagement = ({ contractAddress }) => {
         localStorage.setItem('comicDatas', updatedArrayJSON);
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
-          alert(t('拒绝交易'));
+          message.info(t('拒绝交易'));
         } else {
           console.error('漫畫刪除時發生錯誤：', error);
           alert(error);
@@ -181,7 +182,7 @@ const ComicManagement = ({ contractAddress }) => {
         enableAllButtons();
         handleHide();
       }
-    } else if (exists === 1) {
+    } else if (exists === 1) {  // 漫畫審核中
         try{
           const response = await axios.get(`${website}/api/comicManagement/totalCost`, {
             headers: headers,
@@ -193,7 +194,7 @@ const ComicManagement = ({ contractAddress }) => {
           const totalCost = web3Instance.utils.toWei(response.data, 'ether');
           console.log(totalCost);
 
-          await meta.toggleComicExistence(comicHash, 2).send({ from: currentAccount, value: totalCost });
+          await meta.toggleComicExistence(comicHash, 1).send({ from: currentAccount });
           await axios.put(`${website}/api/update/comicExist`, null, {
             headers: headers,
             params: {
@@ -207,7 +208,7 @@ const ComicManagement = ({ contractAddress }) => {
               : comic
           );
           setSearchResults(updatedComics);
-          alert(t('漫畫查核中'));
+          message.info(t('漫畫查核中'));
           const updatedArray = storedArray.map(item =>
             item.comic_id === comicHash
               ? { ...item, is_exist: 1 }
@@ -217,7 +218,7 @@ const ComicManagement = ({ contractAddress }) => {
           localStorage.setItem('comicDatas', updatedArrayJSON);
         } catch (error) {
           if (error.message.includes('User denied transaction signature')) {
-            alert(t('拒绝交易'));
+            message.info(t('拒绝交易'));
           } else {
             console.error('漫畫狀態變更發生錯誤：', error);
             alert(error);
@@ -226,7 +227,7 @@ const ComicManagement = ({ contractAddress }) => {
           enableAllButtons();
           handleHide();
         }
-    } else {
+    } else {  // 漫畫存在
       try{
         await meta.toggleComicExistence(comicHash, 0).send({ from: currentAccount });
         await axios.put(`${website}/api/update/comicExist`, null, {
@@ -242,7 +243,7 @@ const ComicManagement = ({ contractAddress }) => {
             : comic
         );
         setSearchResults(updatedComics);
-        alert(t('漫畫復原成功'));
+        message.info(t('漫畫復原成功'));
         const updatedArray = storedArray.map(item =>
           item.comic_id === comicHash
             ? { ...item, is_exist: 0 }
@@ -252,7 +253,7 @@ const ComicManagement = ({ contractAddress }) => {
         localStorage.setItem('comicDatas', updatedArrayJSON);
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
-          alert(t('拒绝交易'));
+          message.info(t('拒绝交易'));
         } else {
           console.error('漫畫復原時發生錯誤：', error);
           alert(error);
@@ -327,14 +328,14 @@ const ComicManagement = ({ contractAddress }) => {
     disableAllButtons();
     let address = web3Instance.utils.isAddress(inputValue);
     if (!address) {
-      alert(t('請輸入有效的帳號'));
+      message.info(t('請輸入有效的帳號'));
       enableAllButtons();
       return;
     }
     try{
       const admins = admin.some(adminItem => adminItem === inputValue);
       if (admins == true) {
-        alert(t('此帳號已是管理者'));
+        message.info(t('此帳號已是管理者'));
       } else {
         await meta.addAdmin(inputValue).send({ from: currentAccount });
         
@@ -344,12 +345,12 @@ const ComicManagement = ({ contractAddress }) => {
             address: inputValue,
           },
         });
-        alert(t('管理者新增成功'));
+        message.info(t('管理者新增成功'));
         window.location.reload();
       }
     } catch (error) {
       if (error.message.includes('User denied transaction signature')) {
-        alert(t('拒绝交易'));
+        message.info(t('拒绝交易'));
       } else {
         console.error('管理者新增時發生錯誤：', error);
         alert(error);
@@ -365,7 +366,7 @@ const ComicManagement = ({ contractAddress }) => {
     try{
       let admins = await meta.admins(address).call();
       if (admins == false) {
-        alert(t('此帳號並非管理者，所以不用刪除'));
+        message.info(t('此帳號並非管理者，所以不用刪除'));
       } else {
         await meta.removeAdmin(address).send({ from: currentAccount });
 
@@ -375,12 +376,12 @@ const ComicManagement = ({ contractAddress }) => {
             address: address,
           },
         });
-        alert(t('管理者刪除成功'));
+        message.info(t('管理者刪除成功'));
         window.location.reload();
       }
     } catch (error) {
       if (error.message.includes('User denied transaction signature')) {
-        alert(t('拒绝交易'));
+        message.info(t('拒绝交易'));
       } else {
         console.error('管理者刪除時發生錯誤：', error);
         alert(error);
@@ -427,11 +428,11 @@ const ComicManagement = ({ contractAddress }) => {
             state: 1
           },
         });
-        alert(t('創作者驗證成功'));
+        message.info(t('創作者驗證成功'));
         window.location.reload();
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
-          alert(t('拒绝交易'));
+          message.info(t('拒绝交易'));
         } else {
           console.error('創作者驗證錯誤：', error);
           alert(error);
@@ -476,11 +477,11 @@ const ComicManagement = ({ contractAddress }) => {
             state: 3
           },
         });
-        alert(t('創作者已刪除'));
+        message.info(t('創作者已刪除'));
         window.location.reload();
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
-          alert(t('拒绝交易'));
+          message.info(t('拒绝交易'));
         } else {
           console.error('創作者刪除錯誤：', error);
           alert(error);
@@ -621,9 +622,6 @@ const ComicManagement = ({ contractAddress }) => {
                           >
                             {data.exists}
                           </Button>
-
-
-
                           <Modal
                             show={modalState.show}
                             onHide={handleHide}
@@ -661,10 +659,6 @@ const ComicManagement = ({ contractAddress }) => {
                               )}
                             </Modal.Footer>
                           </Modal>
-
-
-
-
                         </td>
                       </tr>
                       {/* Only shown on small screens when a row is selected */}
@@ -706,7 +700,7 @@ const ComicManagement = ({ contractAddress }) => {
                     <th></th>
                     <th>#</th>
                     <th>{t('帳號')}</th>
-                    <th className="text-end">{t('狀態')}</th>
+                    <th className="text-end">{t('創作者身分')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -715,7 +709,7 @@ const ComicManagement = ({ contractAddress }) => {
                       <th data-label="編號"></th>
                       <th data-label="編號">{index + 1}</th>
                       <td data-label="帳號" className="address-cell">{data.address}</td>
-                      <td data-label="狀態" className="text-end">
+                      <td data-label="創作者身分" className="text-end">
                         <Button 
                           onClick={() => accountChange(data.address, data.is_creator)} 
                           className={`del-btn ${getButtonClass(data.is_creator)}`} 
@@ -729,7 +723,7 @@ const ComicManagement = ({ contractAddress }) => {
                   {showUser && (
                     <Modal show={showUser} onHide={handleClose} dialogClassName="custom-modal-content">
                         <Modal.Body>
-                            <h3>刪除創作者帳號</h3>
+                            <h3>禁用創作者帳號</h3>
                         </Modal.Body>
                         <Modal.Footer className="custom-modal-footer">
                             <Button className='pri-btn' onClick={userDeleteConfirm}>

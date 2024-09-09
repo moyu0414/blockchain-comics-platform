@@ -150,7 +150,7 @@ function Bookcase() {
                                     .filter(data => data.chapter) // 過濾出有 chapter 的數據
                                     .map((data, idx) => (
                                         <Col key={idx} xs={4} md={3}>
-                                            <Link to={`/comicRead/${data.comicID}/${data.chapter}`}>
+                                            <Link to={data.state === "存在" ? (`/comicRead/${data.comicID}/${data.chapter}`) : (`/comicDetail/${data.comicID}`)}>
                                                 <Card>
                                                     {data.state === "存在" ? (
                                                         <Card.Img variant="top" src={data.image} />
