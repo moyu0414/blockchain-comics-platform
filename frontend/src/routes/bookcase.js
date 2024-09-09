@@ -155,15 +155,15 @@ function Bookcase() {
                                                     {data.state === "存在" ? (
                                                         <Card.Img variant="top" src={data.image} />
                                                     ) : (
-                                                        <div className='card-remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
-                                                            <img src='/cry-Emoji.svg' />
-                                                            {/* <div id="notimage" className="hidden" dangerouslySetInnerHTML={{ __html: data.state }}>{t(data.state)}</div> */}
-                                                            <div
-                                                                id="notimage"
-                                                                className="hidden text-center"
-                                                                dangerouslySetInnerHTML={{ __html: data.state }}
-                                                            />
-                                                        </div>
+                                                        // <div className='card-remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
+                                                        //     <img src='/piraty.png' />
+                                                        //     <div
+                                                        //         id="notimage"
+                                                        //         className="hidden text-center"
+                                                        //         dangerouslySetInnerHTML={{ __html: data.state }}
+                                                        //     />
+                                                        // </div>
+                                                        <Card.Img variant="top" src='/piraty.png' />
                                                     )}
                                                     <div className="bookcase-overlay">{data.chapter}</div>
                                                     <Card.Body>
@@ -191,15 +191,15 @@ function Bookcase() {
                                                 {data.state === "存在" ? (
                                                     <Card.Img variant="top" src={data.image} />
                                                 ) : (
-                                                    <div className='card-remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
-                                                        <img src='/cry-Emoji.svg' />
-                                                        {/* <div id="notimage" className="hidden" dangerouslySetInnerHTML={{ __html: data.state }}>{t(data.state)}</div> */}
-                                                        <div
-                                                            id="notimage"
-                                                            className="hidden text-center"
-                                                            dangerouslySetInnerHTML={{ __html: data.state }}
-                                                        />
-                                                    </div>
+                                                    // <div className='card-remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    //     <img src='/piraty.png' />
+                                                    //     <div
+                                                    //         id="notimage"
+                                                    //         className="hidden text-center"
+                                                    //         dangerouslySetInnerHTML={{ __html: data.state }}
+                                                    //     />
+                                                    // </div>
+                                                    <Card.Img variant="top" src='/piraty.png' />
                                                 )}
                                                 <div className="bookcase-purchase-overlay"></div>
                                                 <Card.Body>

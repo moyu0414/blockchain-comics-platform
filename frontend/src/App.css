@@ -4190,6 +4190,15 @@ a:link{
 }
 
 @media screen and (max-width: 600px) {
+  .comicManagement table td, 
+  .comicManagement table th, 
+  .dataAnalysis table td, 
+  .dataAnalysis table th {
+    word-break: break-word;  
+    white-space: normal;     
+    overflow-wrap: break-word;
+  }
+
   .comicManagement table, .dataAnalysis table{
     width: 100%;
     border: 0;
@@ -4203,7 +4212,6 @@ a:link{
     border: none;
     clip: rect(0 0 0 0);
     height: 1px;
-    margin: -1px;
     overflow: hidden;
     padding: 0;
     position: absolute;
@@ -4382,7 +4390,7 @@ a:link{
 }
 
 .dataAnalysis canvas{
-  max-width: 1200px;
+  max-width: 600px;
 }
 
 /* authorProfile */
