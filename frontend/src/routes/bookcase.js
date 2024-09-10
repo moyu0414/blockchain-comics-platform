@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Card, Col, Row, Button, Figure,Tabs, Tab } from 'react-bootstrap';
+import { Container, Card, Col, Row, Button, Figure,Tabs, Tab, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import './bootstrap.min.css';
+import { CardImage } from 'react-bootstrap-icons';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
@@ -34,11 +35,15 @@ function Bookcase() {
                     }
                 });
                 bookcase = response.data;
-                console.log(bookcase);
-
                 const comicMap = new Map(storedArray.map(comic => [comic.comic_id, comic]));
                 const readingMap = new Map(Object.entries(readingArray));
                 for (const data of bookcase) {
+                    let state = "存在";
+                    if (data.is_exist === 2) {
+                        state = "盜版漫畫<br>已下架";
+                    } else if (data.is_exist === 1) {
+                        state = "查核中<br>暫不開放";
+                    }
                     const comic = comicMap.get(data.comicHash);
                     if (comic) {
                         const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.filename}`, { responseType: 'blob', headers });
@@ -48,11 +53,13 @@ function Bookcase() {
                         const readingValue = readingMap.get(comic.comicID);
                         if (readingValue) {
                             data.chapter = readingValue;
-                        }
+                        };
+                        data.state = state;
                     }
                 }
-                console.log(bookcase);
                 sortByPurchase(bookcase);
+                bookcase.sort((a, b) => (a.is_exist > 0) - (b.is_exist > 0));
+                console.log(bookcase);
                 setCurrent(bookcase);
             } catch (error) {
                 console.error('Error fetching records:', error);
@@ -86,13 +93,26 @@ function Bookcase() {
                     const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.filename}`, { responseType: 'blob', headers });
                     const image = URL.createObjectURL(imageResponse.data);
                     data.image = image;
+                    data.names = parseAuthorizations(data.description).map(auth => auth.name);
                 }
             }
+            console.log(nftRecords);
             setNFTLogArray(nftRecords);
             if (nftRecords.length === 0) {
               setBeingNFT(false);
             }
         }
+    };
+
+    const parseAuthorizations = (text) => {
+        text = text.trim();
+        const lines = text.includes('\n') ? text.split('\n') : [text];
+        return lines.map(line => {
+            const [name] = line.split(':');
+            return {
+                name: t(name.trim()),
+            };
+        });
     };
 
     function sortByPurchase(array) {
@@ -102,6 +122,16 @@ function Bookcase() {
             return dateB.getTime() - dateA.getTime();  // 降序排序
         });
     }
+
+    const renderTooltip = (title, names) => (props) => (
+        <Tooltip id="button-tooltip" {...props}>
+            {title}
+            <hr />
+            {names.map((name, index) => (
+                <div key={index}>{name}</div>
+            ))}
+        </Tooltip>
+    );
 
     
     return (
@@ -120,9 +150,21 @@ function Bookcase() {
                                     .filter(data => data.chapter) // 過濾出有 chapter 的數據
                                     .map((data, idx) => (
                                         <Col key={idx} xs={4} md={3}>
-                                            <Link to={`/comicRead/${data.comicID}/${data.chapter}`}>
+                                            <Link to={data.state === "存在" ? (`/comicRead/${data.comicID}/${data.chapter}`) : (`/comicDetail/${data.comicID}`)}>
                                                 <Card>
-                                                    <Card.Img variant="top" src={data.image} />
+                                                    {data.state === "存在" ? (
+                                                        <Card.Img variant="top" src={data.image} />
+                                                    ) : (
+                                                        <div className='card-remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
+                                                            <img src='/cry-Emoji.svg' />
+                                                            {/* <div id="notimage" className="hidden" dangerouslySetInnerHTML={{ __html: data.state }}>{t(data.state)}</div> */}
+                                                            <div
+                                                                id="notimage"
+                                                                className="hidden text-center"
+                                                                dangerouslySetInnerHTML={{ __html: data.state }}
+                                                            />
+                                                        </div>
+                                                    )}
                                                     <div className="bookcase-overlay">{data.chapter}</div>
                                                     <Card.Body>
                                                         <Card.Title className='bookcase-read-text'>{data.title}</Card.Title>
@@ -146,7 +188,19 @@ function Bookcase() {
                                     <Col key={idx} xs={4} md={3}>
                                         <Link to={`/comicDetail/${data.comicID}`}>
                                             <Card>
-                                                <Card.Img variant="top" src={data.image} />
+                                                {data.state === "存在" ? (
+                                                    <Card.Img variant="top" src={data.image} />
+                                                ) : (
+                                                    <div className='card-remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
+                                                        <img src='/cry-Emoji.svg' />
+                                                        {/* <div id="notimage" className="hidden" dangerouslySetInnerHTML={{ __html: data.state }}>{t(data.state)}</div> */}
+                                                        <div
+                                                            id="notimage"
+                                                            className="hidden text-center"
+                                                            dangerouslySetInnerHTML={{ __html: data.state }}
+                                                        />
+                                                    </div>
+                                                )}
                                                 <div className="bookcase-purchase-overlay"></div>
                                                 <Card.Body>
                                                     <Card.Title className='bookcase-purchase-text'>{data.title}</Card.Title>
@@ -164,17 +218,21 @@ function Bookcase() {
                         }
                     </Tab>
                     <Tab eventKey="NFT" title='NFT'>
-                        {isBuying &&
+                        {beingNFT &&
                             <Row xs={1} md={2}>
                                 {NFTLogArray.map((data, idx) => (
                                     <Col key={idx} xs={4} md={3}>
                                         <Link to={`/nftOwner/tokenId${data.tokenId}`}>
                                             <Card>
-                                                <Card.Img variant="top" src={data.image} />
-                                                <div className="bookcase-overlay">{data.tokenId} / {t(data.descTitle)}</div>
-                                                <Card.Body>
-                                                    <Card.Title className='bookcase-purchase-text'>{data.title}</Card.Title>
-                                                </Card.Body>
+                                                <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names)}>
+                                                    <div>
+                                                        <Card.Img variant="top" src={data.image} />
+                                                        <div className="bookcase-overlay">{data.title}</div>
+                                                        <Card.Body>
+                                                            <Card.Title className='bookcase-purchase-text'>{data.tokenTitle}</Card.Title>
+                                                        </Card.Body>
+                                                    </div>
+                                                </OverlayTrigger>
                                             </Card>
                                         </Link>
                                     </Col>

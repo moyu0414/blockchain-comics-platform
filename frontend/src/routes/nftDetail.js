@@ -4,7 +4,6 @@ import { Container, Carousel, Card, Col, Row, ListGroup, Button } from 'react-bo
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
 import { initializeWeb3, disableAllButtons, enableAllButtons } from '../index';
-import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -27,6 +26,7 @@ function NftDetail() {
     ];
     let records = [];
     let temp = [];
+    let imageUrl = '';
 
     const initData = async () => {
         const response = await axios.get(`${website}/api/nftDetail/records`, {
@@ -38,23 +38,35 @@ function NftDetail() {
         let nftData = response.data;
         setInitPrice(nftData[0].price);
 
-        const { minter: initialMinter, owner: initialOwner, price, forSale, protoFilename, filename } = nftData[0];
+        const { minter: initialMinter, owner: initialOwner, price, forSale, protoFilename, filename, comicHash, tokenId: token } = nftData[0];
         const currentState = initialMinter === initialOwner ? t('原創授權') : t('二次轉售');
         const currentOwner = initialOwner === currentAccount ? t('您擁有此NFT') : initialOwner;
         const currentMinter = initialMinter === currentAccount ? t('您是本作品的創作者') : initialMinter;
-        const url = protoFilename === 1
-            ? `${website}/api/coverFile/${filename}/${protoFilename}`
-            : `${website}/api/comicIMG/${filename}`;
-        const imageResponse = await axios.get(url, { responseType: 'blob', headers });
-        const image = URL.createObjectURL(imageResponse.data);
+        try {
+          const nftImgResponse = await axios.get(`${website}/api/nftIMG/${comicHash}/${token}`, {
+            responseType: 'blob',
+            headers,
+          });
+          if (nftImgResponse.data.type === 'image/jpeg') {
+            imageUrl = URL.createObjectURL(nftImgResponse.data);
+          } else {
+            const imageUrlPath = protoFilename === 1
+              ? `${website}/api/coverFile/${filename}/${protoFilename}`
+              : `${website}/api/comicIMG/${filename}`;
+            const coverImgResponse = await axios.get(imageUrlPath, { responseType: 'blob', headers });
+            imageUrl = URL.createObjectURL(coverImgResponse.data);
+          }
+        } catch (error) {
+          console.error('Error fetching image:', error);
+        }
         const lastPriceValue = Object.values(price).pop();
         const newData = nftData.map(data => ({
-            ...data,
-            price: lastPriceValue,
-            minter: currentMinter,
-            owner: currentOwner,
-            state: currentState,
-            image
+          ...data,
+          price: lastPriceValue,
+          minter: currentMinter,
+          owner: currentOwner,
+          state: currentState,
+          image: imageUrl
         }));
         console.log(newData);
         setNFT(newData);
@@ -66,7 +78,7 @@ function NftDetail() {
                 headers: headers,
                 params: {
                     currentAccount: currentAccount,
-                    comicHash: nftData[0].comicHash
+                    comicHash: comicHash
                 }
             });
             if (Array.isArray(response.data.value) && response.data.value.includes(tokenId)) {
@@ -138,7 +150,6 @@ function NftDetail() {
                 if (!web3) {
                     return;
                 }
-                const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
                 const accounts = await web3.eth.getAccounts();
                 const account = accounts[0];
                 if (account) {
@@ -148,16 +159,17 @@ function NftDetail() {
                     if (balance > price) {
                         let id = tokenId.replace("tokenId", "");
                         price = web3.utils.toWei(price, 'ether');
-                        await web3Instance.methods.purchaseNFT(id).send({from: currentAccount, value: price,});
+                        const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
+                        await web3Instance.methods.purchaseNFT([id]).send({from: currentAccount, value: price});
 
                         try {
                             const response = await axios.put(`${website}/api/update/nftDetail/owner`, {
-                            tokenId: id,
-                            currentAccount: currentAccount,
-                            price: JSON.stringify(initPrice),
-                            forSale: 0
+                                tokenId: id,
+                                currentAccount: currentAccount,
+                                price: JSON.stringify(initPrice),
+                                forSale: 0
                             }, {
-                            headers: headers
+                                headers: headers
                             });
                             alert(t('NFT購買成功'));
                             const updatedNFT = [...NFT];
@@ -166,7 +178,7 @@ function NftDetail() {
                             updatedNFT[0].forSale = 0;
                             setNFT(updatedNFT);
                         } catch (error) {
-                            console.error('Error updating NFT:', error);
+                            console.error('Error updating DB NFT:', error);
                         }
                     } else {
                         console.log('餘額不足');
@@ -235,16 +247,22 @@ function NftDetail() {
                         <Col xs={8} className="text-section ">
                             {NFT.map((data, index) => (
                                 <React.Fragment key={index}>
-                                    <h3 className="fw-bold">{data.title}</h3>
-                                    <h4 className="fw-bold">{data.state}</h4>
-                                    <p className="nftDetail-text-secondary">{t('作者')}：{data.minter}</p>
+                                    <div className="nftDetail-text-secondary">
+                                        <h3 className="fw-bold">{data.tokenTitle}</h3>
+                                        <h4 className="fw-bold">{data.title}－{data.state}</h4>
+                                        {t('作者')}：
+                                        <Link to={`/authorProfile/${data.minter === t('您是本作品的創作者') ? currentAccount : data.minter}`}>
+                                            <span className="comicDetail-penName" style={{ marginRight: "10px"}}>{data.penName}</span> 
+                                            <span style={{color: "#722bd4", marginLeft: "0"}}>({data.minter})</span>
+                                        </Link>
+                                    </div>
                                     <p className="nftDetail-text-secondary">{t('持有者')}：{data.owner}</p>
                                     <p className="nftDetail-text-secondary">{data.comicDesc}</p>
                                 </React.Fragment>
                             ))}
                         </Col>
                     </Row>
-                    <Row className="pt-1">
+                    <Row className="pt-4">
                         <Col className="text-section">
                             <h3 className="fw-bold">{t('授權範圍')}</h3>
                             <ul>
@@ -256,7 +274,7 @@ function NftDetail() {
                             </ul>
                         </Col>
                     </Row>
-                    <Row className="pt-1">
+                    <Row className="pt-4">
                         <Col className="text-section">
                             <h3 className="fw-bold">{t('授權說明')}</h3>
                                 {IP.map((item, index) => (

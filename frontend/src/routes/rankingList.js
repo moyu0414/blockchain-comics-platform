@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Row, Col, Card, ListGroup, ListGroupItem, Tabs, Tab } from 'react-bootstrap';
+import { Container, Row, Col, Card, ListGroup, ListGroupItem, Tabs, Tab, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
@@ -36,7 +36,11 @@ const RankingList = () => {
                     }));
                     const updatedFetchedData = rankInfo.map(fetchedItem => {
                         const match = storedArray.find(storedItem => storedItem.comic_id === fetchedItem.comic_id);
-                        return { ...fetchedItem, comicID: match ? match.comicID : null };
+                        return { 
+                            ...fetchedItem, 
+                            comicID: match ? match.comicID : null, 
+                            penName: match && match.penName ? match.penName : null
+                        };
                     });
                     console.log(updatedFetchedData);
                     setTotRankDatas(updatedFetchedData);
@@ -94,7 +98,11 @@ const RankingList = () => {
             }));
             const updatedFetchedData = rankInfo.map(fetchedItem => {
                 const match = storedArray.find(storedItem => storedItem.comic_id === fetchedItem.comic_id);
-                return { ...fetchedItem, comicID: match ? match.comicID : null };
+                return { 
+                    ...fetchedItem, 
+                    comicID: match ? match.comicID : null, 
+                    penName: match && match.penName ? match.penName : null
+                };
             });
             //console.log(updatedFetchedData);
             setPurRank(updatedFetchedData);
@@ -118,7 +126,11 @@ const RankingList = () => {
             }));
             const updatedFetchedData = rankInfo.map(fetchedItem => {
                 const match = storedArray.find(storedItem => storedItem.comic_id === fetchedItem.comic_id);
-                return { ...fetchedItem, comicID: match ? match.comicID : null };
+                return { 
+                    ...fetchedItem, 
+                    comicID: match ? match.comicID : null, 
+                    penName: match && match.penName ? match.penName : null
+                };
             });
             //console.log(updatedFetchedData);
             setFavRank(updatedFetchedData);
@@ -142,7 +154,11 @@ const RankingList = () => {
             }));
             const updatedFetchedData = rankInfo.map(fetchedItem => {
                 const match = storedArray.find(storedItem => storedItem.comic_id === fetchedItem.comic_id);
-                return { ...fetchedItem, comicID: match ? match.comicID : null };
+                return { 
+                    ...fetchedItem, 
+                    comicID: match ? match.comicID : null, 
+                    penName: match && match.penName ? match.penName : null
+                };
             });
             //console.log(updatedFetchedData);
             setWeekData(updatedFetchedData);
@@ -166,13 +182,42 @@ const RankingList = () => {
             }));
             const updatedFetchedData = rankInfo.map(fetchedItem => {
                 const match = storedArray.find(storedItem => storedItem.comic_id === fetchedItem.comic_id);
-                return { ...fetchedItem, comicID: match ? match.comicID : null };
+                return { 
+                    ...fetchedItem, 
+                    comicID: match ? match.comicID : null, 
+                    penName: match && match.penName ? match.penName : null,
+                    date: match.date
+                };
+
             });
             //console.log(updatedFetchedData);
             setNewData(updatedFetchedData);
         } catch (error) {
             console.error('Error fetching image:', error);
         }
+    };
+
+    const TooltipWrapper = ({ text, children }) => (
+        <OverlayTrigger 
+            placement="top" 
+            overlay={<Tooltip id="tooltip">{text}</Tooltip>}
+        >
+            {children}
+        </OverlayTrigger>
+    );
+
+    const tooltips = {
+        totalRank: t('購買數量和收藏數量加總排序'),
+        purchaseRank: t('購買數量'),
+        favoriteRank: t('收藏數量'),
+        weekRank: t('7日內的購買數量'),
+        newRank: t('漫畫最新發布')
+    };
+
+    const showAccount = (account) => {
+        const prefix = account.substr(0, 5);
+        const suffix = account.substr(36, 40);
+        return prefix + "..." + suffix;
     };
 
 
@@ -223,18 +268,26 @@ const RankingList = () => {
                 </Row>
 
                 <Tabs defaultActiveKey="totalRank" className="mb-3" onSelect={handleTabSelect}>
-                    <Tab eventKey="totalRank" title={t('總排行')}>
-                        <ListGroup>
+                    <Tab 
+                        eventKey="totalRank" 
+                        title={
+                            <TooltipWrapper text={tooltips.totalRank}>
+                                <div>{t('總排行')}</div>
+                            </TooltipWrapper>
+                        }
+                    >
+                        <ListGroup >
                             {totRankDatas.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`} key={index}>
                                     <ListGroup.Item className="d-flex align-items-center ranking-list">
                                         <span className="ranking-badge">{index + 1}</span>
-                                            <div className="ranking-image">
+                                            <div className="ranking-image ranking-thumbnail-position">
                                                 <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
+                                                <div className="rankingList-overlay">{item.total}</div>
                                             </div>
                                             <div className="ranking-card-info ms-3">
                                                 <div className="ranking-title">{item.title}</div>
-                                                <div className="ranking-author">{item.creator}</div>
+                                                <div className="ranking-author">{item.penName}({showAccount(item.creator)})</div>
                                                 <p className="ranking-description">{item.description}</p>
                                             </div>
                                     </ListGroup.Item>
@@ -242,18 +295,26 @@ const RankingList = () => {
                             ))}
                         </ListGroup>
                     </Tab>
-                    <Tab eventKey="purchaseRank" title={t('暢銷榜')}>
+                    <Tab 
+                        eventKey="purchaseRank" 
+                        title={
+                            <TooltipWrapper text={tooltips.purchaseRank}>
+                                <div>{t('暢銷榜')}</div>
+                            </TooltipWrapper>
+                        }
+                    >
                         <ListGroup>
                             {purRank.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`} key={index}>
                                     <ListGroup.Item className="d-flex align-items-center ranking-list">
                                         <span className="ranking-badge">{index + 1}</span>
-                                        <div className="ranking-image">
+                                        <div className="ranking-image ranking-thumbnail-position">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
+                                            <div className="rankingList-overlay">{item.totBuy}</div>
                                         </div>
                                         <div className="ranking-card-info ms-3">
                                             <div className="ranking-title">{item.title}</div>
-                                            <div className="ranking-author">{item.creator}</div>
+                                            <div className="ranking-author">{item.penName}({showAccount(item.creator)})</div>
                                             <p className="ranking-description">{item.description}</p>
                                         </div>
                                     </ListGroup.Item>
@@ -261,18 +322,26 @@ const RankingList = () => {
                             ))}
                         </ListGroup>
                     </Tab>
-                    <Tab eventKey="favoriteRank" title={t('愛心榜')}>
+                    <Tab 
+                        eventKey="favoriteRank" 
+                        title={
+                            <TooltipWrapper text={tooltips.favoriteRank}>
+                                <div>{t('愛心榜')}</div>
+                            </TooltipWrapper>
+                        }
+                    >
                         <ListGroup>
                             {favRank.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`} key={index}>
                                     <ListGroup.Item className="d-flex align-items-center ranking-list">
                                         <span className="ranking-badge">{index + 1}</span>
-                                        <div className="ranking-image">
+                                        <div className="ranking-image ranking-thumbnail-position">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
+                                            <div className="rankingList-overlay">{item.totHearts}</div>
                                         </div>
                                         <div className="ranking-card-info ms-3">
                                             <div className="ranking-title">{item.title}</div>
-                                            <div className="ranking-author">{item.creator}</div>
+                                            <div className="ranking-author">{item.penName}({showAccount(item.creator)})</div>
                                             <p className="ranking-description">{item.description}</p>
                                         </div>
                                     </ListGroup.Item>
@@ -280,18 +349,26 @@ const RankingList = () => {
                             ))}
                         </ListGroup>
                     </Tab>
-                    <Tab eventKey="weekRank" title={t('週排行')}>
+                    <Tab 
+                        eventKey="weekRank" 
+                        title={
+                            <TooltipWrapper text={tooltips.weekRank}>
+                                <div>{t('週排行')}</div>
+                            </TooltipWrapper>
+                        }
+                    >
                         <ListGroup>
                             {weekData.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`} key={index}>
                                     <ListGroup.Item className="d-flex align-items-center ranking-list">
                                         <span className="ranking-badge">{index + 1}</span>
-                                        <div className="ranking-image">
+                                        <div className="ranking-image ranking-thumbnail-position">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
+                                            <div className="rankingList-overlay">{item.totBuy}</div>
                                         </div>
                                         <div className="ranking-card-info ms-3">
                                             <div className="ranking-title">{item.title}</div>
-                                            <div className="ranking-author">{item.creator}</div>
+                                            <div className="ranking-author">{item.penName}({showAccount(item.creator)})</div>
                                             <p className="ranking-description">{item.description}</p>
                                         </div>
                                     </ListGroup.Item>
@@ -299,18 +376,26 @@ const RankingList = () => {
                             ))}
                         </ListGroup>
                     </Tab>
-                    <Tab eventKey="newRank" title={t('新上市')}>
+                    <Tab 
+                        eventKey="newRank" 
+                        title={
+                            <TooltipWrapper text={tooltips.newRank}>
+                                <div>{t('新上市')}</div>
+                            </TooltipWrapper>
+                        }
+                    >
                         <ListGroup>
                             {newData.map((item, index) => (
                                 <Link to={`/comicDetail/${item.comicID}`} key={index}>
                                     <ListGroup.Item className="d-flex align-items-center ranking-list">
                                         <span className="ranking-badge">{index + 1}</span>
-                                        <div className="ranking-image">
+                                        <div className="ranking-image ranking-thumbnail-position">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
+                                            <div className="rankingList-createTime">{item.date}</div>
                                         </div>
                                         <div className="ranking-card-info ms-3">
                                             <div className="ranking-title">{item.title}</div>
-                                            <div className="ranking-author">{item.creator}</div>
+                                            <div className="ranking-author">{item.penName}({showAccount(item.creator)})</div>
                                             <p className="ranking-description">{item.description}</p>
                                         </div>
                                     </ListGroup.Item>

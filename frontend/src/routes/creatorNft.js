@@ -39,12 +39,12 @@ function CreatorNft() {
 
         nftData.forEach(item => {
             const descTitle = parseAuthorizations(item.description);
-            const firstName = descTitle[0]?.name || '';
             const keyData = `${item.comicHash}-${item.price}-${item.royalty}-${item.description || ""}`;
+            const lastPriceValue = Object.values(item.price).pop();
             allRecord.push({
                 ...item,
-                firstName,
                 keyData,
+                price: lastPriceValue
             });
             if (!comicStats[keyData]) {
                 comicStats[keyData] = { tot: 0, sale: 0 };
@@ -59,10 +59,10 @@ function CreatorNft() {
                 const secondLastKey = keys[keys.length - 2] || null; // 如果没有倒数第二个键，设置为 null
                 const lastValue = parseFloat(item.price[lastKey]);
                 let total = 0;
-                if (item.forSale === 0) {
-                    if (lastKey === '1') {
+                if (item.forSale === 0) {  // 已售
+                    if (lastKey === '1') {  // 只賣一個(首賣)
                         total = parseFloat(item.price[lastKey]) * price;
-                    } else {
+                    } else {  // 賣一個以上(首賣&轉手)
                         total += parseFloat(item.price[keys[0]]) * price;
                         for (const key of keys) {
                             if (key !== keys[0]) { // 跳过第一个键
@@ -70,10 +70,10 @@ function CreatorNft() {
                             }
                         }
                     }
-                } else if (item.forSale === 1) {
-                    if (secondLastKey) {
-                        total += parseFloat(item.price[keys[0]]) * price;
-                        for (const key of keys.slice(1, -1)) { // 从第二个键到倒数第二个键
+                } else if (item.forSale === 1) {  // 未售
+                    if (secondLastKey) {  // 存在第二筆價格
+                        total += parseFloat(item.price[keys[0]]) * price;  // 首賣
+                        for (const key of keys.slice(1, -1)) { // 从第二筆到倒数第二筆，最後一筆未售，不用加
                             total += parseFloat(item.price[key]) * (item.royalty / 100);
                         }
                     }
@@ -98,11 +98,19 @@ function CreatorNft() {
             }
         });
         const fetchImage = async (data) => {
-            const url = data.protoFilename === 1
-                ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
-                : `${website}/api/comicIMG/${data.filename}`;
-            const response = await axios.get(url, { responseType: 'blob', headers });
-            data.image = URL.createObjectURL(response.data);
+            const nftImgResponse = await axios.get(`${website}/api/nftIMG/${data.comicHash}/${data.tokenId}`, {
+                responseType: 'blob',
+                headers,
+              });
+              if (nftImgResponse.data.type === 'image/jpeg') {
+                data.image = URL.createObjectURL(nftImgResponse.data);
+              } else {
+                const url = data.protoFilename === 1
+                  ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
+                  : `${website}/api/comicIMG/${data.filename}`;
+                const coverImgResponse = await axios.get(url, { responseType: 'blob', headers });
+                data.image = URL.createObjectURL(coverImgResponse.data);
+            }
         };
         await Promise.all(currentComic.map(fetchImage));
 
@@ -224,11 +232,12 @@ function CreatorNft() {
                                 <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                     <Card className="effect-image-1">
                                         <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                        <div className="creatorNft-overlay">{data.saleQty}/{data.totQty}
-                                            <span>{data.firstName}</span>
+                                        <div className="creatorNft-overlay">
+                                            <span>{data.saleQty}/{data.totQty}</span>
+                                            <span>$ {data.price}</span>
                                         </div>
                                         <Card.Body className="simple-text">
-                                            <Card.Text className="creatorNft-text">{data.title}</Card.Text>
+                                            <Card.Text className="creatorNft-text">{data.tokenTitle}</Card.Text>
                                         </Card.Body>
                                     </Card>
                                 </Link>

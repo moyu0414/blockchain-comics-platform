@@ -4,7 +4,6 @@ import { Container, Card, Col, Row } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel } from 'react-bootstrap-icons';
 import { useTranslation } from 'react-i18next';
-import i18n from '../i18n';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -31,7 +30,7 @@ function CollectionPage() {
             try {
                 const storedArray = JSON.parse(storedArrayJSON);
                 const temp = storedArray
-                    .filter(item => item.is_exist === 1 && collectComicSet.has(item.comic_id))
+                    .filter(item => item.is_exist === 0 && collectComicSet.has(item.comic_id))
                     .map(async item => {
                         try {
                             const imageResponse = await axios.get(`${website}/api/comicIMG/${item.filename}`, { responseType: 'blob', headers });

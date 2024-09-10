@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
-import {  Container, Table, Button, Form, Tabs, Tab, InputGroup, FormControl} from 'react-bootstrap';
+import {  Container, Table, Button, Form, Tabs, Tab, InputGroup, FormControl, Modal} from 'react-bootstrap';
 import { PlusLg, TrashFill, Search } from 'react-bootstrap-icons';
+import { message } from 'antd';
 import { disableAllButtons, enableAllButtons } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -17,15 +18,32 @@ const ComicManagement = ({ contractAddress }) => {
   const [meta, setMeta] = useState('');
   const [current, setCurrent] = useState([]);
   const [admin, setAdmin] = useState(false);
+  const [account, setAccount] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [web3Instance, setWeb3Instance] = useState('');
+  const [showUser, setShowUser] = useState(false);
+  const [deleteUser, setDeleteUser] = useState('');
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [userSearchResults, setUserSearchResults] = useState([]);
+  const [modalState, setModalState] = useState({
+    show: false,
+    isConfirm: false,
+    action: null,
+    data: null
+  });
+
   const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
   const headers = {'api-key': API_KEY};
+  const statusMap = {
+    0: t('刪除'),
+    1: t('查核'),
+    2: t('盜版')
+  };
   let modifiedArray = [];
 
   useEffect(() => {
@@ -47,11 +65,33 @@ const ComicManagement = ({ contractAddress }) => {
             const meta = await contractInstance.methods;
             setMeta(meta);
 
-            setAdmin(isAdmin.address);
+            const adminAddresses = isAdmin.address
+                .filter(user => user.is_admin === 1)
+                .map(user => user.address);
+            if (adminAddresses.length > 0) {
+              setAdmin(adminAddresses);
+            }
+
+            const addresses = isAdmin.address
+            .map(user => ({
+              address: user.address,
+              is_creator: getCreatorStatus(user.is_creator)
+            }))
+            .sort((a, b) => {
+              if (a.is_creator === '審核') return -1;
+              if (b.is_creator === '審核') return 1;
+              return 0;
+            });
+            if (addresses.length > 0) {
+              setAccount(addresses);
+              setUserSearchResults(addresses);
+            }
+            //console.log(addresses);
+
             let storedArray = JSON.parse(storedArrayJSON);
             setStoredArray(storedArray);
             for (let i = 0; i < storedArray.length; i++) {
-              let status = storedArray[i].is_exist === 1 ? t('刪除') : t('復原');  // 根据 exists 属性决定要添加的状态
+              const status = statusMap[storedArray[i].is_exist];
               modifiedArray.push({
                 title: storedArray[i].title,
                 author: storedArray[i].creator,
@@ -67,7 +107,7 @@ const ComicManagement = ({ contractAddress }) => {
             console.error(error);
           }
         } else {
-          alert(t('您並非管理者'));
+          message.info(t('您並非管理者'));
           return;
         }
       } catch (error) {
@@ -83,26 +123,127 @@ const ComicManagement = ({ contractAddress }) => {
     }
   }, []);
 
+  const getCreatorStatus = (status) => {
+    const statusMap = {
+      0: '否',
+      1: '是',
+      2: '審核',
+      3: '禁用'
+    };
+    return statusMap[status] || '否';
+  };
+
   // 漫畫刪除 或 復原函數
-  const handleToggle = async (comicHash, exists) => {
+  const handleToggle = async (comicHash, exists, creator) => {
+    console.log(exists);
     disableAllButtons();
-    if (exists === t('刪除')) {
+    if (exists === 2) {  // 漫畫是盜版
       try{
-        await meta.toggleComicExistence(comicHash).send({ from: currentAccount });
+        const response = await axios.get(`${website}/api/comicManagement/totalCost`, {
+          headers: headers,
+          params: {
+            comicHash: comicHash
+          }
+        });
+        //console.log(response.data);
+        const totalCost = web3Instance.utils.toWei(response.data, 'ether');
+        console.log(totalCost);
+
+        await meta.toggleComicExistence(comicHash, 2).send({ from: currentAccount, value: totalCost });
         await axios.put(`${website}/api/update/comicExist`, null, {
           headers: headers,
           params: {
             comicHash: comicHash,
-            is_exist: 0
+            is_exist: 2
           },
         });
         const updatedComics = searchResults.map(comic =>
           comic.hash === comicHash
-            ? { ...comic, exists: t('復原') }
+            ? { ...comic, exists: t('盜版') }
             : comic
         );
         setSearchResults(updatedComics);
-        alert(t('漫畫刪除成功'));
+        message.info(t('漫畫刪除成功'));
+        const updatedArray = storedArray.map(item =>
+          item.comic_id === comicHash
+            ? { ...item, is_exist: 2 }
+            : item
+        );
+        const updatedArrayJSON = JSON.stringify(updatedArray);
+        localStorage.setItem('comicDatas', updatedArrayJSON);
+      } catch (error) {
+        if (error.message.includes('User denied transaction signature')) {
+          message.info(t('拒绝交易'));
+        } else {
+          console.error('漫畫刪除時發生錯誤：', error);
+          alert(error);
+        }
+      } finally {
+        enableAllButtons();
+        handleHide();
+      }
+    } else if (exists === 1) {  // 漫畫審核中
+        try{
+          const response = await axios.get(`${website}/api/comicManagement/totalCost`, {
+            headers: headers,
+            params: {
+              comicHash: comicHash
+            }
+          });
+          //console.log(response.data);
+          const totalCost = web3Instance.utils.toWei(response.data, 'ether');
+          console.log(totalCost);
+
+          await meta.toggleComicExistence(comicHash, 1).send({ from: currentAccount });
+          await axios.put(`${website}/api/update/comicExist`, null, {
+            headers: headers,
+            params: {
+              comicHash: comicHash,
+              is_exist: 1
+            },
+          });
+          const updatedComics = searchResults.map(comic =>
+            comic.hash === comicHash
+              ? { ...comic, exists: t('查核') }
+              : comic
+          );
+          setSearchResults(updatedComics);
+          message.info(t('漫畫查核中'));
+          const updatedArray = storedArray.map(item =>
+            item.comic_id === comicHash
+              ? { ...item, is_exist: 1 }
+              : item
+          );
+          const updatedArrayJSON = JSON.stringify(updatedArray);
+          localStorage.setItem('comicDatas', updatedArrayJSON);
+        } catch (error) {
+          if (error.message.includes('User denied transaction signature')) {
+            message.info(t('拒绝交易'));
+          } else {
+            console.error('漫畫狀態變更發生錯誤：', error);
+            alert(error);
+          }
+        } finally {
+          enableAllButtons();
+          handleHide();
+        }
+    } else {  // 漫畫存在
+      try{
+        await meta.toggleComicExistence(comicHash, 0).send({ from: currentAccount });
+        await axios.put(`${website}/api/update/comicExist`, null, {
+          headers: headers,
+          params: {
+            comicHash: comicHash,
+            is_exist: 0,
+          },
+        });
+        const updatedComics = searchResults.map(comic =>
+          comic.hash === comicHash
+            ? { ...comic, exists: t('刪除') }
+            : comic
+        );
+        setSearchResults(updatedComics);
+        message.info(t('漫畫復原成功'));
         const updatedArray = storedArray.map(item =>
           item.comic_id === comicHash
             ? { ...item, is_exist: 0 }
@@ -112,51 +253,69 @@ const ComicManagement = ({ contractAddress }) => {
         localStorage.setItem('comicDatas', updatedArrayJSON);
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
-          alert(t('拒绝交易'));
-        } else {
-          console.error('漫畫刪除時發生錯誤：', error);
-          alert(error);
-        }
-      } finally {
-        enableAllButtons();
-      }
-    } else {
-      try{
-        await meta.toggleComicExistence(comicHash).send({ from: currentAccount });
-        await axios.put(`${website}/api/update/comicExist`, null, {
-          headers: headers,
-          params: {
-            comicHash: comicHash,
-            is_exist: 1,
-          },
-        });
-        const updatedComics = searchResults.map(comic =>
-          comic.hash === comicHash
-            ? { ...comic, exists: t('刪除') }
-            : comic
-        );
-        setSearchResults(updatedComics);
-        alert(t('漫畫復原成功'));
-        const updatedArray = storedArray.map(item =>
-          item.comic_id === comicHash
-            ? { ...item, is_exist: 1 }
-            : item
-        );
-        const updatedArrayJSON = JSON.stringify(updatedArray);
-        localStorage.setItem('comicDatas', updatedArrayJSON);
-      } catch (error) {
-        if (error.message.includes('User denied transaction signature')) {
-          alert(t('拒绝交易'));
+          message.info(t('拒绝交易'));
         } else {
           console.error('漫畫復原時發生錯誤：', error);
           alert(error);
         }
       } finally {
         enableAllButtons();
+        handleHide();
       }
     } 
   };
 
+  const handleShow = (data, isConfirm = false) => {
+    setModalState({
+      show: true,
+      isConfirm,
+      action: isConfirm ? 'delete' : null,
+      data
+    });
+  };
+
+  const handleHide = () => setModalState(prevState => ({ ...prevState, show: false }));
+
+  const handleConfirm = () => {
+    if (modalState.data && modalState.action === 'delete') {
+      handleToggle(modalState.data.hash, 2, modalState.data.creator);
+    } else if (modalState.data && modalState.action === 'review') {
+      handleToggle(modalState.data.hash, 1);
+    }
+  };
+
+  const renderButtons = () => {
+    if (!modalState.data) return null;
+    const { exists, hash, creator } = modalState.data;
+    switch (exists) {
+      case t('刪除'):
+        return (
+          <>
+            <Button className="mt-3 del-btn" onClick={() => handleShow(modalState.data, true)}>
+              {t('刪除')}
+            </Button>
+            <Button className="mt-3 war-btn" onClick={() => handleToggle(hash, 1)}>
+              {t('待查核')}
+            </Button>
+          </>
+        );
+      //case t('盜版'):
+      case t('查核'):
+        return (
+          <>
+            <Button className="mt-3 return-btn" onClick={() => handleToggle(hash, 0)}>
+              {t('復原')}
+            </Button>
+            <Button className="mt-3 del-btn" onClick={() => handleToggle(hash, 2)}>
+              {t('刪除')}
+            </Button>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+  
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
   };
@@ -169,14 +328,14 @@ const ComicManagement = ({ contractAddress }) => {
     disableAllButtons();
     let address = web3Instance.utils.isAddress(inputValue);
     if (!address) {
-      alert(t('請輸入有效的帳號'));
+      message.info(t('請輸入有效的帳號'));
       enableAllButtons();
       return;
     }
     try{
-      const admins = admin.some(adminItem => adminItem.address === inputValue);
+      const admins = admin.some(adminItem => adminItem === inputValue);
       if (admins == true) {
-        alert(t('此帳號已是管理者'));
+        message.info(t('此帳號已是管理者'));
       } else {
         await meta.addAdmin(inputValue).send({ from: currentAccount });
         
@@ -186,12 +345,12 @@ const ComicManagement = ({ contractAddress }) => {
             address: inputValue,
           },
         });
-        alert(t('管理者新增成功'));
+        message.info(t('管理者新增成功'));
         window.location.reload();
       }
     } catch (error) {
       if (error.message.includes('User denied transaction signature')) {
-        alert(t('拒绝交易'));
+        message.info(t('拒绝交易'));
       } else {
         console.error('管理者新增時發生錯誤：', error);
         alert(error);
@@ -203,11 +362,11 @@ const ComicManagement = ({ contractAddress }) => {
 
   const removeAdmin = async (address) => {
     disableAllButtons();
-    const admins = admin.some(adminItem => adminItem.address === address);
+    const admins = admin.some(adminItem => adminItem === address);
     try{
       let admins = await meta.admins(address).call();
       if (admins == false) {
-        alert(t('此帳號並非管理者，所以不用刪除'));
+        message.info(t('此帳號並非管理者，所以不用刪除'));
       } else {
         await meta.removeAdmin(address).send({ from: currentAccount });
 
@@ -217,12 +376,12 @@ const ComicManagement = ({ contractAddress }) => {
             address: address,
           },
         });
-        alert(t('管理者刪除成功'));
+        message.info(t('管理者刪除成功'));
         window.location.reload();
       }
     } catch (error) {
       if (error.message.includes('User denied transaction signature')) {
-        alert(t('拒绝交易'));
+        message.info(t('拒绝交易'));
       } else {
         console.error('管理者刪除時發生錯誤：', error);
         alert(error);
@@ -253,13 +412,112 @@ const ComicManagement = ({ contractAddress }) => {
   };
 
   
+  const accountChange = async (address, state) => {
+    disableAllButtons();
+    if (state === t('否') || state === t('禁用')) {
+      enableAllButtons();
+      return;
+    } else if (state === t('審核')) {
+      try{
+        await meta.addCreator(address).send({from: currentAccount});
+        
+        const response = await axios.put(`${website}/api/update/userAccount`, null, {
+          headers: headers,
+          params: {
+            address: address,
+            state: 1
+          },
+        });
+        message.info(t('創作者驗證成功'));
+        window.location.reload();
+      } catch (error) {
+        if (error.message.includes('User denied transaction signature')) {
+          message.info(t('拒绝交易'));
+        } else {
+          console.error('創作者驗證錯誤：', error);
+          alert(error);
+        }
+      }
+    } else if (state === t('是')) {
+      setShowUser(true);
+      setDeleteUser(address);
+    }
+    enableAllButtons();
+  };
+
+
+  const getButtonClass = (state) => {
+    switch (state) {
+      case t('否'):
+        return 'cancel-btn'; // 灰色
+      case t('禁用'):
+        return 'del-btn'; // 深灰色
+      case t('審核'):
+        return 'war-btn'; // 黃色
+      case t('是'):
+        return 'pri-btn'; // 綠色
+    }
+  };
+
+  const handleClose = () => {
+    setShowUser(false);
+    setDeleteUser(null);
+  };
+
+  const userDeleteConfirm = async () => {
+    if (deleteUser !== null) {
+      try{
+        disableAllButtons();
+        await meta.removeCreator(deleteUser).send({from: currentAccount});
+        
+        const response = await axios.put(`${website}/api/update/userAccount`, null, {
+          headers: headers,
+          params: {
+            address: deleteUser,
+            state: 3
+          },
+        });
+        message.info(t('創作者已刪除'));
+        window.location.reload();
+      } catch (error) {
+        if (error.message.includes('User denied transaction signature')) {
+          message.info(t('拒绝交易'));
+        } else {
+          console.error('創作者刪除錯誤：', error);
+          alert(error);
+        }
+      } finally {
+        enableAllButtons();
+        setShowUser(false);
+        setDeleteUser(null);
+      }
+    }
+  };
+
+  const userSearchSubmit = async (event) => {
+    event.preventDefault();
+    if (userSearchTerm.trim() === '') {
+      setUserSearchResults(account);
+      return;
+    }
+    const results = account.filter(item => 
+      item.address.includes(userSearchTerm)
+    );
+    setUserSearchResults(results);
+  };
+
+  const userSearchChange = (event) => {
+    setUserSearchTerm(event.target.value);
+  };
+
+  
   return (
     <>
     {!loading && (
       <Container className="comicManagement mt-4">
         <div className="table-wrapper">
-          <Tabs defaultActiveKey="tab1" id="tabs" className="mb-3">
-            <Tab eventKey="tab1" title={t('管理員')}>
+          <Tabs defaultActiveKey="admin" id="tabs" className="mb-3">
+            <Tab eventKey="admin" title={t('管理員')}>
               <Form className="d-flex ms-3">
                 <InputGroup>
                   <FormControl
@@ -292,9 +550,9 @@ const ComicManagement = ({ contractAddress }) => {
                     <tr key={index}>
                       <th></th>
                       <th>{index + 1}</th>
-                      <td className="address-cell">{data.address}</td>
-                      <td className="text-end">
-                        <Button onClick={() => removeAdmin(data.address)} className='del-btn' variant="outline-danger" data-backgroundcolor="#0FC2C0">
+                      <td data-label="帳號" className="address-cell">{data}</td>
+                      <td data-label="狀態" className="text-end">
+                        <Button onClick={() => removeAdmin(data)} className='del-btn' variant="outline-danger" data-backgroundcolor="#0FC2C0">
                           <TrashFill title="Delete" /> <span className="del-text">{t('刪除')}</span>
                         </Button>
                       </td>
@@ -303,7 +561,7 @@ const ComicManagement = ({ contractAddress }) => {
                 </tbody>
               </Table>
             </Tab>
-            <Tab eventKey="tab2" title={t('漫畫')}>
+            <Tab eventKey="comic" title={t('漫畫')}>
               <Form onSubmit={handleSearchSubmit} className="d-flex ms-3">
                   <InputGroup>
                       <FormControl
@@ -324,7 +582,7 @@ const ComicManagement = ({ contractAddress }) => {
                   <tr>
                     <th></th>
                     <th>#</th>
-                    <th>{t('漫畫標題')}</th>
+                    <th>{t('漫畫')}</th>
                     <th>{t('作者')}</th>
                     {!isMobile &&
                       <td>
@@ -342,23 +600,65 @@ const ComicManagement = ({ contractAddress }) => {
                         style={{ cursor: 'pointer' }}
                       >
                         <th></th>
-                        <th>{index + 1}</th>
-                        <td>{data.title}</td>
-                        <td className="author-cell">{data.author}</td>
+                        <th data-label="ID">{index + 1}</th>
+                        <td data-label="漫畫">{data.title}</td>
+                        <td data-label="作者" className="author-cell">{data.author}</td>
                         {!isMobile &&
-                          <td>
+                          <td data-label="漫畫Hash">
                             {data.hash}
                           </td>
                         }
-                        <td className="text-end">
+                        <td data-label="狀態" className="text-end">
                           <Button
-                            onClick={() => handleToggle(data.hash, data.exists)}
-                            className='del-btn-comic btn'
+                            onClick={() => handleShow(data)}
+                            className={`btn ${
+                              data.exists === t('刪除') ? 'del-btn' :
+                              data.exists === t('查核') ? 'war-btn' :
+                              data.exists === t('盜版') ? 'piracy' : ''
+                            }`}
                             variant="outline-danger"
                             data-backgroundcolor="#0FC2C0"
+                            disabled={data.exists === t('盜版')}
                           >
                             {data.exists}
                           </Button>
+                          <Modal
+                            show={modalState.show}
+                            onHide={handleHide}
+                            dialogClassName="custom-modal-content"
+                          >
+                            <Modal.Header>
+                              <Modal.Title>{modalState.isConfirm ? t('確定是盜版') : t('漫畫狀態')}</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                              {!modalState.isConfirm && modalState.data && (
+                                <Form.Label style={{fontSize: "18px"}}>
+                                  {modalState.data.title}
+                                </Form.Label>
+                              )}
+                              {modalState.isConfirm ? (
+                                <Form.Label>{t('漫畫確定是盜版，刪除後將無法復原，並進行退款。')}</Form.Label>
+                              ) : (
+                                  renderButtons()
+                              )}
+                            </Modal.Body>
+                            <Modal.Footer className="custom-modal-footer">
+                              {modalState.isConfirm ? (
+                                <>
+                                  <Button className='pri-btn' onClick={handleConfirm}>
+                                    {t('確定')}
+                                  </Button>
+                                  <Button className='cancel-btn' onClick={handleHide}>
+                                    {t('取消')}
+                                  </Button>
+                                </>
+                              ) : (
+                                <Button className="mt-3 cancel-btn" onClick={handleHide}>
+                                  {t('取消')}
+                                </Button>
+                              )}
+                            </Modal.Footer>
+                          </Modal>
                         </td>
                       </tr>
                       {/* Only shown on small screens when a row is selected */}
@@ -375,6 +675,66 @@ const ComicManagement = ({ contractAddress }) => {
                       )}
                     </React.Fragment>
                   ))}
+                </tbody>
+              </Table>
+            </Tab>
+            <Tab eventKey="isCreator" title={t('使用者')}>
+              <Form onSubmit={userSearchSubmit} className="d-flex ms-3">
+                <InputGroup>
+                    <FormControl
+                        placeholder={t('請輸入帳號')}
+                        aria-label="Search"
+                        aria-describedby="basic-addon2"
+                        value={userSearchTerm}
+                        onChange={userSearchChange}
+                    />
+                </InputGroup>
+              </Form>
+              <div className="table-title mt-3 mb-3 d-flex justify-content-between align-items-center">
+                <h2><b>{t('使用者帳號管理')}</b></h2>
+                <Search onClick={userSearchSubmit} className="comicManagement-search" />
+              </div>
+              <Table striped hover>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>#</th>
+                    <th>{t('帳號')}</th>
+                    <th className="text-end">{t('創作者身分')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {userSearchResults.map((data, index) => (
+                    <tr key={index}>
+                      <th data-label="編號"></th>
+                      <th data-label="編號">{index + 1}</th>
+                      <td data-label="帳號" className="address-cell">{data.address}</td>
+                      <td data-label="創作者身分" className="text-end">
+                        <Button 
+                          onClick={() => accountChange(data.address, data.is_creator)} 
+                          className={`del-btn ${getButtonClass(data.is_creator)}`} 
+                          data-backgroundcolor="#0FC2C0"
+                        >
+                          {data.is_creator}
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                  {showUser && (
+                    <Modal show={showUser} onHide={handleClose} dialogClassName="custom-modal-content">
+                        <Modal.Body>
+                            <h3>禁用創作者帳號</h3>
+                        </Modal.Body>
+                        <Modal.Footer className="custom-modal-footer">
+                            <Button className='pri-btn' onClick={userDeleteConfirm}>
+                                確定
+                            </Button>
+                            <Button className='cancel-btn' onClick={handleClose}>
+                                取消
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+                  )}
                 </tbody>
               </Table>
             </Tab>

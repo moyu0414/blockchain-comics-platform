@@ -48,10 +48,10 @@ function Category() {
             let rewind = getTranslationKey(currentCategory, language);
             setRewind(rewind);
             for (var i = 0; i < storedArray.length; i++) {
-                if (storedArray[i].is_exist == 1 && storedArray[i].category == rewind) {
+                if (storedArray[i].is_exist == 0 && storedArray[i].category == rewind) {
                     const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
                     const image = URL.createObjectURL(imageResponse.data);
-                    fetchedData.push({ comicHash: storedArray[i].comic_id, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, category: storedArray[i].category, image: image});
+                    fetchedData.push({ comicHash: storedArray[i].comic_id, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, category: storedArray[i].category, image: image, penName: storedArray[i].penName});
                 }
             };
             const categoryCounts = {};
@@ -218,7 +218,7 @@ function Category() {
         <>
             {!loading &&
                 <Container className='homepage'>
-                    <Row className="pt-5 pb-5 btn-container">
+                    <Row className="pt-3 pb-2 btn-container">
                         {buttonData.map((label, idx) => (
                             <Col key={idx} xs={2} md={3} lg={1} className="pb-3 btn-section">
                                 <Button variant="outline-dark" className="custom-button" onClick={() => handleCategoryClick(t(label))}>{t(label)}</Button>
@@ -254,20 +254,26 @@ function Category() {
                             <>
                                 <Row xs={1} md={2} className="g-4 pb-5">
                                     {current.map((data, idx) => (
-                                        <Col key={idx} xs={6} md={6} className="pt-3">
-                                            <Card>
+                                        <Col key={idx} xs={6} md={6}>
+                                            <Card className="ranking-thumbnail-position">
                                                 <Link to={`/comicDetail/${current[idx].comicID}`}>
                                                     <Card.Img variant="top" src={data.image} />
-                                                    <div className="category-totcount">
+                                                    <div className="homepage-penName">
+                                                        {data.penName}<br />
                                                         <CartFill style={{ marginRight: '5px' }} />
-                                                        {data.totBuy}<br />
-                                                        <HeartFill style={{ marginRight: '5px' }} />
+                                                        {data.totBuy}
+                                                        <HeartFill style={{ marginLeft: "5px",marginRight: '5px' }} />
                                                         {data.totHearts}
+                                                    </div>
+                                                    <div className="card-overlay">
+                                                        <h5 style={{marginTop: "15px"}}>{data.title}</h5>
+                                                        <p className="card-overlay-penName">{data.penName}</p>
+                                                        <hr />
+                                                        <p>{data.text}</p>
                                                     </div>
                                                 </Link>
                                                 <Card.Body>
                                                     <Card.Title className='fw-bold'>{data.title}</Card.Title>
-                                                    <Card.Text className='text-secondary'>{truncateText(data.text, 20)}</Card.Text>
                                                 </Card.Body>
                                             </Card>
                                         </Col>

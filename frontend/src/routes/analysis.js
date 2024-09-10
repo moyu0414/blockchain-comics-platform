@@ -17,7 +17,6 @@ function Analysis() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // 每頁顯示的收益數量
     const headers = {'api-key': API_KEY};
-    let analysisArray = [];
 
     const initData = async () => {
         try {
@@ -29,21 +28,19 @@ function Analysis() {
             });
             let analysis = response.data;
             sortByDatetime(analysis);
-
-            for (var n = 0; n < analysis.length; n++) {
-                let date = formatDate(new Date(analysis[n].purchase_date));
-                let time = formatTime(new Date(analysis[n].purchase_date));
-                let chapterPrice = analysis[n].price;
-                let income = (chapterPrice * 0.9).toFixed(3);  // 四捨五入取到小數點第3位
-                analysisArray.push({
-                  title: analysis[n].comicTitle + " / " + analysis[n].chapterTitle,
-                  date: date,
-                  time: time,
-                  income: income
-                });
-              };
-              console.log(analysisArray);
-              setCreatorLogArray(analysisArray);
+            const comicOrigin = analysis.map(item => {
+                const date = formatDate(new Date(item.purchase_date));
+                const time = formatTime(new Date(item.purchase_date));
+                const income = (item.price * 0.9).toFixed(3);
+                return {
+                  title: `${item.comicTitle} / ${item.chapterTitle}`,
+                  date,
+                  time,
+                  income,
+                };
+              });
+              console.log(comicOrigin);
+              setCreatorLogArray(comicOrigin);
         } catch (error) {
             console.error('Error fetching records:', error);
         }

@@ -269,6 +269,36 @@ span {
   border: none;
 }
 
+@media only screen and (max-width: 1000px) {
+  .homepage .card-img-top{
+    height: 15rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 14rem!important;
+  }
+
+  .comicDetail .comicDetail-createTime {
+    height: 25px!important;
+    font-size: 1rem!important; 
+  }
+
+  .homepage-penName {
+    top: -60px!important;
+    height: 60px!important;
+    padding: 5px!important;
+    font-size: 1.1rem!important; 
+  }
+
+  .homepage .card-body{
+    margin-top: 15px;
+  }
+
+  .manageComic .manageComic-overlay { 
+    margin-left: -3px!important;
+  }
+}
+
 @media only screen and (max-width: 768px) {
   .upload-form{
     padding: 8% 5%;
@@ -290,6 +320,7 @@ span {
   }
 
 }
+
 
 @media only screen and (max-width: 500px) {
   .step-item .step-line::after{
@@ -317,9 +348,29 @@ span {
     text-overflow: ellipsis;
   }
 
+  .homepage-penName {
+    top: -50px!important;
+    height: 50px!important;
+    padding: 1px!important;
+    font-size: 0.95rem!important; 
+  }
+
+  .homepage .card-body{
+    margin-top: 30px!important;
+  }
+
   .comicDetail .text-secondary{
     max-width: 340px;
     overflow-wrap: break-word;
+  }
+
+  .comicDetail .address{
+    font-size: 12px;
+    margin-left: 5px;
+  }
+
+  .comicDetail .card-body{
+    margin-bottom: -20px;
   }
 
   .nftDetail-text-secondary{
@@ -360,31 +411,39 @@ span {
   }
 
   .creatorNft-text {
-    font-size: 0.9rem;
+    font-size: 1rem!important;
   }
 
   .creatorNft .creatorNft-overlay {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     padding: 2px 6px; 
-    bottom: 35px;
+    bottom: 38px;
   }
 
-  .creatorNft .creatorNft-overlay span {
-    margin-left: 5px;
+  .collectionNft-overlay {
+    font-size: 1rem!important;
+    padding: 2px 6px!important; 
+    bottom: 38px!important;
   }
 
   .nftMarket .nftMarket-overlay {
-    font-size: 0.9rem!important;
-    padding: 3px 6px!important; 
-    bottom: 40px!important;
+    bottom: 64px!important;
   }
 
-  .nftMarket .nftMarket-overlay span {
-    margin-left: 5px;
+  .nftMarket-authorization{
+    display: block!important;
   }
   
   .nftMarket-text {
-    font-size: 1.1rem!important;
+    font-size: 1rem!important;
+  }
+
+  .nftMarket-modal .table>:not(caption)>*>*{
+    border: none;
+  }
+
+  .nftMarket-modal .modal-img{
+    width: 100%!important;
   }
 
   .simple-text {
@@ -399,6 +458,15 @@ span {
   .navbar-center {
     font-size: 1.3rem!important;
   }
+  
+  .flip-comic img {
+    width: 100%!important; 
+  }
+
+  .ranking-author {
+    max-width: 210px!important;
+  }
+
 }
 
 @media only screen and (max-width: 400px) {
@@ -419,6 +487,11 @@ span {
     max-width: 310px;
   }
 
+  .comicDetail .card-body{
+    margin-top: -5px;
+    margin-bottom: -30px;
+  }
+
   .overlay-author-title {
     max-width: 250px;
   }
@@ -437,17 +510,23 @@ span {
   }
 
   .creatorNft-text {
-    font-size: 0.85rem!important;
+    font-size: 0.9rem!important;
   }
 
   .creatorNft .creatorNft-overlay {
     font-size: 0.7rem;
-    padding: 1px 3px; 
+    padding: 1px 0; 
+    bottom: 35px;
+  }
+
+  .collectionNft-overlay {
+    font-size: 0.8rem!important;
+    padding: 1px 0!important; 
+    bottom: 35px!important;
   }
 
   .nftMarket .nftMarket-overlay {
-    font-size: 0.8rem!important;
-    bottom: 39px!important;
+    font-size: 0.95rem!important;
   }
   
   .nftMarket-text {
@@ -461,6 +540,28 @@ span {
 
   .comicRead-btn {
     max-width: 80%!important;
+  }
+
+  .ranking-author {
+    max-width: 180px!important;
+  }
+
+  .homepage-penName {
+    top: -44px!important;
+    height: 44px!important;
+    font-size: 0.9rem!important; 
+  }
+
+  .homepage .card-body{
+    margin-top: 25px!important;
+  }
+
+  .comicDetail .comicDetail-createTime {
+    font-size: 0.9rem!important; 
+  }
+
+  .custom-tabs .nav-item {
+    margin-right: 8px;
   }
 }
 
@@ -653,14 +754,21 @@ a:link{
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 50vh;
+  max-height: 90vh;
   text-align: center;
-  padding: 10px;
+  padding: 10% 0 ;
   margin: 2% 0;
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 1.2rem;
   font-weight: bold;
+  overflow: hidden; 
+}
+
+.file-upload img {
+  max-width: 80%; 
+  height: auto; 
+  object-fit: contain; 
 }
 
 .file-upload-long{
@@ -705,6 +813,7 @@ a:link{
   border-radius: 8px;
   color: #fff;
   height: 40px;
+  font-size: 14px;
 }
 
 .label-container{
@@ -735,6 +844,7 @@ a:link{
   justify-content: center;
   align-items: center;
   width: 30%;
+  margin-bottom: 50px;
   background-color: #fff;
   border-radius: 0;
   color: #000;
@@ -1256,6 +1366,120 @@ a:link{
   white-space: nowrap;
 }
 
+.homepage .card-img-top{
+  width: 100%; /* 图片宽度自动适应父级宽度 */
+  height: 26rem; /* 固定高度，可以调整为你需要的高度 */
+  object-fit: cover; /* 保持图片的纵横比，并裁剪溢出的部分 */
+}
+
+.comicDetail .card-img-top{
+  width: 100%; /* 图片宽度自动适应父级宽度 */
+  height: 26rem; /* 固定高度，可以调整为你需要的高度 */
+  object-fit: cover; /* 保持图片的纵横比，并裁剪溢出的部分 */
+}
+
+.homepage-penName {
+  position: relative; 
+  text-align: center;
+  padding: 10px;
+  top: -80px;
+  left: 0;
+  margin-bottom: -75px;
+  background: rgba(178, 115, 8, 0.9); 
+  color: #fff; 
+  width: 100%;
+  height: 80px;
+  font-size: 1.3rem; 
+  z-index: 1; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 26rem;
+  background-color: rgba(0, 0, 0, 0.7); /* 半透明黑色背景 */
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  text-align: center;
+  overflow: hidden;
+  padding: 10px;
+  z-index: 1; 
+}
+
+.ranking-thumbnail-position:hover .card-overlay {
+  opacity: 1;
+}
+
+.card-overlay p {
+  display: -webkit-box;
+  -webkit-line-clamp: 12; /* 最大行数 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-overlay hr {
+  width: 80%;
+  border-top: 2px solid white;
+  margin-top: -5px;
+  margin-bottom: 20px;
+}
+
+@media only screen and (max-width: 1200px) {
+  .homepage .card-img-top{
+    height: 20rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 18rem!important;
+  }
+
+  .homepage .btn-section{
+    width: 12rem;
+  }
+
+  .homepage .btn-section .btn{
+    width: 100%;
+  }
+
+  .card-overlay {
+    height: 20rem;
+  }  
+  
+  .card-overlay p {
+    -webkit-line-clamp: 7; /* 最大行数 */
+  }
+
+  #list-button {
+    margin-bottom: 80px;
+  }
+
+  .verifyPage .verify-btn{
+    margin-bottom: 80px!important;
+  }
+
+  .manageComic .manageComic-overlay { 
+    width: 18.4%!important;
+  }
+
+  .nftMarket-carousel .carousel-control-prev,
+  .nftMarket-carousel .carousel-control-next {
+    margin-left: -7%!important;
+    margin-right: -7.5%!important;
+    margin-top: 22.5%!important;
+  }
+}
+
+
 @media only screen and (max-width: 768px) {
   .carousel-item img {
     height: auto;
@@ -1313,8 +1537,141 @@ a:link{
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .homepage .card-img-top{
+    height: 18rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 18rem!important;
+  }
+
+  .card-overlay {
+    height: 18rem;
+  }
+  
+  .card-overlay p {
+    -webkit-line-clamp: 6;
+  }
+
+  .card-overlay hr {
+    margin-bottom: 15px;
+  }
+
+  #list-button {
+    margin-bottom: 0px;
+  }
+
+  .verifyPage .verify-btn{
+    margin-bottom: 0px!important;
+  }
 }
 
+@media only screen and (max-width: 550px) {
+  .homepage .card-img-top{
+    height: 18rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 18rem!important;
+  }
+
+  .display-account{
+    font-size: 18px;
+  }
+
+  .display-ethBalance{
+    font-size: 15px;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  .homepage .card-img-top{
+    height: 15rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 15rem!important;
+  }
+
+  .card-overlay {
+    height: 15rem;
+  }
+  
+  .card-overlay p {
+    -webkit-line-clamp: 4;
+  }
+
+  .display-account{
+    font-size: 15px;
+  }
+}
+
+@media only screen and (max-width: 425px) {
+  .homepage .card-img-top{
+    height: 14rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 14rem!important;
+  }
+
+  .card-overlay {
+    height: 14rem;
+  }
+
+}
+
+@media only screen and (max-width: 400px) {
+  .homepage .card-img-top{
+    height: 13rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 13rem!important;
+  }
+  
+  .card-overlay {
+    height: 13rem;
+  }
+  
+  .card-overlay p {
+    -webkit-line-clamp: 3;
+  }
+
+  .card-overlay-penName {
+    -webkit-line-clamp: 1!important;
+  }
+
+  .display-account{
+    max-width: 180px;
+    overflow-wrap: break-word;
+  }
+}
+
+@media only screen and (max-width: 380px) {
+  .homepage .card-img-top{
+    
+    height: 12rem;
+  }
+
+  .comicDetail .card-img-top{
+    height: 12rem!important;
+  }
+
+  .card-overlay {
+    height: 12rem;
+  }
+  
+  .card-overlay p {
+    -webkit-line-clamp: 2;
+  }
+
+  .card-overlay hr {
+    margin-top: -8px;
+    margin-bottom: 8px;
+  }
 }
 
 .carousel-control-prev {
@@ -1380,12 +1737,13 @@ a:link{
 
 .category-totcount {
   position: absolute; /* 绝对定位 */
-  top: 0px;
+  top: 130px;
   right: 0px;
+  width: 100%;
+  text-align: center;
   background: rgba(0, 0, 0, 0.4); /* 半透明背景 */
   color: #fff; /* 白色文字 */
-  padding: 10px; /* 内边距 */
-  border-radius: 0 0 0 25px; /* 調整與效果圖片一致的圓角 */
+  padding: 5px; /* 内边距 */
   font-size: 0.9rem; /* 字体大小 */
   z-index: 1; /* 确保悬浮在图片上方 */
 }
@@ -1398,6 +1756,11 @@ a:link{
   color: #000;
   border: 2px solid black;
   box-shadow: #000 -5px 5px;
+  font-size: 16px;
+}
+
+.comicDetail .btn:hover{
+  background-color:#f6b83bec;
 }
 
 .comicDetail .btn-section{
@@ -1410,6 +1773,86 @@ a:link{
 
 .comicDetail .carousel-image-container img{
   border-radius: 0;
+}
+
+.comicDetail .card-img-top{
+  height: 25.5rem;
+}
+
+.comicDetail .read-button {
+  background-color: #7f31ac!important;
+  color: #fff!important;
+  border-color: #9356b6!important;
+}
+
+.comicDetail .comicDetail-penName{
+  font-size: 1.4rem!important;
+  overflow-wrap: break-word;
+  margin-left: 0;
+  color: #722bd4;
+}
+
+.comicDetail .comicDetail-text{
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 3;
+}
+
+.comicDetail .comicDetail-createTime {
+  position: relative; 
+  text-align: center;
+  padding: 2px;
+  top: -40px;
+  left: 0;
+  margin-bottom: -43px;
+  background: rgb(178, 115, 8); 
+  color: #fff; 
+  width: 100%;
+  height: 35px;
+  font-size: 1.2rem; 
+  z-index: 1; 
+}
+
+.comicDetail .address{
+  color: #722bd4!important;
+}
+
+.comicDetail .remove-section{
+  background-color: #a1a4a6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.remove-section img{
+  width: 320px;
+  height: 320px;
+}
+
+.remove-section .hidden{
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.card-remove-section{
+  background-color: #a1a4a6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.card-remove-section img{
+  width: 120px;
+  height: 120px;
+}
+
+.card-remove-section .hidden{
+  font-size: 12px;
+  font-weight: bold;
 }
 
 @media only screen and (max-width: 768px) {
@@ -1442,6 +1885,16 @@ a:link{
     width: 100%!important;
   }
 
+  .comicDetail .card-img-top{
+    height: 13rem;
+  }
+
+  .remove-section img{
+    width: 120px;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+  }
 }
 
 .chapter-table table {
@@ -1566,7 +2019,7 @@ a:link{
 /* analysis */
 
 .analysis h1{
-  font-size: 56px;
+  font-size: 42px;
   color: #FBC604;
   text-shadow:
     -1px -1px 0 #000,  
@@ -1611,7 +2064,7 @@ a:link{
 .simple-text {
   background-color: rgba(6, 157, 103, 0.89); 
   text-align: center;
-  padding: 10px 0;
+  padding: 5px 0;
   color: #fff;
   border: 2px solid #000; /* 將邊框設置回來 */
   border-top: 1px solid #000;
@@ -1624,6 +2077,7 @@ a:link{
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 1.2rem;
 }
 
 .creatorNft thead th {
@@ -1743,7 +2197,7 @@ a:link{
 }
 
 .nav-link.active{
-  color: #008F8C;
+  color: #008F8C!important;
 }
 
 .nav-link.active:hover{
@@ -1806,7 +2260,6 @@ a:link{
     margin-left: 80%;
   }
   
-  
 }
 
 /* manageComic */
@@ -1828,6 +2281,22 @@ a:link{
   width: 100%;
   height: auto;
   border-radius: 0.7em;
+}
+
+.manageComic .manageComic-overlay {
+  position: absolute; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  left: 0.4em;
+  bottom: 0.4em;
+  background: rgba(53, 182, 211, 0.9); 
+  color: #fff; 
+  width: 18.8%;
+  height: 30px;
+  font-size: 1.2rem; 
+  z-index: 1; 
 }
 
 .manageComic .card-body{
@@ -1859,6 +2328,22 @@ a:link{
   background-color: rgba(6, 157, 103);
 }
 
+.manageComic .manageComic-title h2{
+  position: relative;
+  color: #ffffff;
+  background-color: #F6B93B;
+  line-height: 2;
+}
+
+.manageComic .sort-date{
+  position: absolute;
+  color: #fff;
+  line-height: 3.5;
+  z-index: 1;
+}
+
+
+
 @media only screen and (max-width: 768px) {
   .manageComic  .text-section{
     margin-left: 0!important;
@@ -1873,6 +2358,15 @@ a:link{
   .manageComic .cta-button{
     width: 100px;
     margin-bottom: 5%;
+  }
+
+  .manageComic .manageComic-overlay {
+    margin-left: 0!important;
+    width: 135px!important;
+  }
+
+  .manageComic .sort-date{
+    line-height: 3!important;
   }
   
 }
@@ -2068,6 +2562,10 @@ a:link{
   font-weight: bold;
 }
 
+.mintNFT-img-height {
+  height: 35vh;
+}
+
 /* nftDetail */
 .text-section{
   margin-left: 8%;
@@ -2099,13 +2597,11 @@ a:link{
 /* nftMarket */
 .nftMarket .nftMarket-overlay {
   position: absolute; 
-  display: flex;
-  bottom: 52px;
-  left: 2px;
+  text-align: center;
+  bottom: 70px;
   justify-content: space-between; 
   background: rgba(0, 0, 0, 0.5); 
   color: #fff; 
-  padding: 5px 10px; 
   width: 100%;
   font-size: 1rem; 
   z-index: 1; 
@@ -2115,10 +2611,15 @@ a:link{
 }
 
 .nftMarket .nftMarket-overlay span {
-  text-align: right;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.nftMarket h2{
+  color: #ffffff;
+  background-color: #F6B93B;
+  line-height: 2;
 }
 
 .nftMarket-text {
@@ -2130,25 +2631,317 @@ a:link{
   white-space: nowrap;
 }
 
+.nftMarket-search {
+  margin-top: 8px;
+  margin-left: 15px;
+  margin-right: 10px;
+  color: #fff;
+  background-color: rgba(22, 158, 108, 0.8);
+  border-radius: 50%;
+  padding: 5px;
+  width: 40px;
+  height: 40px;
+  transform: scale(1.2);
+}
+
+.nftMarket .custom-modal-button {
+  background-color: rgba(6, 157, 103, 0.89)!important;
+}
+
+.nftMarket .custom-modal-button:hover{
+  background-color: rgba(6, 157, 103, 0.89)!important;
+}
+
+.nftMarket svg{
+  cursor: pointer;
+}
+
+.nftMarket-modal .modal-footer{
+  width: 100%;
+}
+
+.nftMarket-modal svg{
+  color: #a1a1a1;
+  cursor: pointer;
+}
+
+.nftMarket-modal .modal-img {
+  width: 60%;
+  height: 25%;
+  aspect-ratio: 1 / 1; 
+  overflow: hidden; 
+}
+
+.nftMarket-modal .modal-img img {
+  width: 300px;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border: none;
+}
+
+.nftMarket-modal .qty{
+  width: 80px;
+  padding: 0;
+  margin: 0;
+}
+
+.nftMarket-authorization{
+  display: flex;
+  justify-self: center;
+}
+
+.nftMarket-authorization .btn{
+  background-color: #fff;
+}
+
+.nftMarket-authorization:active .btn{
+  background-color: #fff;
+}
+
+.nftMarket-authorization:checked .btn{
+  background-color: #fff;
+}
+
+.nftMarket-authorization:focus .btn{
+  background-color: #fff;
+}
+
+.nftMarket-authorization svg{
+  color: #000;
+}
+
+.modal-body .table>tbody{
+  vertical-align: middle!important;
+}
+
 .creatorNft-overlay {
   position: absolute; 
   text-align: center;
-  bottom: 45px;
+  bottom: 40px;
   left: 0px;
   background: rgba(0, 0, 0, 0.5); 
   color: #fff; 
   padding: 5px 10px; 
   width: 100%;
-  font-size: 0.9rem; 
+  font-size: 1.2rem; 
   z-index: 1; 
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+
+.nftMarket-modal .table-xs {
+  width: 100%;
+}
+
+.nftMarket-modal .table-xs th,
+.nftMarket-modal .table-xs td {
+  padding: 8px;
+  text-align: left;
+}
+
+
+.nftMarket-modal .item-row td {
+  vertical-align: middle;
+}
+
+.nftMarket-modal .total-row td {
+  border-top: 0 none;
+  border-bottom: 3px double #ccc;
+  font-weight: bold;
+  font-size: 1.5em;
+}
+
+.nftMarket-modal .nft-position-relative {
+  position: relative;
+}
+
+.nftMarket-modal .img-container {
+  position: relative;
+  display: inline-block; 
+}
+
+.nftMarket-modal .overlay {
+  width: 96.5%;
+  position: absolute;
+  bottom: 05px; 
+  left: 5px;  
+  color: white; 
+  background: rgba(0, 0, 0, 0.5); 
+  padding: 5px 10px;
+}
+
+.nftMarket-modal .overlay-title {
+  font-weight: bold;
+  font-size: 1rem; 
+}
+
+.nftMarket-modal .overlay-subtitle {
+  font-size: 0.875rem; 
+}
+
+.nftMarket-carousel .carousel-control-prev,
+.nftMarket-carousel .carousel-control-next {
+  margin-left: -5%;
+  margin-right: -5.5%;
+  margin-top: 21%;
+  width: 70px;
+  height: 50px;
+}
+
+.nftMarket-carousel .carousel-control-prev-icon,
+.nftMarket-carousel .carousel-control-next-icon {
+  width: 70px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #00c8ff;
+}
+
+.nftMarket-carousel {
+  padding: 0;
+}
+
+.nftMarket-carousel-row {
+  display: flex;
+}
+
+.nftMarket-carousel-row .card {
+  max-width: 100%;
+  margin-bottom: 1rem; /* 每列底部的间距 */
+}
+
+@media only screen and (max-width: 992px) {
+  .nftMarket-carousel .carousel-control-prev,
+  .nftMarket-carousel .carousel-control-next {
+    margin-left: -8.5%!important;
+    margin-right: -9%!important;
+    margin-top: 24%!important;
+    width: 60px;
+    height: 40px;
+  }
+
+  .nftMarket-carousel .carousel-control-prev-icon,
+  .nftMarket-carousel .carousel-control-next-icon {
+    width: 60px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nftMarket-carousel .carousel-control-prev,
+  .nftMarket-carousel .carousel-control-next {
+    margin-left: -60px!important;
+    margin-right: -65px!important;
+    margin-top: 44%!important;
+  }
+}
+
+@media (max-width: 450px) {
+  .nftMarket-modal .table-xs tr,
+  .nftMarket-modal .table-xs td,
+  .nftMarket-modal .table-xs tbody,
+  .nftMarket-modal .table-xs thead,
+  .nftMarket-modal .table-xs tfoot,
+  .nftMarket-modal .table-xs th {
+    display: block;
+    width: 100%;
+    border-collapse: separate;
+  }
+
+  .nftMarket-modal .modal-img{
+    height: 12rem;
+  }
+
+  .nftMarket-modal .overlay {
+    width: 96.5%;
+    position: absolute;
+    bottom: 20px; 
+    left: 5px;  
+    color: white; 
+    background: rgba(0, 0, 0, 0.5); 
+    padding: 5px 10px;
+  }
+
+  .nftMarket-modal .table-xs > .nftMarket-modal  tbody tr:first-child {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  .nftMarket-modal .table-xs td[title]:before {
+    content: attr(title) ": ";
+    font-weight: bold;
+    white-space: nowrap;
+    display: table-cell;
+    text-align: left;
+  }
+
+  .nftMarket-modal .item-row td:first-child,
+  .nftMarket-modal .item-row td:nth-child(2) {
+    border: 0 none;
+  }
+
+  .nftMarket-modal .item-row img {
+    margin-bottom: 1em;
+  }
+
+  .nftMarket-modal .total-row td {
+    display: table-cell;
+    width: 1%;
+  }
+
+  .nftMarket-modal .total-row td:first-child {
+    width: 99%;
+  }
+
+  .nftMarket-modal .modal-del{
+    border-bottom: 2px solid #ccc!important;
+  }
+
+  .nftMarket-modal thead tr th{
+    display: none!important;
+  }
+
+  .nftMarket-carousel .carousel-control-prev,
+  .nftMarket-carousel .carousel-control-next {
+    margin-top: 45.5%!important;
+  }
+}
+
+@media (max-width: 400px) {
+  .nftMarket-carousel .carousel-control-prev,
+  .nftMarket-carousel .carousel-control-next {
+    margin-top: 48.5%!important;
+  }
+}
+
+/* collectionNft */
+.collectionNft-overlay {
+  position: absolute; 
+  text-align: center;
+  bottom: 40px;
+  left: 0px;
+  background: rgba(0, 0, 0, 0.5); 
+  color: #fff; 
+  padding: 5px 10px; 
+  width: 100%;
+  font-size: 1.2rem; 
+  z-index: 1; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#button-tooltip hr {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
 /* readerPage */
 .readerPage .btn{
-  width: 15vh;  
+  width: 25vh;  
   height: 15vh; 
   border-radius: 12px;
   background-color: rgba(217, 217, 217, 0.37);
@@ -2161,8 +2954,14 @@ a:link{
   border: none; 
   flex-direction: column; 
   text-align: center;  
-  padding: 10px; 
+  padding: 2%; 
 }
+
+.readerPage .btn-section{
+  padding: 0;
+  width: 8rem;
+}
+
 
 .readerPage span{
   margin: 0;
@@ -2206,6 +3005,12 @@ a:link{
   left: 0;
   z-index: 1000; 
   transition: top 0.3s; 
+}
+
+.read-button {
+  background-color: #7f31ac!important;
+  color: #fff!important;
+  border-color: #9356b6!important;
 }
 
 .comic-custom-navbar .navbar-brand:focus, .comic-custom-navbar .navbar-brand:hover {
@@ -2253,6 +3058,37 @@ a:link{
 .banner-image img {
   width: 100%; 
   height: auto; 
+}
+
+.flip-comic {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.flip-comic img {
+  padding-top: 100px;
+  width: 20%; 
+  height: auto;
+  max-height: 88%; 
+  /* object-fit: cover; */
+}
+
+/* .split-image {
+  top: 0;
+  width: 100%;
+  height: auto;
+  max-height: 75vh; 
+  object-fit: cover;
+} */
+
+@media (max-width: 600px) {
+  /* .split-image {
+      max-height: 50vh; 
+  } */
+
+  
 }
 
 .icon-bar {
@@ -2674,11 +3510,16 @@ a:link{
   margin-top: 2%;
   width: 40%;
   height: 45px;
+  margin-bottom: 50px;
   background-color: #F6B93B;
   color: rgba(0, 0, 0, 0.82);
   font-weight: 900;
   border: 1px #000 solid;
   border-radius: 15px;
+}
+
+.verifyPage .file-upload {
+  height: 35vh;
 }
 
 .verification-code-inputs{
@@ -3047,6 +3888,36 @@ a:link{
   transform: translateX(-50%);
 }
 
+.rankingList .rankingList-overlay {
+  position: absolute; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  bottom: -10px;
+  left: 23%;
+  border-radius: 50%;
+  background: rgba(53, 182, 211, 0.9); 
+  color: #fff; 
+  width: 55px;
+  height: 30px;
+  font-size: 0.9rem; 
+  z-index: 1; 
+}
+
+.rankingList .rankingList-createTime {
+  position: absolute; 
+  text-align: center;
+  bottom: -5px;
+  left: 0;
+  background: rgba(53, 182, 211, 0.9); 
+  color: #fff; 
+  width: 6rem;
+  height: 20px;
+  font-size: 0.9rem; 
+  z-index: 1; 
+}
+
 .rankingList .ranking-title {
   font-size: 1.2rem;
   font-weight: normal;
@@ -3113,6 +3984,10 @@ a:link{
   -webkit-line-clamp: 3;
 }
 
+.rankingList .ranking-thumbnail-position {
+  position: relative;
+}
+
 .rankingList .ranking-card:hover .ranking-thumbnail {
   opacity: 0.75;
 }
@@ -3154,7 +4029,7 @@ a:link{
     margin-top: 10px;
   }
   .ranking-author {
-    max-width: 200px;
+    max-width: 300px;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3165,7 +4040,7 @@ a:link{
   }
 
   .comicManagement .address-cell{
-    max-width: 208px;
+    /* max-width: 208px; */
     overflow-wrap: break-word; 
   }
   
@@ -3181,7 +4056,7 @@ a:link{
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 80px;
+    /* max-width: 80px; */
   }
 
   .comicManagement .hash-cell-text{
@@ -3258,16 +4133,17 @@ a:link{
   color: #2196F3;
 }
 
-.comicManagement .table td .del-btn {
+.del-btn {
   background-color: #F44336;
 }
 
-.comicManagement .table td .del-btn:hover {
+.del-btn:hover {
   background-color: #bb2d3b;
 }
 
 .comicManagement .table td .del-btn-comic {
   background-color: #F44336;
+  color: #fff;
 }
 
 .comicManagement .table td .del-btn-comic:hover {
@@ -3313,12 +4189,65 @@ a:link{
   padding-right: 3%;
 }
 
+@media screen and (max-width: 600px) {
+  .comicManagement table, .dataAnalysis table{
+    width: 100%;
+    border: 0;
+  }
+
+  .comicManagement table caption, .dataAnalysis table caption{
+    font-size: 1.3em;
+  }
+  
+  .comicManagement table thead, .dataAnalysis table thead {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+  }
+  
+  .comicManagement table tr, .dataAnalysis table tr {
+    border-bottom: 3px solid #ddd;
+    display: block;
+    margin-bottom: .625em;
+  }
+  
+  .comicManagement table td, .dataAnalysis table td {
+    border-bottom: 1px solid #ddd;
+    display: block;
+    font-size: .8em;
+    text-align: right;
+  }
+  
+  .comicManagement table td::before, .dataAnalysis table td::before {
+    /*
+    * aria-label has no advantage, it won't be read inside a table
+    content: attr(aria-label);
+    */
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  .comicManagement table td:last-child, .dataAnalysis table td:last-child {
+    border-bottom: 0;
+  }
+
+  .comicManagement table th, .comicManagement table td, .dataAnalysis table th, .dataAnalysis table td{
+    width: 100%!important;
+  }
+}
+
 /* comicFlipRead */
 .comicFlipRead{
   padding-top: 100px;
 }
 
-.comicFlipRead .comic-container {
+.comicRead .comic-container {
   position: relative;
   width: 100%;
   height: 100vh; 
@@ -3327,7 +4256,7 @@ a:link{
   justify-content: center;
 }
 
-.comicFlipRead .comic-page {
+.comicRead .comic-page {
   position: absolute;
   top: 0;
   height: 100%;
@@ -3335,18 +4264,248 @@ a:link{
   opacity: 0;
 }
 
-.comicFlipRead .comic-page.active {
+.comicRead .comic-page.active {
   opacity: 1;
   transform: scale(1);
 }
 
-.comicFlipRead .comic-container img {
-  background-color: #000;
-}
+/* .comicRead .comic-container img {
+  width: 100%;
+  height: auto;
+} */
+
+
 
 @media only screen and (max-width: 768px) {
-  .comicFlipRead .comic-page {
+  .comicRead .comic-page {
     left: 0;
     width: 100%;
   }
+
+  .authorProfile .card-header .row{
+    padding: 2% 4%;
+  }
+
+  .post-author{
+    padding: 0 8%;
+  }
+
+  .dataAnalysis .second-tab button{
+    width: 32%!important;
+  }
+}
+
+/* dataAnalysis */
+.dataAnalysis .dataAnalysis-title h2{
+  position: relative;
+  color: #ffffff;
+  background-color: #F6B93B;
+  line-height: 2;
+}
+
+.dataAnalysis .analysis-chart{
+  width: 100%;
+  height: 10rem!important;
+}
+
+.dataAnalysis select{
+  width: 40%;
+}
+
+.dataAnalysis .nav-tabs .nav-link:focus{
+  color: #008F8C;
+}
+
+.dataAnalysis .second-tabs{
+  border:none
+}
+
+.dataAnalysis .second-tab{
+  border:none
+}
+
+.dataAnalysis .second-tab:hover{
+  border:none
+}
+
+.dataAnalysis .second-tabs .nav-link{
+  border: none;
+  font-weight: 500;
+  border-radius: 30px;
+}
+
+.dataAnalysis .second-tabs .nav-link:hover{
+  color: #008F8C;
+  background-color: #F3FCF3;
+}
+
+.dataAnalysis .second-tabs .nav-link.active{
+  color: #008F8C!important;
+  background-color: #F3FCF3;
+}
+
+.dataAnalysis .second-tabs .nav-link:focus{
+  color: #008F8C;
+  background-color: #F3FCF3;
+}
+
+.dataAnalysis h1{
+  margin-bottom: 0;
+}
+
+.dataAnalysis .second-tab .form-select{
+  margin-right: 1.5%;
+}
+
+.dataAnalysis .second-tab button{
+  margin-right: 1%;
+  width: 10%;
+  height: 40px;
+  font-size: 18px;
+  background-color: #0FC2C0;
+  color: #ffffff;
+  text-align: center;
+}
+
+.dataAnalysis .second-tab button:hover{
+  background-color: #008F8C!important;
+  color: white!important;
+  border: none;
+}
+
+.dataAnalysis .second-tab span{
+  margin-left: 0;
+}
+
+.dataAnalysis .customer-text h4,.dataAnalysis .customer-text h5{
+  padding: 0.5% 0;
+}
+
+.dataAnalysis canvas{
+  max-width: 1200px;
+}
+
+/* authorProfile */
+.profile-section, .post-author {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-text-section {
+  display: flex;
+  align-items: center;
+}
+
+.profile-section img, .post-author img {
+  border-radius: 50%; /* 圆形 */
+  object-fit: cover; /* 保持图片比例 */
+}
+
+.profile-section img {
+  height: auto; /* 高度自适应 */
+  max-width: 200px; /* 最大宽度 */
+  aspect-ratio: 1 / 1; /* 1:1 比例 */
+}
+
+
+
+.post-author img{
+  height: auto; /* 高度自适应 */
+  max-width: 60px; /* 最大宽度 */
+  aspect-ratio: 1 / 1; /* 1:1 比例 */
+  
+}
+
+.post-content img {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  border-radius: 10px; /* 圆角效果，可根据需要调整 */
+}
+
+.post-content {
+  padding: 1rem;
+}
+
+.post-section{
+  width: 100%;
+}
+
+.post-image{
+  width: 100%;
+}
+
+.post-image img{
+  width: 100%;
+}
+
+.authorProfile .card-header{
+  background-color: #F3FCF3;
+}
+
+.authorProfile-btn .btn{
+  margin-right: 4%;
+  margin-bottom: 4%;
+}
+
+.authorProfile-btn .profile-add{
+  background-color: #F6B93B;
+}
+
+.authorProfile-btn .profile-add:hover{
+  background-color: #c7932c;
+}
+
+.authorProfile-btn .profile-send{
+  background-color: #007bff;
+}
+
+.authorProfile-btn .profile-send:hover{
+  background-color: #0056b3;
+}
+
+.authorProfile-btn .profile-cancel{
+  background-color: #6c757d;
+}
+
+.authorProfile-btn .profile-cancel:hover{
+  background-color: #5a6268;
+}
+
+.return-btn{
+  background-color: #069D67;
+}
+
+.return-btn:hover{
+  background-color: #218838;
+}
+
+.war-btn{
+  background-color: #FFC107;
+}
+
+.war-btn:hover{
+  background-color: #c7932c;
+}
+
+.pri-btn {
+  background-color: #0d6efd; 
+}
+
+.pri-btn:hover {
+  background-color: #0b5ed7;
+}
+
+.cancel-btn{
+  background-color: #6c757d!important;
+}
+
+.cancel-btn:hover{
+  background-color: #5a6268!important;
+}
+
+.piracy{
+  color: #dc3545!important;
+  background-color: #c3c0c0!important;
 }
