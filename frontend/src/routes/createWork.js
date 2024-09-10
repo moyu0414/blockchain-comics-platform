@@ -32,6 +32,7 @@ const CreateWork = (props) => {
   const [file, setFiles] = useState([]);
   const [coverFile, setCoverFile] = useState([]);
   const [promoPreviewImageUrl, setPromoPreviewImageUrl] = useState('');
+  const [isCreator, setIsCreator] = useState(false);
   const fileInputRef = useRef(null);
   const { t } = useTranslation();
   const currentAccount = localStorage.getItem("currentAccount");
@@ -58,6 +59,35 @@ const CreateWork = (props) => {
         setWeb3(web3);
         const contractInstance = new web3.eth.Contract(comicData.abi, comicData.address);
         setContract(contractInstance);
+        const accounts = await web3.eth.getAccounts();
+        if (accounts[0]) {
+          let account = accounts[0].toLowerCase();
+          try {
+              const response = await axios.get(`${website}/api/isCreator`, {
+                  headers: headers,
+                  params: {
+                      currentAccount: account
+                  }
+              });
+              if (response.data[0].is_creator === 1) {
+                  try {
+                    setIsCreator(true);
+                  } catch (error) {
+                      console.error('Error initializing contract:', error);
+                  }
+              } else {
+                  alert(t('請先進行創作者驗證，才開放創作者專區'));
+              }
+          } catch (error) {
+              console.error('Error fetching isCreator:', error);
+          }
+        } else {
+            alert(t('請先登入以太坊錢包，才開放創作者專區'));
+        }
+
+
+
+
       } catch (error) {
         console.error(error);
       }
@@ -98,7 +128,7 @@ const CreateWork = (props) => {
       formData.append('title', formParams.title);
       formData.append('description', formParams.description);
       formData.append('category', formParams.category);
-      formData.append('is_exist', 1);
+      formData.append('is_exist', 0);
       formData.append('comic_id', hashValue);
       formData.append('timestamp', timestamp);
       if (coverFile.length != 0) {
@@ -222,6 +252,7 @@ const CreateWork = (props) => {
   const handleFileInputChange = (event) => {
     const file = event.target.files[0];
     if (!file) {
+      setPreviewImageUrl('');
       return;
     }
     if (validateFileType(file)) {
@@ -288,6 +319,7 @@ const CreateWork = (props) => {
   const createPromoCover = (event) => {
     const file = event.target.files[0];
     if (!file) {
+      setPromoPreviewImageUrl('');
       return;
     }
     if (validateFileType(file)) {
@@ -358,15 +390,19 @@ const CreateWork = (props) => {
   async function checkFile() {
     if(showChapterForm == false){
       const {category, title, description} = formParams;
-      if( !category || !title || !description || file.length === 0)  // || 其中一個為true，即為true
-      {
+      if (title && title.length > 50) {
+        alert(t('標題命名不可超過50個字!'));
+        return -1;
+      } else if( !category || !title || !description || file.length === 0) {
         updateMessage(t('請填寫所有欄位'))
         return -1;
-      }
+      } 
     }else{
       const {title, price, isFree} = formParams_1;
-      if (!comicHash || !title || (!formParams_1.isFree && !price) || file.length === 0)
-      {
+      if (title && title.length > 50) {
+        alert(t('標題命名不可超過50個字!'));
+        return -1;
+      } else if (!comicHash || !title || (!formParams_1.isFree && !price) || file.length === 0) {
         updateMessage(t('請填寫所有欄位'))
         return -1;
       }
@@ -471,6 +507,7 @@ return (
                 value={formParams_1.title}
                 placeholder={t('請輸入章節名稱')}
                 onChange={(e) => updateFormParams_1({ ...formParams_1, title: e.target.value })}
+                disabled={!isCreator}
               />
             </Col>
           </Form.Group>
@@ -485,7 +522,7 @@ return (
                 value={formParams_1.isFree ? '0' : formParams_1.price}  // 如果 isFree 為 true，顯示 '0'，否則顯示 formParams_1.price
                 placeholder={t('至少 0.01 ETH')}
                 step="0.01"
-                disabled={formParams_1.isFree}  // 如果 isFree 為 true，則禁用輸入框
+                disabled={formParams_1.isFree || !isCreator}  // 如果 isFree 為 true，則禁用輸入框
                 onChange={(e) => {
                   if (!formParams_1.isFree) {  // 如果不是免費狀態才更新 price
                     updateFormParams_1({ ...formParams_1, price: e.target.value });
@@ -510,6 +547,7 @@ return (
                     price: isFree ? 0 : formParams_1.price // 如果是免费，则将价格设为 0，否则保持原来的价格
                   });
                 }}
+                disabled={!isCreator}
                 checked={formParams_1.isFree}
                 style={{ transform: 'scale(1.8)', marginTop: '12px', marginLeft: '1.3rem' }}
               />
@@ -527,6 +565,7 @@ return (
               <Form.Control
                 type="file"
                 onChange={handleMultiFileInputChange}
+                disabled={!isCreator}
                 multiple
                 style={{ flex: 1 }} // 使文件输入框占据剩余空间
               />
@@ -602,6 +641,7 @@ return (
                   type="text"
                   value={formParams.title}
                   onChange={(e) => updateFormParams({ ...formParams, title: e.target.value })}
+                  disabled={!isCreator}
                 />
               </Col>
           </Form.Group>
@@ -615,6 +655,7 @@ return (
                 as="select"
                 className="form-select"
                 onChange={ChoseLevel}
+                disabled={!isCreator}
               >
                 <option>{t('請選擇漫畫類型')}</option>
                 {grading.map((name, index) => (
@@ -631,6 +672,7 @@ return (
               rows={5}
               value={formParams.description}
               onChange={(e) => updateFormParams({ ...formParams, description: e.target.value })}
+              disabled={!isCreator}
             />
           </Form.Group>
 
@@ -645,6 +687,7 @@ return (
               accept="image/*"
               style={{ flex: 1 }}
               onChange={handleFileInputChange}
+              disabled={!isCreator}
             />
           </div>
           <div className='file-upload' style={{ display: 'flex', flexDirection: 'column' }}>
@@ -653,7 +696,6 @@ return (
                   <img
                     src={previewImageUrl}
                     alt="Preview"
-                    style={{ width: '50%' }}
                   />
                 ) : (
                   <>
@@ -676,6 +718,7 @@ return (
               accept="image/*"
               style={{ flex: 1, marginBottom: '1rem' }}
               onChange={createPromoCover}
+              disabled={!isCreator}
             />
           </div>
           <div className='file-upload' style={{ display: 'flex', flexDirection: 'column' }}>
@@ -684,7 +727,6 @@ return (
                   <img
                     src={promoPreviewImageUrl}
                     alt="Promo Cover Preview"
-                    style={{ height:'28vh', paddingBottom: '3%' }}
                   />
                 ) : (
                   <>

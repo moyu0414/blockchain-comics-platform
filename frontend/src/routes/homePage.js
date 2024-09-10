@@ -35,7 +35,7 @@ const HomePage = () => {
                 ...totalCountMap[data.comic_id],
                 total: (totalCountMap[data.comic_id]?.totHearts || 0) + (totalCountMap[data.comic_id]?.totBuy || 0)
             }));
-            const filteredData = updatedFetchedData.filter(data => data.is_exist === 1);
+            const filteredData = updatedFetchedData.filter(data => data.is_exist === 0);
 
             const categoryCounts = {};
             filteredData.forEach(data => {
@@ -119,9 +119,9 @@ const HomePage = () => {
                         })}
                     </Carousel>
         
-                    <Row className="pt-4 pb-4 btn-container">
+                    <Row className="pt-5 pb-4 btn-container">
                         {buttonData.map((label, idx) => (
-                            <Col key={idx} xs={2} md={3} lg={1} className="pb-1 btn-section">
+                            <Col key={idx} xs={2} md={2} lg={1} className="pb-1 btn-section">
                                 <Button 
                                     variant="outline-dark"
                                     className="custom-button"
@@ -147,18 +147,25 @@ const HomePage = () => {
                                     <div className="carousel-row">
                                         {current.filter(data => data.category === category).map((data, idx) => (
                                             <Col key={idx} xs={6} md={3} className="mx-1">
-                                                <Card style={{marginRight: "8px"}}>
+                                                <Card style={{marginRight: "8%"}} className="ranking-thumbnail-position">
                                                     <Link to={`/comicDetail/${data.comicID}`}>
                                                         <Card.Img variant="top" src={data.image} />
-                                                        <div className="category-totcount">
-                                                            <CartFill style={{ marginRight: '5px' }} />
-                                                            {data.totBuy}<br />
-                                                            <HeartFill style={{ marginRight: '5px' }} />
+                                                        <div className="homepage-penName">
+                                                            {data.penName}<br />
+                                                            <CartFill style={{ marginRight: '5px', marginBottom: "3px" }} />
+                                                            {data.totBuy}
+                                                            <HeartFill style={{ marginLeft: "5px",marginRight: '5px', marginBottom: "3px" }} />
                                                             {data.totHearts}
+                                                        </div>
+                                                        <div className="card-overlay">
+                                                            <h5 style={{marginTop: "15px"}}>{data.title}</h5>
+                                                            <p className="card-overlay-penName">{data.penName}</p>
+                                                            <hr />
+                                                            <p>{data.description}</p>
                                                         </div>
                                                     </Link>
                                                     <Card.Body>
-                                                        <Card.Title className='fw-bold'>{data.title}</Card.Title>
+                                                        <Card.Title className='fw-bold text-center'>{data.title}</Card.Title>
                                                     </Card.Body>
                                                 </Card>
                                             </Col>

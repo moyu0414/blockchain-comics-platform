@@ -14,6 +14,7 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 const PurchaseHistory = () => {
   const [readerLogArray, setReaderLogArray] = useState([]);
   const [NFTLogArray, setNFTLogArray] = useState([]);
+  const [piracyLogArray, setPiracyLogArray] = useState([]);
   const [beingComic, setBeingComic] = useState(true);
   const [beingNFT, setBeingNFT] = useState(true);
   const { t } = useTranslation();
@@ -24,6 +25,7 @@ const PurchaseHistory = () => {
   const itemsPerPage = 10; // 每頁顯示的收益數量
   const headers = {'api-key': API_KEY};
   let analysisArray = [];
+  let piracyArray = [];
 
   const initData = async () => {
     try {
@@ -36,6 +38,7 @@ const PurchaseHistory = () => {
         let analysis = response.data;
         sortByDatetime(analysis);
         for (var n = 0; n < analysis.length; n++) {
+          if (analysis[n].is_exist === 0) {
             let date = formatDate(new Date(analysis[n].purchase_date));
             let time = formatTime(new Date(analysis[n].purchase_date));
             let chapterPrice = analysis[n].price;
@@ -46,8 +49,29 @@ const PurchaseHistory = () => {
               time: time,
               expenditure: expenditure
             });
+          } else {
+            let state, refund;
+              if (analysis[n].is_exist === 2) {
+                state = "盜版";
+                refund = true;
+              } else if (analysis[n].is_exist === 1) {
+                state = "查核中";
+                refund = false;
+              }
+            let date = formatDate(new Date(analysis[n].purchase_date));
+            let time = formatTime(new Date(analysis[n].purchase_date));
+            let chapterPrice = analysis[n].price;
+            let expenditure = chapterPrice
+            piracyArray.push({
+              state: state,
+              title: analysis[n].comicTitle + " / " + analysis[n].chapterTitle,
+              expenditure: expenditure,
+              refund: refund
+            });
+          }
         };
         setReaderLogArray(analysisArray);
+        setPiracyLogArray(piracyArray);
         if (analysisArray.length === 0) {
           setBeingComic(false);
         }
@@ -255,6 +279,57 @@ const PurchaseHistory = () => {
               </Col>
             </Row>
           </Tab>
+          {piracyLogArray.length > 0 && (
+            <Tab eventKey="piracy" title={t('盜版')}>
+              <Row className='pt-4 justify-content-center'>
+                <Col className='d-flex justify-content-center chapter-table'>
+                  <Table size="sm">
+                    <thead>
+                      <tr>
+                        <th className='text-center fw-bold'>{t('狀態')}</th>
+                        <th className='text-center fw-bold'>{t('漫畫 / 章節')}</th>
+                        <th className='text-center fw-bold'>{t('支出')}</th>
+                        <th className='text-center fw-bold'>{t('退款')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {piracyLogArray.map((data, index) => (
+                        <tr key={index}>
+                          <td className='text-center fw-bold'>{data.state}</td>
+                          <td className='text-center'>{data.title}</td>
+                          <td className='text-center'>{data.expenditure}</td>
+                          <td className='text-center'>
+                            <input
+                              type="checkbox"
+                              checked={data.refund}
+                              readOnly
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </Col>
+              </Row>
+              <Row className='pt-4 pb-5 justify-content-center table-button'>
+                <Col className='d-flex justify-content-center'>
+                  <ButtonToolbar aria-label="Toolbar with pagination">
+                    <Pagination>
+                      <Pagination.Prev 
+                        onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} 
+                        className='pagination-button'
+                      />
+                      {getPageItems()}
+                      <Pagination.Next 
+                        onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages} 
+                        className='pagination-button'
+                      />
+                    </Pagination>
+                  </ButtonToolbar>
+                </Col>
+              </Row>
+            </Tab>
+          )}
         </Tabs>
       </Container>
     </>

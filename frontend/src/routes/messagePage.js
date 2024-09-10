@@ -29,8 +29,7 @@ function MessagePage() {
                 }
             });
             let data = response.data.collectComic;
-            console.log(data);
-            if (response.data.message == t('請先收藏漫畫')) {
+            if (response.data.message == '請先收藏漫畫!') {
                 setBeing(false);
                 setLoading(false);
             } else {
@@ -38,7 +37,7 @@ function MessagePage() {
                     try {
                         const response = await axios.get(`${website}/api/comicIMG/${item.filename}`, { responseType: 'blob', headers });
                         item.image = URL.createObjectURL(response.data);
-                        const storedItem = storedArray.find(stored => stored.is_exist === 1 && stored.comic_id === item.comicHash);
+                        const storedItem = storedArray.find(stored => stored.is_exist === 0 && stored.comic_id === item.comicHash);
                         if (storedItem) {
                             item.comicID = storedItem.comicID;
                         }

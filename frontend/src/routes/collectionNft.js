@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Col, Row, Pagination } from 'react-bootstrap';
+import { Container, Card, Col, Row, Pagination, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
@@ -30,14 +30,31 @@ function CollectionNft() {
                 setBeingNFT(false);
             } else {
                 const fetchImage = async (data) => {
-                    const url = data.protoFilename === 1
-                        ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
-                        : `${website}/api/comicIMG/${data.filename}`;
-                    const response = await axios.get(url, { responseType: 'blob', headers });
-                    data.image = URL.createObjectURL(response.data);
-                    data.descTitle = parseAuthorizations(data.description).map(auth => auth.name)[0];
+                    const nftImgResponse = await axios.get(`${website}/api/nftIMG/${data.comic_id}/${data.tokenId}`, {
+                        responseType: 'blob',
+                        headers,
+                      });
+                      if (nftImgResponse.data.type === 'image/jpeg') {
+                        data.image = URL.createObjectURL(nftImgResponse.data);
+                      } else {
+                        const url = data.protoFilename === 1
+                          ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
+                          : `${website}/api/comicIMG/${data.filename}`;
+                        const coverImgResponse = await axios.get(url, { responseType: 'blob', headers });
+                        data.image = URL.createObjectURL(coverImgResponse.data);
+                    }
+                    data.names = parseAuthorizations(data.description).map(auth => auth.name);
+                    if (data.status) {
+                        data.price = t('已擁有');
+                    } else if (data.forSale === 0) {
+                        data.price = t('已售完');
+                    } else {
+                        const lastPriceValue = Object.values(data.price).pop();
+                        data.price = `$ ${lastPriceValue}`;
+                    }
                 };
                 await Promise.all(collectNFT.map(fetchImage));
+
                 console.log(collectNFT);
                 setNFT(collectNFT);
             }
@@ -61,16 +78,16 @@ function CollectionNft() {
             };
         });
     };
-    
-    const truncateText = (text, maxLength) => {
-        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-    };
 
-    const truncateTextForName = (text) => {
-        const isChinese = (char) => /[\u4e00-\u9fa5]/.test(char);
-        const maxLength = text.split('').some(isChinese) ? 4 : 8;  // 中文4個字、英文8個字
-        return truncateText(text, maxLength);
-    };
+    const renderTooltip = (title, names) => (props) => (
+        <Tooltip id="button-tooltip" {...props}>
+            {title}
+            <hr />
+            {names.map((name, index) => (
+                <div key={index}>{name}</div>
+            ))}
+        </Tooltip>
+    );
 
 
     return (
@@ -91,13 +108,17 @@ function CollectionNft() {
                             <Col xs={4} md={3} className="pt-3" key={index}>
                                 <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                     <Card className="effect-image-1">
-                                    <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                    <div className="creatorNft-overlay">{data.tokenId}
-                                        <span>{data.descTitle}</span>
-                                    </div>
-                                    <Card.Body className="simple-text">
-                                        <Card.Text className="creatorNft-text">{data.title}</Card.Text>
-                                    </Card.Body>
+                                        <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names)}>
+                                            <div>
+                                                <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
+                                                <div className="collectionNft-overlay">
+                                                    <span>{data.price}</span>
+                                                </div>
+                                                <Card.Body className="simple-text">
+                                                    <Card.Text className="creatorNft-text">{data.tokenTitle}</Card.Text>
+                                                </Card.Body>
+                                            </div>
+                                        </OverlayTrigger>
                                     </Card>
                                 </Link>
                             </Col>
