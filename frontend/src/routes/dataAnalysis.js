@@ -22,6 +22,7 @@ const initAllComicData = (comicOrigin) => {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const quarter = `Q${Math.ceil((date.getMonth() + 1) / 3)}`;
+    
     const income = (parseFloat(price) * 0.9).toFixed(3);
     const updateData = (type, key) => {
       if (!acc[type][key]) {
@@ -1629,8 +1630,6 @@ const DataAnalysis = () => {
   };
 
 
-
-
   // NFT－收益分布
   useEffect(() => {
     if (nftData && nftData.totRevenueResults && nftData.transferRevenueResults) {
@@ -1720,12 +1719,31 @@ const DataAnalysis = () => {
       },
     },
   };
+
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileView(window.innerWidth < 768);
+
+    window.addEventListener('resize', handleResize);
+    // 初次渲染時也要確認
+    handleResize();
+
+    // 移除事件監聽器
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // 格式化 buyerId：如果是手機視圖，顯示省略號
+  const formatBuyerId = (buyerId) => {
+    if (!buyerId) return '';
+    return isMobileView ? `${buyerId.slice(0, 5)}...${buyerId.slice(-5)}` : buyerId;
+  };
   
 
   return (
     <>
       {!loading &&
-        <Container className='dataAnalysis'>
+        <Container className='dataAnalysis pb-5'>
           <div className='dataAnalysis-title'>
             <h2 className='text-center fw-bold' style={{backgroundColor: "green"}}>{t('數據分析')}</h2>
           </div>
@@ -1803,12 +1821,18 @@ const DataAnalysis = () => {
                 <Tab className='second-tab' eventKey="comicCustomer" title="客户群">
                   <div>
                     <h1 className='mb-2'>買家銷售總覽</h1>
-                    <div>
-                      {Object.keys(buyer).map(period => (
-                        <Button className='mb-2' key={period} onClick={() => setBuyerPeriod(period)}>
-                          {period}
-                        </Button>
-                      ))}
+                    <div className="scrollable-container">
+                      <div className="scrollable-buttons">
+                        {Object.keys(buyer).map((period) => (
+                          <Button
+                            className="mb-2"
+                            key={period}
+                            onClick={() => setBuyerPeriod(period)}
+                          >
+                            {period}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
                     <div className='customer-text'>
                       <h5>區間：{buyerPeriod}</h5>
@@ -1834,14 +1858,14 @@ const DataAnalysis = () => {
                         <tbody>
                           {sortedBuyers.map(([buyerId, stats]) => (
                             <React.Fragment key={buyerId}>
-                              <tr onClick={() => setSelectedBuyer(buyerId === selectedBuyer ? null : buyerId)}>
-                                <td data-label="買家">{buyerId}</td>
+                              <tr onClick={() => setSelectedBuyer(buyerId === selectedBuyer ? null : buyerId)} className='pt-2'>
+                                <td data-label="買家">{formatBuyerId(buyerId)}</td>
                                 <td data-label="銷售額">${stats.total_amount.toFixed(3)}</td>
                                 <td data-label="總數量">{stats.count}</td>
                               </tr>
                               {selectedBuyer === buyerId && (
                                 getComicsForBuyer(buyerId).map(([comicTitle, comicStats]) => (
-                                  <tr key={comicTitle}>
+                                  <tr key={comicTitle} className="sub-table-row">
                                     <td>{comicTitle}</td>
                                     <td>${comicStats.total_amount.toFixed(3)}</td>
                                     <td>{comicStats.count}</td>
@@ -1910,7 +1934,7 @@ const DataAnalysis = () => {
                                 <img src={image} alt={comic} className="ranking-thumbnail" />
                               </div>
                               <div className="ranking-card-info ms-3">
-                                <div className="ranking-title">{comic}</div>
+                                <div className="ranking-title fw-bold">{comic}</div>
                                 <div className="ranking-title">類型：{category}</div>
                                 <div className="ranking-title">銷售額：{totalSales}</div>
                                 <div className="ranking-title">購買量：{totalCount}</div>
@@ -1942,7 +1966,7 @@ const DataAnalysis = () => {
                     )}
                   </div>
                 </Tab>
-                <Tab className='second-tab' eventKey="revenueDist" title="收益分布">
+                <Tab className='second-tab revenueDist' eventKey="revenueDist" title="收益分布">
                   <div>
                     <center><h2>NFT 收益分布</h2></center><hr />
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -1951,13 +1975,14 @@ const DataAnalysis = () => {
                           <Bar
                             data={chartData.data}
                             options={{ ...chartData.options, onClick: (e) => handleBarClick(e) }}
-                            style={{ marginBottom: '20px' }}
+                            className='mb-5'
                           />
                           {pieChartData && pieChartData.data && (
                             <>
                               <Pie
                                 data={pieChartData.data}
                                 options={NFTpieOptions}
+                                
                               />
                               <h3>{selectedComicTitle.title} {selectedComicTitle.state}</h3>
                               <h3>{t('TOP 5')}</h3>

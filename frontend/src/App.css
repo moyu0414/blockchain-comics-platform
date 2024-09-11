@@ -2858,6 +2858,25 @@ a:link{
   margin-bottom: 1rem; /* 每列底部的间距 */
 }
 
+.second-tab .scrollable-container {
+  overflow-x: hidden; /* 確保外層容器不會出現滾動條 */
+}
+
+.second-tab .scrollable-buttons {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none; /* 隐藏滚动条 (仅适用于 Firefox) */
+}
+
+.second-tab .scrollable-buttons::-webkit-scrollbar {
+  display: none; /* 隐藏滚动条 (适用于 Chrome, Safari, Edge) */
+}
+
+.second-tab .scrollable-buttons > * {
+  flex-shrink: 0; /* 防止按鈕被縮小 */
+  margin-right: 8px; /* 設置按鈕之間的距離，可根據需要調整 */
+}
+
 @media only screen and (max-width: 992px) {
   .nftMarket-carousel .carousel-control-prev,
   .nftMarket-carousel .carousel-control-next {
@@ -2890,6 +2909,8 @@ a:link{
   .nftMarket-modal .modal-img {
     max-height: 18rem;
   }
+
+  
 }
 
 @media (max-width: 1000px) {
@@ -4104,10 +4125,14 @@ a:link{
   color: #ccc;
 }
 
+.second-tab .ranking-list{
+  justify-content: start;
+}
+
 /* ORDER FIRST PLACE RESPONSIVE */
 @media only screen and (max-width: 768px) {
   .rankingList {
-    display: flex;
+    /* display: flex; */
     flex-wrap: wrap;
     padding: 2% 4%;
   }
@@ -4296,7 +4321,6 @@ a:link{
 @media screen and (max-width: 600px) {
   .comicManagement table td, 
   .comicManagement table th, 
-  .dataAnalysis table td, 
   .dataAnalysis table th {
     word-break: break-word;  
     white-space: normal;     
@@ -4330,7 +4354,7 @@ a:link{
   .comicManagement table td, .dataAnalysis table td {
     border-bottom: 1px solid #ddd;
     display: block;
-    font-size: .8em;
+    /* font-size: .8em; */
     text-align: right;
   }
   
@@ -4352,6 +4376,30 @@ a:link{
   .comicManagement table th, .comicManagement table td, .dataAnalysis table th, .dataAnalysis table td{
     width: 100%!important;
   }
+
+  .sub-table-row {
+    vertical-align: inherit;
+    unicode-bidi: isolate;
+    width: auto!important; 
+    display: flex!important;
+    width: 100%; /* 確保行寬度自適應 */
+    border-bottom: none!important;
+    border-collapse: collapse;
+    margin-bottom: 0!important;
+  }
+  
+  /* 恢復子表格的表格單元格樣式 */
+  .sub-table-row td {
+    display: table-cell!important; 
+    width: auto!important; 
+    padding: 8px;
+    text-align: center!important;
+    border-bottom: none!important;
+  }
+}
+
+.sub-table-row:nth-of-type(odd)>*{
+  background-color: #f0fff0!important;
 }
 
 /* comicFlipRead */
@@ -4404,6 +4452,28 @@ a:link{
 
   .dataAnalysis .second-tab button{
     width: 32%!important;
+  }
+
+  .dataAnalysis canvas{
+    margin-top: 4%;
+    max-width: 300px!important;
+  }
+
+  .dataAnalysis .pie-chart-item{
+    display: flex;
+    justify-content: center;
+  }
+
+  .dataAnalysis .pie-chart-item canvas{
+    margin-bottom: 6%;
+  }
+
+  .dataAnalysis .pie-chart-container hr{
+    margin: 10% 0;
+  }
+
+  .dataAnalysis .pie-chart-item h3{
+    padding-top: 2%;
   }
 }
 
@@ -4494,7 +4564,7 @@ a:link{
 }
 
 .dataAnalysis canvas{
-  max-width: 600px;
+  max-width: 500px;
 }
 
 .dataAnalysis .pie-chart-wrapper {
@@ -4513,6 +4583,20 @@ a:link{
   display: block;
   max-width: 500px;
   max-height: 500px;
+  margin-bottom: 8%;
+}
+
+.dataAnalysis .table-striped>tbody>tr:nth-of-type(odd)>* {
+  background-color: #deffff; /* 單數行的背景顏色 */
+}
+
+.dataAnalysis .pie-chart-item h3,
+.dataAnalysis .pie-chart-item div{
+  text-align: center;
+}
+
+.dataAnalysis .pie-chart-item div{
+  padding: 1% 0 ;
 }
 
 @media (min-width: 1200px) {
@@ -4524,6 +4608,8 @@ a:link{
   .pie-chart-item {
     width: 45%;
   }
+
+  
 }
 
 
