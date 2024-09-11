@@ -2036,7 +2036,7 @@ app.get('/api/dataAnalysis/records', (req, res) => {
     SELECT nft.tokenTitle, nft.price, nft.forSale, nft.royalty ,comics.title
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
-    WHERE comics.is_exist = 0
+    WHERE nft.minter = ? AND comics.is_exist = 0
   `;
   Promise.all([
     new Promise((resolve, reject) => {
@@ -2048,7 +2048,7 @@ app.get('/api/dataAnalysis/records', (req, res) => {
       });
     }),
     new Promise((resolve, reject) => {
-      pool.query(nftQuery, (error, results) => {
+      pool.query(nftQuery, [currentAccount], (error, results) => {
         if (error) {
           return reject({ error: 'Error fetching NFT data', details: error });
         }

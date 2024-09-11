@@ -4385,6 +4385,36 @@ a:link{
   max-width: 1200px;
 }
 
+.dataAnalysis .pie-chart-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dataAnalysis .pie-chart-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.dataAnalysis .pie-chart-item {
+  display: block;
+  max-width: 500px;
+  max-height: 500px;
+}
+
+@media (min-width: 1200px) {
+  .dataAnalysis .pie-chart-container {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .pie-chart-item {
+    width: 45%;
+  }
+}
+
+
 /* authorProfile */
 .profile-section, .post-author {
   display: flex;
