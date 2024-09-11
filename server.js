@@ -16,11 +16,11 @@ const rename = promisify(fsPromises.rename); // 圖片重命名
 const app = express();
 const port = 5000;
 const dotenv = require('dotenv');
-const envPath = path.join('../', '.env');  // localhost
-//const envPath = path.join('/var/www/html/src', '.env');  // web3toonapi
+//const envPath = path.join('../', '.env');  // localhost
+const envPath = path.join('/var/www/html/src', '.env');  // web3toonapi
 dotenv.config({ path: envPath });
-const API_KEY = process.env.REACT_APP_API_KEY; // localhost
-//const API_KEY = process.env.API_KEY; // web3toonapi
+//const API_KEY = process.env.REACT_APP_API_KEY; // localhost
+const API_KEY = process.env.API_KEY; // web3toonapi
 
 const emailAccount = process.env.REACT_APP_EMAIL; // localhost
 const emailPassword = process.env.REACT_APP_EMAIL_PASSWORD; // localhost
@@ -86,8 +86,8 @@ const transporter = nodemailer.createTransport({
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './uploads');  // localhost
-    //cb(null, '/var/www/html/uploads');  // web3toonapi
+    //cb(null, './uploads');  // localhost
+    cb(null, '/var/www/html/uploads');  // web3toonapi
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname); // 保持文件名不变，或者根据需要修改
@@ -99,8 +99,8 @@ const upload = multer({ storage: storage });
 
 // 异步函数，用于重命名文件并将其移动到上传目录
 async function renameFilename(file, comic_id, type, protoFilename, coverFile) {
-  const comicFolder = path.join('uploads', comic_id);  // localhost
-  //const comicFolder = path.join('/var/www/html/uploads', comic_id);  // web3toonapi
+  //const comicFolder = path.join('uploads', comic_id);  // localhost
+  const comicFolder = path.join('/var/www/html/uploads', comic_id);  // web3toonapi
   const specificFolder = path.join(comicFolder, type === 'comicIMG' ? 'cover' : 'chapters');
   try {
     await fsPromises.mkdir(comicFolder, { recursive: true });
@@ -145,8 +145,8 @@ async function calculateHash(filePath) {
 }
 
 async function creatorFile(file, account) {
-  const creatorFolder = path.join('uploads', 'creator');  // localhost
-  //const comicFolder = path.join('/var/www/html/uploads', comic_id);  // web3toonapi
+  //const creatorFolder = path.join('uploads', 'creator');  // localhost
+  const creatorFolder = path.join('/var/www/html/uploads', 'creator');  // web3toonapi
   const fileExtension = getFileExtension(file.originalname);
   const filename = `${account}.${fileExtension}`;
   const filePath = path.join(creatorFolder, filename);
@@ -161,8 +161,8 @@ async function creatorFile(file, account) {
 }
 
 async function nftFile(file, comic_id, tokenId) {
-  const creatorFolder = path.join('uploads', comic_id, 'NFT');  //localhost
-  // const comicFolder = path.join('/var/www/html/uploads', comic_id, 'NFT');  // web3toonapi
+  //const creatorFolder = path.join('uploads', comic_id, 'NFT');  //localhost
+  const creatorFolder = path.join('/var/www/html/uploads', comic_id, 'NFT');  // web3toonapi
   const filename = `${tokenId}.jpg`;
   const filePath = path.join(creatorFolder, filename);
   try {
@@ -422,8 +422,8 @@ app.post('/api/add/NFT', upload.single('nftIMG'), async (req, res) => {
           throw new Error('Invalid tokenId format');
         }
       }));
-      await deleteFile(`uploads/${file.filename}`);  // localhost
-      //await deleteFile(`/var/www/html/uploads/${file.filename}`);  // web3toon
+      //await deleteFile(`uploads/${file.filename}`);  // localhost
+      await deleteFile(`/var/www/html/uploads/${file.filename}`);  // web3toon
     }
     const sql = `
       INSERT INTO nft (tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner)
@@ -489,10 +489,10 @@ app.get('/api/comicIMG/:filename', async (req, res) => {
       const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
       
       // localhost
-      const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', filename);
+      //const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', filename);
 
       // web3toonapi
-      //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', filename);
+      const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', filename);
       
       const extname = path.extname(filename).toLowerCase();
       let contentType = 'application/octet-stream'; // 默認為通用二進位流
@@ -528,10 +528,10 @@ app.get('/api/chapterIMG/:filename',async (req, res) => {
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
       
     // localhost
-    const imagePath = path.join(__dirname, 'uploads', comic_id, 'chapters', filename);
+    //const imagePath = path.join(__dirname, 'uploads', comic_id, 'chapters', filename);
 
     // web3toonapi
-    //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'chapters', filename);
+    const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'chapters', filename);
 
     const extname = path.extname(filename).toLowerCase();
     let contentType = 'application/octet-stream'; // 默認為通用二進位流
@@ -567,10 +567,10 @@ app.get('/api/coverFile/:filename/:protoFilename', async (req, res) => {
     const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
     
     // localhost
-    const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', 'promoCover.jpg');
+    //const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', 'promoCover.jpg');
 
     // web3toonapi
-    //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', 'promoCover.jpg');
+    const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', 'promoCover.jpg');
     
     const image = await fsPromises.readFile(imagePath);
     res.setHeader('Content-Type', 'image/jpeg');
@@ -592,10 +592,10 @@ app.get('/api/creatorIMG/:account', async (req, res) => {
       const filename = results.info.image;
 
       // localhost
-      const imagePath = path.join(__dirname, 'uploads', 'creator', filename);
+      //const imagePath = path.join(__dirname, 'uploads', 'creator', filename);
 
       // web3toonapi
-      //const imagePath = path.join('/var/www/html/', 'uploads', 'creator', filename);
+      const imagePath = path.join('/var/www/html/', 'uploads', 'creator', filename);
 
       const extname = path.extname(filename).toLowerCase();
       let contentType = 'application/octet-stream'; // 默認為通用二進位流
@@ -626,10 +626,10 @@ app.get('/api/nftIMG/:comicHash/:tokenId', async (req, res) => {
       const filename = `${tokenId}.jpg`;
 
       // localhost
-      const imagePath = path.join(__dirname, 'uploads', comicHash, 'NFT', filename);
+      //const imagePath = path.join(__dirname, 'uploads', comicHash, 'NFT', filename);
 
       // web3toonapi
-      //const imagePath = path.join('/var/www/html/', comicHash, 'NFT', filename);
+      const imagePath = path.join('/var/www/html/', comicHash, 'NFT', filename);
 
       await fsPromises.access(imagePath);
       const image = await fsPromises.readFile(imagePath);
@@ -689,8 +689,8 @@ app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'c
       });
     }
     if (file) {
-      await deleteFile(`uploads/${id}/cover/${fileName}`);  // localhost
-      //await deleteFile(`/var/www/html/uploads/${id}/cover/${fileName}`);  // web3toon
+      //await deleteFile(`uploads/${id}/cover/${fileName}`);  // localhost
+      await deleteFile(`/var/www/html/uploads/${id}/cover/${fileName}`);  // web3toon
     }
     return res.status(200).json({ message: 'comicData updated successfully' });
   } catch (error) {
@@ -722,8 +722,8 @@ app.put('/api/update/chapterData', upload.single('chapterIMG'), async (req, res)
       });
     });
     if (file) {
-      await deleteFile(`uploads/${comic_id}/chapters/${fileName}`);  // localhost
-      //await deleteFile(`/var/www/html/uploads/${comic_id}/chapters/${fileName}`);  // web3toon
+      //await deleteFile(`uploads/${comic_id}/chapters/${fileName}`);  // localhost
+      await deleteFile(`/var/www/html/uploads/${comic_id}/chapters/${fileName}`);  // web3toon
     }
     return res.status(200).json({ message: 'chapterData updated successfully' });
   } catch (error) {
