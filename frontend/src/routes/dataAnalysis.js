@@ -1751,7 +1751,7 @@ const DataAnalysis = () => {
             <Tab eventKey="comic" title="漫畫">
               <Tabs defaultActiveKey="comicSales" className="mb-3 w-100 custom-tabs second-tabs">
                 <Tab className='second-tab' eventKey="comicSales" title="銷售額">
-                  <div style={{marginBottom: "50px"}}>
+                  <div style={{marginBottom: "50px"}} className='sales-chart'>
                     <div className='d-flex align-items-center justify-content-between'>
                       <h1>{t('漫畫總銷售額')}</h1>
                       <Form.Select value={timePeriod} onChange={handlePeriodChange}>
@@ -1834,11 +1834,25 @@ const DataAnalysis = () => {
                         ))}
                       </div>
                     </div>
-                    <div className='customer-text'>
-                      <h5>區間：{buyerPeriod}</h5>
-                      <h4>買家數量：{summary.buyerCount}</h4>
-                      <h4>總收益： ${summary.total_amount.toFixed(3)}</h4>
-                      <h4>總數量：{summary.count}</h4>
+                    <div className='customer-text pt-3'>
+                      <Table striped hover className='mb-5 income-table'>
+                        <thead>
+                          <tr>
+                              <th>區間</th>
+                              <th>買家數量</th>
+                              <th>總收益</th>
+                              <th>總數量</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                              <td>{buyerPeriod}</td>
+                              <td>{summary.buyerCount}</td>
+                              <td>${summary.total_amount.toFixed(3)}</td>
+                              <td>{summary.count}</td>
+                          </tr>
+                        </tbody>
+                      </Table>
                       <Select
                         defaultValue="sales"
                         style={{ width: 200, marginBottom: 16 }}
@@ -1969,7 +1983,7 @@ const DataAnalysis = () => {
                 <Tab className='second-tab revenueDist' eventKey="revenueDist" title="收益分布">
                   <div>
                     <center><h2>NFT 收益分布</h2></center><hr />
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} className='nft-income-chart'>
                       {chartData && chartData.data && chartData.options && (
                         <>
                           <Bar

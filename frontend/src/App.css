@@ -4396,6 +4396,32 @@ a:link{
     text-align: center!important;
     border-bottom: none!important;
   }
+
+  .dataAnalysis .income-table{
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 1rem;
+    background-color: transparent;
+  }
+
+  .dataAnalysis .income-table thead{
+    position: relative;
+    height: auto;
+    font-size: 14px;
+  }
+
+  .dataAnalysis .income-table tr{
+    display: flex;
+    margin-bottom: 0;
+  }
+
+  .dataAnalysis .income-table td, .dataAnalysis .income-table th{
+    display: table-cell!important; 
+    width: 100%!important; 
+    padding: 8px;
+    text-align: center!important;
+    border-bottom: none!important;
+  }
 }
 
 .sub-table-row:nth-of-type(odd)>*{
@@ -4563,8 +4589,19 @@ a:link{
   padding: 0.5% 0;
 }
 
-.dataAnalysis canvas{
-  max-width: 500px;
+.dataAnalysis .sales-chart canvas{
+  max-width: 50%;
+  max-height: 70%;
+}
+
+.dataAnalysis .nft-income-chart canvas{
+  max-width: 60%;
+  max-height: 90%;
+}
+
+.dataAnalysis .income-table>tbody>tr:nth-of-type(odd)>*{
+  background-color: #FFF8D7!important;
+  --bs-table-bg-type: transparent;
 }
 
 .dataAnalysis .pie-chart-wrapper {
@@ -4587,7 +4624,8 @@ a:link{
 }
 
 .dataAnalysis .table-striped>tbody>tr:nth-of-type(odd)>* {
-  background-color: #deffff; /* 單數行的背景顏色 */
+  background-color: #deffff;
+  --bs-table-bg-type: transparent;
 }
 
 .dataAnalysis .pie-chart-item h3,
