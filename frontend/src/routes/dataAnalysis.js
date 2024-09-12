@@ -22,6 +22,7 @@ const initAllComicData = (comicOrigin) => {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const quarter = `Q${Math.ceil((date.getMonth() + 1) / 3)}`;
+    
     const income = (parseFloat(price) * 0.9).toFixed(3);
     const updateData = (type, key) => {
       if (!acc[type][key]) {
@@ -316,6 +317,200 @@ const calculateTotalSummary = (salesData) => {
   }, { total_amount: 0, count: 0 });
 };
 
+
+
+
+// NFT－收益分布
+const firstSale = 0.98;
+const initNFTData = (comicOrigin) => {
+  let initNFT = [];
+  // 计算每个 NFT 的总收益和转手收益
+  comicOrigin.forEach(item => {
+      const keys = Object.keys(item.price);
+      const lastKey = keys[keys.length - 1];
+      const secondLastKey = keys[keys.length - 2] || null;
+      const lastValue = parseFloat(item.price[lastKey]);
+      let total = 0;
+      let transferRevenue = 0;
+      if (item.forSale === 0) {  // 已售
+          total += parseFloat(item.price[keys[0]]) * firstSale;
+          if (lastKey !== '1') {
+              for (const key of keys) {
+                  if (key !== keys[0]) { // 跳过第一个键
+                      const value = parseFloat(item.price[key]);
+                      total += value * (item.royalty / 100);
+                      transferRevenue += value * (item.royalty / 100);
+                  }
+              }
+          }
+      } else if (item.forSale === 1) {  // 未售
+          if (secondLastKey) {  // 存在第二个价格
+              total += parseFloat(item.price[keys[0]]) * firstSale;
+              for (const key of keys.slice(1, -1)) { // 从第二笔到倒数第二笔
+                  const value = parseFloat(item.price[key]);
+                  total += value * (item.royalty / 100);
+                  transferRevenue += value * (item.royalty / 100);
+              }
+          }
+      }
+      initNFT.push({
+          comicTitle: item.title,
+          nftTitle: item.tokenTitle,
+          totRevenue: total.toFixed(3),
+          transferRevenue: transferRevenue.toFixed(3)
+      });
+  });
+  // 初始化汇总对象
+  const revenueSummary = {
+      totRevenue: {},
+      transferRevenue: {}
+  };
+  // 汇总总收益和转手收益
+  initNFT.forEach(item => {
+      const { comicTitle, nftTitle, totRevenue, transferRevenue } = item;
+      const totRev = parseFloat(totRevenue);
+      const transRev = parseFloat(transferRevenue);
+      const updateSummary = (summary, value, rev) => {
+          if (!summary[comicTitle]) {
+              summary[comicTitle] = { totalRevenue: 0, count: 0, nftTitles: {} };
+          }
+          summary[comicTitle].totalRevenue += value;
+          summary[comicTitle].count += 1;
+          if (!summary[comicTitle].nftTitles[nftTitle]) {
+              summary[comicTitle].nftTitles[nftTitle] = { totalRevenue: 0, count: 0 };
+          }
+          summary[comicTitle].nftTitles[nftTitle].totalRevenue += rev;
+          summary[comicTitle].nftTitles[nftTitle].count += 1;
+      };
+      if (totRev !== 0) updateSummary(revenueSummary.totRevenue, totRev, totRev);
+      if (transRev !== 0) updateSummary(revenueSummary.transferRevenue, transRev, transRev);
+  });
+  // 将汇总结果转换为数组
+  const formatSummary = (summary) => Object.keys(summary).map(comicTitle => ({
+      comicTitle,
+      totalRevenue: summary[comicTitle].totalRevenue.toFixed(3),
+      count: summary[comicTitle].count,
+      nftTitles: Object.keys(summary[comicTitle].nftTitles).map(nftTitle => ({
+          nftTitle,
+          totalRevenue: summary[comicTitle].nftTitles[nftTitle].totalRevenue.toFixed(3),
+          count: summary[comicTitle].nftTitles[nftTitle].count
+      }))
+  }));
+  return {
+      totRevenueResults: formatSummary(revenueSummary.totRevenue),
+      transferRevenueResults: formatSummary(revenueSummary.transferRevenue)
+  };
+};
+
+const nftPieTot = (data, title) => {
+  let dataset;
+  if (title === '總收益') {
+    dataset = data.map(item => ({
+      title: item.comicTitle,
+      revenue: parseFloat(item.totalRevenue),
+      count: item.count,
+    }));
+  } else if (title === '轉手收益') {
+    dataset = data.flatMap(item => item.nftTitles.map(nft => ({
+      title: nft.nftTitle,
+      revenue: parseFloat(nft.totalRevenue),
+      count: nft.count,
+    })));
+  }
+  const top5 = [...dataset].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+  return {
+    labels: dataset.map(item => item.title),
+    datasets: [{
+      label: title,
+      data: dataset.map(item => item.revenue),
+    }],
+    datasetDetails: top5,
+    options: {
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: (context) => {
+              const item = dataset[context.dataIndex];
+              return [`${title}：${item.revenue.toFixed(3)} ETH`, `總比數：${item.count}`];
+            }
+          }
+        },
+        legend: {
+          position: 'right',
+        }
+      }
+    }
+  };
+};
+
+const nftChartData = (totRevenueResults, transferRevenueResults) => {
+  if (!Array.isArray(totRevenueResults) || !Array.isArray(transferRevenueResults)) {
+    console.error('Invalid data: totRevenueResults or transferRevenueResults is not an array');
+    return { data: null, options: null };
+  }
+  // 提取所有的 comicTitle
+  const comicTitles = [...new Set([
+    ...totRevenueResults.map(item => item.comicTitle),
+    ...transferRevenueResults.map(item => item.comicTitle)
+  ])];
+  // 计算总收益和总比数
+  const totalRevenueData = comicTitles.map(title => {
+    const comic = totRevenueResults.find(item => item.comicTitle === title);
+    return comic ? { totalRevenue: parseFloat(comic.totalRevenue), count: comic.count } : { totalRevenue: 0, count: 0 };
+  });
+  // 计算转手收益和总比数
+  const resaleRevenueData = comicTitles.map(title => {
+    const comic = transferRevenueResults.find(item => item.comicTitle === title);
+    return comic ? { totalRevenue: parseFloat(comic.totalRevenue), count: comic.count } : { totalRevenue: 0, count: 0 };
+  });
+  const data = {
+    labels: comicTitles,
+    datasets: [
+      {
+        label: '總收益',
+        data: totalRevenueData.map(item => item.totalRevenue),
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1,
+      },
+      {
+        label: '轉手收益',
+        data: resaleRevenueData.map(item => item.totalRevenue),
+        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+        borderColor: 'rgba(153, 102, 255, 1)',
+        borderWidth: 1,
+      }
+    ]
+  };
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const label = context.dataset.label;
+            const dataIndex = context.dataIndex;
+            const data = label === '總收益' ? totalRevenueData : resaleRevenueData;
+            const { totalRevenue, count } = data[dataIndex];
+            return [`總收益：${totalRevenue.toFixed(3)}`, `總比數：${count}`];
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: '漫畫名稱',
+        },
+      },
+    },
+  };
+  return { data, options };
+};
 
 
 
@@ -813,10 +1008,162 @@ const test_data_1 = [
 //7.異界遊俠 冒險 /test/comic7.png
 //8.天啟之門 古風 /test/comic8.png
 
-const revenueData = [
-  { title: '漫畫A', totalRevenue: 5000, resaleRevenue: 1500 },
-  { title: '漫畫B', totalRevenue: 3000, resaleRevenue: 800 },
-  { title: '漫畫C', totalRevenue: 4000, resaleRevenue: 1200 },
+
+const test_data_2 = [
+  {
+    "forSale": 1,
+    "price": { "0": "0.3", "1": "0.35", "3": "0.5" },
+    "royalty": 5,
+    "title": "幽靈學院",
+    "tokenTitle": "異象"
+  },
+  {
+    "forSale": 0,
+    "price": { "0": "0.2", "1": "0.15" },
+    "royalty": 4,
+    "title": "幽靈學院",
+    "tokenTitle": "歸途"
+  },
+  {
+    "forSale": 1,
+    "price": { "0": "0.2", "1": "0.2", "2": "0.15", "3": "0.3" },
+    "royalty": 6,
+    "title": "幽靈學院",
+    "tokenTitle": "歸途"
+  },
+  {
+    "forSale": 0,
+    "price": { "0": "0.25", "1": "0.28", "2": "0.35" },
+    "royalty": 7,
+    "title": "隱秘之城",
+    "tokenTitle": "群像"
+  },
+  {
+    "forSale": 1,
+    "price": { "0": "0.25", "1": "0.2", "2": "0.2" },
+    "royalty": 3,
+    "title": "隱秘之城",
+    "tokenTitle": "群像"
+  },
+  {
+    "forSale": 0,
+    "price": { "0": "0.25", "1": "0.25", "2": "0.3", "5": "0.3" },
+    "royalty": 8,
+    "title": "隱秘之城",
+    "tokenTitle": "霧靄"
+  },
+  {
+    "forSale": 1,
+    "price": { "0": "0.09", "1": "0.10" },
+    "royalty": 5,
+    "title": "天啟之門",
+    "tokenTitle": "白道士"
+  },
+  {
+    "forSale": 0,
+    "price": { "0": "0.1", "1": "0.12", "3": "0.13" },
+    "royalty": 9,
+    "title": "天啟之門",
+    "tokenTitle": "白道士"
+  },
+  {
+    "forSale": 1,
+    "price": { "0": "0.1", "1": "0.14", "2": "0.15", "4": "0.2" },
+    "royalty": 2,
+    "title": "天啟之門",
+    "tokenTitle": "天靈地寶"
+  },
+  {
+    "forSale": 0,
+    "price": { "0": "0.16", "1": "0.25" },
+    "royalty": 10,
+    "title": "絕世戀人",
+    "tokenTitle": "他的他"
+  },
+  {
+    "forSale": 1,
+    "price": { "0": "0.16", "1": "0.1", "2": "0.25" },
+    "royalty": 4,
+    "title": "絕世戀人",
+    "tokenTitle": "他的他"
+  },
+  {
+    "forSale": 0,
+    "price": { "0": "0.16", "1": "0.28" },
+    "royalty": 6,
+    "title": "絕世戀人",
+    "tokenTitle": "他的他"
+  },
+  {
+    "forSale": 1,
+    "price": { "0": "0.05", "1": "0.1" },
+    "royalty": 3,
+    "title": "風起雲湧",
+    "tokenTitle": "小宜茶館"
+  },
+  {
+    "forSale": 0,
+    "price": { "0": "0.05", "1": "0.08", "2": "0.09", "3": "0.10" },
+    "royalty": 8,
+    "title": "風起雲湧",
+    "tokenTitle": "小宜茶館"
+  },
+  {
+    "forSale": 1,
+    "price": { "0": "0.05", "1": "0.10", "2": "0.11" },
+    "royalty": 5,
+    "title": "風起雲湧",
+    "tokenTitle": "小酌"
+  },
+  {
+    "forSale": 0,
+    "price": { "0": "0.2", "1": "0.2", "2": "0.26", "3": "0.28", "5": "0.25" },
+    "royalty": 7,
+    "title": "異界遊俠",
+    "tokenTitle": "裘壇主軼聞紀"
+  },
+  {
+    "forSale": 1,
+    "price": { "0": "0.2", "1": "0.14", "2": "0.15" },
+    "royalty": 6,
+    "title": "幽靈學院",
+    "tokenTitle": "歸途"
+  },
+  {
+    "forSale": 0,
+    "price": { "0": "0.2", "1": "0.28", "2": "0.3", "3": "0.2" },
+    "royalty": 9,
+    "title": "異界遊俠",
+    "tokenTitle": "軼聞"
+  },
+  {
+    "forSale": 1,
+    "price": { "0": "0.2", "1": "0.25", "2": "0.25" },
+    "royalty": 2,
+    "title": "笑爆天",
+    "tokenTitle": "哈哈哈"
+  },
+  {
+    "forSale": 0,
+    "price": { "0": "0.2", "1": "0.25" },
+    "royalty": 8,
+    "title": "天啟之門",
+    "tokenTitle": "無悔"
+  },
+  {
+    "forSale": 1,
+    "price": { "0": "0.2", "1": "0.22", "2": "0.23" },
+    "royalty": 4,
+    "title": "天啟之門",
+    "tokenTitle": "無悔"
+  },
+  {
+    "forSale": 0,
+    "price": { "0": "0.25", "1": "0.4" },
+    "royalty": 10,
+    "title": "幽靈學院",
+    "tokenTitle": "啟程"
+  }
 ];
 
 
@@ -843,13 +1190,11 @@ const DataAnalysis = () => {
   const [rankFilterData, setRankFilterData] = useState([]);
   const [rankSort, setRankSort] = useState('sales');
 
-
-  const comicTitles = revenueData.map(item => item.title);
-  const totalRevenue = revenueData.map(item => item.totalRevenue);
-  const resaleRevenue = revenueData.map(item => item.resaleRevenue);
-  console.log(comicTitles);
-
-
+  const [nftData, setNftData] = useState([]);
+  const [nftSalesData, setNftSalesData] = useState({});
+  const [chartData, setChartData] = useState({ data: '', options: '' });
+  const [pieChartData, setPieChartData] = useState('');
+  const [selectedComicTitle, setSelectedComicTitle] = useState('');
 
   const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
@@ -863,31 +1208,32 @@ const DataAnalysis = () => {
         params: { currentAccount }
       });
       const comicOrigin = response.data;
-      console.log(comicOrigin);
+      //console.log(comicOrigin);
       
-      if (comicOrigin.comics === 0) {
-      //if (test_data_1.comics === 0) {
+      //if (comicOrigin.comics.length === 0) {
+      if (test_data_1.length === 0) {
         message.info(t('目前沒有漫畫購買紀錄'));
-      } else if (comicOrigin.nft === 0) {
-      //} else if (test_data_1.nft === 0) {
+      };
+      //if (comicOrigin.nft.length === 0) {
+      if (test_data_1.length === 0) {
         message.info(t('目前沒有NFT購買紀錄'));
       }; 
       const comic = comicOrigin.comics;
-      const nft = comicOrigin.nft;
+      //const nft = comicOrigin.nft;
+      const nft = test_data_2;
 
-      const processedData = initAllComicData(comic);
-      //const processedData = initAllComicData(test_data_1);
-      console.log(processedData);
+      //const processedData = initAllComicData(comic);
+      const processedData = initAllComicData(test_data_1);
+      //console.log(processedData);
       setDataByPeriod(processedData);
-
       
-      const comics = initFilterComicData(comic);
-      //const comics = initFilterComicData(test_data_1);
-      console.log(comics);
+      //const comics = initFilterComicData(comic);
+      const comics = initFilterComicData(test_data_1);
+      //console.log(comics);
       setComics(comics);
 
-      await initBuyerData(comic);
-      //await initBuyerData(test_data_1);
+      //await initBuyerData(comic);
+      await initBuyerData(test_data_1);
 
       const filtered = {};
       for (const key in comics) {
@@ -902,18 +1248,9 @@ const DataAnalysis = () => {
       //console.log(filtered);
       setCimicRank(filtered);
 
-
-
-
-
-
-
-
-
-
-
-
-
+      const initNFT = initNFTData(nft);
+      //console.log(initNFT);
+      setNftData(initNFT);
 
       setLoading(false);
     } catch (error) {
@@ -1133,10 +1470,10 @@ const DataAnalysis = () => {
     }
   };
 
-  const renderPieChart = (data, options) => {
+  const renderPieChart = (data, pieOptions) => {
     if (data) {
       return (
-        <Pie data={data} options={{options}}/>
+        <Pie data={data} options={{pieOptions}}/>
       );
     }
     <Pie data={pieData} options={pieOptions} />
@@ -1293,63 +1630,128 @@ const DataAnalysis = () => {
   };
 
 
-
-
   // NFT－收益分布
-  const chartData = {
-    labels: comicTitles,
-    datasets: [
-      {
-        label: '總收益',
-        data: totalRevenue,
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 1,
-      },
-      {
-        label: '轉手收益',
-        data: resaleRevenue,
-        backgroundColor: 'rgba(153, 102, 255, 0.2)',
-        borderColor: 'rgba(153, 102, 255, 1)',
-        borderWidth: 1,
-      }
-    ]
-  };
+  useEffect(() => {
+    if (nftData && nftData.totRevenueResults && nftData.transferRevenueResults) {
+      console.log(nftData);
+      console.log(nftData.totRevenueResults.length);
+      
+      const { data, options } = nftChartData(nftData.totRevenueResults, nftData.transferRevenueResults);
+      setChartData({ data, options });
+      setNftSalesData({
+        total: nftPieTot(nftData.totRevenueResults, '總收益'),
+        transfer: nftPieTot(nftData.transferRevenueResults, '轉手收益')
+      });
+    }
+  }, [nftData]);
 
-  const chartOptions = {
+  const NftPieChart = ({ chartData, title }) => (
+    <div className="pie-chart-item">
+      <Pie
+        data={chartData}
+        options={chartData.options}
+        style={{ marginTop: "-40px" }}
+      />
+      <div style={{ marginTop: "-40px", marginBottom: "0px", marginLeft: "5%" }}>
+        <h3>{title} TOP 5</h3>
+        {nftSalesTop5(chartData)}
+      </div>
+    </div>
+  );
+
+  const nftSalesTop5 = ({ datasetDetails }) => (
+    <div style={{ marginTop: '20px' }}>
+      {datasetDetails.map((item, index) => (
+        <div key={item.title}>
+          {index + 1}. {item.title}：{item.revenue.toFixed(3)} ETH
+        </div>
+      ))}
+    </div>
+  );
+
+  const handleBarClick = (event) => {
+    const chart = event.chart;
+    if (!chart) return;
+    const points = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+    if (points.length === 0) return;
+    const index = points[0].index;
+    const comicTitle = chartData.data.labels[index];
+    const datasetLabel = chartData.data.datasets[points[0].datasetIndex].label;
+    const isTotRevenue = datasetLabel === '總收益';
+    const dataSource = isTotRevenue ? nftData.totRevenueResults : nftData.transferRevenueResults;
+    const comic = dataSource.find(item => item.comicTitle === comicTitle);
+    const nftTitles = comic ? comic.nftTitles : [];
+    const pieData = {
+      labels: nftTitles.map(nft => nft.nftTitle),
+      datasets: [{
+        data: nftTitles.map(nft => parseFloat(nft.totalRevenue)),
+      }]
+    };
+    const top5 = nftTitles
+      .sort((a, b) => parseFloat(b.totalRevenue) - parseFloat(a.totalRevenue)) // 根据总收益排序
+      .slice(0, 5) // 获取前五名
+      .map((nft, index) => `${index + 1}. ${nft.nftTitle}：${nft.totalRevenue} ETH`);
+    setSelectedComicTitle({title: comicTitle, state: datasetLabel});
+    setPieChartData({ data: pieData, top5: top5 });
+  };
+  
+  const NFTpieOptions = {
     responsive: true,
     plugins: {
       legend: {
         position: 'top',
+        labels: {
+          color: '#333',
+          font: {
+            size: 14,
+          },
+        },
       },
       tooltip: {
         callbacks: {
-          label: function (context) {
-            return `${context.dataset.label}: ${context.raw}`;
+          label: ({ label, raw }) => {
+            const count = nftData.totRevenueResults
+              .find(item => item.comicTitle === selectedComicTitle.title)
+              ?.nftTitles.find(nft => nft.nftTitle === label)?.count || 0;
+            return [`總收益：${raw.toFixed(3)}`, `總比數：${count}`];
           }
-        }
-      }
-    }
+        },
+      },
+    },
   };
 
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
 
+  useEffect(() => {
+    const handleResize = () => setIsMobileView(window.innerWidth < 768);
 
+    window.addEventListener('resize', handleResize);
+    // 初次渲染時也要確認
+    handleResize();
 
+    // 移除事件監聽器
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // 格式化 buyerId：如果是手機視圖，顯示省略號
+  const formatBuyerId = (buyerId) => {
+    if (!buyerId) return '';
+    return isMobileView ? `${buyerId.slice(0, 5)}...${buyerId.slice(-5)}` : buyerId;
+  };
   
 
   return (
     <>
       {!loading &&
-        <Container className='dataAnalysis'>
+        <Container className='dataAnalysis pb-5'>
           <div className='dataAnalysis-title'>
             <h2 className='text-center fw-bold' style={{backgroundColor: "green"}}>{t('數據分析')}</h2>
-            
           </div>
           <Tabs defaultActiveKey="comic" id="data-analysis-tabs" className="mt-4 mb-3 w-100">
             <Tab eventKey="comic" title="漫畫">
               <Tabs defaultActiveKey="comicSales" className="mb-3 w-100 custom-tabs second-tabs">
                 <Tab className='second-tab' eventKey="comicSales" title="銷售額">
-                  <div style={{marginBottom: "50px"}}>
+                  <div style={{marginBottom: "50px"}} className='sales-chart'>
                     <div className='d-flex align-items-center justify-content-between'>
                       <h1>{t('漫畫總銷售額')}</h1>
                       <Form.Select value={timePeriod} onChange={handlePeriodChange}>
@@ -1395,7 +1797,6 @@ const DataAnalysis = () => {
                         <option key={index} value={comic}>{comic}</option>
                       ))}
                     </Form.Select>
-
                     {lineData && Object.keys(lineData).length > 0 && (
                       <>
                         {renderChart(lineData, options, timePeriod)}
@@ -1406,7 +1807,6 @@ const DataAnalysis = () => {
                         )}
 
                         {renderChart(lowestDetailData, filterOptions, timePeriod === 'month' ? 'day' : comicPeriod)}
-
                         {(timePeriod === 'year' && comicPeriod === 'day') ? (
                           <center><p>{x_title.month}</p></center>
                         ) : timePeriod === 'month' ? (
@@ -1418,22 +1818,41 @@ const DataAnalysis = () => {
                     )}
                   </div>
                 </Tab>
-                
                 <Tab className='second-tab' eventKey="comicCustomer" title="客户群">
                   <div>
                     <h1 className='mb-2'>買家銷售總覽</h1>
-                    <div>
-                      {Object.keys(buyer).map(period => (
-                        <Button className='mb-2' key={period} onClick={() => setBuyerPeriod(period)}>
-                          {period}
-                        </Button>
-                      ))}
+                    <div className="scrollable-container">
+                      <div className="scrollable-buttons">
+                        {Object.keys(buyer).map((period) => (
+                          <Button
+                            className="mb-2"
+                            key={period}
+                            onClick={() => setBuyerPeriod(period)}
+                          >
+                            {period}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
-                    <div className='customer-text'>
-                      <h5>區間：{buyerPeriod}</h5>
-                      <h4>買家數量：{summary.buyerCount}</h4>
-                      <h4>總收益： ${summary.total_amount.toFixed(3)}</h4>
-                      <h4>總數量：{summary.count}</h4>
+                    <div className='customer-text pt-3'>
+                      <Table striped hover className='mb-5 income-table'>
+                        <thead>
+                          <tr>
+                              <th>區間</th>
+                              <th>買家數量</th>
+                              <th>總收益</th>
+                              <th>總數量</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                              <td>{buyerPeriod}</td>
+                              <td>{summary.buyerCount}</td>
+                              <td>${summary.total_amount.toFixed(3)}</td>
+                              <td>{summary.count}</td>
+                          </tr>
+                        </tbody>
+                      </Table>
                       <Select
                         defaultValue="sales"
                         style={{ width: 200, marginBottom: 16 }}
@@ -1453,14 +1872,14 @@ const DataAnalysis = () => {
                         <tbody>
                           {sortedBuyers.map(([buyerId, stats]) => (
                             <React.Fragment key={buyerId}>
-                              <tr onClick={() => setSelectedBuyer(buyerId === selectedBuyer ? null : buyerId)}>
-                                <td data-label="買家">{buyerId}</td>
+                              <tr onClick={() => setSelectedBuyer(buyerId === selectedBuyer ? null : buyerId)} className='pt-2'>
+                                <td data-label="買家">{formatBuyerId(buyerId)}</td>
                                 <td data-label="銷售額">${stats.total_amount.toFixed(3)}</td>
                                 <td data-label="總數量">{stats.count}</td>
                               </tr>
                               {selectedBuyer === buyerId && (
                                 getComicsForBuyer(buyerId).map(([comicTitle, comicStats]) => (
-                                  <tr key={comicTitle}>
+                                  <tr key={comicTitle} className="sub-table-row">
                                     <td>{comicTitle}</td>
                                     <td>${comicStats.total_amount.toFixed(3)}</td>
                                     <td>{comicStats.count}</td>
@@ -1474,8 +1893,6 @@ const DataAnalysis = () => {
                     </div>
                   </div>
                 </Tab>
-
-
                 <Tab className='second-tab' eventKey="comicRank" title="排行榜">
                   <div>
                     <h2>選擇日期區間</h2>
@@ -1531,7 +1948,7 @@ const DataAnalysis = () => {
                                 <img src={image} alt={comic} className="ranking-thumbnail" />
                               </div>
                               <div className="ranking-card-info ms-3">
-                                <div className="ranking-title">{comic}</div>
+                                <div className="ranking-title fw-bold">{comic}</div>
                                 <div className="ranking-title">類型：{category}</div>
                                 <div className="ranking-title">銷售額：{totalSales}</div>
                                 <div className="ranking-title">購買量：{totalCount}</div>
@@ -1547,28 +1964,51 @@ const DataAnalysis = () => {
                 </Tab>
               </Tabs>
             </Tab>
-
-
             <Tab eventKey="nft" title="NFT">
-              <Tabs defaultActiveKey="revenueDist" className="mb-3 w-100 custom-tabs second-tabs">
-                <Tab className='second-tab' eventKey="revenueDist" title="收益分布">
-                  
-                  
-                  <div>
-                    <h1>NFT 收益分析</h1>
-                    <Bar data={chartData} options={chartOptions} />
+              <Tabs defaultActiveKey="nftSales" className="mb-3 w-100 custom-tabs second-tabs">
+                <Tab className='second-tab' eventKey="nftSales" title="銷售額">
+                  <center><h2>NFT 銷售額</h2></center><hr />
+                  <div className="pie-chart-wrapper">
+                    {(nftData.totRevenueResults.length && nftSalesData && nftSalesData.total) ? (
+                      <div className="pie-chart-container">
+                        <NftPieChart chartData={nftSalesData.total} title="總收益" />
+                        <hr />
+                        {nftSalesData.transfer && <NftPieChart chartData={nftSalesData.transfer} title="轉手收益" />}
+                      </div>
+                    ) : (
+                      <p>{t('目前沒有購買紀錄')}</p>
+                    )}
                   </div>
-
-
                 </Tab>
-                <Tab className='second-tab' eventKey="revenueTrend" title="收益趨勢">
-
-
-                </Tab>
-                <Tab className='second-tab' eventKey="resaleRate" title="轉手抽成">
-
-
-
+                <Tab className='second-tab revenueDist' eventKey="revenueDist" title="收益分布">
+                  <div>
+                    <center><h2>NFT 收益分布</h2></center><hr />
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} className='nft-income-chart'>
+                      {chartData && chartData.data && chartData.options && (
+                        <>
+                          <Bar
+                            data={chartData.data}
+                            options={{ ...chartData.options, onClick: (e) => handleBarClick(e) }}
+                            className='mb-5'
+                          />
+                          {pieChartData && pieChartData.data && (
+                            <>
+                              <Pie
+                                data={pieChartData.data}
+                                options={NFTpieOptions}
+                                
+                              />
+                              <h3>{selectedComicTitle.title} {selectedComicTitle.state}</h3>
+                              <h3>{t('TOP 5')}</h3>
+                              {pieChartData.top5 && pieChartData.top5.map((item, index) => (
+                                <p key={index}>{item}</p>
+                              ))}
+                            </>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </Tab>
               </Tabs>
             </Tab>

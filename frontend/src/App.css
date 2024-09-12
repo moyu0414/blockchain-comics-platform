@@ -2666,14 +2666,14 @@ a:link{
 }
 
 .nftMarket-modal .modal-img {
-  width: 60%;
+  width: 50%;
   height: 25%;
   aspect-ratio: 1 / 1; 
   overflow: hidden; 
 }
 
 .nftMarket-modal .modal-img img {
-  width: 300px;
+  width: 40rem;
   height: auto;
   aspect-ratio: 3 / 2;
   object-fit: cover;
@@ -2715,7 +2715,53 @@ a:link{
   vertical-align: middle!important;
 }
 
-.creatorNft-overlay {
+.input-number-container {
+  display: flex;
+  align-items: center;
+}
+
+.nftMarket-modal .input-number {
+  width: 80px;
+  padding: 0 12px;
+  vertical-align: top;
+  text-align: center;
+  outline: none;
+  border: 1px solid #ccc;
+  height: 40px;
+  user-select: none;
+  font-size: 16px;
+}
+
+.nftMarket-modal .input-number-decrement,
+.nftMarket-modal .input-number-increment {
+  display: inline-block;
+  width: 30px;
+  line-height: 38px;
+  background: #f1f1f1;
+  color: #444;
+  text-align: center;
+  font-weight: bold;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  height: 40px;
+}
+
+.nftMarket-modal .input-number-decrement {
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+}
+
+.nftMarket-modal .input-number-increment {
+  border-left: none;
+  border-radius: 0 4px 4px 0;
+}
+
+.nftMarket-modal .input-number-decrement:active,
+.nftMarket-modal .input-number-increment:active {
+  background: #ddd;
+}
+
+.nftMarket-modal .creatorNft-overlay {
   position: absolute; 
   text-align: center;
   bottom: 40px;
@@ -2812,6 +2858,25 @@ a:link{
   margin-bottom: 1rem; /* 每列底部的间距 */
 }
 
+.second-tab .scrollable-container {
+  overflow-x: hidden; /* 確保外層容器不會出現滾動條 */
+}
+
+.second-tab .scrollable-buttons {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none; /* 隐藏滚动条 (仅适用于 Firefox) */
+}
+
+.second-tab .scrollable-buttons::-webkit-scrollbar {
+  display: none; /* 隐藏滚动条 (适用于 Chrome, Safari, Edge) */
+}
+
+.second-tab .scrollable-buttons > * {
+  flex-shrink: 0; /* 防止按鈕被縮小 */
+  margin-right: 8px; /* 設置按鈕之間的距離，可根據需要調整 */
+}
+
 @media only screen and (max-width: 992px) {
   .nftMarket-carousel .carousel-control-prev,
   .nftMarket-carousel .carousel-control-next {
@@ -2836,9 +2901,19 @@ a:link{
     margin-right: -65px!important;
     margin-top: 44%!important;
   }
+
+  .nftMarket-modal input{
+    width: 40%;
+  }
+
+  .nftMarket-modal .modal-img {
+    max-height: 18rem;
+  }
+
+  
 }
 
-@media (max-width: 450px) {
+@media (max-width: 1000px) {
   .nftMarket-modal .table-xs tr,
   .nftMarket-modal .table-xs td,
   .nftMarket-modal .table-xs tbody,
@@ -2850,8 +2925,16 @@ a:link{
     border-collapse: separate;
   }
 
-  .nftMarket-modal .modal-img{
-    height: 12rem;
+  .nftMarket-modal .modal-img {
+    position: relative;
+    width: 100%;
+    max-height: 20rem;
+    padding-top: 75%; /* 保持 4:3 的比例，你可以根据需要调整 */
+  }
+
+  .nftMarket-modal .modal-img img {
+    height: auto;
+    object-fit: cover;
   }
 
   .nftMarket-modal .overlay {
@@ -2908,7 +2991,30 @@ a:link{
   .nftMarket-carousel .carousel-control-next {
     margin-top: 45.5%!important;
   }
+
+  
+
 }
+
+@media (max-width: 435px) {
+  .nftMarket-modal .modal-img {
+    max-height: 14rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .nftMarket-modal .table-xs tr,
+  .nftMarket-modal .table-xs td,
+  .nftMarket-modal .table-xs tbody,
+  .nftMarket-modal .table-xs thead,
+  .nftMarket-modal .table-xs tfoot,
+  .nftMarket-modal .table-xs th {
+    display: block;
+    width: 94%;
+    border-collapse: separate;
+  }
+}
+
 
 @media (max-width: 400px) {
   .nftMarket-carousel .carousel-control-prev,
@@ -2990,6 +3096,24 @@ a:link{
     height: 6em;
   }
 
+  .flip-comic {
+    padding-top: 110px; 
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000; 
+  }
+  
+  .flip-comic img {
+    width: 100%; 
+    height: auto;
+    object-fit: contain; 
+    min-width: 100%;
+    max-height: 100%; 
+    display: block;
+  }
+
 }
 
 /* comicRead */
@@ -3061,18 +3185,19 @@ a:link{
 }
 
 .flip-comic {
-  width: 100%;
-  height: 100vh;
+  padding-top: 100px; 
   display: flex;
   justify-content: center;
+  align-items: center;
+  background-color: #000; 
 }
 
 .flip-comic img {
-  padding-top: 100px;
-  width: 20%; 
+  width: 26%; 
   height: auto;
-  max-height: 88%; 
-  /* object-fit: cover; */
+  object-fit: contain; 
+  max-height: 100%; 
+  display: block;
 }
 
 /* .split-image {
@@ -4000,10 +4125,14 @@ a:link{
   color: #ccc;
 }
 
+.second-tab .ranking-list{
+  justify-content: start;
+}
+
 /* ORDER FIRST PLACE RESPONSIVE */
 @media only screen and (max-width: 768px) {
   .rankingList {
-    display: flex;
+    /* display: flex; */
     flex-wrap: wrap;
     padding: 2% 4%;
   }
@@ -4190,6 +4319,14 @@ a:link{
 }
 
 @media screen and (max-width: 600px) {
+  .comicManagement table td, 
+  .comicManagement table th, 
+  .dataAnalysis table th {
+    word-break: break-word;  
+    white-space: normal;     
+    overflow-wrap: break-word;
+  }
+
   .comicManagement table, .dataAnalysis table{
     width: 100%;
     border: 0;
@@ -4203,7 +4340,6 @@ a:link{
     border: none;
     clip: rect(0 0 0 0);
     height: 1px;
-    margin: -1px;
     overflow: hidden;
     padding: 0;
     position: absolute;
@@ -4218,7 +4354,7 @@ a:link{
   .comicManagement table td, .dataAnalysis table td {
     border-bottom: 1px solid #ddd;
     display: block;
-    font-size: .8em;
+    /* font-size: .8em; */
     text-align: right;
   }
   
@@ -4240,6 +4376,56 @@ a:link{
   .comicManagement table th, .comicManagement table td, .dataAnalysis table th, .dataAnalysis table td{
     width: 100%!important;
   }
+
+  .sub-table-row {
+    vertical-align: inherit;
+    unicode-bidi: isolate;
+    width: auto!important; 
+    display: flex!important;
+    width: 100%; /* 確保行寬度自適應 */
+    border-bottom: none!important;
+    border-collapse: collapse;
+    margin-bottom: 0!important;
+  }
+  
+  /* 恢復子表格的表格單元格樣式 */
+  .sub-table-row td {
+    display: table-cell!important; 
+    width: auto!important; 
+    padding: 8px;
+    text-align: center!important;
+    border-bottom: none!important;
+  }
+
+  .dataAnalysis .income-table{
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 1rem;
+    background-color: transparent;
+  }
+
+  .dataAnalysis .income-table thead{
+    position: relative;
+    height: auto;
+    font-size: 14px;
+  }
+
+  .dataAnalysis .income-table tr{
+    display: flex;
+    margin-bottom: 0;
+  }
+
+  .dataAnalysis .income-table td, .dataAnalysis .income-table th{
+    display: table-cell!important; 
+    width: 100%!important; 
+    padding: 8px;
+    text-align: center!important;
+    border-bottom: none!important;
+  }
+}
+
+.sub-table-row:nth-of-type(odd)>*{
+  background-color: #f0fff0!important;
 }
 
 /* comicFlipRead */
@@ -4292,6 +4478,28 @@ a:link{
 
   .dataAnalysis .second-tab button{
     width: 32%!important;
+  }
+
+  .dataAnalysis canvas{
+    margin-top: 4%;
+    max-width: 300px!important;
+  }
+
+  .dataAnalysis .pie-chart-item{
+    display: flex;
+    justify-content: center;
+  }
+
+  .dataAnalysis .pie-chart-item canvas{
+    margin-bottom: 6%;
+  }
+
+  .dataAnalysis .pie-chart-container hr{
+    margin: 10% 0;
+  }
+
+  .dataAnalysis .pie-chart-item h3{
+    padding-top: 2%;
   }
 }
 
@@ -4381,9 +4589,67 @@ a:link{
   padding: 0.5% 0;
 }
 
-.dataAnalysis canvas{
-  max-width: 1200px;
+.dataAnalysis .sales-chart canvas{
+  max-width: 50%;
+  max-height: 70%;
 }
+
+.dataAnalysis .nft-income-chart canvas{
+  max-width: 60%;
+  max-height: 90%;
+}
+
+.dataAnalysis .income-table>tbody>tr:nth-of-type(odd)>*{
+  background-color: #FFF8D7!important;
+  --bs-table-bg-type: transparent;
+}
+
+.dataAnalysis .pie-chart-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dataAnalysis .pie-chart-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.dataAnalysis .pie-chart-item {
+  display: block;
+  max-width: 500px;
+  max-height: 500px;
+  margin-bottom: 8%;
+}
+
+.dataAnalysis .table-striped>tbody>tr:nth-of-type(odd)>* {
+  background-color: #deffff;
+  --bs-table-bg-type: transparent;
+}
+
+.dataAnalysis .pie-chart-item h3,
+.dataAnalysis .pie-chart-item div{
+  text-align: center;
+}
+
+.dataAnalysis .pie-chart-item div{
+  padding: 1% 0 ;
+}
+
+@media (min-width: 1200px) {
+  .dataAnalysis .pie-chart-container {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .pie-chart-item {
+    width: 45%;
+  }
+
+  
+}
+
 
 /* authorProfile */
 .profile-section, .post-author {

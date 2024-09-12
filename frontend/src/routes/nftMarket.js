@@ -11,6 +11,32 @@ import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
+
+const QuantityControl = ({ value, onChange }) => {
+    const handleIncrease = () => {
+      onChange(value + 1);
+    };
+  
+    const handleDecrease = () => {
+      if (value > 1) {
+        onChange(value - 1);
+      }
+    };
+  
+    return (
+      <div className="d-flex align-items-center">
+        <Button variant="outline-secondary" onClick={handleDecrease}>-</Button>
+        <Form.Control
+          type="text"
+          value={value}
+          className="mx-2 text-center"
+          readOnly
+        />
+        <Button variant="outline-secondary" onClick={handleIncrease}>+</Button>
+      </div>
+    );
+  };
+
 function NftMarket() {
     const [comic, setComic] = useState([]);
     const [material, setMaterial] = useState([]);
@@ -431,11 +457,15 @@ function NftMarket() {
                                     {item.price}
                                 </td>
                                 <td className="text-right qty" title="數量">
-                                    <Form.Control
+                                    {/* <Form.Control
                                         type="number"
                                         value={item.saleQty}
                                         min="1"
                                         onChange={(e) => handleQuantityChange(item.tokenId, parseInt(e.target.value, 10))}
+                                    /> */}
+                                    <QuantityControl
+                                        value={item.saleQty}
+                                        onChange={(newQuantity) => handleQuantityChange(item.tokenId, newQuantity)}
                                     />
                                 </td>
                                 <td className="text-right" title="總額">
