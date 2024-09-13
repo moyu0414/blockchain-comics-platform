@@ -44,7 +44,7 @@ const AuthorProfile = () => {
 
                     const updateInfo = infoData.map(data => ({
                         penName: data.penName,
-                        email: data.info.email,
+                        email: data.info.editEamil ? data.info.editEamil : data.info.email,
                         intro: data.info.intro,
                         image: image
                     }));
@@ -327,7 +327,7 @@ const AuthorProfile = () => {
                                                 <br />
                                             </>
                                         ) : (
-                                                <Button className='profile-edit' variant="primary" onClick={handleEditToggle}>個資編輯</Button>
+                                                <Button className='profile-edit' variant="primary" onClick={handleEditToggle} disabled={isButtonDisabled}>個資編輯</Button>
                                         )}
                                         {isAdding ? (
                                             <>
@@ -336,7 +336,7 @@ const AuthorProfile = () => {
                                                 <Button className='profile-cancel' variant="secondary" onClick={handleAddToggle}>取消</Button>
                                             </>
                                         ) : (
-                                                <Button className='profile-add' variant="primary" onClick={handleAddToggle}>新增訊息</Button>
+                                                <Button className='profile-add' variant="primary" onClick={handleAddToggle} disabled={isButtonDisabled}>新增訊息</Button>
                                         )}
                                         {isEditEmail && (
                                             <>

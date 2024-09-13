@@ -210,7 +210,7 @@ function Navigation() {
                 }
             });
             if (response.data.exists === true) {
-                navigate('/comicManagement');
+                window.location.replace('/comicManagement')
             } else {
                 alert(t('您並非管理者'));
                 return;

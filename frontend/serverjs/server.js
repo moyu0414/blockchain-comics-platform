@@ -232,7 +232,7 @@ app.post('/api/send-verification-email', async (req, res) => {
 
 app.post('/api/verify-email', upload.single('creatorIMG'),async (req, res) => {
   const file = req.file;
-  const { token, account } = req.body;
+  const { token, account, terms } = req.body;
   const image = await creatorFile(file, account, 'creatorIMG');
   if (!image){
     return res.status(500).json({ state: false, message: 'Error upload image' });
@@ -254,7 +254,8 @@ app.post('/api/verify-email', upload.single('creatorIMG'),async (req, res) => {
     const name = results[0].info.name;
     const email = results[0].info.email;
     const penName = results[0].info.penName;
-    const info = JSON.stringify({ name, email, image });
+    const terms = JSON.parse(req.body.terms);
+    const info = JSON.stringify({ name, email, image, terms });
     const updateQuery = 'UPDATE user SET info = ?, is_creator = 2, penName = ? WHERE address = ?';
     pool.query(updateQuery, [info, penName, account], (error, results) => {
       if (error) {
@@ -980,7 +981,7 @@ app.put('/api/update/EditProfile', async (req, res) => {
       const currentInfo = info;
       // 2. 更新信息
       const updatedInfo = { ...currentInfo };
-      if (email) updatedInfo.email = email;
+      if (email) updatedInfo.editEamil = email;
       if (intro) updatedInfo.intro = intro;
       // 将 updatedInfo 转回 JSON 字符串
       const updatedInfoJson = JSON.stringify(updatedInfo);
@@ -1031,6 +1032,12 @@ app.put('/api/update/AddProfile', async (req, res) => {
       console.error('Error updating profile:', error);
       res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+
+app.get('/api/getIP', (req, res) => {
+  const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  res.json({ ip: ipAddress });
 });
 
 

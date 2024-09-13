@@ -387,7 +387,7 @@ function ComicDetail() {
                             {comic[0].state ? (
                                 <div className='remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
                                     {/* <div id="start" style={{ display: 'block'}}> */}
-                                        <img src='/cry-Emoji.svg' />
+                                        <img src='/piratyPromo.jpg' />
                                         <div id="notimage" className="hidden">{t(comic[0].state)}</div>
                                     {/* </div> */}
                                 </div>
@@ -440,7 +440,7 @@ function ComicDetail() {
                                     <Link to={`/authorProfile/${comic.author === t('您是本作品的創作者') ? currentAccount : comic.author}`}>
                                         <p>
                                             <span className="comicDetail-penName">{comic.penName}</span> 
-                                            <span className="text-secondary address">({comic.author})</span>
+                                            <span className="address">({comic.author})</span>
                                         </p>
                                     </Link>
                                     <p>{t('發布日期')}：{comic.release}</p>

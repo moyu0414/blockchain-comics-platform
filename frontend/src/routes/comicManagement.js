@@ -602,7 +602,7 @@ const ComicManagement = ({ contractAddress }) => {
                         <th></th>
                         <th data-label="ID">{index + 1}</th>
                         <td data-label="漫畫">{data.title}</td>
-                        <td data-label="作者" className="author-cell">{data.author}</td>
+                        <td data-label="作者" className="address-cell">{data.author}</td>
                         {!isMobile &&
                           <td data-label="漫畫Hash">
                             {data.hash}

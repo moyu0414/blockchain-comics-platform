@@ -1650,7 +1650,7 @@ const DataAnalysis = () => {
       <Pie
         data={chartData}
         options={chartData.options}
-        style={{ marginTop: "-40px" }}
+        style={{ marginTop: "-40px", maxWidth: "500px", maxHeight: "500px" }}
       />
       <div style={{ marginTop: "-40px", marginBottom: "0px", marginLeft: "5%" }}>
         <h3>{title} TOP 5</h3>
@@ -1770,7 +1770,9 @@ const DataAnalysis = () => {
                               <h2>{t('漫畫銷售佔比')}</h2>
                               {pieTop5 && pieTop5.title.length !== 0 ? (
                                 <>
-                                  {renderPieChart(pieData, pieOptions)}
+                                  <div style={{maxWidth: "500px", maxHeight: "500px"}}>
+                                    {renderPieChart(pieData, pieOptions)}
+                                  </div>
                                   <h3>{pieTop5.date} {t('TOP 5')}</h3>
                                   {pieTop5.title && pieTop5.title.map((item, index) => (
                                     <p key={index}>{item}</p>
@@ -1969,7 +1971,7 @@ const DataAnalysis = () => {
                 <Tab className='second-tab' eventKey="nftSales" title="銷售額">
                   <center><h2>NFT 銷售額</h2></center><hr />
                   <div className="pie-chart-wrapper">
-                    {(nftData.totRevenueResults.length && nftSalesData && nftSalesData.total) ? (
+                    {(nftData.totRevenueResults.length > 0 && nftSalesData && nftSalesData.total) ? (
                       <div className="pie-chart-container">
                         <NftPieChart chartData={nftSalesData.total} title="總收益" />
                         <hr />
@@ -1983,7 +1985,7 @@ const DataAnalysis = () => {
                 <Tab className='second-tab revenueDist' eventKey="revenueDist" title="收益分布">
                   <div>
                     <center><h2>NFT 收益分布</h2></center><hr />
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} className='nft-income-chart'>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} className='sales-chart'>
                       {chartData && chartData.data && chartData.options && (
                         <>
                           <Bar

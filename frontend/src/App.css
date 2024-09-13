@@ -459,10 +459,6 @@ span {
     font-size: 1.3rem!important;
   }
   
-  .flip-comic img {
-    width: 100%!important; 
-  }
-
   .ranking-author {
     max-width: 210px!important;
   }
@@ -1672,6 +1668,7 @@ a:link{
     margin-top: -8px;
     margin-bottom: 8px;
   }
+
 }
 
 .carousel-control-prev {
@@ -1894,6 +1891,12 @@ a:link{
     height: 120px;
     display: flex;
     justify-content: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .comicDetail .text-section {
+    max-width: 320px;
   }
 }
 
@@ -3096,27 +3099,17 @@ a:link{
     height: 6em;
   }
 
-  .flip-comic {
-    padding-top: 110px; 
-    width: 100vw;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #000; 
-  }
-  
-  .flip-comic img {
-    width: 100%; 
-    height: auto;
-    object-fit: contain; 
-    min-width: 100%;
-    max-height: 100%; 
-    display: block;
-  }
-
 }
 
 /* comicRead */
+.comicRead {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* 使容器高度占满视口高度 */
+  overflow: hidden; /* 防止内容溢出 */
+  background-color: #000;
+}
+
 .comic-custom-navbar {
   background-color: rgba(35, 38, 36, 0.95);
   height: 100px;
@@ -3175,38 +3168,34 @@ a:link{
 }
 
 .banner-image {
-  width: 70%; 
+  max-width: 700px;
   margin: 0 auto;
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
 }
 
 .banner-image img {
-  width: 100%; 
+  width: 100%;
+  justify-content: center;
+  align-items: center;
   height: auto; 
 }
 
 .flip-comic {
-  padding-top: 100px; 
+  flex: 1; /* 使 flip-comic 占据剩余空间 */
+  overflow: hidden; /* 防止内容溢出 */
+  background-color: black;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #000; 
+  justify-content: center; /* 水平居中 */
+  align-items: center; /* 垂直居中 */
 }
 
-.flip-comic img {
-  width: 26%; 
-  height: auto;
-  object-fit: contain; 
-  max-height: 100%; 
-  display: block;
+.split-image {
+  max-width: 100%;
+  max-height: 100%; /* 确保图像在容器内 */
+  object-fit: contain; /* 保持图像的纵横比 */
 }
-
-/* .split-image {
-  top: 0;
-  width: 100%;
-  height: auto;
-  max-height: 75vh; 
-  object-fit: cover;
-} */
 
 @media (max-width: 600px) {
   /* .split-image {
@@ -3343,6 +3332,25 @@ a:link{
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
+}
+
+.bookcase-position {
+  position: relative;
+}
+
+.bookcase-position .hidden {
+  position: absolute;
+  text-align: center;
+  width: 100%;
+  height: 65px;
+  right: 0;
+  bottom: -16px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  padding: 5px 0px;
+  font-size: 1.1rem;
+  white-space: pre-line;
+  z-index: 1;
 }
 
 /* 關閉按鈕 */
@@ -3667,6 +3675,30 @@ a:link{
   justify-content: center;
 }
 
+.verifyPage .modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.verifyPage .modal-content {
+  background-color: white;
+  margin-top: 40px;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  max-height: 550px;
+  width: 90%;
+  overflow-y: auto;
+}
+
 /* verifySuccess */
 
 .verifySuccess {
@@ -3873,8 +3905,7 @@ a:link{
 
 .createSuccess .createSuccess-image-container{
   display: inline-block;
-  width: 400px;
-  height: 200px;
+  width: 340px;
   border-radius: 0;
   margin: 0;
 }
@@ -3882,8 +3913,7 @@ a:link{
 .createSuccess .createSuccess-image-container img{
   border-radius: 0;
   display: block;
-  width: 400px;
-  height: 200px;
+  width: 100%;
 }
 
 .createSuccess .btn{
@@ -4181,13 +4211,6 @@ a:link{
     display: table-row; /* 点击行时显示详细信息 */
   }
 
-  .comicManagement .author-cell{
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* max-width: 80px; */
-  }
-
   .comicManagement .hash-cell-text{
     max-width: 390px;
     overflow-wrap: break-word;
@@ -4392,7 +4415,6 @@ a:link{
   .sub-table-row td {
     display: table-cell!important; 
     width: auto!important; 
-    padding: 8px;
     text-align: center!important;
     border-bottom: none!important;
   }
@@ -4482,24 +4504,10 @@ a:link{
 
   .dataAnalysis canvas{
     margin-top: 4%;
-    max-width: 300px!important;
-  }
-
-  .dataAnalysis .pie-chart-item{
-    display: flex;
-    justify-content: center;
-  }
-
-  .dataAnalysis .pie-chart-item canvas{
-    margin-bottom: 6%;
   }
 
   .dataAnalysis .pie-chart-container hr{
     margin: 10% 0;
-  }
-
-  .dataAnalysis .pie-chart-item h3{
-    padding-top: 2%;
   }
 }
 
@@ -4590,13 +4598,9 @@ a:link{
 }
 
 .dataAnalysis .sales-chart canvas{
-  max-width: 50%;
-  max-height: 70%;
-}
-
-.dataAnalysis .nft-income-chart canvas{
-  max-width: 60%;
-  max-height: 90%;
+  width: 100%;
+  max-width: 1300px;
+  max-height: 500px;
 }
 
 .dataAnalysis .income-table>tbody>tr:nth-of-type(odd)>*{
@@ -4616,25 +4620,26 @@ a:link{
   flex-direction: column;
 }
 
-.dataAnalysis .pie-chart-item {
-  display: block;
-  max-width: 500px;
-  max-height: 500px;
-  margin-bottom: 8%;
-}
-
 .dataAnalysis .table-striped>tbody>tr:nth-of-type(odd)>* {
   background-color: #deffff;
   --bs-table-bg-type: transparent;
 }
 
-.dataAnalysis .pie-chart-item h3,
 .dataAnalysis .pie-chart-item div{
-  text-align: center;
+  margin-left: 30px;
+}
+
+.dataAnalysis .pie-chart-item h3{
+  margin-left: 50px;
 }
 
 .dataAnalysis .pie-chart-item div{
+  display: block;
   padding: 1% 0 ;
+}
+
+.sub-table-row td:first-child {
+  padding-left: 20px;
 }
 
 @media (min-width: 1200px) {
@@ -4646,10 +4651,19 @@ a:link{
   .pie-chart-item {
     width: 45%;
   }
-
   
 }
 
+@media (max-width: 450px) {
+  .dataAnalysis .pie-chart-item div{
+    margin-left: 0px;
+  }
+
+  .dataAnalysis .pie-chart-item h3{
+    margin-left: 00px;
+  }
+  
+}
 
 /* authorProfile */
 .profile-section, .post-author {
