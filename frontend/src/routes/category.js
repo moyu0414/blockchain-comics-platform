@@ -217,10 +217,10 @@ function Category() {
     return (
         <>
             {!loading &&
-                <Container className='homepage'>
+                <Container className='homepage '>
                     <Row className="pt-3 pb-2 btn-container">
                         {buttonData.map((label, idx) => (
-                            <Col key={idx} xs={2} md={3} lg={1} className="pb-3 btn-section">
+                            <Col key={idx} xs={3} md={3} lg={3} className="pb-3 category-btn-section">
                                 <Button variant="outline-dark" className="custom-button" onClick={() => handleCategoryClick(t(label))}>{t(label)}</Button>
                             </Col>
                         ))}

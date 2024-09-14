@@ -1745,6 +1745,11 @@ a:link{
   z-index: 1; /* 确保悬浮在图片上方 */
 }
 
+.homepage .category-btn-section .btn{
+  width: 100%;
+}
+
+
 /* comicDetail */
 
 .comicDetail .btn{
@@ -3578,6 +3583,16 @@ a:link{
   }
 }
 
+@media (max-width: 900px) {
+  .verify-custom-modal .modal-footer{
+    flex-direction: column-reverse;
+  }
+  .verify-custom-modal .modal-footer .btn{
+    width: 100%!important;
+    
+  }
+}
+
 /* becomeWriter */
 
 .becomeWriter {
@@ -3697,6 +3712,51 @@ a:link{
   max-height: 550px;
   width: 90%;
   overflow-y: auto;
+}
+
+.modal{
+  overflow-y: hidden;
+}
+
+.verify-custom-modal {
+  max-width: 1000px; /* 设置更宽的宽度 */
+  overflow-y: auto;
+}
+
+.verify-custom-modal .modal-header{
+  background-color: #0FC2C0;
+  color: #fff;
+}
+
+.verify-custom-modal .modal-content{
+  overflow-y: auto;
+}
+
+.verify-custom-modal .modal-body{
+  max-height: 400px;
+  overflow-y:scroll;  
+  padding-right: 15px;
+}
+
+.verify-custom-modal .modal-footer{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.verify-custom-modal .modal-footer .btn{
+  width: 49%;
+}
+
+.verify-custom-modal .modal-footer .btn-secondary{
+  border: 1px #0FC2C0 solid;
+  background-color: #fff;
+  color: #0FC2C0;
+}
+
+.verify-custom-modal .modal-footer .btn-secondary:hover{
+  background-color: #0FC2C0;
+  color: #fff;
 }
 
 /* verifySuccess */
