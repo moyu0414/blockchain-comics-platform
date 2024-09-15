@@ -220,7 +220,7 @@ function Category() {
                 <Container className='homepage '>
                     <Row className="pt-3 pb-2 btn-container">
                         {buttonData.map((label, idx) => (
-                            <Col key={idx} xs={3} md={3} lg={3} className="pb-3 category-btn-section">
+                            <Col key={idx} xs={3} md={3} lg={1} className="pb-3 btn-section">
                                 <Button variant="outline-dark" className="custom-button" onClick={() => handleCategoryClick(t(label))}>{t(label)}</Button>
                             </Col>
                         ))}
@@ -244,7 +244,7 @@ function Category() {
                             </Dropdown>
                         </Col>
                     </Row>
-                    <Row xs={1} md={2} className="g-4 pb-5">
+                    <Row xs={1} md={2} lg={12} className="g-4 pb-5">
                         {promoPosition.length === 0 ? (
                             <>
                                 <h3 className="fw-bold">{t('目前沒有...類型的漫畫', { category: currentCategory })}</h3>
@@ -252,9 +252,9 @@ function Category() {
                             </>
                         ) : (
                             <>
-                                <Row xs={1} md={2} className="g-4 pb-5">
+                                <Row xs={1} md={2} className="g-4 pb-5 w-100">
                                     {current.map((data, idx) => (
-                                        <Col key={idx} xs={6} md={6}>
+                                        <Col key={idx} xs={6} md={6} lg={3}>
                                             <Card className="ranking-thumbnail-position">
                                                 <Link to={`/comicDetail/${current[idx].comicID}`}>
                                                     <Card.Img variant="top" src={data.image} />
