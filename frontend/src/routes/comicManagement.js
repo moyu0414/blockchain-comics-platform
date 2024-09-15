@@ -42,9 +42,9 @@ const ComicManagement = ({ contractAddress }) => {
   const { t } = useTranslation();
   const headers = {'api-key': API_KEY};
   const statusMap = {
-    0: t('刪除'),
-    1: t('查核'),
-    2: t('盜版')
+    0: '刪除',
+    1: '查核',
+    2: '盜版'
   };
   let modifiedArray = [];
 
@@ -156,7 +156,7 @@ const ComicManagement = ({ contractAddress }) => {
         });
         //console.log(response.data);
         const totalCost = web3Instance.utils.toWei(response.data, 'ether');
-        console.log(totalCost);
+        //console.log(totalCost);
 
         await meta.toggleComicExistence(comicHash, 2).send({ from: currentAccount, value: totalCost });
         await axios.put(`${website}/api/update/comicExist`, null, {
@@ -168,7 +168,7 @@ const ComicManagement = ({ contractAddress }) => {
         });
         const updatedComics = searchResults.map(comic =>
           comic.hash === comicHash
-            ? { ...comic, exists: t('盜版') }
+            ? { ...comic, exists: '盜版' }
             : comic
         );
         setSearchResults(updatedComics);
@@ -201,7 +201,7 @@ const ComicManagement = ({ contractAddress }) => {
           });
           //console.log(response.data);
           const totalCost = web3Instance.utils.toWei(response.data, 'ether');
-          console.log(totalCost);
+          //console.log(totalCost);
 
           await meta.toggleComicExistence(comicHash, 1).send({ from: currentAccount });
           await axios.put(`${website}/api/update/comicExist`, null, {
@@ -213,7 +213,7 @@ const ComicManagement = ({ contractAddress }) => {
           });
           const updatedComics = searchResults.map(comic =>
             comic.hash === comicHash
-              ? { ...comic, exists: t('查核') }
+              ? { ...comic, exists: '查核' }
               : comic
           );
           setSearchResults(updatedComics);
@@ -248,7 +248,7 @@ const ComicManagement = ({ contractAddress }) => {
         });
         const updatedComics = searchResults.map(comic =>
           comic.hash === comicHash
-            ? { ...comic, exists: t('刪除') }
+            ? { ...comic, exists: '刪除' }
             : comic
         );
         setSearchResults(updatedComics);
@@ -297,7 +297,7 @@ const ComicManagement = ({ contractAddress }) => {
     if (!modalState.data) return null;
     const { exists, hash, creator } = modalState.data;
     switch (exists) {
-      case t('刪除'):
+      case '刪除':
         return (
           <>
             <Button className="mt-3 del-btn" onClick={() => handleShow(modalState.data, true)}>
@@ -308,7 +308,7 @@ const ComicManagement = ({ contractAddress }) => {
             </Button>
           </>
         );
-      case t('查核'):
+      case '查核':
         return (
           <>
             <Button className="mt-3 return-btn" onClick={() => handleToggle(hash, 0)}>
@@ -451,10 +451,10 @@ const ComicManagement = ({ contractAddress }) => {
   
   const accountChange = async (address, state) => {
     disableAllButtons();
-    if (state === t('否') || state === t('禁用')) {
+    if (state === '否' || state === '禁用') {
       enableAllButtons();
       return;
-    } else if (state === t('審核')) {
+    } else if (state === '審核') {
       try{
         await meta.addCreator(address).send({from: currentAccount});
         
@@ -475,7 +475,7 @@ const ComicManagement = ({ contractAddress }) => {
           alert(error);
         }
       }
-    } else if (state === t('是')) {
+    } else if (state === '是') {
       setShowUser(true);
       setDeleteUser(address);
     }
@@ -485,13 +485,13 @@ const ComicManagement = ({ contractAddress }) => {
 
   const getButtonClass = (state) => {
     switch (state) {
-      case t('否'):
+      case '否':
         return 'cancel-btn'; // 灰色
-      case t('禁用'):
+      case '禁用':
         return 'del-btn'; // 深灰色
-      case t('審核'):
+      case '審核':
         return 'war-btn'; // 黃色
-      case t('是'):
+      case '是':
         return 'pri-btn'; // 綠色
     }
   };
@@ -583,7 +583,7 @@ const ComicManagement = ({ contractAddress }) => {
                       <Form.Label>{t('請輸入價格')}</Form.Label>
                       <Form.Control
                         type="number"
-                        placeholder={t('輸入價格')}
+                        placeholder={t('請輸入價格')}
                         min="0.001"
                         step="0.001"
                         ref={withdrawRef}
@@ -633,8 +633,8 @@ const ComicManagement = ({ contractAddress }) => {
                     <tr key={index}>
                       <th></th>
                       <th>{index + 1}</th>
-                      <td data-label="帳號" className="address-cell">{data}</td>
-                      <td data-label="狀態" className="text-end">
+                      <td data-label={t('帳號')} className="address-cell">{data}</td>
+                      <td data-label={t('狀態')} className="text-end">
                         <OverlayTrigger placement="top" overlay={renderTooltip(t('刪除管理者帳號'))}>
                           <Button onClick={() => removeAdmin(data)} className='del-btn' variant="outline-danger" data-backgroundcolor="#0FC2C0">
                             <TrashFill title="Delete" /> <span className="del-text">{t('刪除')}</span>
@@ -686,27 +686,27 @@ const ComicManagement = ({ contractAddress }) => {
                       >
                         <th></th>
                         <th data-label="ID">{index + 1}</th>
-                        <td data-label="漫畫">{data.title}</td>
-                        <td data-label="作者" className="address-cell">{data.author}</td>
+                        <td data-label={t('漫畫')}>{data.title}</td>
+                        <td data-label={t('作者')} className="address-cell">{data.author}</td>
                         {!isMobile &&
-                          <td data-label="漫畫Hash">
+                          <td data-label={t('漫畫Hash')}>
                             {data.hash}
                           </td>
                         }
-                        <td data-label="狀態" className="text-end">
-                          <OverlayTrigger placement="top" overlay={renderTooltip(data.exists !== t('盜版') ? t('修改漫畫存續狀態') : t('盜版漫畫已下架、已退款'))}>
+                        <td data-label={t('狀態')} className="text-end">
+                          <OverlayTrigger placement="top" overlay={renderTooltip(data.exists !== '盜版' ? t('修改漫畫存續狀態') : t('盜版漫畫已下架、已退款'))}>
                             <Button
                               onClick={() => handleShow(data)}
                               className={`btn ${
-                                data.exists === t('刪除') ? 'del-btn' :
-                                data.exists === t('查核') ? 'war-btn' :
-                                data.exists === t('盜版') ? 'piracy' : ''
+                                data.exists === '刪除' ? 'del-btn' :
+                                data.exists === '查核' ? 'war-btn' :
+                                data.exists === '盜版' ? 'piracy' : ''
                               }`}
                               variant="outline-danger"
                               data-backgroundcolor="#0FC2C0"
-                              disabled={data.exists === t('盜版')}
+                              disabled={data.exists === '盜版'}
                             >
-                              {data.exists}
+                              {t(data.exists)}
                             </Button>
                           </OverlayTrigger>
                           <Modal
@@ -793,17 +793,17 @@ const ComicManagement = ({ contractAddress }) => {
                 <tbody>
                   {userSearchResults.map((data, index) => (
                     <tr key={index}>
-                      <th data-label="編號"></th>
-                      <th data-label="編號">{index + 1}</th>
-                      <td data-label="帳號" className="address-cell">{data.address}</td>
-                      <td data-label="創作者身分" className="text-end">
+                      <th data-label={t('編號')}></th>
+                      <th data-label={t('編號')}>{index + 1}</th>
+                      <td data-label={t('帳號')} className="address-cell">{data.address}</td>
+                      <td data-label={t('創作者身分')} className="text-end">
                         <OverlayTrigger placement="top" overlay={renderTooltip(t('修改創作者身分'))}>
                           <Button 
                             onClick={() => accountChange(data.address, data.is_creator)} 
                             className={`del-btn ${getButtonClass(data.is_creator)}`} 
                             data-backgroundcolor="#0FC2C0"
                           >
-                            {data.is_creator}
+                            {t(data.is_creator)}
                           </Button>
                         </OverlayTrigger>
                       </td>
@@ -812,14 +812,14 @@ const ComicManagement = ({ contractAddress }) => {
                   {showUser && (
                     <Modal show={showUser} onHide={handleClose} dialogClassName="custom-modal-content">
                         <Modal.Body>
-                            <h3>禁用創作者帳號</h3>
+                            <h3>{t('禁用創作者帳號')}</h3>
                         </Modal.Body>
                         <Modal.Footer className="custom-modal-footer">
                             <Button className='pri-btn' onClick={userDeleteConfirm}>
-                                確定
+                                {t('確定')}
                             </Button>
                             <Button className='cancel-btn' onClick={handleClose}>
-                                取消
+                                {t('取消')}
                             </Button>
                         </Modal.Footer>
                     </Modal>

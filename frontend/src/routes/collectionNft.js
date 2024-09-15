@@ -25,7 +25,7 @@ function CollectionNft() {
                 }
             });
             let collectNFT = response.data;
-            console.log(collectNFT);
+            //console.log(collectNFT);
             if (typeof collectNFT !== 'undefined' && typeof collectNFT.length === 'undefined' || collectNFT.length === 0) {
                 setBeingNFT(false);
             } else {
@@ -55,7 +55,7 @@ function CollectionNft() {
                 };
                 await Promise.all(collectNFT.map(fetchImage));
 
-                console.log(collectNFT);
+                //console.log(collectNFT);
                 setNFT(collectNFT);
             }
             setLoading(false);

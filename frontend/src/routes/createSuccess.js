@@ -44,7 +44,7 @@ function CreateSuccess() {
                     await new Promise(resolve => setTimeout(resolve, 1000)); // 等待1秒钟再尝试
                 }
             }
-            console.log(temp);
+            //console.log(temp);
             setComic(temp);
             setLoading(false);
         } catch (error) {
@@ -75,9 +75,9 @@ function CreateSuccess() {
                             <Link to={`/comicDetail/${comic[0].comicID}`}>
                                 <div className="d-block mx-auto img-fluid createSuccess-image-container">
                                     <img
-                                    className="d-block mx-auto img-fluid"
-                                    src={comic[0].image}
-                                    alt="800x400"
+                                        className="d-block mx-auto img-fluid"
+                                        src={comic[0].image}
+                                        alt="800x400"
                                     />
                                 </div>
                                 <h5 className='text-center pt-2 pb-1'>{comic[0].title}</h5>

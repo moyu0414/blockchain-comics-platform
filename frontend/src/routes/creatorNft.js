@@ -35,7 +35,7 @@ function CreatorNft() {
             }
         });
         let nftData = response.data;
-        console.log(nftData);
+        //console.log(nftData);
 
         nftData.forEach(item => {
             const descTitle = parseAuthorizations(item.description);
@@ -114,8 +114,8 @@ function CreatorNft() {
         };
         await Promise.all(currentComic.map(fetchImage));
 
-        console.log(currentComic);
-        console.log(purchased);
+        //console.log(currentComic);
+        //console.log(purchased);
         if (currentComic.length === 0) {
             setBeingNFT(false);
         } else if (purchased.length === 0) {
@@ -259,7 +259,7 @@ function CreatorNft() {
                                     <tr>
                                         <th className='text-center fw-bold'>tokenId</th>
                                         <th className='text-center fw-bold'>{t('名稱')}</th>
-                                        <th className='text-center fw-bold'>{t('收益')}</th>
+                                        <th className='text-center fw-bold'>{t('總收益')}</th>
                                         <th className='text-center fw-bold'>{t('詳情')}</th>
                                     </tr>
                                 </thead>

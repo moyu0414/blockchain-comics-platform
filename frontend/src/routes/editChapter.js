@@ -64,7 +64,7 @@ function EditChapter() {
                     }
                 }
                 setChapters(chapterInfo);
-                console.log(chapterInfo);
+                //console.log(chapterInfo);
             } catch (error) {
                 console.error('Error fetching records:', error);
             }

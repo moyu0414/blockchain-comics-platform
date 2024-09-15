@@ -78,7 +78,7 @@ function CreatorPage() {
                                             currentAccount: account
                                         }
                                     });
-                                    console.log(response.data);
+                                    //console.log(response.data);
                                     const imageResponse = await axios.get(`${website}/api/creatorIMG/${account}`, { responseType: 'blob', headers });
                                     const image = URL.createObjectURL(imageResponse.data);
                                     setProfileInfo({penName: response.data[0].penName, image: image})
@@ -87,7 +87,7 @@ function CreatorPage() {
                                     const image = URL.createObjectURL(imageResponse.data);
                                     setProfileInfo({penName: storedArray[0].penName, image: image})
                                 }
-                                console.log(temp);
+                                //console.log(temp);
                                 setComic(temp);
                                 setIsButtonEnabled(true);
                                 setLoading(false);
@@ -227,7 +227,7 @@ function CreatorPage() {
                     <div><center>
                         <h4>{profileInfo.penName}</h4>
                         <h4 className="display-account">{currentAccount}</h4>
-                        <h5 className="display-ethBalance">{ethBalance} SepoliaETH</h5>
+                        <h5 className="display-ethBalance">{ethBalance} Sepolia ETH</h5>
                     </center></div>
                 )}
                 <Row className="pt-2 pb-3 btn-container justify-content-center w-100">

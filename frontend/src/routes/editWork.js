@@ -99,7 +99,7 @@ const EditWork = (props) => {
         console.error(error);
       }
     } else {
-      alert('請安裝 MetaMask 或其他支援的錢包');
+      alert(t('請安裝MetaMask'));
     }
   };
 
@@ -144,7 +144,7 @@ const EditWork = (props) => {
             formData.append('coverFile', coverFile);
             const protoFilename = `promoCover.${getFileExtension(coverFile.name)}`;
             formData.append('protoFilename', protoFilename);
-            console.log(protoFilename);
+            //console.log(protoFilename);
           } else {
             formData.append('protoFilename', '');
           };
@@ -156,14 +156,13 @@ const EditWork = (props) => {
           if (error.message.includes('User denied transaction signature')) {
             alert(t('拒绝交易'));
           } else {
-            console.error('漫畫編輯失敗', error);
             alert(error);
           }
           enableAllButtons();
           updateMessage("");
         }
       } else {
-        console.log(comic[0].comic_id);
+        //console.log(comic[0].comic_id);
         const formData = new FormData();
         formData.append('id', comic[0].comic_id);
         formData.append('title', newComic.title);
@@ -181,7 +180,7 @@ const EditWork = (props) => {
           formData.append('coverFile', coverFile);
           const protoFilename = `promoCover.${getFileExtension(coverFile.name)}`;
           formData.append('protoFilename', protoFilename);
-          console.log(protoFilename);
+          //console.log(protoFilename);
         } else {
           formData.append('protoFilename', '');
         };
@@ -191,8 +190,7 @@ const EditWork = (props) => {
         window.location.replace("/editSuccess");
       };
     } catch (error) {
-      console.error('漫畫編輯時發生錯誤：', error);
-      alert(t('漫畫編輯時發生錯誤'));
+      alert(t('漫畫編輯時發生錯誤') + error);
       enableAllButtons();
       updateMessage("");
     }
@@ -249,7 +247,6 @@ const EditWork = (props) => {
           if (error.message.includes('User denied transaction signature')) {
             alert(t('拒绝交易'));
           } else {
-            console.error('章節編輯失敗', error);
             alert(error);
           }
           enableAllButtons();
@@ -272,12 +269,11 @@ const EditWork = (props) => {
         localStorage.setItem('editComicData', JSON.stringify(editComicData));
         window.location.replace("/editSuccess");
       };
-      console.log("comicHash：" + comic[0].comic_id);
-      console.log("chapterTitle：" + newChapter.chapterTitle);
-      console.log("price：" + newChapter.price);
+      //console.log("comicHash：" + comic[0].comic_id);
+      //console.log("chapterTitle：" + newChapter.chapterTitle);
+      //console.log("price：" + newChapter.price);
     } catch (error) {
-      console.error('章節編輯時發生錯誤', error);
-      alert(t('章節編輯時發生錯誤'));
+      alert(t('章節編輯時發生錯誤') + error);
       enableAllButtons();
       updateMessage("");
     }
@@ -293,7 +289,6 @@ const EditWork = (props) => {
       previewImage(file);
     } else {
       alert(t('文件類型不支持，請上傳...格式的圖片'));
-      console.log(t('文件類型不支持，請上傳...格式的圖片'));
       return -1;
     }
     setFiles(file);
@@ -311,7 +306,6 @@ const EditWork = (props) => {
         previewImage(file);
       } else {
         alert(t('文件類型不支持，請上傳...格式的圖片'));
-        console.log(t('文件類型不支持，請上傳...格式的圖片'));
         return -1;
       }
     });
@@ -330,7 +324,6 @@ const EditWork = (props) => {
       setCoverFile(file);
     } else {
       alert(t('文件類型不支持，請上傳...格式的圖片'));
-      console.log(t('文件類型不支持，請上傳...格式的圖片'));
       return -1;
     }
   };
@@ -424,12 +417,12 @@ const EditWork = (props) => {
   useEffect(() => {
     const fetchData = async () => {
         if (location.state) {
-            console.log("Location state:", location.state);
+            //console.log("Location state:", location.state);
             setShowChapterForm(location.state.showChapterForm);
             const storedArrayJSON = localStorage.getItem('comicDatas');
             const storedArray = JSON.parse(storedArrayJSON);
             const temp = storedArray.filter(item => item.comicID === location.state.comicID);
-            console.log(temp);
+            //console.log(temp);
             setComic(temp);
             tempCH.push({'comicHash': temp[0].comic_id})
             try {
@@ -464,7 +457,6 @@ const EditWork = (props) => {
   const handleGeneratePages = async () => {
     return new Promise((resolve, reject) => {
       if (file.length == 1) {
-        console.log(file);
         mergedFile = file[0];
         const reader = new FileReader();
         reader.readAsArrayBuffer(file[0]);

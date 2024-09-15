@@ -84,10 +84,6 @@ const CreateWork = (props) => {
         } else {
             alert(t('請先登入以太坊錢包，才開放創作者專區'));
         }
-
-
-
-
       } catch (error) {
         console.error(error);
       }
@@ -111,11 +107,11 @@ const CreateWork = (props) => {
       disableAllButtons();
       updateMessage(t('正在上傳漫畫至合約中'));
 
-      console.log("comicHash：" + hashValue);
-      console.log("title：" + formParams.title);
-      console.log("author：" + currentAccount);
-      console.log("description：" + formParams.description);
-      console.log("level：" + formParams.category);
+      //console.log("comicHash：" + hashValue);
+      //console.log("title：" + formParams.title);
+      //console.log("author：" + currentAccount);
+      //console.log("description：" + formParams.description);
+      //console.log("level：" + formParams.category);
       //console.log(file);
       //console.log(coverFile);
      
@@ -146,7 +142,7 @@ const CreateWork = (props) => {
             'api-key': API_KEY
           }
         });
-        console.log('Comic added successfully:', response.data);
+        //console.log('Comic added successfully:', response.data);
 
         alert(t('漫畫成功上傳'));
         enableAllButtons();
@@ -156,13 +152,12 @@ const CreateWork = (props) => {
         setHashValue('');
         setFiles('');
       } catch (error) {
-        console.error('Error adding comic:', error);
+        alert(t('漫畫添加至資料庫時發生錯誤：') + error);
       }
     } catch (error) {
       if (error.message.includes('User denied transaction signature')) {
         alert(t('拒绝交易'));
       } else {
-        console.error('上傳漫畫時發生錯誤：', error);
         alert(t('上傳漫畫時發生錯誤') + error);
       }
       enableAllButtons();
@@ -200,10 +195,10 @@ const CreateWork = (props) => {
       await handleGeneratePages();  // 等待合併圖片操作完成
       await handleFileReaderLoad();  // 等待計算 chapterHash 值操作完成
 
-      console.log("comicHash：" + comicHash);
-      console.log("chapterHash：" + chapterHash);
-      console.log("title：" + formParams_1.title);
-      console.log("price：" + formParams_1.price);
+      //console.log("comicHash：" + comicHash);
+      //console.log("chapterHash：" + chapterHash);
+      //console.log("title：" + formParams_1.title);
+      //console.log("price：" + formParams_1.price);
 
       await contract.methods.addChapter(comicHash, chapterHash, formParams_1.title, price_temp).send({ from: currentAccount });
 
@@ -223,7 +218,7 @@ const CreateWork = (props) => {
             'api-key': API_KEY
           }
         });
-        console.log('chapter added successfully:', response.data);
+        //console.log('chapter added successfully:', response.data);
 
         enableAllButtons();
         updateMessage("");
@@ -233,13 +228,12 @@ const CreateWork = (props) => {
         localStorage.setItem('uploadComicData', JSON.stringify(uploadComicData));
         window.location.replace("/createSuccess");
       } catch (error) {
-        console.error('章節內容添加至資料庫時發生錯誤：', error);
+        alert(t('章節內容添加至資料庫時發生錯誤：') + error);
       }
     } catch (error) {
       if (error.message.includes('User denied transaction signature')) {
         alert(t('拒绝交易'));
       } else {
-        console.error('添加章節時發生錯誤：', error);
         alert(t('添加章節時發生錯誤') + error);
       }
       enableAllButtons();
@@ -259,7 +253,6 @@ const CreateWork = (props) => {
       previewImage(file);
     } else {
       alert(t('文件類型不支持，請上傳...格式的圖片'));
-      console.log(t('文件類型不支持，請上傳...格式的圖片'));
       return -1;
     }
     setFiles(file);
@@ -281,7 +274,6 @@ const CreateWork = (props) => {
         previewImage(file);
       } else {
         alert(t('文件類型不支持，請上傳...格式的圖片'));
-        console.log(t('文件類型不支持，請上傳...格式的圖片'));
         return -1;
       }
     });
@@ -327,7 +319,6 @@ const CreateWork = (props) => {
       setCoverFile(file);
     } else {
       alert(t('文件類型不支持，請上傳...格式的圖片'));
-      console.log(t('文件類型不支持，請上傳...格式的圖片'));
       return -1;
     }
   };
@@ -416,7 +407,7 @@ const CreateWork = (props) => {
   useEffect(() => {
     // 检查是否传递了参数并设置 showChapterForm 状态
     if (location.state && location.state.showChapterForm) {
-      console.log("Location state:", location.state);
+      //console.log("Location state:", location.state);
       setComicHash(location.state.comicHash);
       setShowChapterForm(true);
     }
@@ -616,7 +607,7 @@ return (
                     <>
                       <CardImage size={48} />
                       <div id="notimage2" className="hidden">
-                        {t('上傳本章漫畫內容')}<br /><br />{t('條漫：請上傳1整章圖檔')}<br />{t('寬度：1200px、長度不限')}<br /><br />{t('頁漫：請上傳多張圖檔')}<br />{t('寬度：1200/張、長度：1600px')}
+                        {t('上傳本章漫畫內容')}<br /><br />{t('條漫：請上傳1整章圖檔')}<br /><br />{t('頁漫：請上傳多張圖檔')}<br />{t('寬度：1200/張、長度：1600px')}
                       </div>
                     </>
                   )}

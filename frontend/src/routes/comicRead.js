@@ -222,10 +222,10 @@ const ComicRead = () => {
                     if (balance > price) {
                         const comicHash = comic[0].comic_id;
                         const chapterHash = chapter.chapterHash;
-                        console.log(comicHash);
-                        console.log(comic[0].creator);
-                        console.log(chapterHash);
-                        console.log(price);
+                        //console.log(comicHash);
+                        //console.log(comic[0].creator);
+                        //console.log(chapterHash);
+                        //console.log(price);
                         price = web3.utils.toWei(price, 'ether');
 
                         let gasEstimate = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, price/10).estimateGas({
@@ -264,7 +264,6 @@ const ComicRead = () => {
                             console.error('購買紀錄添加至資料庫時發生錯誤：', error);
                         }
                     } else {
-                        console.log('餘額不足');
                         message.info(t('餘額不足'));
                     }
                 } else {

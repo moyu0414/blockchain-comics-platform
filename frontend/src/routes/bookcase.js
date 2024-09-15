@@ -52,7 +52,7 @@ function Bookcase() {
                 }
                 sortByPurchase(bookcase);
                 bookcase.sort((a, b) => (a.is_exist > 0) - (b.is_exist > 0));
-                console.log(bookcase);
+                //console.log(bookcase);
                 setCurrent(bookcase);
             } catch (error) {
                 console.error('Error fetching records:', error);
@@ -78,7 +78,6 @@ function Bookcase() {
                 }
             });
             let nftRecords = nftResponse.data;
-            console.log(nftRecords);
             const comicMap = new Map(storedArray.map(comic => [comic.comic_id, comic]));
             for (const data of nftRecords) {
                 const comic = comicMap.get(data.comicHash);
@@ -89,7 +88,7 @@ function Bookcase() {
                     data.names = parseAuthorizations(data.description).map(auth => auth.name);
                 }
             }
-            console.log(nftRecords);
+            //console.log(nftRecords);
             setNFTLogArray(nftRecords);
             if (nftRecords.length === 0) {
               setBeingNFT(false);

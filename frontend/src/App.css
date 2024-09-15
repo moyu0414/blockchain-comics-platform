@@ -415,9 +415,9 @@ span {
   }
 
   .creatorNft .creatorNft-overlay {
-    font-size: 0.9rem;
-    padding: 2px 6px; 
-    bottom: 38px;
+    bottom: 38px!important;
+    padding: 2px 3px!important; 
+    font-size: 0.85rem!important; 
   }
 
   .collectionNft-overlay {
@@ -515,9 +515,9 @@ span {
   }
 
   .creatorNft .creatorNft-overlay {
-    font-size: 0.7rem;
-    padding: 1px 0; 
-    bottom: 35px;
+    bottom: 35px!important;
+    padding: 1px 0!important; 
+    font-size: 0.7rem!important; 
   }
 
   .collectionNft-overlay {
@@ -1750,6 +1750,11 @@ a:link{
   z-index: 1; /* 确保悬浮在图片上方 */
 }
 
+.homepage .category-btn-section .btn{
+  width: 100%;
+}
+
+
 /* comicDetail */
 
 .comicDetail .btn{
@@ -1827,6 +1832,10 @@ a:link{
   justify-content: center;
   align-items: center;
   height: 100%;
+}
+
+.delete-line {
+  text-decoration: line-through; 
 }
 
 .remove-section img{
@@ -2131,6 +2140,22 @@ a:link{
 
 .creatorNft .btn:hover{
   background-color: rgba(35, 187, 164, 0.89);
+}
+
+.creatorNft .creatorNft-overlay {
+  position: absolute; 
+  text-align: center;
+  bottom: 40px;
+  left: 0px;
+  background: rgba(0, 0, 0, 0.5); 
+  color: #fff; 
+  padding: 5px 10px; 
+  width: 100%;
+  font-size: 1rem; 
+  z-index: 1; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* navigation */
@@ -2885,6 +2910,11 @@ a:link{
   margin-right: 8px; /* 設置按鈕之間的距離，可根據需要調整 */
 }
 
+.second-tab .scrollable-buttons .btn {
+  width: auto!important;
+  margin-right: 10px;
+}
+
 @media only screen and (max-width: 992px) {
   .nftMarket-carousel .carousel-control-prev,
   .nftMarket-carousel .carousel-control-next {
@@ -3347,14 +3377,16 @@ a:link{
   position: absolute;
   text-align: center;
   width: 100%;
-  height: 65px;
+  height: auto;
   right: 0;
   bottom: -16px;
   background: rgba(0, 0, 0, 0.3);
   color: #fff;
   padding: 5px 0px;
-  font-size: 1.1rem;
+  font-size: 1rem;
   white-space: pre-line;
+  overflow: visible;
+  text-overflow: clip;
   z-index: 1;
 }
 
@@ -3583,6 +3615,16 @@ a:link{
   }
 }
 
+@media (max-width: 900px) {
+  .verify-custom-modal .modal-footer{
+    flex-direction: column-reverse;
+  }
+  .verify-custom-modal .modal-footer .btn{
+    width: 100%!important;
+    
+  }
+}
+
 /* becomeWriter */
 
 .becomeWriter {
@@ -3702,6 +3744,51 @@ a:link{
   max-height: 550px;
   width: 90%;
   overflow-y: auto;
+}
+
+.modal{
+  overflow-y: hidden;
+}
+
+.verify-custom-modal {
+  max-width: 1000px; /* 设置更宽的宽度 */
+  overflow-y: auto;
+}
+
+.verify-custom-modal .modal-header{
+  background-color: #0FC2C0;
+  color: #fff;
+}
+
+.verify-custom-modal .modal-content{
+  overflow-y: auto;
+}
+
+.verify-custom-modal .modal-body{
+  max-height: 400px;
+  overflow-y:scroll;  
+  padding-right: 15px;
+}
+
+.verify-custom-modal .modal-footer{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.verify-custom-modal .modal-footer .btn{
+  width: 49%;
+}
+
+.verify-custom-modal .modal-footer .btn-secondary{
+  border: 1px #0FC2C0 solid;
+  background-color: #fff;
+  color: #0FC2C0;
+}
+
+.verify-custom-modal .modal-footer .btn-secondary:hover{
+  background-color: #0FC2C0;
+  color: #fff;
 }
 
 /* verifySuccess */
@@ -3904,13 +3991,13 @@ a:link{
 
 .createSuccess a {
   display: inline-block;
-  max-width: 40%;
+  width: 100%;
+  max-width: 150px;
   text-align: center;
 }
 
 .createSuccess .createSuccess-image-container{
   display: inline-block;
-  width: 340px;
   border-radius: 0;
   margin: 0;
 }
@@ -3918,11 +4005,11 @@ a:link{
 .createSuccess .createSuccess-image-container img{
   border-radius: 0;
   display: block;
-  width: 100%;
 }
 
 .createSuccess .btn{
   width: 40%;
+  height: auto;
   background-color: rgba(6, 157, 103, 0.89);
   box-shadow: 5px 5px rgba(6, 157, 103, 0.42);
   border-radius: 8px;
