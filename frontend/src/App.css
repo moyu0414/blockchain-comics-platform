@@ -479,6 +479,11 @@ span {
     max-width: 250px!important;
   }
 
+  .analysis .buyer-cell{
+    max-width: 200px!important;
+    overflow-wrap: break-word;
+  }
+
   .comicDetail .text-secondary{
     max-width: 310px;
   }
@@ -4786,6 +4791,6 @@ a:link{
 }
 
 .piracy{
-  color: #dc3545!important;
+  color: #000!important;
   background-color: #c3c0c0!important;
 }

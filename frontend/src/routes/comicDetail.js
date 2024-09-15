@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Container, Card, Col, Row, Button, Table, ButtonToolbar, Pagination, Tooltip, OverlayTrigger } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill, CardImage } from 'react-bootstrap-icons';
+import { message } from 'antd';
 import comicData from '../contracts/ComicPlatform.json';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -204,13 +205,13 @@ function ComicDetail() {
             const readingProgress = localStorage.getItem("readingProgress");
             const readingArray = readingProgress ? JSON.parse(readingProgress) : {};
             const exists = chapters.some(chapter => chapter.isBuying === t('閱讀') && chapter.chapterID === readingArray[comicID]);
-            if (comicID in readingArray && exists === true) {  // 有購買紀錄
+            if (comicID in readingArray && exists === true && reading.price !== t('免費')) {  // 有購買紀錄
                 window.location.replace(`/comicRead/${comicID}/${readingArray[comicID]}`);
             } else {  // 免費閱讀
                 window.location.replace(`/comicRead/${comicID}/${reading.chapterID}`);
             }
         } else {
-            alert(`${comic[0].title} ${t('沒有提供免費試讀')}`);
+            message.info(`${comic[0].title} ${t('沒有提供免費試讀')}`);
         }
     };
 
@@ -269,7 +270,7 @@ function ComicDetail() {
                             'api-key': API_KEY
                         }
                         });
-                        alert(t('章節購買成功'));
+                        message.info(t('章節購買成功'));
                         const updatedChapters = [...currentChapters];
                         updatedChapters[chapterId].isBuying = t('閱讀'); // 更新章節的購買狀態
                         setChapters(updatedChapters);
@@ -277,8 +278,7 @@ function ComicDetail() {
                         console.error('購買紀錄添加至資料庫時發生錯誤：', error);
                     }
                 } else {
-                    console.log('餘額不足');
-                    alert(t('餘額不足'));
+                    message.info(t('餘額不足'));
                 }
             } else {
                 alert(t('請先登入以太坊錢包，再進行購買'));

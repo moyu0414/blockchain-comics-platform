@@ -12,6 +12,8 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 
 function Analysis() {
     const [creatorLogArray, setCreatorLogArray] = useState([]);
+    const [isMobile, setIsMobile] = useState(false);
+    const [selectedIndex, setSelectedIndex] = useState(null);
     const { t } = useTranslation();
     const currentAccount = localStorage.getItem("currentAccount");
     const [currentPage, setCurrentPage] = useState(1);
@@ -30,16 +32,15 @@ function Analysis() {
             sortByDatetime(analysis);
             const comicOrigin = analysis.map(item => {
                 const date = formatDate(new Date(item.purchase_date));
-                const time = formatTime(new Date(item.purchase_date));
                 const income = (item.price * 0.9).toFixed(3);
                 return {
                   title: `${item.comicTitle} / ${item.chapterTitle}`,
                   date,
-                  time,
                   income,
+                  buyer: item.buyer
                 };
               });
-              console.log(comicOrigin);
+              //console.log(comicOrigin);
               setCreatorLogArray(comicOrigin);
         } catch (error) {
             console.error('Error fetching records:', error);
@@ -48,7 +49,16 @@ function Analysis() {
 
     useEffect(() => {
         initData();
+        if (window.innerWidth <= 800) {
+            setIsMobile(true);
+        }
     }, [currentAccount]);
+
+    const handleRowClick = (index) => {
+        if (isMobile) {
+            setSelectedIndex(selectedIndex === index ? null : index);
+        }
+    };
 
     const totalPages = Math.ceil(creatorLogArray.length / itemsPerPage);
     const handlePageChange = (page) => {
@@ -146,15 +156,39 @@ function Analysis() {
                                     <th className='text-center fw-bold'>{t('交易日期')}</th>
                                     <th className='text-center fw-bold'>{t('漫畫 / 章節')}</th>
                                     <th className='text-center fw-bold'>{t('收益')}</th>
+                                    {!isMobile &&
+                                        <th className='text-center fw-bold'>
+                                            {t('買家')}
+                                        </th>
+                                    }
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="comicManagement">
                                 {currentIncome.map((income, index) => (
-                                    <tr key={index}>
-                                        <td className='text-center fw-bold'>{income.date}<br />{income.time}</td>
-                                        <td className='text-center'>{income.title}</td>
-                                        <td className='text-center'>{income.income}</td>
-                                    </tr>
+                                    <React.Fragment key={index}>
+                                        <tr 
+                                            onClick={() => handleRowClick(index)}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            <td className='text-center fw-bold'>{income.date}</td>
+                                            <td className='text-center'>{income.title}</td>
+                                            <td className='text-center'>{income.income}</td>
+                                            {!isMobile &&
+                                                <td data-label="買家" className='text-center'>
+                                                    {income.buyer}
+                                                </td>
+                                            }
+                                        </tr>
+                                        {isMobile && selectedIndex === index && (
+                                            <tr className="hash-cell expanded">
+                                                <td colSpan="3" className='buyer-cell text-center'>
+                                                    <div>
+                                                        <strong>{t('買家')}:</strong> {income.buyer}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </React.Fragment>
                                 ))}
                             </tbody>
                         </Table>

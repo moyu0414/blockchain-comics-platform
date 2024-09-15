@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
-import {  Container, Table, Button, Form, Tabs, Tab, InputGroup, FormControl, Modal} from 'react-bootstrap';
+import {  Container, Table, Button, Form, Tabs, Tab, InputGroup, FormControl, Modal, Tooltip, OverlayTrigger} from 'react-bootstrap';
 import { PlusLg, TrashFill, Search } from 'react-bootstrap-icons';
 import { message } from 'antd';
 import { disableAllButtons, enableAllButtons } from '../index';
@@ -19,6 +19,8 @@ const ComicManagement = ({ contractAddress }) => {
   const [current, setCurrent] = useState([]);
   const [admin, setAdmin] = useState(false);
   const [account, setAccount] = useState([]);
+  const [withdrawState, setWithdrawState] = useState(false);
+  const withdrawRef = useRef('');
   const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -99,9 +101,16 @@ const ComicManagement = ({ contractAddress }) => {
                 exists: status
               });
             }
-            //console.log(modifiedArray);
-            setCurrent(modifiedArray);
-            setSearchResults(modifiedArray);
+            const sortedArray = modifiedArray.sort((a, b) => {
+              if (a.exists === "查核") return -1;
+              if (b.exists === "查核") return 1;
+              if (a.exists === "盜版") return 1;
+              if (b.exists === "盜版") return -1;
+              return 0;
+            });
+            //console.log(sortedArray);
+            setCurrent(sortedArray);
+            setSearchResults(sortedArray);
             setLoading(false);
           } catch (error) {
             console.error(error);
@@ -135,7 +144,7 @@ const ComicManagement = ({ contractAddress }) => {
 
   // 漫畫刪除 或 復原函數
   const handleToggle = async (comicHash, exists, creator) => {
-    console.log(exists);
+    //console.log(exists);
     disableAllButtons();
     if (exists === 2) {  // 漫畫是盜版
       try{
@@ -299,7 +308,6 @@ const ComicManagement = ({ contractAddress }) => {
             </Button>
           </>
         );
-      //case t('盜版'):
       case t('查核'):
         return (
           <>
@@ -322,6 +330,35 @@ const ComicManagement = ({ contractAddress }) => {
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
+  };
+
+  const withdrawFees = async () => {
+    if (withdrawRef.current.value > 0) {
+      try{
+        disableAllButtons();
+        await meta.withdrawFees().send({ from: currentAccount });
+        message.info(t('提款成功'));
+      } catch (error) {
+        if (error.message.includes('User denied transaction signature')) {
+          message.info(t('拒绝交易'));
+        } else {
+          console.error('提款發生錯誤：', error);
+          alert(error);
+        }
+      } finally {
+        enableAllButtons();
+        withdrawHide();
+      }
+    } else {
+      message.info(t('請輸入提款金額'));
+    };
+  };
+
+  const withdrawHide = () => {
+    setWithdrawState(false);
+    if (withdrawRef.current) {
+      withdrawRef.current.value = '';
+    }
   };
 
   const addAdmin = async () => {
@@ -510,6 +547,12 @@ const ComicManagement = ({ contractAddress }) => {
     setUserSearchTerm(event.target.value);
   };
 
+  const renderTooltip = (msg) => (props) => (
+    <Tooltip id="button-tooltip" {...props}>
+      {msg}
+    </Tooltip>
+  );
+
   
   return (
     <>
@@ -518,7 +561,55 @@ const ComicManagement = ({ contractAddress }) => {
         <div className="table-wrapper">
           <Tabs defaultActiveKey="admin" id="tabs" className="mb-3">
             <Tab eventKey="admin" title={t('管理員')}>
-              <Form className="d-flex ms-3">
+              <div className="table-title mb-3 d-flex justify-content-between align-items-center">
+                <h2><b>{t('合約提款')}</b></h2>
+                <div>
+                  <Button onClick={() => setWithdrawState(true)} className='add-btn' variant="outline-danger" data-backgroundcolor="#0FC2C0">
+                    <PlusLg title="Add" size={24}/> {t('提款')}
+                  </Button>
+                </div>
+              </div>
+              <Modal
+                show={withdrawState}
+                onHide={withdrawHide}
+                dialogClassName="custom-modal-content"
+              >
+                <Modal.Header>
+                  <Modal.Title>{t('平台提款')}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  <Form>
+                    <Form.Group>
+                      <Form.Label>{t('請輸入價格')}</Form.Label>
+                      <Form.Control
+                        type="number"
+                        placeholder={t('輸入價格')}
+                        min="0.001"
+                        step="0.001"
+                        ref={withdrawRef}
+                      />
+                    </Form.Group>
+                  </Form>
+                </Modal.Body>
+                <Modal.Footer className="custom-modal-footer">
+                  <Button className='pri-btn mt-3' onClick={withdrawFees}>
+                    {t('確定')}
+                  </Button>
+                  <Button className='cancel-btn mt-3' onClick={withdrawHide}>
+                    {t('取消')}
+                  </Button>
+                </Modal.Footer>
+              </Modal>
+              <hr />
+              <div className="table-title mt-3 mb-3 d-flex justify-content-between align-items-center">
+                <h2><b>{t('帳號管理')}</b></h2>
+                <div>
+                  <Button onClick={addAdmin} className='add-btn' variant="outline-danger" data-backgroundcolor="#0FC2C0">
+                    <PlusLg title="Add" size={24}/> {t('新增管理員')}
+                  </Button>
+                </div>
+              </div>
+              <Form className="d-flex mb-3">
                 <InputGroup>
                   <FormControl
                     placeholder={t('請輸入管理員帳號')}
@@ -528,14 +619,6 @@ const ComicManagement = ({ contractAddress }) => {
                   />
                 </InputGroup>
               </Form>
-              <div className="table-title mt-3 mb-3 d-flex justify-content-between align-items-center">
-                <h2><b>{t('帳號管理')}</b></h2>
-                <div>
-                  <Button onClick={addAdmin} className='add-btn' variant="outline-danger" data-backgroundcolor="#0FC2C0">
-                    <PlusLg title="Add" size={24}/> {t('新增管理員')}
-                  </Button>
-                </div>
-              </div>
               <Table striped hover>
                 <thead>
                   <tr>
@@ -552,9 +635,11 @@ const ComicManagement = ({ contractAddress }) => {
                       <th>{index + 1}</th>
                       <td data-label="帳號" className="address-cell">{data}</td>
                       <td data-label="狀態" className="text-end">
-                        <Button onClick={() => removeAdmin(data)} className='del-btn' variant="outline-danger" data-backgroundcolor="#0FC2C0">
-                          <TrashFill title="Delete" /> <span className="del-text">{t('刪除')}</span>
-                        </Button>
+                        <OverlayTrigger placement="top" overlay={renderTooltip(t('刪除管理者帳號'))}>
+                          <Button onClick={() => removeAdmin(data)} className='del-btn' variant="outline-danger" data-backgroundcolor="#0FC2C0">
+                            <TrashFill title="Delete" /> <span className="del-text">{t('刪除')}</span>
+                          </Button>
+                        </OverlayTrigger>
                       </td>
                     </tr>
                   ))}
@@ -562,7 +647,11 @@ const ComicManagement = ({ contractAddress }) => {
               </Table>
             </Tab>
             <Tab eventKey="comic" title={t('漫畫')}>
-              <Form onSubmit={handleSearchSubmit} className="d-flex ms-3">
+              <div className="table-title mb-3 d-flex justify-content-between align-items-center">
+                <h2><b>{t('管理漫畫')}</b></h2>
+                <Search onClick={handleSearchSubmit} className="comicManagement-search" />
+              </div>
+              <Form onSubmit={handleSearchSubmit} className="d-flex mb-3">
                   <InputGroup>
                       <FormControl
                           placeholder={t('請輸入漫畫名或作者名')}
@@ -573,10 +662,6 @@ const ComicManagement = ({ contractAddress }) => {
                       />
                   </InputGroup>
               </Form>
-              <div className="table-title mt-3 mb-3 d-flex justify-content-between align-items-center">
-                <h2><b>{t('管理漫畫')}</b></h2>
-                <Search onClick={handleSearchSubmit} className="comicManagement-search" />
-              </div>
               <Table striped hover>
                 <thead>
                   <tr>
@@ -609,19 +694,21 @@ const ComicManagement = ({ contractAddress }) => {
                           </td>
                         }
                         <td data-label="狀態" className="text-end">
-                          <Button
-                            onClick={() => handleShow(data)}
-                            className={`btn ${
-                              data.exists === t('刪除') ? 'del-btn' :
-                              data.exists === t('查核') ? 'war-btn' :
-                              data.exists === t('盜版') ? 'piracy' : ''
-                            }`}
-                            variant="outline-danger"
-                            data-backgroundcolor="#0FC2C0"
-                            disabled={data.exists === t('盜版')}
-                          >
-                            {data.exists}
-                          </Button>
+                          <OverlayTrigger placement="top" overlay={renderTooltip(data.exists !== t('盜版') ? t('修改漫畫存續狀態') : t('盜版漫畫已下架、已退款'))}>
+                            <Button
+                              onClick={() => handleShow(data)}
+                              className={`btn ${
+                                data.exists === t('刪除') ? 'del-btn' :
+                                data.exists === t('查核') ? 'war-btn' :
+                                data.exists === t('盜版') ? 'piracy' : ''
+                              }`}
+                              variant="outline-danger"
+                              data-backgroundcolor="#0FC2C0"
+                              disabled={data.exists === t('盜版')}
+                            >
+                              {data.exists}
+                            </Button>
+                          </OverlayTrigger>
                           <Modal
                             show={modalState.show}
                             onHide={handleHide}
@@ -679,7 +766,11 @@ const ComicManagement = ({ contractAddress }) => {
               </Table>
             </Tab>
             <Tab eventKey="isCreator" title={t('使用者')}>
-              <Form onSubmit={userSearchSubmit} className="d-flex ms-3">
+              <div className="table-title mb-3 d-flex justify-content-between align-items-center">
+                <h2><b>{t('使用者帳號管理')}</b></h2>
+                <Search onClick={userSearchSubmit} className="comicManagement-search" />
+              </div>
+              <Form onSubmit={userSearchSubmit} className="d-flex mb-3">
                 <InputGroup>
                     <FormControl
                         placeholder={t('請輸入帳號')}
@@ -690,10 +781,6 @@ const ComicManagement = ({ contractAddress }) => {
                     />
                 </InputGroup>
               </Form>
-              <div className="table-title mt-3 mb-3 d-flex justify-content-between align-items-center">
-                <h2><b>{t('使用者帳號管理')}</b></h2>
-                <Search onClick={userSearchSubmit} className="comicManagement-search" />
-              </div>
               <Table striped hover>
                 <thead>
                   <tr>
@@ -710,13 +797,15 @@ const ComicManagement = ({ contractAddress }) => {
                       <th data-label="編號">{index + 1}</th>
                       <td data-label="帳號" className="address-cell">{data.address}</td>
                       <td data-label="創作者身分" className="text-end">
-                        <Button 
-                          onClick={() => accountChange(data.address, data.is_creator)} 
-                          className={`del-btn ${getButtonClass(data.is_creator)}`} 
-                          data-backgroundcolor="#0FC2C0"
-                        >
-                          {data.is_creator}
-                        </Button>
+                        <OverlayTrigger placement="top" overlay={renderTooltip(t('修改創作者身分'))}>
+                          <Button 
+                            onClick={() => accountChange(data.address, data.is_creator)} 
+                            className={`del-btn ${getButtonClass(data.is_creator)}`} 
+                            data-backgroundcolor="#0FC2C0"
+                          >
+                            {data.is_creator}
+                          </Button>
+                        </OverlayTrigger>
                       </td>
                     </tr>
                   ))}

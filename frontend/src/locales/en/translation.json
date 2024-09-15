@@ -144,6 +144,7 @@
     "analysis_comment": "analysis",
     "目前無人購買": "No Purchases Yet",
     "收益": "Revenue",
+    "買家": "Buyer",
 
     "creatorNft_comment": "creatorNft",
     "目前尚未鑄造NFT": "NFT Not Minted Yet",
@@ -308,7 +309,24 @@
     "verifySuccess_comment": "verifySuccess",
     "驗證成功": "Verification Successful",
     "謝謝您成為我們的創作者！": "Thank you for becoming our creator!",
-    "進入創作者頁面開始我們的旅程吧": "Go to the creator page and start our journey"
+    "進入創作者頁面開始我們的旅程吧": "Go to the creator page and start our journey",
+
+    "authorProfile_comment": "authorProfile",
+    "email不可為空!": "Email cannot be empty!",
+    "筆名不可為空!": "Pen name cannot be empty!",
+    "資料更新失敗!": "Data update failed!",
+    "訊息新增失敗!": "Message addition failed!",
+    "驗證錯誤": "Validation error",
+    "電子郵件驗證錯誤，請重新在試!": "Email verification error, please try again!",
+    "這個創作者不存在，請稍後再試!": "This creator does not exist, please try again later!",
+    "作者筆名": "Author Pen Name",
+    "作者帳號": "Author Account",
+    "作者 Email": "Author Email",
+    "作者簡介": "Author Bio",
+    "這是一段簡短的作者介紹。": "This is a brief author introduction.",
+    "個資編輯": "Personal Data Edit",
+    "新增訊息": "Add Message",
+    "訊息公告": "Message Announcement"
 
   }
   
