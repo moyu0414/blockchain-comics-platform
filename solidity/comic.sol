@@ -24,7 +24,7 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
     // 定義漫畫結構體
     struct Comic {
         address payable owner; // 漫畫所有者的錢包地址
-        bool exists; // 漫畫是否存在
+        uint256 status; // 漫畫是否存在
     }
     // 定義NFT結構體
     struct NFT {
@@ -47,10 +47,14 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
     mapping(bytes32 => bytes32[]) public comicChapters;
     // 記錄每個地址購買的章節
     mapping(address => mapping(bytes32 => bool)) public purchasedChapters;
+    // 記錄每個地址購買的章節
+    mapping(bytes32 => address[]) public purchaserecord;
     //記錄每本漫畫的章節的hash，保持唯一性
     mapping(bytes32 => mapping(bytes32 => bool)) private comicChapterhashs;
     // 管理者列表
     mapping(address => bool) public admins;
+    // 創作者列表
+    mapping(address => bool) public creators;
     //首頁 all漫畫hash
     bytes32[] public allComicHashes;
 
@@ -58,14 +62,26 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
         require(admins[msg.sender], "Caller is not an admin");
         _;
     }
+    modifier onlyCreator() {
+        require(creators[msg.sender], "Caller is not an creator");
+        _;
+    }
 
     function addAdmin(address newAdmin) external onlyAdmin {
         admins[newAdmin] = true;
     }
 
+    function addCreator(address newCreator) external onlyAdmin {
+        creators[newCreator] = true;
+    }
+
     function removeAdmin(address admin) external onlyAdmin {
         require(admin != msg.sender, "Admin cannot remove themselves");
         admins[admin] = false;
+    }
+
+    function removeCreator(address creator) external onlyAdmin {
+        creators[creator] = false;
     }
 
     // 定義漫畫上傳事件
@@ -111,11 +127,11 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
 
 
     // 上傳漫畫功能
-    function uploadComic(bytes32 _comicHash,string memory _title) external {
+    function uploadComic(bytes32 _comicHash,string memory _title) external onlyCreator{
         require(comics[_comicHash].owner == address(0),"Comic already uploaded"); // 確認漫畫未重複上傳
         
         //新增漫畫
-        Comic memory newComic = Comic({owner:  payable(msg.sender),exists: true});
+        Comic memory newComic = Comic({owner:  payable(msg.sender),status: 0});
         comics[_comicHash]= newComic; 
         allComicHashes.push(_comicHash); 
 
@@ -123,14 +139,39 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
         emit ComicUploaded(_comicHash,msg.sender,_title);
     }
     //修改漫畫狀態
-    function toggleComicExistence(bytes32 _comicHash) external onlyAdmin {
+    function toggleComicExistence(bytes32 _comicHash,uint256 status) external payable onlyAdmin {
         require(comics[_comicHash].owner != address(0), "Comic does not exist");
-        comics[_comicHash].exists = !comics[_comicHash].exists;
+        require(status == 0 || status == 1 || status == 2, "Invalid status");
+
+
+        if (status == 2) {
+            uint256 totalCost = 0;
+            
+            // 確認所有NFT是否都可以購買以及計算總價
+            for (uint256 i = 0; i < comicChapters[_comicHash].length; i++) {
+                bytes32 _chapterhash = comicChapters[_comicHash][i];
+                uint256 _cnt = purchaserecord[_chapterhash].length;
+                totalCost += comicChapterdata[_comicHash][_chapterhash].price * _cnt;
+            }
+
+            require(msg.value >= totalCost, "Insufficient payment");
+
+            for (uint256 i = 0; i < comicChapters[_comicHash].length; i++) {
+                bytes32 _chapterhash = comicChapters[_comicHash][i];
+                for (uint256 n = 0; n < purchaserecord[_chapterhash].length; n++) {
+                    uint256 _price = comicChapterdata[_comicHash][_chapterhash].price;
+                    address receiver = purchaserecord[_chapterhash][n];
+                    payable(receiver).transfer(_price);
+                }
+            }
+        }
+
+        comics[_comicHash].status = status;
     }
 
     // 添加章節功能
     function addChapter(bytes32 _comicHash,bytes32 _chapterHash,string memory _title,uint256 _price) external {
-        require(comics[_comicHash].exists, "Comic does not exist");//確認漫畫是否存在
+        require(comics[_comicHash].status == 0 , "Comic does not exist");//確認漫畫是否存在
         require(comics[_comicHash].owner == msg.sender, "You are not owner"); // 確認是否為擁有者
         require(!comicChapterhashs[_comicHash][_chapterHash],"Chapter already exists"); //確認章節唯一性
 
@@ -146,14 +187,14 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
 
     // 編輯漫畫功能
     function editComic(bytes32 _comicHash,string memory _title) external {
-        require(comics[_comicHash].exists, "Comic does not exist");//確認漫畫是否存在
+        require(comics[_comicHash].status == 0, "Comic does not exist");//確認漫畫是否存在
         require(comics[_comicHash].owner == msg.sender, "You are not owner"); // 確認是否為擁有者
         
         emit ComicEdited(_comicHash, msg.sender, _title);
     }
     // 編輯章節功能
     function editChapter(bytes32 _comicHash,bytes32 _chapterHash,string memory _title,uint256 _price) external {
-        require(comics[_comicHash].exists, "Comic does not exist");//確認漫畫是否存在
+        require(comics[_comicHash].status == 0, "Comic does not exist");//確認漫畫是否存在
         require(comics[_comicHash].owner == msg.sender, "You are not owner"); // 確認是否為擁有者
 
         comicChapterdata[_comicHash][_chapterHash].price = _price; //修改價格
@@ -162,7 +203,7 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
     }
     // 購買章節
     function purchaseChapter(bytes32 _comicHash, bytes32 _chapterHash,uint256 gasfee)external payable{
-        require(comics[_comicHash].exists, "Comic does not exist");// 檢查漫畫是否存在
+        require(comics[_comicHash].status == 0, "Comic does not exist");// 檢查漫畫是否存在
         require(comicChapterhashs[_comicHash][_chapterHash],"Chapter does not exists");/// 檢查章節是否存在
         require(!purchasedChapters[msg.sender][_chapterHash],"Chapter already purchased");// 檢查是否已購買過此章節
 
@@ -185,6 +226,7 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
         
         // 儲存購買記錄
         purchasedChapters[msg.sender][_chapterHash] = true;
+        purchaserecord[_chapterHash].push(msg.sender);
 
         // 觸發購買事件
         emit ChapterPurchased(_comicHash, _chapterHash, msg.sender, price);
@@ -244,29 +286,43 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
         emit NFTDescriptionUpdated(_tokenId, price, description, royalty, forSale);
     }
     // 购买NFT函数，包含2%抽成和版税逻辑
-    function purchaseNFT(uint256 _tokenId) external payable nonReentrant {
-        require(nfts[_tokenId].forSale, "NFT is not for sale");
-        require(msg.value >= nfts[_tokenId].price, "Insufficient payment");
+    function purchaseNFT(uint256[] calldata _tokenIds) external payable nonReentrant {
+        uint256 totalCost = 0;
 
-        address tokenOwner = ownerOf(_tokenId);
-        require(tokenOwner != msg.sender, "Cannot purchase your own token");
+        // 確認所有NFT是否都可以購買以及計算總價
+        for (uint256 i = 0; i < _tokenIds.length; i++) {
+            uint256 tokenId = _tokenIds[i];
+            require(nfts[tokenId].forSale, "One or more NFTs are not for sale");
+            require(ownerOf(tokenId) != msg.sender, "Cannot purchase your own token");
 
-        uint256 salePrice = nfts[_tokenId].price;
-        uint256 fee = salePrice * 2 / 100; // 2% 抽成
-        uint256 royalty = salePrice * nfts[_tokenId].royalty / 100; // 自定义版税
-        uint256 netPrice = salePrice - fee - royalty;
-
-        // 转移NFT
-        _transfer(tokenOwner, msg.sender, _tokenId);
-
-        // 支付卖家
-        payable(tokenOwner).transfer(netPrice);
+            totalCost += nfts[tokenId].price;
+        }
         
-        // 支付版税给minter
-        payable(nfts[_tokenId].minter).transfer(royalty);
+        require(msg.value >= totalCost, "Insufficient payment");
 
-        nfts[_tokenId].forSale = false;
-        emit NFTPurchased(_tokenId, msg.sender, salePrice);
+        // 處理每個NFT的購買
+        for (uint256 i = 0; i < _tokenIds.length; i++) {
+            uint256 tokenId = _tokenIds[i];
+            address tokenOwner = ownerOf(tokenId);
+
+            uint256 salePrice = nfts[tokenId].price;
+            uint256 fee = salePrice * 2 / 100; // 2% 抽成
+            uint256 royalty = salePrice * nfts[tokenId].royalty / 100; // 自定义版税
+            uint256 netPrice = salePrice - fee - royalty;
+
+            // 轉移NFT
+            _transfer(tokenOwner, msg.sender, tokenId);
+
+            // 支付賣家
+            payable(tokenOwner).transfer(netPrice);
+            
+            // 支付版税給minter
+            payable(nfts[tokenId].minter).transfer(royalty);
+
+            nfts[tokenId].forSale = false; //剛購買設定為不轉售
+
+            emit NFTPurchased(tokenId, msg.sender, salePrice);
+        }
     }
 
     // 重写转移函数以确保交易只能通过合约
