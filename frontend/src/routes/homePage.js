@@ -64,7 +64,7 @@ const HomePage = () => {
             };
             await Promise.all(filteredData.map(fetchComicData));
             filteredData.sort((a, b) => b.total - a.total);
-            console.log(filteredData);
+            //console.log(filteredData);
             setCurrent(filteredData);
             setLoading(false);
         } catch (error) {

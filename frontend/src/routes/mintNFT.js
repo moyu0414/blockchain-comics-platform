@@ -92,13 +92,13 @@ const MintNFT = (props) => {
       disableAllButtons();
       updateMessage(t('正在鑄造NFT中'))
       
-      console.log("title：" + NFTData.title);
-      console.log("price：" + NFTData.price);
-      console.log("description：" + NFTData.description);  // DB用
+      //console.log("title：" + NFTData.title);
+      //console.log("price：" + NFTData.price);
+      //console.log("description：" + NFTData.description);  // DB用
       //console.log("description：" + descForK.description);  // 合約用
-      console.log("royalty：" + NFTData.royalty);
-      console.log("quantity：" + NFTData.quantity);
-      console.log("comicHash：" + NFTData.comicHash);
+      //console.log("royalty：" + NFTData.royalty);
+      //console.log("quantity：" + NFTData.quantity);
+      //console.log("comicHash：" + NFTData.comicHash);
      
       const transaction = await contract.methods._mintNFT(price_temp, descForK.description, NFTData.royalty, NFTData.quantity, NFTData.comicHash).send({ from: currentAccount });
       const transactionHash = transaction.transactionHash;
@@ -133,8 +133,7 @@ const MintNFT = (props) => {
       if (error.message.includes('User denied transaction signature')) {
         alert(t('拒绝交易'));
       } else {
-        console.error('鑄造NFT時發生錯誤：', error);
-        alert(error);
+        alert(t('鑄造NFT時發生錯誤') + error);
       }
       enableAllButtons();
       updateMessage("");
@@ -179,7 +178,7 @@ const MintNFT = (props) => {
           'api-key': API_KEY
         }
       });
-      console.log(response.data);
+      //console.log(response.data);
       return { success: true };
     } catch (error) {
       return { success: false, error };
@@ -195,6 +194,9 @@ const MintNFT = (props) => {
     } else if (quantity > 50) {
       alert(t('發行數量一次最多50個!'));
       return -1;
+    }  else if (royalty > 10) {
+      alert(t('抽成比例最多10%!'));
+      return -1;
     } else if (!title || !price || !description || !quantity || !royalty) {
       updateMessage(t('請填寫所有欄位'));
       return -1;
@@ -205,7 +207,7 @@ const MintNFT = (props) => {
   useEffect(() => {
     const fetchData = async () => {
         if (!location.state) return;
-        console.log("Location state:", location.state);
+        //console.log("Location state:", location.state);
         try {
             const storedArrayJSON = localStorage.getItem('comicDatas');
             const storedArray = JSON.parse(storedArrayJSON);
@@ -312,7 +314,6 @@ const MintNFT = (props) => {
       setNftFile(file);
     } else {
       alert(t('文件類型不支持，請上傳...格式的圖片'));
-      console.log(t('文件類型不支持，請上傳...格式的圖片'));
     }
   };
 
@@ -421,7 +422,7 @@ const MintNFT = (props) => {
         {/* ) : ( */}
         <Form.Group as={Row} className='mb-3'>
             <Form.Label>
-                {t('NFT名稱')}
+                NFT {t('名稱')}
             </Form.Label>
             <Form.Control
                 type="text"
@@ -531,7 +532,7 @@ const MintNFT = (props) => {
             </Form.Label>
             <Form.Control
                 type="number"
-                placeholder={t('至少 1%，至多10%')}
+                placeholder={t('至少1%，至多10%')}
                 step="1"
                 min="1"
                 max="10"

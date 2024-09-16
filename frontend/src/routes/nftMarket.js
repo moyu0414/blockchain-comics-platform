@@ -136,7 +136,7 @@ function NftMarket() {
             };
             await Promise.all(temp.map(fetchImage));
 
-            console.log(temp);
+            //console.log(temp);
             setComic(temp);
             setMaterial(temp);
             setLoading(false);
@@ -284,8 +284,8 @@ function NftMarket() {
                     Array.from({ length: saleQty }, (_, j) => tokenId + j)
                 );
                 price = web3.utils.toWei(price, 'ether');
-                console.log(totalAmount);
-                console.log('tokenIds', tokenIds);  // 所有的tokenId
+                //console.log(totalAmount);
+                //console.log('tokenIds', tokenIds);  // 所有的tokenId
                 const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
                 await web3Instance.methods.purchaseNFT(tokenIds).send({from: currentAccount, value: price});
  
@@ -303,15 +303,13 @@ function NftMarket() {
                     console.error('Error updating DB NFT:', error);
                 }
             } else {
-                console.log('餘額不足');
                 alert(t('餘額不足'));
             }
         } catch (error) {
             if (error.message.includes('User denied transaction signature')) {
                 alert(t('拒绝交易'));
             } else {
-                console.error('購買NFT發生錯誤：', error);
-                alert(error);
+                alert(t('購買NFT發生錯誤：') + error);
             }
         } finally {
             enableAllButtons();
@@ -368,7 +366,7 @@ function NftMarket() {
         <>
         {!loading &&
             <Container className='nftMarket'>
-                <h2 className='text-center fw-bold' style={{backgroundColor: "green"}}>NFT市場</h2>
+                <h2 className='text-center fw-bold' style={{backgroundColor: "green"}}>{t('NFT市場')}</h2>
                 <Row>
                     <div className='d-flex justify-content-between align-items-center'>
                         <div className='d-flex'>
@@ -427,7 +425,7 @@ function NftMarket() {
                     >
                         <Modal.Header closeButton className="border-bottom-0">
                         <Modal.Title id="exampleModalLabel">
-                            購物車
+                            {t('購物車')}
                         </Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
@@ -435,9 +433,9 @@ function NftMarket() {
                             <thead>
                             <tr>
                                 <th>NFT</th>
-                                <th className="text-right">價格</th>
-                                <th className="text-right">數量</th>
-                                <th className="text-right">總額</th>
+                                <th className="text-right">{t('價格')}</th>
+                                <th className="text-right">{t('數量')}</th>
+                                <th className="text-right">{t('總額')}</th>
                                 <th></th>
                             </tr>
                             </thead>
@@ -453,10 +451,10 @@ function NftMarket() {
                                         </div>
                                     </div>
                                 </td>
-                                <td className="text-right" title="價格">
+                                <td className="text-right" title={t('價格')}>
                                     {item.price}
                                 </td>
-                                <td className="text-right qty" title="數量">
+                                <td className="text-right qty" title={t('數量')}>
                                     {/* <Form.Control
                                         type="number"
                                         value={item.saleQty}
@@ -468,7 +466,7 @@ function NftMarket() {
                                         onChange={(newQuantity) => handleQuantityChange(item.tokenId, newQuantity)}
                                     />
                                 </td>
-                                <td className="text-right" title="總額">
+                                <td className="text-right" title={t('總額')}>
                                     {(item.price * item.saleQty).toFixed(2)}
                                 </td>
                                 <td className="modal-del">
@@ -483,12 +481,12 @@ function NftMarket() {
                             </tbody>
                         </Table>
                         <div className="d-flex justify-content-end">
-                            <h5>總額: <span className="price text-success">${totalAmount}</span></h5>
+                            <h5>{t('總額')}：<span className="price text-success">${totalAmount}</span></h5>
                         </div>
                         </Modal.Body>
                         <Modal.Footer className="border-top-0 d-flex justify-content-end">
                             <Button onClick={handlePurchase} variant="success">
-                                確認
+                                {t('確認')}
                             </Button>
                         </Modal.Footer>
                     </Modal>
@@ -507,7 +505,7 @@ function NftMarket() {
                                                             <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                                                 <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
                                                                 <div className="nftMarket-overlay">
-                                                                    <span>已售：{data.saleQty} 總數：{data.totQty}</span>
+                                                                    <span>{t('已售')}：{data.saleQty} {t('總數')}：{data.totQty}</span>
                                                                 </div>
                                                                 </Link>
                                                             <Card.Body className="simple-text">
@@ -540,7 +538,7 @@ function NftMarket() {
                                                             <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                                                 <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
                                                                 <div className="nftMarket-overlay">
-                                                                    <span>已售：{data.saleQty} 總數：{data.totQty}</span>
+                                                                    <span>{t('已售')}：{data.saleQty} {t('總數')}：{data.totQty}</span>
                                                                 </div>
                                                             </Link>
                                                             <Card.Body className="simple-text">
@@ -574,7 +572,7 @@ function NftMarket() {
                         }
                     >
                         <Form.Group>
-                            <Form.Label className='pt-'>{t('IP種類')}</Form.Label>
+                            <Form.Label className='pt-1'>{t('IP種類')}</Form.Label>
                             <Form.Control as="select" value={t(selectedGrading)} onChange={handleGradingChange}>
                                 {grading.map((option, index) => (
                                     <option key={index} value={option}>{option}</option>
@@ -590,7 +588,7 @@ function NftMarket() {
                                                 <Link to={`/nftDetail/tokenId${data.tokenId}`}>
                                                     <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
                                                     <div className="nftMarket-overlay">
-                                                        <span>已售：{data.saleQty} 總數：{data.totQty}</span>
+                                                        <span>{t('已售')}：{data.saleQty} {t('總數')}：{data.totQty}</span>
                                                     </div>
                                                 </Link>
                                                 <Card.Body className="simple-text">
@@ -636,10 +634,7 @@ function NftMarket() {
                                                             alt={`image-${index + 1}`}
                                                         />
                                                         <div className="nftMarket-overlay">
-                                                            <span>
-                                                                已售：{data.saleQty} 總數：
-                                                                {data.totQty}
-                                                            </span>
+                                                            <span>{t('已售')}：{data.saleQty} {t('總數')}：{data.totQty}</span>
                                                         </div>
                                                     </Link>
                                                     <Card.Body className="simple-text">
@@ -690,10 +685,7 @@ function NftMarket() {
                                                             alt={`image-${index + 1}`}
                                                         />
                                                         <div className="nftMarket-overlay">
-                                                            <span>
-                                                                已售：{data.saleQty} 總數：
-                                                                {data.totQty}
-                                                            </span>
+                                                            <span>{t('已售')}：{data.saleQty} {t('總數')}：{data.totQty}</span>
                                                         </div>
                                                     </Link>
                                                     <Card.Body className="simple-text">

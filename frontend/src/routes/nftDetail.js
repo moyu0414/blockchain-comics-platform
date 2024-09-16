@@ -68,7 +68,7 @@ function NftDetail() {
           state: currentState,
           image: imageUrl
         }));
-        console.log(newData);
+        //console.log(newData);
         setNFT(newData);
         const authorizations = parseAuthorizations(newData[0].description);
         setIP(authorizations);
@@ -181,7 +181,6 @@ function NftDetail() {
                             console.error('Error updating DB NFT:', error);
                         }
                     } else {
-                        console.log('餘額不足');
                         alert(t('餘額不足'));
                     }
                 } else {
@@ -192,8 +191,7 @@ function NftDetail() {
                 if (error.message.includes('User denied transaction signature')) {
                     alert(t('拒绝交易'));
                 } else {
-                    console.error('購買NFT發生錯誤：', error);
-                    alert(error);
+                    alert(t('購買NFT發生錯誤：') + error);
                 }
             } finally {
                 enableAllButtons();

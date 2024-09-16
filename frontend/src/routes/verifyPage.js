@@ -20,7 +20,7 @@ const VerifyPage = () => {
     const [ipAddress, setIpAddress] = useState('');
     //const [checked, setChecked] = useState(false);
     const [info, setInfo] = useState({ version: '', ip: '', deviceInfo: '', timestamp: '' });
-    const [showModal, setShowModal] = useState(true);
+    const [showModal, setShowModal] = useState(false);
     const inputRefs = useRef([]);
     const { t } = useTranslation();
     const headers = {'api-key': API_KEY};
@@ -34,6 +34,11 @@ const VerifyPage = () => {
             const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
             const accounts = await web3.eth.getAccounts();
             if (accounts[0]) {
+                const isCreator = await web3Instance.methods.creators(accounts[0]).call();
+                if (isCreator) {
+                    alert(t('您已經是創作者了!'));
+                    window.location.replace('/readerPage');
+                };
                 setAccount(accounts[0].toLowerCase());
                 try {
                     const response = await axios.get(`${website}/api/getIP`, { headers });
@@ -47,6 +52,7 @@ const VerifyPage = () => {
                         deviceInfo: JSON.stringify(getDeviceInfo()),
                         timestamp: new Date().toISOString(),
                     });
+                    setShowModal(true);
                 } catch (error) {
                     alert('Error fetching IP address: ' + error);
                 }
@@ -60,7 +66,6 @@ const VerifyPage = () => {
     }, [account]);
 
     const TermsModal = ({ onAccept }) => {
-        const [showModal, setShowModal] = useState(true);
         const [checked, setChecked] = useState(false);
         const navigate = useNavigate();
         const handleAccept = () => {
@@ -68,7 +73,7 @@ const VerifyPage = () => {
                 onAccept();
                 setShowModal(false);
             } else {
-                alert('請同意平台的使用條款，才能進行帳號驗證!');
+                alert(t('請同意平台的使用條款，才能進行帳號驗證!'));
             }
         };
         const handleReject = () => {
@@ -79,34 +84,34 @@ const VerifyPage = () => {
             <Modal show={showModal} onHide={handleReject} centered dialogClassName="verify-custom-modal">
                 <Modal.Header closeButton>
                     <Modal.Title>
-                    <b>web3toon</b> 使用條款
+                    <b>web3toon</b> {t('使用條款')}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>歡迎使用 <b>web3toon</b> 漫畫平台（以下稱「本平台」）。為了保護您的權益，請在使用本平台之前仔細閱讀本使用條款（以下稱「條款」）。使用本平台即表示您同意遵守這些條款。如果您不同意這些條款，您將無法使用本平台的某些功能。</p>
-                    <p>1. **服務內容**</p>
-                    <p>本平台提供漫畫購買、閱讀、鑄造NFT，轉售NFT、收藏等功能。本平台保留修改、更新或取消服務內容的權利，並將及時通知用戶。</p>
-                    <p>2. **用戶責任**</p>
-                    <p>帳號與密碼安全：用戶應妥善保管錢包帳號和密碼，不得將帳號和密碼轉讓給第三方。若發現帳號或密碼被盜用，應立即通知本平台。</p>
-                    <p>3. **知識產權**</p>
-                    <p>本平台上的所有內容（包括但不限於漫畫、NFT、圖片、文字、標誌、商標等）均為本平台或其授權方的知識產權，未經授權，不得以任何形式使用。</p>
-                    <p>4. **隱私政策**</p>
-                    <p>本平台將根據隱私政策收集、使用和保護用戶的個人信息。請詳細閱讀我們的 [隱私政策]，了解我們如何處理您的信息。</p>
-                    <p>5. **盜版及非法作品處理**</p>
-                    <p>本平台管理者有權對盜版或非法作品進行審核、下架等處理，並取締該創作者在本平台的創作權利及其相關作品。</p>
-                    <p>6. **責任免除**</p>
-                    <p>本平台對於因不可抗力或其他非本平台控制範圍內的因素導致的服務中斷或資料丟失，概不負責。</p>
-                    <p>7. **條款變更**</p>
-                    <p>本平台有權隨時修改這些條款，並將修改後的條款在本平台上公告，公告即為有效。</p>
-                    <p>8. **爭議解決**</p>
-                    <p>本條款受 [國家/地區] 法律管轄。</p>
-                    <p>9. **其他**</p>
-                    <p>若本條款中的任何條款被認定為無效或不可執行，不影響其他條款的有效性和可執行性。</p>
+                    <p>{t('歡迎使用')} <b>web3toon</b> {t('前言')}</p>
+                    <p>1. **{t('服務內容')}**</p>
+                    <p>{t('服務內容_條款')}</p>
+                    <p>2. **{t('用戶責任')}**</p>
+                    <p>{t('用戶責任_條款')}</p>
+                    <p>3. **{t('知識產權')}**</p>
+                    <p>{t('知識產權_條款')}</p>
+                    <p>4. **{t('隱私政策')}**</p>
+                    <p>{t('隱私政策_條款')}</p>
+                    <p>5. **{t('盜版及非法作品處理')}**</p>
+                    <p>{t('盜版及非法作品處理_條款')}</p>
+                    <p>6. **{t('責任免除')}**</p>
+                    <p>{t('責任免除_條款')}</p>
+                    <p>7. **{t('條款變更')}**</p>
+                    <p>{t('條款變更_條款')}</p>
+                    <p>8. **{t('爭議解決')}**</p>
+                    <p>{t('爭議解決_條款')}</p>
+                    <p>9. **{t('其他')}**</p>
+                    <p>{t('其他_條款')}</p>
 
                     <Form.Group className="mb-3">
                     <Form.Check
                         type="checkbox"
-                        label="我同意上述的使用條款"
+                        label={t('我同意上述的使用條款')}
                         checked={checked}
                         onChange={() => setChecked(!checked)}
                     />
@@ -114,10 +119,10 @@ const VerifyPage = () => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleReject}>
-                    拒絕
+                    {t('拒絕')}
                     </Button>
                     <Button variant="primary" onClick={handleAccept}>
-                    接受
+                    {t('接受')}
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -142,6 +147,10 @@ const VerifyPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (formData.penName.length > 30) {
+            alert(t('筆名不可超過30字！'));
+            return;
+        };
         try {
             const updatedFormData = { ...formData, account: account };
             const response = await axios.post(`${website}/api/send-verification-email`, updatedFormData, { headers });
@@ -229,7 +238,6 @@ const VerifyPage = () => {
             previewPromoCover(file);
         } else {
             alert(t('文件類型不支持，請上傳...格式的圖片'));
-            console.log(t('文件類型不支持，請上傳...格式的圖片'));
             return -1;
         }
     };

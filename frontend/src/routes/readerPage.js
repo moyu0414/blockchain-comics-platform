@@ -46,9 +46,8 @@ function ReaderPage() {
                                 currentAccount: account
                             }
                         });
-                        if (response.data[0].is_creator === 1) {
-                            setIsCreator(true);
-                        }
+                        const isCreator = [1, 3].includes(response.data[0].is_creator);  // 是 或 禁用
+                        setIsCreator(isCreator);
                         const balance = await web3.eth.getBalance(account);
                         setEthBalance(parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(3));
                         setCurrentAccount(account);
@@ -101,7 +100,7 @@ function ReaderPage() {
             {isButtonEnabled && (
                 <div><center>
                     <h4 className="display-account">{currentAccount}</h4>
-                    <h5 className="display-ethBalance">{ethBalance} SepoliaETH</h5>
+                    <h5 className="display-ethBalance">{ethBalance} Sepolia ETH</h5>
                 </center></div>
             )}
             <Row className="pt-4 pb-3 btn-container justify-content-center">

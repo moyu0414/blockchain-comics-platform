@@ -295,7 +295,7 @@ const PurchaseHistory = () => {
                     <tbody>
                       {piracyLogArray.map((data, index) => (
                         <tr key={index}>
-                          <td className='text-center fw-bold'>{data.state}</td>
+                          <td className='text-center fw-bold'>{t(data.state)}</td>
                           <td className='text-center'>{data.title}</td>
                           <td className='text-center'>{data.expenditure}</td>
                           <td className='text-center'>

@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Container, Col, Row, Button, Modal, Form } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
+import { message } from 'antd';
 import { initializeWeb3, disableAllButtons, enableAllButtons } from '../index';
 import comicData from '../contracts/ComicPlatform.json';
 import { useTranslation } from 'react-i18next';
@@ -40,7 +41,7 @@ function NftOwner() {
             }
         });
         let nftData = response.data;
-        console.log(nftData[0]);
+        //console.log(nftData[0]);
         setUpdatePrice(nftData[0].price);
 
         if (nftData.length !== 0) {
@@ -71,7 +72,7 @@ function NftOwner() {
                 state: currentState,
                 image: imageUrl
             }));
-            console.log(newData);
+            //console.log(newData);
             setNFT(newData);
             const authorizations = parseAuthorizations(newData[0].description);
             setIP(authorizations);
@@ -108,7 +109,7 @@ function NftOwner() {
             setShow(true);
             setIsInputVisible(false);
         } else {
-            alert('此NFT已上架');
+            message.info(t('此NFT已上架'));
         }
     };
 
@@ -168,7 +169,7 @@ function NftOwner() {
                 }, {
                     headers: headers
                 });
-                alert(t('NFT上架成功'));
+                message.info(t('NFT上架成功'));
                 const updatedNFT = [...NFT];
                 updatedNFT[0].state = t('已出售');
                 setNFT(updatedNFT);
@@ -177,10 +178,9 @@ function NftOwner() {
             }
         } catch (error) {
             if (error.message.includes('User denied transaction signature')) {
-                alert(t('拒绝交易'));
+                message.info(t('拒绝交易'));
             } else {
-                console.error('上架NFT發生錯誤：', error);
-                alert(error);
+                alert(t('上架NFT發生錯誤：') + error);
             }
         } finally {
             enableAllButtons();
@@ -197,7 +197,7 @@ function NftOwner() {
             setShow(false);
             setPrice('');
         } else {
-            alert(t('請輸入有效的價格'));
+            message.info(t('請輸入有效的價格'));
         }
     };
 
