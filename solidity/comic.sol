@@ -47,6 +47,8 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
     mapping(bytes32 => bytes32[]) public comicChapters;
     // 記錄每個地址購買的章節
     mapping(address => mapping(bytes32 => bool)) public purchasedChapters;
+    // 記錄每個地址創建的漫畫
+    mapping(address => bytes32[]) public creatorComics;
     // 記錄每個地址購買的章節
     mapping(bytes32 => address[]) public purchaserecord;
     //記錄每本漫畫的章節的hash，保持唯一性
@@ -134,7 +136,7 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
         Comic memory newComic = Comic({owner:  payable(msg.sender),status: 0});
         comics[_comicHash]= newComic; 
         allComicHashes.push(_comicHash); 
-
+        creatorComics[msg.sender].push(_comicHash);
         // 觸發漫畫上傳事件
         emit ComicUploaded(_comicHash,msg.sender,_title);
     }
@@ -163,6 +165,10 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
                     address receiver = purchaserecord[_chapterhash][n];
                     payable(receiver).transfer(_price);
                 }
+            }
+            for (uint256 i = 0; i < creatorComics[comics[_comicHash].owner].length; i++) {
+                bytes32 _creatorcomicHash = creatorComics[comics[_comicHash].owner][i];
+                comics[_creatorcomicHash].status = 1;
             }
         }
 
@@ -233,10 +239,11 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
     }
 
     // 管理者提取手續費
-    function withdrawFees() external onlyAdmin {
+    function withdrawFees(uint256 _total) external onlyAdmin {
         uint256 balance = address(this).balance;
         require(balance > 0, "No fees to withdraw");
-        payable(msg.sender).transfer(balance);
+        require(balance > _total, "Insufficient balance");
+        payable(msg.sender).transfer(_total);
     }
     function getContractBalance() external view onlyAdmin returns (uint256)  {
         return address(this).balance;
@@ -292,6 +299,7 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
         // 確認所有NFT是否都可以購買以及計算總價
         for (uint256 i = 0; i < _tokenIds.length; i++) {
             uint256 tokenId = _tokenIds[i];
+            require(comics[nfts[tokenId].comicHash].status == 0, "This comic is at risk of piracy and is under review");
             require(nfts[tokenId].forSale, "One or more NFTs are not for sale");
             require(ownerOf(tokenId) != msg.sender, "Cannot purchase your own token");
 
