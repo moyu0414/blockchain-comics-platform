@@ -154,10 +154,14 @@ const ComicManagement = ({ contractAddress }) => {
             comicHash: comicHash
           }
         });
-        //console.log(response.data);
         const totalCost = web3Instance.utils.toWei(response.data, 'ether');
-        //console.log(totalCost);
-
+        let total = Number(web3Instance.utils.fromWei(totalCost, 'ether'));
+        let balance = await web3Instance.eth.getBalance(currentAccount);
+        balance = parseInt(Number(web3Instance.utils.fromWei(balance, 'ether')) * 1000) / 1000;
+        if (total > balance) {
+          message.info(`${t('餘額不足')}，${t('退款金額為')}：${total}，${t('您持有餘額為')}：${balance}`);
+          return;
+        }
         await meta.toggleComicExistence(comicHash, 2).send({ from: currentAccount, value: totalCost });
         await axios.put(`${website}/api/update/comicExist`, null, {
           headers: headers,
@@ -166,20 +170,9 @@ const ComicManagement = ({ contractAddress }) => {
             is_exist: 2
           },
         });
-        const updatedComics = searchResults.map(comic =>
-          comic.hash === comicHash
-            ? { ...comic, exists: '盜版' }
-            : comic
-        );
-        setSearchResults(updatedComics);
+        updateComics(searchResults, comicHash);
         message.info(t('漫畫刪除成功'));
-        const updatedArray = storedArray.map(item =>
-          item.comic_id === comicHash
-            ? { ...item, is_exist: 2 }
-            : item
-        );
-        const updatedArrayJSON = JSON.stringify(updatedArray);
-        localStorage.setItem('comicDatas', updatedArrayJSON);
+        updateArray(searchResults, comicHash);
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
           message.info(t('拒绝交易'));
@@ -274,6 +267,37 @@ const ComicManagement = ({ contractAddress }) => {
     } 
   };
 
+  const updateComics = (searchResults, comicHash) => {
+    const targetComic = searchResults.find(comic => comic.hash === comicHash);
+    const targetAuthor = targetComic.author;
+    const updatedComics = searchResults.map(comic => {
+      if (comic.hash === comicHash) {
+        return { ...comic, exists: '盜版' };
+      }
+      if (comic.author === targetAuthor) {
+        return { ...comic, exists: '查核' };
+      }
+      return comic;
+    });
+    setSearchResults(updatedComics);
+  };
+
+  const updateArray = (searchResults, comicHash) => {
+    const targetComic = searchResults.find(comic => comic.hash === comicHash);
+    const targetAuthor = targetComic.author;
+    const updatedArray = searchResults.map(comic => {
+      if (comic.hash === comicHash) {
+        return { ...comic, exists: 2 };
+      }
+      if (comic.author === targetAuthor) {
+        return { ...comic, exists: 1 };
+      }
+      return comic;
+    });
+    const updatedArrayJSON = JSON.stringify(updatedArray);
+    localStorage.setItem('comicDatas', updatedArrayJSON);
+  };
+
   const handleShow = (data, isConfirm = false) => {
     setModalState({
       show: true,
@@ -336,8 +360,15 @@ const ComicManagement = ({ contractAddress }) => {
     if (withdrawRef.current.value > 0) {
       try{
         disableAllButtons();
-        await meta.withdrawFees().send({ from: currentAccount });
-        message.info(t('提款成功'));
+        let total = await meta.getContractBalance().call({ from: currentAccount });
+        total = parseInt(Number(web3Instance.utils.fromWei(total, 'ether')) * 1000) / 1000;
+        if (withdrawRef.current.value > total) {
+          message.info(`${t('可提領金額')}：${total}，${t('您以超過！')}`);
+          return;
+        }
+        let price = web3Instance.utils.toWei(withdrawRef.current.value, 'ether');
+        await meta.withdrawFees(price).send({ from: currentAccount });
+        message.info(`$ ${withdrawRef.current.value} ETH ${t('提款成功')}`);
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
           message.info(t('拒绝交易'));

@@ -738,16 +738,40 @@ app.put('/api/update/comicExist', async (req, res) => {
   const comicHash = req.query.comicHash;
   const is_exist = req.query.is_exist;
   try {
-    const updateQuery = `UPDATE comics SET is_exist = ? WHERE comic_id = ?`;
-    const queryResult = await new Promise((resolve, reject) => {
-      pool.query(updateQuery, [is_exist, comicHash], (error, results, fields) => {
-        if (error) {
-          reject(error);
-          return;
+    await new Promise((resolve, reject) => {
+      pool.query(
+        `UPDATE comics SET is_exist = ? WHERE comic_id = ?`,
+        [is_exist, comicHash],
+        (error, results) => {
+          if (error) return reject(error);
+          resolve(results);
         }
-        resolve(results);
-      });
+      );
     });
+    if (is_exist === '2') {
+      const creatorResult = await new Promise((resolve, reject) => {
+        pool.query(
+          `SELECT creator FROM comics WHERE comic_id = ?`,
+          [comicHash],
+          (error, results) => {
+            if (error) return reject(error);
+            resolve(results[0]?.creator);
+          }
+        );
+      });
+      if (creatorResult) {
+        await new Promise((resolve, reject) => {
+          pool.query(
+            `UPDATE comics SET is_exist = 1 WHERE creator = ? AND comic_id != ?`,
+            [creatorResult, comicHash],
+            (error, results) => {
+              if (error) return reject(error);
+              resolve(results);
+            }
+          );
+        });
+      }
+    }
     res.status(200).json({ message: 'comicExist updated successfully' });
   } catch (error) {
     console.error('Error updating comicExist:', error);

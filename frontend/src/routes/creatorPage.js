@@ -94,6 +94,9 @@ function CreatorPage() {
                             } catch (error) {
                                 console.error('Error initializing contract:', error);
                             }
+                        } else if (response.data[0].is_creator === 3) {
+                            alert(t('您已被本平台禁用創作者權限！'));
+                            window.location.replace('/');
                         } else {
                             alert(t('請先進行創作者驗證，才開放創作者專區'));
                             setLoading(false);
