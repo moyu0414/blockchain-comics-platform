@@ -2689,6 +2689,10 @@ a:link{
   cursor: pointer;
 }
 
+.nftMarket-modal{
+  overflow-y: scroll!important;
+}
+
 .nftMarket-modal .modal-footer{
   width: 100%;
 }
