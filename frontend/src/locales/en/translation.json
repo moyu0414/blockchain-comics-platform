@@ -471,7 +471,12 @@
     "符合條件的資料：": "Matching Data:",
     "類型": "Type",
     "收益分布": "Revenue Distribution",
-    "購買量": "Purchase Volume"
+    "購買量": "Purchase Volume",
+    "書櫃":"Bookcase",
+    "首頁":"Home",
+    "分類":"Category",
+    "NFT市場":"Market",
+    "個人資訊":"Profile"
 
   }
   
