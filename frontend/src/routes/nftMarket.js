@@ -76,7 +76,6 @@ function NftMarket() {
             const response = await axios.get(`${website}/api/nftMarket/records`, { headers });
             let nftData = response.data;
             nftData.forEach(item => {
-                if (item.forSale === 1) {
                     const keyData = `${item.comicHash}-${item.price}-${item.royalty}-${item.description || ""}`;
                     const lastPriceValue = Object.values(item.price).pop();
                     const updatedRecord = {
@@ -85,26 +84,27 @@ function NftMarket() {
                         keyData,
                         price: lastPriceValue
                     };
-                    allRecord.push(updatedRecord);
-                    if (item.minter === item.owner) {
-                        if (!comicStats[keyData]) {
-                            comicStats[keyData] = { tot: 0, sale: 0 };
-                        }
-                        comicStats[keyData].tot += 1;
-                        if (item.forSale === 0) { // 已售出的 NFT
-                            comicStats[keyData].sale += 1;
-                        }
+                    if (item.forSale === 1) {
+                        allRecord.push(updatedRecord);
                     }
-                }
+                    if (!comicStats[keyData]) {
+                        comicStats[keyData] = { tot: 0, sale: 0 };
+                    }
+                    comicStats[keyData].tot += 1;
+                    if (item.minter !== item.owner) {
+                        comicStats[keyData].sale += 1;
+                    }
             });
             const keyhMap = allRecord.map(record => ({
                 ...record,
                 ...(record.isFanCreation === t('原創') ? {
                     totQty: comicStats[record.keyData]?.tot || 0,
-                    saleQty: comicStats[record.keyData]?.sale || 0
+                    saleQty: comicStats[record.keyData]?.sale || 0,
+                    totSale: (comicStats[record.keyData]?.tot || 0) - (comicStats[record.keyData]?.sale || 0)
                 } : {
                     totQty: 1,
-                    saleQty: 0
+                    saleQty: 0,
+                    totSale: 1
                 })
             }));
             keyhMap.forEach(record => {
@@ -232,17 +232,22 @@ function NftMarket() {
                     alert(t('您擁有此NFT'))
                 } else {
                     setCartItems(prevItems => {
-                        const updatedItems = prevItems.map(item =>
-                            item.tokenId === tokenId
-                                ? { ...item, saleQty: Math.min(item.saleQty + 1, item.totQty) }  // 如果產品已經存在於購物車中，僅增加數量
-                                : item  // 如果產品不在購物車中，新增項目
-                        );
+                        const updatedItems = prevItems.map(item => {
+                            if (item.tokenId === tokenId) {
+                                const newSaleQty = item.saleQty + 1;
+                                return {
+                                    ...item,
+                                    saleQty: Math.min(newSaleQty, item.totSale) 
+                                };
+                            }
+                            return item;
+                        });
                         if (prevItems.some(item => item.tokenId === tokenId)) {
                             return updatedItems;
                         }
                         return [
                             ...prevItems,
-                            { tokenId, title, image, price, saleQty: 1, totQty: data.totQty, tokenTitle: data.tokenTitle }
+                            { tokenId, title, image, price, saleQty: 1, totSale: data.totSale, tokenTitle: data.tokenTitle }
                         ];
                     });
                 }
@@ -256,7 +261,7 @@ function NftMarket() {
         setCartItems(prevItems =>
           prevItems.map(item => {
             if (item.tokenId === tokenId) {
-              const updatedQuantity = newQuantity <= item.totQty ? newQuantity : item.saleQty;
+              const updatedQuantity = newQuantity <= item.totSale ? newQuantity : item.saleQty;
               return { ...item, saleQty: updatedQuantity };
             }
             return item;

@@ -4,7 +4,6 @@ import comicData from '../contracts/ComicPlatform.json';
 import {  Container, Table, Button, Form, Tabs, Tab, InputGroup, FormControl, Modal, Tooltip, OverlayTrigger} from 'react-bootstrap';
 import { PlusLg, TrashFill, Search } from 'react-bootstrap-icons';
 import { message } from 'antd';
-import { disableAllButtons, enableAllButtons } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
@@ -88,7 +87,6 @@ const ComicManagement = ({ contractAddress }) => {
               setAccount(addresses);
               setUserSearchResults(addresses);
             }
-            //console.log(addresses);
 
             let storedArray = JSON.parse(storedArrayJSON);
             setStoredArray(storedArray);
@@ -117,7 +115,7 @@ const ComicManagement = ({ contractAddress }) => {
           }
         } else {
           message.info(t('您並非管理者'));
-          return;
+          window.location.replace('/');         
         }
       } catch (error) {
         console.error(error);
@@ -144,7 +142,6 @@ const ComicManagement = ({ contractAddress }) => {
 
   // 漫畫刪除 或 復原函數
   const handleToggle = async (comicHash, exists, creator) => {
-    //console.log(exists);
     disableAllButtons();
     if (exists === 2) {  // 漫畫是盜版
       try{
@@ -171,8 +168,21 @@ const ComicManagement = ({ contractAddress }) => {
           },
         });
         updateComics(searchResults, comicHash);
-        message.info(t('漫畫刪除成功'));
         updateArray(searchResults, comicHash);
+
+        const creatorAccount = account.find(account => account.address === creator);
+        
+        if (creatorAccount.is_creator !== "禁用") {
+          await meta.removeCreator(creator).send({from: currentAccount});
+        
+          const response = await axios.put(`${website}/api/update/userAccount`, null, {
+            headers: headers,
+            params: {
+              address: creator,
+              state: 3
+            },
+          });
+        }
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
           message.info(t('拒绝交易'));
@@ -183,6 +193,7 @@ const ComicManagement = ({ contractAddress }) => {
       } finally {
         enableAllButtons();
         handleHide();
+        window.location.reload();
       }
     } else if (exists === 1) {  // 漫畫審核中
         try{
@@ -311,7 +322,7 @@ const ComicManagement = ({ contractAddress }) => {
 
   const handleConfirm = () => {
     if (modalState.data && modalState.action === 'delete') {
-      handleToggle(modalState.data.hash, 2, modalState.data.creator);
+      handleToggle(modalState.data.hash, 2, modalState.data.author);
     } else if (modalState.data && modalState.action === 'review') {
       handleToggle(modalState.data.hash, 1);
     }
@@ -338,7 +349,7 @@ const ComicManagement = ({ contractAddress }) => {
             <Button className="mt-3 return-btn" onClick={() => handleToggle(hash, 0)}>
               {t('復原')}
             </Button>
-            <Button className="mt-3 del-btn" onClick={() => handleToggle(hash, 2)}>
+            <Button className="mt-3 del-btn" onClick={() => handleShow(modalState.data, true)}>
               {t('刪除')}
             </Button>
           </>
@@ -584,6 +595,20 @@ const ComicManagement = ({ contractAddress }) => {
     </Tooltip>
   );
 
+  const disableAllButtons = () => {
+    const buttons = document.querySelectorAll(".btn");
+    buttons.forEach(button => {
+      button.disabled = true;
+    });
+  };
+  
+  const enableAllButtons = () => {
+    const buttons = document.querySelectorAll(".btn");
+    buttons.forEach(button => {
+      button.disabled = false;
+    });
+  };
+
   
   return (
     <>
@@ -755,7 +780,7 @@ const ComicManagement = ({ contractAddress }) => {
                                 </Form.Label>
                               )}
                               {modalState.isConfirm ? (
-                                <Form.Label>{t('漫畫確定是盜版，刪除後將無法復原，並進行退款。')}</Form.Label>
+                                <Form.Label>{t('漫畫確定是盜版，刪除後將無法復原，並進行退款、禁用創作者帳號。')}</Form.Label>
                               ) : (
                                   renderButtons()
                               )}

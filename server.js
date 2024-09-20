@@ -176,6 +176,21 @@ async function nftFile(file, comic_id, tokenId) {
   }
 }
 
+async function termsFile(file, version, language) {
+  const creatorFolder = path.join('uploads', 'terms', version);  //localhost
+  // const comicFolder = path.join('/var/www/html/uploads', 'terms', version);  // web3toonapi
+  const filename = `${language}.jpg`;
+  const filePath = path.join(creatorFolder, filename);
+  try {
+    await fsPromises.mkdir(creatorFolder, { recursive: true });
+    await fsPromises.rename(file.path, filePath);
+    return filename;
+  } catch (error) {
+    console.error('Error handling file:', error);
+    throw error;
+  }
+}
+
 // 获取文件扩展名的函数
 function getFileExtension(filename) {
   return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2);
@@ -200,16 +215,23 @@ const deleteFile = async (filePath) => {
 
 
 app.post('/api/send-verification-email', async (req, res) => {
-  const { name, penName, email, account } = req.body;
+  const { name, penName, email, account, version, filename } = req.body;
   const code = Math.floor(100000 + Math.random() * 900000);  // 隨機生成 6 位數驗證碼
   const expires = new Date(Date.now() + 15 * 60 * 1000); // 驗證碼 15 分钟內有效
+  const imagePath = path.join(__dirname, 'uploads', 'terms', version, filename);  // localhost
+  //const imagePath = path.join('/var/www/html/', 'uploads', 'terms', version, filename);  // web3toon
   const mailOptions = {
     from: emailAccount,
     to: email,
     subject: 'web3toon email verification',
-    text: `Hello ${name},\n\nPen Name: ${penName}\n\nWe are the web3toon platform. To become a creator on our platform, we need to verify your email address.\n\nYour verification code is: ${code}\nThe verification code is valid for 15 minutes.\n\nLet's start our journey!\n\nBest regards,\nweb3toon`
+    text: `Hello ${name},\n\nPen Name: ${penName}\n\nWe are the web3toon platform. To become a creator on our platform, we need to verify your email address.\n\nYour verification code is: ${code}\nThe verification code is valid for 15 minutes.\n\nPlease find the terms of use for our platform version ${version} attached.\n\nLet's start our journey!\n\nBest regards,\nweb3toon`,
+    attachments: [
+      {
+        filename: filename,
+        path: imagePath,
+      },
+    ],
   };
-
   try {
     await transporter.sendMail(mailOptions);
     const verificationData = JSON.stringify({ email, name, penName, code, expires });
@@ -327,6 +349,17 @@ app.post('/api/authorProfile-verify-email', (req, res) => {
     }
     res.json({ state: true, message: 'Verification successful' });
   });
+});
+
+
+app.post('/api/terms-version', upload.single('termsIMG'),async (req, res) => {
+  const imgData = req.file;
+  const { version, language } = req.body;
+  const image = await termsFile(imgData, version, language);
+  if (!image){
+    return res.status(500).json({ state: false, message: 'Error upload terms image' });
+  }
+  res.json({ state: true });
 });
 
 
@@ -647,6 +680,30 @@ app.get('/api/nftIMG/:comicHash/:tokenId', async (req, res) => {
 });
 
 
+app.get('/api/termsIMG/:version/:language', async (req, res) => {
+  const { version, language } = req.params;
+  try {
+      const filename = `${language}.jpg`;
+
+      // localhost
+      const imagePath = path.join(__dirname, 'uploads', 'terms', version, filename);
+
+      // web3toonapi
+      //const imagePath = path.join('/var/www/html/', 'uploads', 'terms', version, filename);
+
+      await fsPromises.access(imagePath);
+      res.json({ state: true });
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      res.json({ state: false });
+    } else {
+      console.error('Error fetching NFT image path:', error);
+      res.json({ state: false });
+    }
+  }
+});
+
+
 // 編輯漫畫資料的請求、添加漫畫信息到數據庫的路由
 app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {
   const { id, title, description, category, fileName, protoFilename } = req.body;
@@ -738,16 +795,40 @@ app.put('/api/update/comicExist', async (req, res) => {
   const comicHash = req.query.comicHash;
   const is_exist = req.query.is_exist;
   try {
-    const updateQuery = `UPDATE comics SET is_exist = ? WHERE comic_id = ?`;
-    const queryResult = await new Promise((resolve, reject) => {
-      pool.query(updateQuery, [is_exist, comicHash], (error, results, fields) => {
-        if (error) {
-          reject(error);
-          return;
+    await new Promise((resolve, reject) => {
+      pool.query(
+        `UPDATE comics SET is_exist = ? WHERE comic_id = ?`,
+        [is_exist, comicHash],
+        (error, results) => {
+          if (error) return reject(error);
+          resolve(results);
         }
-        resolve(results);
-      });
+      );
     });
+    if (is_exist === '2') {
+      const creatorResult = await new Promise((resolve, reject) => {
+        pool.query(
+          `SELECT creator FROM comics WHERE comic_id = ?`,
+          [comicHash],
+          (error, results) => {
+            if (error) return reject(error);
+            resolve(results[0]?.creator);
+          }
+        );
+      });
+      if (creatorResult) {
+        await new Promise((resolve, reject) => {
+          pool.query(
+            `UPDATE comics SET is_exist = 1 WHERE creator = ? AND comic_id != ? AND is_exist != 2`,
+            [creatorResult, comicHash],
+            (error, results) => {
+              if (error) return reject(error);
+              resolve(results);
+            }
+          );
+        });
+      }
+    }
     res.status(200).json({ message: 'comicExist updated successfully' });
   } catch (error) {
     console.error('Error updating comicExist:', error);
@@ -1112,7 +1193,8 @@ app.get('/api/creator/records', (req, res) => {
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
-    WHERE comics.creator = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 0
+    INNER JOIN user ON comics.creator = user.address
+    WHERE comics.creator = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 0 AND user.is_creator = 1
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -1152,10 +1234,10 @@ app.get('/api/reader/records', (req, res) => {
 app.get('/api/purchaseHistory/nftRecords', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const query = `
-    SELECT nft.tokenId, nft.price, nft.forSale , comics.title
+    SELECT nft.tokenId, nft.price, nft.forSale , comics.title, nft.tokenTitle , comics.is_exist
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
-    WHERE nft.owner = ? AND nft.owner <> nft.minter AND comics.is_exist = 0
+    WHERE nft.owner = ? AND nft.owner <> nft.minter
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -1275,10 +1357,10 @@ app.get('/api/bookcase/nftRecords', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const query = `
     SELECT 
-      nft.tokenId, nft.tokenTitle ,comics.title, nft.comicHash, nft.description
+      nft.tokenId, nft.tokenTitle ,comics.title, nft.comicHash, nft.description, comics.is_exist
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
-    WHERE nft.owner = ? AND nft.owner <> nft.minter AND comics.is_exist = 0
+    WHERE nft.owner = ? AND nft.owner <> nft.minter
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -1600,11 +1682,11 @@ app.get('/api/nftOwner/records', (req, res) => {
   const tokenId = req.query.tokenId;
   const currentAccount = req.query.currentAccount;
   const query = `
-    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.filename , comics.protoFilename, user.penName
+    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.filename , comics.protoFilename, comics.is_exist, user.penName
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     INNER JOIN user ON nft.minter = user.address
-    WHERE nft.tokenId = ? AND nft.owner = ? AND comics.is_exist = 0
+    WHERE nft.tokenId = ? AND nft.owner = ?
   `;
   pool.query(query, [tokenId, currentAccount], (error, results, fields) => {
     if (error) {
@@ -2037,13 +2119,15 @@ app.get('/api/dataAnalysis/records', (req, res) => {
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
-    WHERE comics.creator = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 0
+    INNER JOIN user ON comics.creator = user.address
+    WHERE comics.creator = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 0 AND user.is_creator = 1
   `;
   const nftQuery = `
     SELECT nft.tokenTitle, nft.price, nft.forSale, nft.royalty ,comics.title
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
-    WHERE nft.minter = ? AND comics.is_exist = 0
+    INNER JOIN user ON nft.minter = user.address
+    WHERE nft.minter = ? AND comics.is_exist = 0 AND user.is_creator = 1
   `;
   Promise.all([
     new Promise((resolve, reject) => {

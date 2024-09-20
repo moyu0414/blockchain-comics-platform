@@ -88,7 +88,8 @@ function Bookcase() {
                     data.names = parseAuthorizations(data.description).map(auth => auth.name);
                 }
             }
-            //console.log(nftRecords);
+            nftRecords.sort((a, b) => (a.is_exist > 0) - (b.is_exist > 0));
+            console.log(nftRecords);
             setNFTLogArray(nftRecords);
             if (nftRecords.length === 0) {
               setBeingNFT(false);
@@ -212,15 +213,24 @@ function Bookcase() {
                                     <Col key={idx} xs={4} md={3}>
                                         <Link to={`/nftOwner/tokenId${data.tokenId}`}>
                                             <Card>
-                                                <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names)}>
-                                                    <div>
-                                                        <Card.Img variant="top" src={data.image} />
+                                                {data.is_exist === 0 ? (
+                                                    <>
+                                                        <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names)}>
+                                                            <Card.Img variant="top" src={data.image} />
+                                                        </OverlayTrigger>
                                                         <div className="bookcase-overlay">{data.title}</div>
-                                                        <Card.Body>
-                                                            <Card.Title className='bookcase-purchase-text'>{data.tokenTitle}</Card.Title>
-                                                        </Card.Body>
+                                                    </>
+                                                ) : (
+                                                    <div className="bookcase-position"  style={{marginBottom: "30px"}}>
+                                                        <Card.Img variant="top" src='/piraty.png' />
+                                                        <p className="hidden">
+                                                            {data.is_exist === 1 ? t('查核中\n暫不開放') : t('盜版NFT\n已下架')}
+                                                        </p>
                                                     </div>
-                                                </OverlayTrigger>
+                                                )}
+                                                <Card.Body>
+                                                    <Card.Title className='bookcase-read-text'>{data.tokenTitle}</Card.Title>
+                                                </Card.Body>
                                             </Card>
                                         </Link>
                                     </Col>

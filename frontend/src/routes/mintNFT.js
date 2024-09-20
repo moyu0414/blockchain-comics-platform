@@ -123,7 +123,7 @@ const MintNFT = (props) => {
       if (allSuccess) {
         alert(t('鑄造NFT成功'));
         updateMessage("");
-        window.location.replace("/creatorNft");
+        window.location.replace("/analysis");
       } else {
         alert(t('部分NFT鑄造失敗，請檢查控制台了解詳情'));
         console.log('Failed token IDs:', failedTokenIds);

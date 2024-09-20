@@ -390,14 +390,16 @@
     "前言": "Comic Platform (hereinafter referred to as 'the Platform'). To protect your rights, please read these Terms of Use (hereinafter referred to as 'the Terms') carefully before using the Platform. By using the Platform, you agree to comply with these Terms. If you do not agree with these Terms, you will not be able to use certain features of the Platform.",
     "服務內容": "Service Content",
     "服務內容_條款": "The Platform provides functions such as comic purchase, reading, NFT minting, NFT resale, and collection. The Platform reserves the right to modify, update, or cancel service content and will notify users in a timely manner.",
-    "用戶責任": "User Responsibility",
-    "用戶責任_條款": "Account and Password Security: Users should properly safeguard their wallet accounts and passwords and must not transfer them to third parties. If account or password theft is detected, users should immediately notify the Platform.",
+    "使用者責任": "User Responsibility",
+    "使用者責任_條款": "Account and Password Security: Users should properly safeguard their wallet accounts and passwords and must not transfer them to third parties. If account or password theft is detected, users should immediately notify the Platform.",
+    "使用者責任_條款_1": "Publication and Listing of Works: Any works uploaded by users (including but not limited to comics, NFTs, images, etc.) are owned by the users themselves, and do not involve any illegal activities such as infringement, piracy, or sale of stolen goods. In case of any illegal matters, the platform has the right to seek compensation from the user, who shall bear full responsibility.",
     "知識產權": "Intellectual Property",
     "知識產權_條款": "All content on the Platform (including but not limited to comics, NFTs, images, text, logos, trademarks, etc.) is the intellectual property of the Platform or its licensors and may not be used in any form without authorization.",
     "隱私政策": "Privacy Policy",
     "隱私政策_條款": "The Platform will collect, use, and protect user personal information according to the privacy policy. Please read our [Privacy Policy] carefully to understand how we handle your information.",
     "盜版及非法作品處理": "Piracy and Illegal Content Handling",
     "盜版及非法作品處理_條款": "The Platform administrators have the right to review, take down, and address piracy or illegal content, and to revoke the creator's rights and related works on the Platform.",
+    "盜版及非法作品處理_條款_1": "Regarding the handling of users purchasing pirated works, this platform only provides refunds for comic chapters. NFTs and their derivative rights will only be removed from sale and are not eligible for refunds.",
     "責任免除": "Disclaimer",
     "責任免除_條款": "The Platform is not responsible for service interruptions or data loss caused by force majeure or factors beyond the Platform's control.",
     "條款變更": "Terms Change",
@@ -411,7 +413,6 @@
     "驗證成功": "Verification Successful",
     "還差一步您就能成為我們的創作者！": "You are just one step away from becoming our creator!",
     "管理者審核至多1天": "Administrator review takes up to 1 day",
-    "首頁": "Home",
 
     "authorProfile_comment": "authorProfile",
     "email不可為空!": "Email cannot be empty!",
@@ -472,10 +473,11 @@
     "類型": "Type",
     "收益分布": "Revenue Distribution",
     "購買量": "Purchase Volume",
+
+    "bottomNavbar_comment": "bottomNavbar",
     "書櫃":"Bookcase",
     "首頁":"Home",
     "分類":"Category",
-    "NFT市場":"Market",
     "個人資訊":"Profile"
 
   }

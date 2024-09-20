@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Form, Button, Modal } from 'react-bootstrap';
 import { CardImage } from 'react-bootstrap-icons';
 import { useNavigate } from 'react-router-dom';
+import html2canvas from 'html2canvas';
 import { initializeWeb3, disableAllButtons, enableAllButtons } from '../index';
 import comicData from '../contracts/ComicPlatform.json';
 import { useTranslation } from 'react-i18next';
@@ -18,11 +19,12 @@ const VerifyPage = () => {
     const [file, setFile] = useState([]);
     const [previewImg, setPreviewImg] = useState('');
     const [ipAddress, setIpAddress] = useState('');
-    //const [checked, setChecked] = useState(false);
     const [info, setInfo] = useState({ version: '', ip: '', deviceInfo: '', timestamp: '' });
+    const [termsContent, setTermsContent] = useState('');
     const [showModal, setShowModal] = useState(false);
     const inputRefs = useRef([]);
     const { t } = useTranslation();
+    const language = localStorage.getItem('language') || i18n.language;
     const headers = {'api-key': API_KEY};
 
     useEffect(() => {
@@ -68,10 +70,37 @@ const VerifyPage = () => {
     const TermsModal = ({ onAccept }) => {
         const [checked, setChecked] = useState(false);
         const navigate = useNavigate();
-        const handleAccept = () => {
+        const modalBodyRef = useRef(null);
+        const handleAccept = async () => {
             if (checked) {
-                onAccept();
-                setShowModal(false);
+                try {
+                    const termsIMG = await axios.get(`${website}/api/termsIMG/${info.version}/${language}`, {headers});
+                    setShowModal(false);
+                    if (!termsIMG.data.state) {
+                        modalBodyRef.current.style.overflowY = 'visible';
+                        modalBodyRef.current.style.maxHeight = 'none';
+                        const canvas = await html2canvas(modalBodyRef.current);
+                        const imgData = canvas.toDataURL('image/png');
+                        const byteString = atob(imgData.split(',')[1]);
+                        const mimeString = imgData.split(',')[0].split(':')[1].split(';')[0];
+                        const ab = new Uint8Array(byteString.length);
+                        for (let i = 0; i < byteString.length; i++) {
+                            ab[i] = byteString.charCodeAt(i);
+                        }
+                        const blob = new Blob([ab], { type: mimeString });
+                        const formData = new FormData();
+                        formData.append('termsIMG', blob, 'terms_image.png');
+                        formData.append('version', info.version);
+                        formData.append('language', language);
+            
+                        const response = await axios.post(`${website}/api/terms-version`, formData, { headers });
+                        if (!response.data.state) {
+                            console.error('Failed to upload terms image.');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error capturing modal or uploading:', error);
+                }
             } else {
                 alert(t('請同意平台的使用條款，才能進行帳號驗證!'));
             }
@@ -87,18 +116,20 @@ const VerifyPage = () => {
                     <b>web3toon</b> {t('使用條款')}
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body ref={modalBodyRef}>
                     <p>{t('歡迎使用')} <b>web3toon</b> {t('前言')}</p>
                     <p>1. **{t('服務內容')}**</p>
                     <p>{t('服務內容_條款')}</p>
-                    <p>2. **{t('用戶責任')}**</p>
-                    <p>{t('用戶責任_條款')}</p>
+                    <p>2. **{t('使用者責任')}**</p>
+                    <p>{t('使用者責任_條款')}</p>
+                    <p>{t('使用者責任_條款_1')}</p>
                     <p>3. **{t('知識產權')}**</p>
                     <p>{t('知識產權_條款')}</p>
                     <p>4. **{t('隱私政策')}**</p>
                     <p>{t('隱私政策_條款')}</p>
                     <p>5. **{t('盜版及非法作品處理')}**</p>
                     <p>{t('盜版及非法作品處理_條款')}</p>
+                    <p>{t('盜版及非法作品處理_條款_1')}</p>
                     <p>6. **{t('責任免除')}**</p>
                     <p>{t('責任免除_條款')}</p>
                     <p>7. **{t('條款變更')}**</p>
@@ -107,7 +138,6 @@ const VerifyPage = () => {
                     <p>{t('爭議解決_條款')}</p>
                     <p>9. **{t('其他')}**</p>
                     <p>{t('其他_條款')}</p>
-
                     <Form.Group className="mb-3">
                     <Form.Check
                         type="checkbox"
@@ -152,7 +182,7 @@ const VerifyPage = () => {
             return;
         };
         try {
-            const updatedFormData = { ...formData, account: account };
+            const updatedFormData = { ...formData, account: account, version: info.version ,filename: `${language}.jpg` };
             const response = await axios.post(`${website}/api/send-verification-email`, updatedFormData, { headers });
             if (response.data.state) {
                 alert(t('驗證碼15分鐘內有效!'))

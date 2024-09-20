@@ -1973,7 +1973,7 @@ const DataAnalysis = () => {
                       <div className="pie-chart-container">
                         <NftPieChart chartData={nftSalesData.total} title="總收益" />
                         <hr />
-                        {nftSalesData.transfer && <NftPieChart chartData={nftSalesData.transfer} title="轉手收益" />}
+                        {Object.keys(nftSalesData.transfer).length > 0 && <NftPieChart chartData={nftSalesData.transfer} title="轉手收益" />}
                       </div>
                     ) : (
                       <p>{t('目前沒有購買紀錄')}</p>

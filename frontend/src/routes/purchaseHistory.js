@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from 'axios';
 import { formatDate, formatTime, sortByDatetime } from '../index.js';
-import { Container, Carousel, Card, Col, Row, Button, Dropdown, Figure, Table, ButtonGroup, ButtonToolbar, Pagination,Tabs, Tab } from 'react-bootstrap';
+import { Container, Carousel, Card, Col, Row, Button, Dropdown, Figure, Table, ButtonGroup, ButtonToolbar, Pagination,Tabs, Tab, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Link } from "react-router-dom";
 import Web3 from 'web3';
@@ -25,6 +25,7 @@ const PurchaseHistory = () => {
   const itemsPerPage = 10; // 每頁顯示的收益數量
   const headers = {'api-key': API_KEY};
   let analysisArray = [];
+  let nftArray = [];
   let piracyArray = [];
 
   const initData = async () => {
@@ -51,27 +52,24 @@ const PurchaseHistory = () => {
             });
           } else {
             let state, refund;
-              if (analysis[n].is_exist === 2) {
-                state = "盜版";
-                refund = true;
-              } else if (analysis[n].is_exist === 1) {
-                state = "查核中";
-                refund = false;
-              }
-            let date = formatDate(new Date(analysis[n].purchase_date));
-            let time = formatTime(new Date(analysis[n].purchase_date));
-            let chapterPrice = analysis[n].price;
-            let expenditure = chapterPrice
+            if (analysis[n].is_exist === 2) {
+              state = "盜版";
+              refund = true;
+            } else if (analysis[n].is_exist === 1) {
+              state = "查核中";
+              refund = false;
+            }
+            let expenditure = analysis[n].price
             piracyArray.push({
               state: state,
-              title: analysis[n].comicTitle + " / " + analysis[n].chapterTitle,
+              title: t('漫畫') + "：" + analysis[n].comicTitle + " / " + analysis[n].chapterTitle,
               expenditure: expenditure,
               refund: refund
             });
           }
         };
         setReaderLogArray(analysisArray);
-        setPiracyLogArray(piracyArray);
+        //setPiracyLogArray(piracyArray);
         if (analysisArray.length === 0) {
           setBeingComic(false);
         }
@@ -83,15 +81,27 @@ const PurchaseHistory = () => {
             }
         });
         let nftRecords = nftResponse.data;
-        const updatedNftRecords = nftRecords.map(({ price, forSale, ...data }) => {
-          const values = Object.values(price);
-          const lastValue = values[values.length - 1];
-          const secondLastValue = values.length > 1 ? values[values.length - 2] : lastValue;
-          const selectedPrice = forSale === 1 ? secondLastValue : lastValue;
-          return { ...data, price: selectedPrice };
-        });
-        setNFTLogArray(updatedNftRecords);
-        if (updatedNftRecords.length === 0) {
+        for (var n = 0; n < nftRecords.length; n++) {
+          const values = Object.values(nftRecords[n].price);
+          const selectedPrice = nftRecords[n].forSale === 1 && values.length > 1 ? values[values.length - 2] : values[values.length - 1];
+          if (nftRecords[n].is_exist === 0) {
+            nftArray.push({
+              tokenId: nftRecords[n].tokenId,
+              title: nftRecords[n].title,
+              price: selectedPrice,
+            });
+          } else {
+            piracyArray.push({
+              state: nftRecords[n].is_exist === 1 ? "查核中" : "盜版",
+              title: `NFT：${nftRecords[n].title} / ${nftRecords[n].tokenTitle}`,
+              expenditure: selectedPrice,
+              refund: false,
+            });
+          }
+        };
+        setNFTLogArray(nftArray);
+        setPiracyLogArray(piracyArray);
+        if (nftArray.length === 0) {
           setBeingNFT(false);
         }
     } catch (error) {
@@ -102,6 +112,14 @@ const PurchaseHistory = () => {
   useEffect(() => {
       initData();
   }, [currentAccount]);
+
+  const renderTooltip = () => (props) => (
+    <Tooltip id="button-tooltip" {...props}>
+        {t('漫畫')}：{t('漫畫')} / {t('章節名稱')}
+        <hr />
+        {t('NFT')}：{t('漫畫')} / {t('NFT名稱')}
+    </Tooltip>
+  );
 
   const totalPages = Math.ceil(readerLogArray.length / itemsPerPage);
   const handlePageChange = (page) => {
@@ -178,7 +196,10 @@ const PurchaseHistory = () => {
   
   return (
     <>
-      <Container className='purchaseHistory pt-5'>
+      <Container className='purchaseHistory'>
+        <div className='purchaseHistory-title'>
+          <h2 className='text-center fw-bold'>{t('我的購買')}</h2>
+        </div>
         <Tabs defaultActiveKey="comics" id="tabs">
           <Tab eventKey="comics" title={t('漫畫')}>
             {!beingComic &&  
@@ -287,7 +308,9 @@ const PurchaseHistory = () => {
                     <thead>
                       <tr>
                         <th className='text-center fw-bold'>{t('狀態')}</th>
-                        <th className='text-center fw-bold'>{t('漫畫 / 章節')}</th>
+                        <OverlayTrigger placement="top" overlay={renderTooltip()}>
+                          <th className='text-center fw-bold'>{t('類型')}：{t('名稱')}</th>
+                        </OverlayTrigger>
                         <th className='text-center fw-bold'>{t('支出')}</th>
                         <th className='text-center fw-bold'>{t('退款')}</th>
                       </tr>

@@ -416,7 +416,7 @@ span {
 
   .creatorNft .creatorNft-overlay {
     bottom: 38px!important;
-    padding: 2px 3px!important; 
+    padding: 3px 0!important; 
     font-size: 0.85rem!important; 
   }
 
@@ -515,8 +515,8 @@ span {
   }
 
   .creatorNft .creatorNft-overlay {
+    text-align: left!important;
     bottom: 35px!important;
-    padding: 1px 0!important; 
     font-size: 0.7rem!important; 
   }
 
@@ -1263,6 +1263,13 @@ a:link{
   padding: 1% 0;
   border: none !important;
   background-color: rgba(251, 198, 4, 0.4);
+}
+
+.purchaseHistory .purchaseHistory-title h2{
+  position: relative;
+  color: #ffffff;
+  background-color: green;
+  line-height: 2;
 }
 
 /* 讀者 */
@@ -2034,10 +2041,16 @@ a:link{
 }
 
 /* analysis */
+.analysis .analysis-title h2{
+  position: relative;
+  color: #ffffff;
+  background-color: green;
+  line-height: 2;
+}
 
 .analysis h1{
   font-size: 42px;
-  color: #FBC604;
+  color: #2efdef;
   text-shadow:
     -1px -1px 0 #000,  
     1px -1px 0 #000,
@@ -2051,7 +2064,7 @@ a:link{
   font-weight: 900;
   padding: 1% 0;
   border: none !important;
-  background-color: rgba(251, 198, 4, 0.4);
+  background-color: rgba(6, 157, 103, 0.46);
 }
 
 /* creatorNft */
