@@ -3,6 +3,7 @@ import { Container, Carousel, Card, Col, Row, Tabs, Tab, Form, Button, OverlayTr
 import './bootstrap.min.css';
 import { Search, Cart, CartPlusFill, Trash, Funnel, SortNumericDown, SortNumericUp  } from 'react-bootstrap-icons';
 import { Link } from "react-router-dom";
+import { message } from 'antd';
 import comicData from '../contracts/ComicPlatform.json';
 import { initializeWeb3, disableAllButtons, enableAllButtons } from '../index';
 import { useTranslation } from 'react-i18next';
@@ -227,10 +228,30 @@ function NftMarket() {
             if (accounts[0]) {
                 let account = accounts[0].toLowerCase();
                 setCurrentAccount(account);
-                const { tokenId, title, image, price } = data;
+                const { tokenId, title, image, price, verify } = data;
                 if (account === data.minter || account === data.owner) {
-                    alert(t('您擁有此NFT'))
+                    message.info(t('您擁有此NFT'));
                 } else {
+                    if (data.verify === 1) {
+                        const res = await axios.get(`${website}/api/isCreator`, {
+                            headers: headers,
+                            params: {
+                                currentAccount: account
+                            }
+                        });
+                        const isCreator = res.data[0].is_creator;
+                        if (isCreator === 3) {
+                            message.info(`${t('購買此NFT需要進行身分驗證')}，${t('但您已被本平台禁用驗證權限！')}`);
+                            return;
+                        } else if (isCreator === 2) {
+                            message.info(`${t('購買此NFT需要進行身分驗證')}，${t('本平台管理者尚未審核您的身分，請稍後在試！')}`);
+                            return;
+                        } else if (isCreator === 0) {
+                            message.info(`${t('購買此NFT需要進行身分驗證')}，${t('您尚未在本平台進行身分驗證，請先到"個人資訊"進行身分驗證！')}`);
+                            return;
+                        }
+                    }
+                    message.info(t('購物車添加成功'));
                     setCartItems(prevItems => {
                         const updatedItems = prevItems.map(item => {
                             if (item.tokenId === tokenId) {
@@ -252,7 +273,7 @@ function NftMarket() {
                     });
                 }
             } else {
-                alert(t('請先登入以太坊錢包，才開放購物車功能'));
+                message.info(t('請先登入以太坊錢包，才開放購物車功能'));
             }
         }
     };
@@ -302,17 +323,17 @@ function NftMarket() {
                     }, {
                         headers: headers
                     });
-                    alert(t('NFT購買成功'));
+                    message.info(t('NFT購買成功'));
                     window.location.replace("/bookcase");
                 } catch (error) {
                     console.error('Error updating DB NFT:', error);
                 }
             } else {
-                alert(t('餘額不足'));
+                message.info(t('餘額不足'));
             }
         } catch (error) {
             if (error.message.includes('User denied transaction signature')) {
-                alert(t('拒绝交易'));
+                message.info(t('拒绝交易'));
             } else {
                 alert(t('購買NFT發生錯誤：') + error);
             }

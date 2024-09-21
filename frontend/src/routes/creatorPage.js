@@ -99,6 +99,9 @@ function CreatorPage() {
                         } else if (response.data[0].is_creator === 3) {
                             alert(t('您已被本平台禁用創作者權限！'));
                             window.location.replace('/');
+                        } else if (response.data[0].is_creator === 2) {
+                            alert(t('管理者審核中，請稍後在試！'));
+                            window.location.replace('/');
                         } else {
                             alert(t('請先進行創作者驗證，才開放創作者專區'));
                             setLoading(false);
@@ -118,7 +121,7 @@ function CreatorPage() {
     }, []);
 
     const buttonData = [
-        t('收益總攬'), t('數據分析'), t('管理漫畫'), t('新增漫畫'), t('個人主頁'), t('成為作家')
+        t('收益總攬'), t('數據分析'), t('管理漫畫'), t('新增漫畫'), t('個人主頁'), t('身分驗證')
     ];
 
     const pathMap = {
@@ -235,14 +238,14 @@ function CreatorPage() {
                         <Col key={idx} xs={6} sm={6} md={3} lg={1} className="pb-3 btn-section">
                             <Link 
                                 to={
-                                    label === t('成為作家')
+                                    label === t('身分驗證')
                                         ? (!isCreator && !isButtonEnabled ? becomeWriter.pathMap : '#')
                                         : (isButtonEnabled ? pathMap[label] : '#')
                                 }
                             >
                                 <Button
                                     variant={
-                                        label === t('成為作家')
+                                        label === t('身分驗證')
                                             ? (isButtonEnabled
                                                 ? (isCreator  ? "outline-secondary" : "outline-dark")
                                                 : "outline-secondary")
@@ -251,7 +254,7 @@ function CreatorPage() {
                                     variant={isButtonEnabled ? "outline-dark" : "outline-secondary"}
                                     className="custom-button"
                                     disabled={
-                                        label === t('成為作家')
+                                        label === t('身分驗證')
                                             ? (isCreator ? true : false)
                                             : !isButtonEnabled
                                     }

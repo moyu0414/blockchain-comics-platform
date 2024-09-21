@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container,Form, Row, Col, Button, ProgressBar } from 'react-bootstrap';
+import { message } from 'antd';
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
@@ -18,7 +19,7 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 const EditWork = (props) => {
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
-  const [message, updateMessage] = useState('');
+  const [msg, updateMsg] = useState('');
   const [stepCompleted, setStepCompleted] = useState(false);
   const [showChapterForm, setShowChapterForm] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState(null);
@@ -99,7 +100,7 @@ const EditWork = (props) => {
         console.error(error);
       }
     } else {
-      alert(t('請安裝MetaMask'));
+      message.info(t('請安裝MetaMask'));
     }
   };
 
@@ -112,15 +113,15 @@ const EditWork = (props) => {
         return;
       }
       disableAllButtons();
-      updateMessage(t('正在編輯漫畫資料中'))
+      updateMsg(t('正在編輯漫畫資料中'))
       
       if (comic[0].category === newComic.category &&
         comic[0].title === newComic.title &&
         comic[0].description === newComic.description &&
         !file && !coverFile
       ) {
-        alert(t('目前您未編輯任何東西'));
-        updateMessage("");
+        message.info(t('目前您未編輯任何東西'));
+        updateMsg("");
         enableAllButtons();
         return -1;
       }else if (comic[0].title != newComic.title) {  // 只變更title
@@ -154,12 +155,12 @@ const EditWork = (props) => {
           window.location.replace("/editSuccess");
         } catch (error) {
           if (error.message.includes('User denied transaction signature')) {
-            alert(t('拒绝交易'));
+            message.info(t('拒绝交易'));
           } else {
             alert(error);
           }
           enableAllButtons();
-          updateMessage("");
+          updateMsg("");
         }
       } else {
         //console.log(comic[0].comic_id);
@@ -192,7 +193,7 @@ const EditWork = (props) => {
     } catch (error) {
       alert(t('漫畫編輯時發生錯誤') + error);
       enableAllButtons();
-      updateMessage("");
+      updateMsg("");
     }
   };
 
@@ -212,16 +213,16 @@ const EditWork = (props) => {
         price_temp = parseFloat(price_temp);
         price_temp = web3.utils.toWei(price_temp.toString(), 'ether');
         if (price_temp < 10000000000000000 && newChapter.isFree === false) {
-          alert(t('價格至少0.01 ETH'));
+          message.info(t('價格至少0.01 ETH'));
           return;
         }
       }
       disableAllButtons();
-      updateMessage(t('正在編輯章節資料中'))
+      updateMsg(t('正在編輯章節資料中'))
 
       if (chapter.price == newChapter.price && chapter.chapterTitle == newChapter.chapterTitle && file.length === 0) {
-        alert(t('目前您未編輯任何東西'));
-        updateMessage("");
+        message.info(t('目前您未編輯任何東西'));
+        updateMsg("");
         enableAllButtons();
         return -1;
       } else if (chapter.price != newChapter.price || chapter.chapterTitle != newChapter.chapterTitle) {  // 章節價格或標題有變動
@@ -245,12 +246,12 @@ const EditWork = (props) => {
           window.location.replace("/editSuccess");
         } catch (error) {
           if (error.message.includes('User denied transaction signature')) {
-            alert(t('拒绝交易'));
+            message.info(t('拒绝交易'));
           } else {
             alert(error);
           }
           enableAllButtons();
-          updateMessage("");
+          updateMsg("");
         }
       }else {
         const formData = new FormData();
@@ -275,7 +276,7 @@ const EditWork = (props) => {
     } catch (error) {
       alert(t('章節編輯時發生錯誤') + error);
       enableAllButtons();
-      updateMessage("");
+      updateMsg("");
     }
   };
 
@@ -288,7 +289,7 @@ const EditWork = (props) => {
     if (validateFileType(file)) {
       previewImage(file);
     } else {
-      alert(t('文件類型不支持，請上傳...格式的圖片'));
+      message.info(t('文件類型不支持，請上傳...格式的圖片'));
       return -1;
     }
     setFiles(file);
@@ -305,7 +306,7 @@ const EditWork = (props) => {
       if (validateFileType(file)) {
         previewImage(file);
       } else {
-        alert(t('文件類型不支持，請上傳...格式的圖片'));
+        message.info(t('文件類型不支持，請上傳...格式的圖片'));
         return -1;
       }
     });
@@ -323,7 +324,7 @@ const EditWork = (props) => {
       previewPromoCover(file);
       setCoverFile(file);
     } else {
-      alert(t('文件類型不支持，請上傳...格式的圖片'));
+      message.info(t('文件類型不支持，請上傳...格式的圖片'));
       return -1;
     }
   };
@@ -400,7 +401,7 @@ const EditWork = (props) => {
       // 檔案不可為空
       if( !category || !title || !description)  // || 其中一個為true，即為true
       {
-        updateMessage(t('請填寫所有欄位'))
+        updateMsg(t('請填寫所有欄位'))
         return -1;
       }
     }else{
@@ -408,7 +409,7 @@ const EditWork = (props) => {
       // 檔案不可為空
       if(!comicHash || !chapterTitle || (!newChapter.isFree && !price))
       {
-        updateMessage(t('請填寫所有欄位'))
+        updateMsg(t('請填寫所有欄位'))
         return -1;
       }
     };
@@ -659,7 +660,7 @@ const EditWork = (props) => {
                   </div>
                 </Form.Group>
   
-                <div className="text-red-500 text-center">{message}</div>
+                <div className="text-red-500 text-center">{msg}</div>
                 <Button onClick={editChapter} id="list-button" data-backgroundcolor="#fff">
                   {t('提交')}
                 </Button>
@@ -809,7 +810,7 @@ const EditWork = (props) => {
                   </div>
                 </Form.Group>
 
-                <div className="text-red-500 text-center">{message}</div>
+                <div className="text-red-500 text-center">{msg}</div>
                 <Button onClick={editComic} id="list-button" data-backgroundcolor="#fff">
                   {t('提交')}
                 </Button>

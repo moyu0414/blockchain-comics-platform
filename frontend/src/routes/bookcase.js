@@ -89,7 +89,6 @@ function Bookcase() {
                 }
             }
             nftRecords.sort((a, b) => (a.is_exist > 0) - (b.is_exist > 0));
-            console.log(nftRecords);
             setNFTLogArray(nftRecords);
             if (nftRecords.length === 0) {
               setBeingNFT(false);

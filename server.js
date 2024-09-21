@@ -444,7 +444,7 @@ app.post('/api/add/records',upload.any(), (req, res) => {
 
 // 新增 NFT 資料
 app.post('/api/add/NFT', upload.single('nftIMG'), async (req, res) => {
-  const { tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner } = req.body;
+  const { tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner, verify } = req.body;
   const tokenIds = Array.isArray(tokenId) ? tokenId : [tokenId];
   const file = req.file;
   try {
@@ -460,12 +460,12 @@ app.post('/api/add/NFT', upload.single('nftIMG'), async (req, res) => {
       //await deleteFile(`/var/www/html/uploads/${file.filename}`);  // web3toon
     }
     const sql = `
-      INSERT INTO nft (tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner)
+      INSERT INTO nft (tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner, verify)
       VALUES ?
     `;
     // 准备批量插入的数据
     const values = tokenIds.map(id => [
-      id, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner
+      id, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner, verify
     ]);
     pool.query(sql, [values], (error) => {
       if (error) {

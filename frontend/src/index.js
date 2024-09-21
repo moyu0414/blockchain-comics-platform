@@ -18,7 +18,6 @@ import ManageComic from './routes/manageComic';
 import CreatorPage from './routes/creatorPage';
 import CollectionPage from './routes/collectionPage';
 import CollectionNft from './routes/collectionNft';
-import CreatorNft from './routes/creatorNft';
 import CreateSuccess from './routes/createSuccess';
 import ReaderPage from './routes/readerPage';
 import Bookcase from './routes/bookcase';
@@ -247,9 +246,6 @@ const router = createBrowserRouter([
       },{
         path: "/analysis",
         element: <Analysis />,
-      },{
-        path: "/creatorNft",
-        element: <CreatorNft />,
       },{
         path: "/mintNFT",
         element: <MintNFT />,

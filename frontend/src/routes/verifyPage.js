@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Form, Button, Modal } from 'react-bootstrap';
 import { CardImage } from 'react-bootstrap-icons';
 import { useNavigate } from 'react-router-dom';
+import { message } from 'antd';
 import html2canvas from 'html2canvas';
 import { initializeWeb3, disableAllButtons, enableAllButtons } from '../index';
 import comicData from '../contracts/ComicPlatform.json';
@@ -36,12 +37,24 @@ const VerifyPage = () => {
             const web3Instance = new web3.eth.Contract(comicData.abi, comicData.address);
             const accounts = await web3.eth.getAccounts();
             if (accounts[0]) {
-                const isCreator = await web3Instance.methods.creators(accounts[0]).call();
-                if (isCreator) {
-                    alert(t('您已經是創作者了!'));
+                const currentAccount = accounts[0].toLowerCase()
+                setAccount(currentAccount);
+                const isCreator = await axios.get(`${website}/api/isCreator`, {
+                    headers: headers,
+                    params: {
+                        currentAccount: currentAccount
+                    }
+                });
+                if (isCreator.data[0].is_creator === 3) {
+                    alert(t('您已被本平台禁用使用者權限！'));
+                    window.location.replace('/');
+                } else if (isCreator.data[0].is_creator === 1) {
+                    alert(t('您已擁有使用者權限！'));
                     window.location.replace('/readerPage');
-                };
-                setAccount(accounts[0].toLowerCase());
+                } else if (isCreator.data[0].is_creator === 2) {
+                    alert(t('管理者審核中，請稍後在試！'));
+                    window.location.replace('/readerPage');
+                }
                 try {
                     const response = await axios.get(`${website}/api/getIP`, { headers });
                     const getDeviceInfo = () => ({
@@ -59,7 +72,7 @@ const VerifyPage = () => {
                     alert('Error fetching IP address: ' + error);
                 }
             } else {
-                alert(t('請先登入以太坊錢包，才開放創作者認證'));
+                message.info(t('請先登入以太坊錢包，才開放創作者認證'));
                 return;
             }
         };
@@ -102,7 +115,7 @@ const VerifyPage = () => {
                     console.error('Error capturing modal or uploading:', error);
                 }
             } else {
-                alert(t('請同意平台的使用條款，才能進行帳號驗證!'));
+                message.info(t('請同意平台的使用條款，才能進行帳號驗證!'));
             }
         };
         const handleReject = () => {
@@ -178,17 +191,17 @@ const VerifyPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (formData.penName.length > 30) {
-            alert(t('筆名不可超過30字！'));
+            message.info(t('筆名不可超過30字！'));
             return;
         };
         try {
             const updatedFormData = { ...formData, account: account, version: info.version ,filename: `${language}.jpg` };
             const response = await axios.post(`${website}/api/send-verification-email`, updatedFormData, { headers });
             if (response.data.state) {
-                alert(t('驗證碼15分鐘內有效!'))
+                message.info(t('驗證碼15分鐘內有效!'))
                 startCountdown();
             } else {
-                alert(t('email發送錯誤，請重新再試!'))
+                message.info(t('email發送錯誤，請重新再試!'))
             }
         } catch (error) {
             console.error('Mailbox verification error:', error);
@@ -241,7 +254,7 @@ const VerifyPage = () => {
                 disableAllButtons();
                 window.location.replace("/verifySuccess");
             } else {
-                alert(t('驗證失敗，請重新再試！'));
+                message.info(t('驗證失敗，請重新再試！'));
             }
             enableAllButtons();
         } catch (error) {
@@ -267,7 +280,7 @@ const VerifyPage = () => {
             setFile(file);
             previewPromoCover(file);
         } else {
-            alert(t('文件類型不支持，請上傳...格式的圖片'));
+            message.info(t('文件類型不支持，請上傳...格式的圖片'));
             return -1;
         }
     };

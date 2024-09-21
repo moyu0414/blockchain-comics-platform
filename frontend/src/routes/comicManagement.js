@@ -156,7 +156,7 @@ const ComicManagement = ({ contractAddress }) => {
         let balance = await web3Instance.eth.getBalance(currentAccount);
         balance = parseInt(Number(web3Instance.utils.fromWei(balance, 'ether')) * 1000) / 1000;
         if (total > balance) {
-          message.info(`${t('餘額不足')}，${t('退款金額為')}：${total}，${t('您持有餘額為')}：${balance}`);
+          message.info(`${t('餘額不足')}，${t('退款金額')}：${total}，${t('您持有餘額')}：${balance}`);
           return;
         }
         await meta.toggleComicExistence(comicHash, 2).send({ from: currentAccount, value: totalCost });
@@ -183,17 +183,16 @@ const ComicManagement = ({ contractAddress }) => {
             },
           });
         }
+        window.location.reload();
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
           message.info(t('拒绝交易'));
         } else {
-          console.error('漫畫刪除時發生錯誤：', error);
           alert(error);
         }
       } finally {
         enableAllButtons();
         handleHide();
-        window.location.reload();
       }
     } else if (exists === 1) {  // 漫畫審核中
         try{
@@ -233,7 +232,6 @@ const ComicManagement = ({ contractAddress }) => {
           if (error.message.includes('User denied transaction signature')) {
             message.info(t('拒绝交易'));
           } else {
-            console.error('漫畫狀態變更發生錯誤：', error);
             alert(error);
           }
         } finally {
@@ -268,7 +266,6 @@ const ComicManagement = ({ contractAddress }) => {
         if (error.message.includes('User denied transaction signature')) {
           message.info(t('拒绝交易'));
         } else {
-          console.error('漫畫復原時發生錯誤：', error);
           alert(error);
         }
       } finally {
@@ -374,7 +371,7 @@ const ComicManagement = ({ contractAddress }) => {
         let total = await meta.getContractBalance().call({ from: currentAccount });
         total = parseInt(Number(web3Instance.utils.fromWei(total, 'ether')) * 1000) / 1000;
         if (withdrawRef.current.value > total) {
-          message.info(`${t('可提領金額')}：${total}，${t('您以超過！')}`);
+          message.info(`${t('可提領金額')}：${total}，${t('您以超過')}`);
           return;
         }
         let price = web3Instance.utils.toWei(withdrawRef.current.value, 'ether');
@@ -384,7 +381,6 @@ const ComicManagement = ({ contractAddress }) => {
         if (error.message.includes('User denied transaction signature')) {
           message.info(t('拒绝交易'));
         } else {
-          console.error('提款發生錯誤：', error);
           alert(error);
         }
       } finally {
@@ -431,7 +427,6 @@ const ComicManagement = ({ contractAddress }) => {
       if (error.message.includes('User denied transaction signature')) {
         message.info(t('拒绝交易'));
       } else {
-        console.error('管理者新增時發生錯誤：', error);
         alert(error);
       }
     } finally {
@@ -462,7 +457,6 @@ const ComicManagement = ({ contractAddress }) => {
       if (error.message.includes('User denied transaction signature')) {
         message.info(t('拒绝交易'));
       } else {
-        console.error('管理者刪除時發生錯誤：', error);
         alert(error);
       }
     } finally {
@@ -513,7 +507,6 @@ const ComicManagement = ({ contractAddress }) => {
         if (error.message.includes('User denied transaction signature')) {
           message.info(t('拒绝交易'));
         } else {
-          console.error('創作者驗證錯誤：', error);
           alert(error);
         }
       }
@@ -562,7 +555,6 @@ const ComicManagement = ({ contractAddress }) => {
         if (error.message.includes('User denied transaction signature')) {
           message.info(t('拒绝交易'));
         } else {
-          console.error('創作者刪除錯誤：', error);
           alert(error);
         }
       } finally {
@@ -750,7 +742,7 @@ const ComicManagement = ({ contractAddress }) => {
                           </td>
                         }
                         <td data-label={t('狀態')} className="text-end">
-                          <OverlayTrigger placement="top" overlay={renderTooltip(data.exists !== '盜版' ? t('修改漫畫存續狀態') : t('盜版漫畫已下架、已退款'))}>
+                          <OverlayTrigger placement="top" overlay={renderTooltip(data.exists !== '盜版' ? t('修改漫畫存續狀態') : `${t('盜版漫畫已下架')}、${t('已退款')}`)}>
                             <Button
                               onClick={() => handleShow(data)}
                               className={`btn ${
@@ -780,7 +772,7 @@ const ComicManagement = ({ contractAddress }) => {
                                 </Form.Label>
                               )}
                               {modalState.isConfirm ? (
-                                <Form.Label>{t('漫畫確定是盜版，刪除後將無法復原，並進行退款、禁用創作者帳號。')}</Form.Label>
+                                <Form.Label>{t('漫畫確定是盜版，刪除後將無法復原，並進行退款和禁用創作者帳號。')}</Form.Label>
                               ) : (
                                   renderButtons()
                               )}

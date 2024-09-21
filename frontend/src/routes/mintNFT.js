@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Row, Col, Button, ProgressBar } from 'react-bootstrap';
 import { CardImage } from 'react-bootstrap-icons';
+import { message } from 'antd';
 import { disableAllButtons, enableAllButtons } from '../index';
 import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
@@ -15,14 +16,14 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 const MintNFT = (props) => {
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
-  const [message, updateMessage] = useState('');
+  const [msg, updateMsg] = useState('');
   const [stepCompleted, setStepCompleted] = useState(false);
   const [showChapterForm, setShowChapterForm] = useState(false);
   const location = useLocation();
   const currentAccount = localStorage.getItem("currentAccount");
   const [comic, setComic] = useState([]);
   const [newComic, setNewComic] = useState({category:'',  title: '', description: '', imgURL: ''});
-  const [NFTData, setNFTData] = useState({title: '', price:'', description: '',quantity: '',royalty: '', comicHash:''});
+  const [NFTData, setNFTData] = useState({title: '', price:'', description: '',quantity: '',royalty: '', comicHash:'', verify: '0'});
   const [descForK, setDescForK] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -67,7 +68,7 @@ const MintNFT = (props) => {
         console.error(error);
       }
     } else {
-      alert(t('請安裝MetaMask'));
+      message.info(t('請安裝MetaMask'));
     }
   };
 
@@ -85,13 +86,14 @@ const MintNFT = (props) => {
       let price_temp = parseFloat(NFTData.price);
       price_temp = web3.utils.toWei(price_temp, 'ether');
       if (price_temp < 10000000000000000 || NFTData.quantity <= 0 || NFTData.royalty < 1 || NFTData.royalty > 10) {
-        alert(t('請填寫正確數量'));
+        message.info(t('請填寫正確數量'));
         return;
       }
 
       disableAllButtons();
-      updateMessage(t('正在鑄造NFT中'))
-      
+      updateMsg(t('正在鑄造NFT中'))
+
+      const verify = NFTData.verify ? NFTData.verify : 0;
       //console.log("title：" + NFTData.title);
       //console.log("price：" + NFTData.price);
       //console.log("description：" + NFTData.description);  // DB用
@@ -99,6 +101,7 @@ const MintNFT = (props) => {
       //console.log("royalty：" + NFTData.royalty);
       //console.log("quantity：" + NFTData.quantity);
       //console.log("comicHash：" + NFTData.comicHash);
+      //console.log("verify：" + verify);
      
       const transaction = await contract.methods._mintNFT(price_temp, descForK.description, NFTData.royalty, NFTData.quantity, NFTData.comicHash).send({ from: currentAccount });
       const transactionHash = transaction.transactionHash;
@@ -117,26 +120,27 @@ const MintNFT = (props) => {
         description: NFTData.description,
         forSale: 1,
         royalty: NFTData.royalty,
-        owner: currentAccount
+        owner: currentAccount,
+        verify: verify
       });
 
       if (allSuccess) {
-        alert(t('鑄造NFT成功'));
-        updateMessage("");
+        message.info(t('鑄造NFT成功'));
+        updateMsg("");
         window.location.replace("/analysis");
       } else {
-        alert(t('部分NFT鑄造失敗，請檢查控制台了解詳情'));
         console.log('Failed token IDs:', failedTokenIds);
+        message.info(t('部分NFT鑄造失敗，請檢查控制台了解詳情'));
       }
       enableAllButtons();
     } catch (error) {
       if (error.message.includes('User denied transaction signature')) {
-        alert(t('拒绝交易'));
+        message.info(t('拒绝交易'));
       } else {
         alert(t('鑄造NFT時發生錯誤') + error);
       }
       enableAllButtons();
-      updateMessage("");
+      updateMsg("");
     }
   };
 
@@ -157,6 +161,7 @@ const MintNFT = (props) => {
       batchFormData.append('forSale', formData.forSale);
       batchFormData.append('royalty', formData.royalty);
       batchFormData.append('owner', formData.owner);
+      batchFormData.append('verify', formData.verify);
       if (nftFile.length != 0) {
         batchFormData.append('nftIMG', nftFile);
       }
@@ -189,16 +194,16 @@ const MintNFT = (props) => {
     const {title, price, description, quantity, royalty} = NFTData;
     // 檔案不可為空
     if (title && title.length > 50) {
-      alert(t('標題命名不可超過50個字!'));
+      message.info(t('標題命名不可超過50個字!'));
       return -1;
     } else if (quantity > 50) {
-      alert(t('發行數量一次最多50個!'));
+      message.info(t('發行數量一次最多50個!'));
       return -1;
     }  else if (royalty > 10) {
-      alert(t('抽成比例最多10%!'));
+      message.info(t('抽成比例最多10%!'));
       return -1;
     } else if (!title || !price || !description || !quantity || !royalty) {
-      updateMessage(t('請填寫所有欄位'));
+      updateMsg(t('請填寫所有欄位'));
       return -1;
     }
     return 0;
@@ -313,7 +318,7 @@ const MintNFT = (props) => {
       reader.readAsDataURL(file);
       setNftFile(file);
     } else {
-      alert(t('文件類型不支持，請上傳...格式的圖片'));
+      message.info(t('文件類型不支持，請上傳...格式的圖片'));
     }
   };
 
@@ -544,6 +549,19 @@ const MintNFT = (props) => {
 
         <Form.Group controlId="file-upload" className='pb-3'>
           <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Form.Label className='col-form-label' title={t('購買NFT的使用者須先進行身分驗證才可購買')} style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}>
+                {t('買家身分驗證')}
+              </Form.Label>
+              <Form.Check
+                type="checkbox"
+                onChange={(e) => setNFTData({ ...NFTData, verify: e.target.checked ? '1' : '0' })}
+                style={{ transform: 'scale(1.8)', marginRight: '1rem' }}
+              />
+            </div>
+        </Form.Group>
+
+        <Form.Group controlId="file-upload" className='pb-3'>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <Form.Label className='col-form-label' title={t('上傳圖片作為NFT的封面')} style={{ marginRight: '1rem', whiteSpace: 'nowrap' }}>
               {t('NFT封面')}
             </Form.Label>
@@ -584,7 +602,7 @@ const MintNFT = (props) => {
           )}
         </Form.Group>
 
-        <div className="text-red-500 text-center">{message}</div>
+        <div className="text-red-500 text-center">{msg}</div>
         <Button onClick={createNFT} id="list-button" data-backgroundcolor="#fff">{t('確定鑄造')}</Button>
         {/* )} */}
     </div>

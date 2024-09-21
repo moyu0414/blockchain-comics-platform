@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Card, Form, Button, Image } from 'react-bootstrap';
 import { useParams } from "react-router-dom";
+import { message } from 'antd';
 import { formatDate, disableAllButtons, enableAllButtons } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -109,15 +110,15 @@ const AuthorProfile = () => {
         try {
             disableAllButtons();
             if (editableInfo.email === '') {
-                alert(t('email不可為空!'))
+                message.info(t('email不可為空!'));
                 enableAllButtons();
                 return;
             } else if (editableInfo.penName === '') {
-                alert(t('筆名不可為空!'))
+                message.info(t('筆名不可為空!'));
                 enableAllButtons();
                 return;
             } else if (editableInfo.penName === info.penName && editableInfo.email === info.email && editableInfo.intro === info.intro) {
-                alert(t('目前您未編輯任何東西'));
+                message.info(t('目前您未編輯任何東西'));
                 enableAllButtons();
                 return;
             } else if (editableInfo.email !== info.email) {
@@ -125,11 +126,11 @@ const AuthorProfile = () => {
                     const editEamil = { editEamil: editableInfo.email, account: currentAccount, penName: editableInfo.penName };
                     const response = await axios.post(`${website}/api/authorProfile-send-verification-email`, editEamil, { headers });
                     if (response.data.state) {
-                        alert(t('驗證碼15分鐘內有效!'))
+                        message.info(t('驗證碼15分鐘內有效!'));
                         setIsEditEmail(true);
                         startCountdown();
                     } else {
-                        alert(t('email發送錯誤，請重新再試!'))
+                        message.info(t('email發送錯誤，請重新再試!'));
                     }
                 } catch (error) {
                     console.error('Mailbox verification error:', error);
@@ -141,7 +142,7 @@ const AuthorProfile = () => {
                     if (response.data.state) {
                         window.location.reload();
                     } else {
-                        alert(t('資料更新失敗!'));
+                        message.info(t('資料更新失敗!'));
                     }
                 } catch (error) {
                     console.error('Mailbox verification error:', error);
@@ -157,7 +158,7 @@ const AuthorProfile = () => {
 
     const handleAdd = async () => {
         if (addMsgInfo.msg == '') {
-            alert(t('目前您未編輯任何東西'));
+            message.info(t('目前您未編輯任何東西'));
             return;
         }
         disableAllButtons();
@@ -173,7 +174,7 @@ const AuthorProfile = () => {
             if (response.data.state) {
                 window.location.reload();
             } else {
-                alert(t('訊息新增失敗!'));
+                message.info(t('訊息新增失敗!'));
             }
             enableAllButtons();
         } catch (error) {
@@ -215,7 +216,7 @@ const AuthorProfile = () => {
                 if (response.data.state) {
                     window.location.reload();
                 } else {
-                    alert(t('資料更新失敗!'));
+                    message.info(t('資料更新失敗!'));
                 }
             } catch (error) {
                 console.error('Mailbox verification error:', error);
@@ -225,7 +226,7 @@ const AuthorProfile = () => {
           }
         } catch (error) {
           console.error('Verify email error:', error);
-          alert('電子郵件驗證錯誤，請重新在試!');
+          message.info(t('電子郵件驗證錯誤，請重新在試!'));
         }
       };
       

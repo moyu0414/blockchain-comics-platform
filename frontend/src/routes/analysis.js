@@ -313,7 +313,7 @@ function Analysis() {
                                             <Card className="effect-image-1">
                                                 <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
                                                 <div className="creatorNft-overlay">
-                                                    <span>已售: {data.saleQty} 總數: {data.totQty}</span>
+                                                    <span>{t('已售')}: {data.saleQty} {t('總數')}: {data.totQty}</span>
                                                 </div>
                                                 <Card.Body className="simple-text">
                                                     <Card.Text className="creatorNft-text">{data.tokenTitle}</Card.Text>

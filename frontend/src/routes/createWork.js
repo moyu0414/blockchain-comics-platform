@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Form, Row, Col, Button, ProgressBar, Container } from 'react-bootstrap';
 import Web3 from 'web3';
 import { CardImage } from 'react-bootstrap-icons';
+import { message } from 'antd';
 import { disableAllButtons, enableAllButtons } from '../index';
 import comicData from '../contracts/ComicPlatform.json';
 import $ from 'jquery';
@@ -21,7 +22,7 @@ const CreateWork = (props) => {
   const [contract, setContract] = useState(null);
   const [formParams, updateFormParams] = useState({title:'', description:'',  category: ''});
   const [formParams_1, updateFormParams_1] = useState({title: '', price: '', isFree: false});
-  const [message, updateMessage] = useState('');
+  const [msg, updateMsg] = useState('');
   const [stepCompleted, setStepCompleted] = useState(false);
   const [showChapterForm, setShowChapterForm] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState(null); // 單一圖片預覽
@@ -76,19 +77,19 @@ const CreateWork = (props) => {
                       console.error('Error initializing contract:', error);
                   }
               } else {
-                  alert(t('請先進行創作者驗證，才開放創作者專區'));
+                message.info(t('請先進行創作者驗證，才開放創作者專區'));
               }
           } catch (error) {
               console.error('Error fetching isCreator:', error);
           }
         } else {
-            alert(t('請先登入以太坊錢包，才開放創作者專區'));
+            message.info(t('請先登入以太坊錢包，才開放創作者專區'));
         }
       } catch (error) {
         console.error(error);
       }
     } else {
-      alert(t('請安裝MetaMask'));
+      message.info(t('請安裝MetaMask'));
     }
   };
 
@@ -105,7 +106,7 @@ const CreateWork = (props) => {
         return;
       }
       disableAllButtons();
-      updateMessage(t('正在上傳漫畫至合約中'));
+      updateMsg(t('正在上傳漫畫至合約中'));
 
       //console.log("comicHash：" + hashValue);
       //console.log("title：" + formParams.title);
@@ -144,10 +145,10 @@ const CreateWork = (props) => {
         });
         //console.log('Comic added successfully:', response.data);
 
-        alert(t('漫畫成功上傳'));
+        message.info(t('漫畫成功上傳'));
         enableAllButtons();
         setShowChapterForm(true);
-        updateMessage("");
+        updateMsg("");
         updateFormParams({category:'',  title: '', description: ''});
         setHashValue('');
         setFiles('');
@@ -156,13 +157,13 @@ const CreateWork = (props) => {
       }
     } catch (error) {
       if (error.message.includes('User denied transaction signature')) {
-        alert(t('拒绝交易'));
+        message.info(t('拒绝交易'));
       } else {
         alert(t('上傳漫畫時發生錯誤') + error);
       }
       enableAllButtons();
       setShowChapterForm(false);
-      updateMessage("");
+      updateMsg("");
     }
   };
 
@@ -185,12 +186,12 @@ const CreateWork = (props) => {
         price_temp = parseFloat(price_temp);
         price_temp = web3.utils.toWei(price_temp.toString(), 'ether');
         if (price_temp < 10000000000000000 && formParams_1.isFree === false) {
-          alert(t('價格至少0.01 ETH'));
+          message.info(t('價格至少0.01 ETH'));
           return;
         }
       }
       disableAllButtons();
-      updateMessage(t('正在添加章節至合約中'))
+      updateMsg(t('正在添加章節至合約中'))
 
       await handleGeneratePages();  // 等待合併圖片操作完成
       await handleFileReaderLoad();  // 等待計算 chapterHash 值操作完成
@@ -221,7 +222,7 @@ const CreateWork = (props) => {
         //console.log('chapter added successfully:', response.data);
 
         enableAllButtons();
-        updateMessage("");
+        updateMsg("");
         updateFormParams_1({title: '', price: ''});
         
         let uploadComicData = {[comicHash]: formParams_1.title};
@@ -232,13 +233,13 @@ const CreateWork = (props) => {
       }
     } catch (error) {
       if (error.message.includes('User denied transaction signature')) {
-        alert(t('拒绝交易'));
+        message.info(t('拒绝交易'));
       } else {
         alert(t('添加章節時發生錯誤') + error);
       }
       enableAllButtons();
       setShowChapterForm(true);
-      updateMessage("");
+      updateMsg("");
     }
   };
 
@@ -252,7 +253,7 @@ const CreateWork = (props) => {
     if (validateFileType(file)) {
       previewImage(file);
     } else {
-      alert(t('文件類型不支持，請上傳...格式的圖片'));
+      message.info(t('文件類型不支持，請上傳...格式的圖片'));
       return -1;
     }
     setFiles(file);
@@ -273,7 +274,7 @@ const CreateWork = (props) => {
       if (validateFileType(file)) {
         previewImage(file);
       } else {
-        alert(t('文件類型不支持，請上傳...格式的圖片'));
+        message.info(t('文件類型不支持，請上傳...格式的圖片'));
         return -1;
       }
     });
@@ -318,7 +319,7 @@ const CreateWork = (props) => {
       previewPromoCover(file);
       setCoverFile(file);
     } else {
-      alert(t('文件類型不支持，請上傳...格式的圖片'));
+      message.info(t('文件類型不支持，請上傳...格式的圖片'));
       return -1;
     }
   };
@@ -382,19 +383,19 @@ const CreateWork = (props) => {
     if(showChapterForm == false){
       const {category, title, description} = formParams;
       if (title && title.length > 50) {
-        alert(t('標題命名不可超過50個字!'));
+        message.info(t('標題命名不可超過50個字!'));
         return -1;
       } else if( !category || !title || !description || file.length === 0) {
-        updateMessage(t('請填寫所有欄位'))
+        updateMsg(t('請填寫所有欄位'))
         return -1;
       } 
     }else{
       const {title, price, isFree} = formParams_1;
       if (title && title.length > 50) {
-        alert(t('標題命名不可超過50個字!'));
+        message.info(t('標題命名不可超過50個字!'));
         return -1;
       } else if (!comicHash || !title || (!formParams_1.isFree && !price) || file.length === 0) {
-        updateMessage(t('請填寫所有欄位'))
+        updateMsg(t('請填寫所有欄位'))
         return -1;
       }
     };
@@ -616,7 +617,7 @@ return (
             </div>
           </Form.Group>
 
-          <div className="text-red-500 text-center">{message}</div>
+          <div className="text-red-500 text-center">{msg}</div>
           <Button onClick={createChapter} id="list-button" data-backgroundcolor="#fff">{t('確認上傳')}</Button>
         </Form>
       </div>
@@ -729,7 +730,7 @@ return (
           </div>
           </Form.Group>
 
-          <div className="text-red-500 text-center">{message}</div>
+          <div className="text-red-500 text-center">{msg}</div>
           <Button onClick={createComic} id="list-button" data-backgroundcolor="#fff">{t('確認上傳')}</Button>
         </Form>
       </div>

@@ -43,6 +43,7 @@
     "目前無購買NFT，請重新刷新": "No NFTs purchased at the moment, please refresh...",
     "查核中\n暫不開放": "Under review\nNot available at the moment",
     "盜版漫畫\n已下架": "Pirated comics\nHave been removed",
+    "盜版NFT\n已下架": "Pirated NFT\nHave been removed",
 
     "comicDetail_comment": "comicDetail",
     "開始閱讀": "Reading",
@@ -103,6 +104,7 @@
     "總額": "Total Amount",
     "已售": "Sold",
     "總數": "Total",
+    "購物車添加成功": "Item added to Shopping Cart successfully",
 
     "nftDetail_comment": "nftDetail",
     "二次轉售": "Secondary Resale",
@@ -117,6 +119,10 @@
     "已售完": "Sold Out",
     "此NFT已售完": "This NFT is Sold Out!",
     "購買NFT發生錯誤：": "Error occurred while purchasing the NFT:",
+    "購買此NFT需要進行身分驗證": "You need to complete identity verification to purchase this NFT.",
+    "但您已被本平台禁用驗證權限！": "But you have been disabled from verification on this platform!",
+    "本平台管理者尚未審核您的身分，請稍後在試！": "The platform administrator has not yet reviewed your identity; please try again later!",
+    "您尚未在本平台進行身分驗證，請先到\"個人資訊\"進行身分驗證！": "You have not completed identity verification on this platform. Please go to 'Profile' to verify your identity first!",
 
     "readerPage_comment": "readerPage",
     "請先登入以太坊錢包，才開放讀者專區": "Please log in to your Ethereum wallet to access the reader's area!",
@@ -140,6 +146,8 @@
     "詳情": "Details",
     "查核中": "Check",
     "退款": "Refund",
+    "章節名稱": "Chapter Title",
+    "NFT名稱": "NFT Name",
 
     "messagePage_comment": "messagePage",
     "請先收藏漫畫": "Please collect the comic first!",
@@ -162,6 +170,9 @@
     "人氣購買": "Popular Purchases",
     "數據分析": "Data Analysis",
     "個人主頁": "Personal Homepage",
+    "您已被本平台禁用創作者權限！": "Your creator privileges have been disabled by this platform!",
+    "收益總攬": "Earnings Overview",
+    "身分驗證": "Identity Verification",
 
     "analysis_comment": "analysis",
     "目前無人購買": "No Purchases Yet",
@@ -214,7 +225,6 @@
     "已退款": "Refunded",
     "確定是盜版": "Confirm piracy",
     "漫畫狀態": "Comic status",
-    "漫畫確定是盜版，刪除後將無法復原，並進行退款。": "Comic confirmed as piracy, deletion is irreversible and a refund will be issued.",
     "使用者": "User",
     "使用者帳號管理": "User account management",
     "請輸入帳號": "Please enter the account",
@@ -222,6 +232,11 @@
     "編號": "ID",
     "修改創作者身分": "Modify creator identity",
     "禁用創作者帳號": "Disable creator account",
+    "退款金額": "Refund amount is",
+    "您持有餘額": "Your balance is",
+    "可提領金額": "Withdrawable amount",
+    "您以超過": "You have exceeded!",
+    "漫畫確定是盜版，刪除後將無法復原，並進行退款和禁用創作者帳號。": "The comic is confirmed to be pirated. It will be permanently deleted and refunds will be processed, along with disabling the creator's account.",
 
     "rankingList_comment": "rankingList",
     "總排行": "Overall Rank",
@@ -318,6 +333,8 @@
     "NFT封面": "NFT Cover",
     "上傳圖片作為NFT的封面": "Upload an image as the NFT cover",
     "上傳NFT橫向封面": "Upload a horizontal NFT cover",
+    "購買NFT的使用者須先進行身分驗證才可購買": "Users must complete identity verification before purchasing NFTs.",
+    "買家身分驗證": "Buyer Identity Verification",
 
     "editWork_comment": "editWork",
     "正在編輯漫畫資料中": "Editing comic data... Please wait.",
@@ -353,6 +370,9 @@
     "確定": "Confirm",
     "取消": "Cancel",
     "上架NFT發生錯誤：": "Error occurred while listing the NFT:",
+    "禁售": "Not for Sale",
+    "此為盜版漫畫所衍生的NFT，不予販售、使用": "This NFT is derived from pirated comics and is not for sale or use.",
+    "此NFT的漫畫查核中，暫不開放，敬請見諒": "The comic for this NFT is under review and is temporarily unavailable. Thank you for your understanding.",
 
     "becomeWriter_comment": "becomeWriter",
     "您好～": "Hello~",
@@ -385,6 +405,9 @@
     "上傳個人封面": "Upload Personal Cover",
     "接受": "Accept",
     "拒絕": "Reject",
+    "您已被本平台禁用使用者權限！": "Your user privileges have been disabled by this platform!",
+    "您已擁有使用者權限！": "You already have user privileges!",
+    "管理者審核中，請稍後在試！": "Under administrator review, please try again later!",
 
     "歡迎使用": "Welcome to ",
     "前言": "Comic Platform (hereinafter referred to as 'the Platform'). To protect your rights, please read these Terms of Use (hereinafter referred to as 'the Terms') carefully before using the Platform. By using the Platform, you agree to comply with these Terms. If you do not agree with these Terms, you will not be able to use certain features of the Platform.",

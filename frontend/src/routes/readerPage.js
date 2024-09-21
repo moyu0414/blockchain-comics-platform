@@ -30,6 +30,7 @@ function ReaderPage() {
     const [isCreator, setIsCreator] = useState(false);
     const [currentAccount, setCurrentAccount] = useState(false);
     const [ethBalance, setEthBalance] = useState('');
+    const [image, setImage] = useState('');
     const headers = {'api-key': API_KEY};
 
     useEffect(() => {
@@ -46,11 +47,16 @@ function ReaderPage() {
                                 currentAccount: account
                             }
                         });
-                        const isCreator = [1, 3].includes(response.data[0].is_creator);  // 是 或 禁用
+                        const isCreator = [1, 2, 3].includes(response.data[0].is_creator);  // 是 或 禁用
                         setIsCreator(isCreator);
                         const balance = await web3.eth.getBalance(account);
                         setEthBalance(parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(3));
                         setCurrentAccount(account);
+                        if (response.data[0].is_creator !== 3) {
+                            const imageResponse = await axios.get(`${website}/api/creatorIMG/${account}`, { responseType: 'blob', headers });
+                            const image = URL.createObjectURL(imageResponse.data);
+                            setImage(image);
+                        }
                         setIsButtonEnabled(true);
                     } catch (error) {
                         console.error('Error fetching isCreator:', error);
@@ -69,7 +75,7 @@ function ReaderPage() {
         { label: t('漫畫收藏'), icon: <Heart /> },
         { label: t('NFT收藏'), icon: <CardImage /> },
         { label: t('我的訊息'), icon: <Envelope /> },
-        { label: t('成為作家'), icon: <VectorPen /> }
+        { label: t('身分驗證'), icon: <VectorPen /> }
     ];
 
     const pathMap = {
@@ -86,14 +92,15 @@ function ReaderPage() {
 
     return (
         <Container className='readerPage'>
-            <Row className="pt-5">
-                <Figure>
-                    <Figure.Image
-                        className="d-block mx-auto img-fluid rounded-circle"
-                        alt="400x400"
-                        src="https://via.placeholder.com/200x200?text=Banner Image"
+            <Row className="pt-5 mb-3">
+                <Col className="profile-section">
+                    <img 
+                        src={image ? image : "https://via.placeholder.com/200x200?text=Banner Image"} 
+                        className="rounded-circle" 
+                        fluid="true" 
+                        alt="reader"
                     />
-                </Figure>
+                </Col>
             </Row>
             <h3><center>{t('讀者專區')}</center></h3>
 
@@ -108,7 +115,7 @@ function ReaderPage() {
                     <Col key={idx} xs={6} sm={6} md={2} lg={1} className="pb-3 btn-section">
                         <Link
                             to={
-                                item.label === t('成為作家')
+                                item.label === t('身分驗證')
                                     ? (!isCreator && isButtonEnabled ? becomeWriter.pathMap : '#')
                                     : (isButtonEnabled ? pathMap[item.label] : '#')
                             }
@@ -116,7 +123,7 @@ function ReaderPage() {
                         >
                             <Button
                                 variant={
-                                    item.label === t('成為作家')
+                                    item.label === t('身分驗證')
                                         ? (isButtonEnabled
                                             ? (isCreator ? "outline-secondary" : "outline-dark")
                                             : "outline-secondary")
@@ -124,7 +131,7 @@ function ReaderPage() {
                                 }
                                 className="custom-button"
                                 disabled={
-                                    item.label === t('成為作家')
+                                    item.label === t('身分驗證')
                                         ? (isButtonEnabled ? isCreator : true)
                                         : !isButtonEnabled
                                 }
