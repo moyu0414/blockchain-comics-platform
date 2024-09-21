@@ -415,9 +415,9 @@ span {
   }
 
   .creatorNft .creatorNft-overlay {
-    font-size: 0.9rem;
-    padding: 2px 6px; 
-    bottom: 38px;
+    bottom: 38px!important;
+    padding: 3px 0!important; 
+    font-size: 0.85rem!important; 
   }
 
   .collectionNft-overlay {
@@ -459,10 +459,6 @@ span {
     font-size: 1.3rem!important;
   }
   
-  .flip-comic img {
-    width: 100%!important; 
-  }
-
   .ranking-author {
     max-width: 210px!important;
   }
@@ -481,6 +477,11 @@ span {
 
   .comicManagement .hash-cell-text{
     max-width: 250px!important;
+  }
+
+  .analysis .buyer-cell{
+    max-width: 200px!important;
+    overflow-wrap: break-word;
   }
 
   .comicDetail .text-secondary{
@@ -514,9 +515,9 @@ span {
   }
 
   .creatorNft .creatorNft-overlay {
-    font-size: 0.7rem;
-    padding: 1px 0; 
-    bottom: 35px;
+    text-align: left!important;
+    bottom: 35px!important;
+    font-size: 0.7rem!important; 
   }
 
   .collectionNft-overlay {
@@ -1264,6 +1265,13 @@ a:link{
   background-color: rgba(251, 198, 4, 0.4);
 }
 
+.purchaseHistory .purchaseHistory-title h2{
+  position: relative;
+  color: #ffffff;
+  background-color: green;
+  line-height: 2;
+}
+
 /* 讀者 */
 .reader-container{
   margin-bottom: 6%;
@@ -1672,6 +1680,7 @@ a:link{
     margin-top: -8px;
     margin-bottom: 8px;
   }
+
 }
 
 .carousel-control-prev {
@@ -1747,6 +1756,11 @@ a:link{
   font-size: 0.9rem; /* 字体大小 */
   z-index: 1; /* 确保悬浮在图片上方 */
 }
+
+.homepage .category-btn-section .btn{
+  width: 100%;
+}
+
 
 /* comicDetail */
 
@@ -1827,6 +1841,10 @@ a:link{
   height: 100%;
 }
 
+.delete-line {
+  text-decoration: line-through; 
+}
+
 .remove-section img{
   width: 320px;
   height: 320px;
@@ -1894,6 +1912,12 @@ a:link{
     height: 120px;
     display: flex;
     justify-content: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .comicDetail .text-section {
+    max-width: 320px;
   }
 }
 
@@ -2017,10 +2041,16 @@ a:link{
 }
 
 /* analysis */
+.analysis .analysis-title h2{
+  position: relative;
+  color: #ffffff;
+  background-color: green;
+  line-height: 2;
+}
 
 .analysis h1{
   font-size: 42px;
-  color: #FBC604;
+  color: #2efdef;
   text-shadow:
     -1px -1px 0 #000,  
     1px -1px 0 #000,
@@ -2034,7 +2064,7 @@ a:link{
   font-weight: 900;
   padding: 1% 0;
   border: none !important;
-  background-color: rgba(251, 198, 4, 0.4);
+  background-color: rgba(6, 157, 103, 0.46);
 }
 
 /* creatorNft */
@@ -2123,6 +2153,22 @@ a:link{
 
 .creatorNft .btn:hover{
   background-color: rgba(35, 187, 164, 0.89);
+}
+
+.creatorNft .creatorNft-overlay {
+  position: absolute; 
+  text-align: center;
+  bottom: 40px;
+  left: 0px;
+  background: rgba(0, 0, 0, 0.5); 
+  color: #fff; 
+  padding: 5px 10px; 
+  width: 100%;
+  font-size: 1rem; 
+  z-index: 1; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* navigation */
@@ -2656,6 +2702,10 @@ a:link{
   cursor: pointer;
 }
 
+.nftMarket-modal{
+  overflow-y: scroll!important;
+}
+
 .nftMarket-modal .modal-footer{
   width: 100%;
 }
@@ -2877,6 +2927,11 @@ a:link{
   margin-right: 8px; /* 設置按鈕之間的距離，可根據需要調整 */
 }
 
+.second-tab .scrollable-buttons .btn {
+  width: auto!important;
+  margin-right: 10px;
+}
+
 @media only screen and (max-width: 992px) {
   .nftMarket-carousel .carousel-control-prev,
   .nftMarket-carousel .carousel-control-next {
@@ -3096,27 +3151,17 @@ a:link{
     height: 6em;
   }
 
-  .flip-comic {
-    padding-top: 110px; 
-    width: 100vw;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #000; 
-  }
-  
-  .flip-comic img {
-    width: 100%; 
-    height: auto;
-    object-fit: contain; 
-    min-width: 100%;
-    max-height: 100%; 
-    display: block;
-  }
-
 }
 
 /* comicRead */
+.comicRead {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* 使容器高度占满视口高度 */
+  overflow: hidden; /* 防止内容溢出 */
+  background-color: #000;
+}
+
 .comic-custom-navbar {
   background-color: rgba(35, 38, 36, 0.95);
   height: 100px;
@@ -3175,38 +3220,34 @@ a:link{
 }
 
 .banner-image {
-  width: 70%; 
+  max-width: 700px;
   margin: 0 auto;
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
 }
 
 .banner-image img {
-  width: 100%; 
+  width: 100%;
+  justify-content: center;
+  align-items: center;
   height: auto; 
 }
 
 .flip-comic {
-  padding-top: 100px; 
+  flex: 1; /* 使 flip-comic 占据剩余空间 */
+  overflow: hidden; /* 防止内容溢出 */
+  background-color: black;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #000; 
+  justify-content: center; /* 水平居中 */
+  align-items: center; /* 垂直居中 */
 }
 
-.flip-comic img {
-  width: 26%; 
-  height: auto;
-  object-fit: contain; 
-  max-height: 100%; 
-  display: block;
+.split-image {
+  max-width: 100%;
+  max-height: 100%; /* 确保图像在容器内 */
+  object-fit: contain; /* 保持图像的纵横比 */
 }
-
-/* .split-image {
-  top: 0;
-  width: 100%;
-  height: auto;
-  max-height: 75vh; 
-  object-fit: cover;
-} */
 
 @media (max-width: 600px) {
   /* .split-image {
@@ -3343,6 +3384,27 @@ a:link{
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
+}
+
+.bookcase-position {
+  position: relative;
+}
+
+.bookcase-position .hidden {
+  position: absolute;
+  text-align: center;
+  width: 100%;
+  height: auto;
+  right: 0;
+  bottom: -16px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  padding: 5px 0px;
+  font-size: 1rem;
+  white-space: pre-line;
+  overflow: visible;
+  text-overflow: clip;
+  z-index: 1;
 }
 
 /* 關閉按鈕 */
@@ -3533,7 +3595,7 @@ a:link{
 }
 
 .bottom-navigation-bar .main-icon {
-  width: 3%;
+  width: 4%;
   height: auto;
   aspect-ratio: 1 / 1;
   background-color: #069D67;
@@ -3548,9 +3610,15 @@ a:link{
   z-index: 1; 
 }
 
+.bottom-navigation-bar .main-icon p{
+  color: #fff;
+  font-weight: bold;
+  margin-bottom: 0;
+}
+
 .bottom-navigation-bar .main-icon svg {
   color: #FFF; 
-  width: 100%
+  width: 100%;
 }
 
 @media (max-width: 768px) {
@@ -3566,7 +3634,34 @@ a:link{
 
   .bottom-navigation-bar .main-icon {
     top: calc(50% - 40px); 
-    width: 13%!important;
+    width: 15%!important;
+  }
+}
+
+@media (max-width: 450px){
+  .bottom-navigation-bar .icon-col svg{
+    width: 28px;
+  }
+
+  .bottom-navigation-bar .main-icon p{
+    font-size: 12px;
+  }
+
+  .bottom-navigation-bar .main-icon svg{
+    width: 20px;
+  }
+  .bottom-navigation-bar .icon-col .icon-text {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  .verify-custom-modal .modal-footer{
+    flex-direction: column-reverse;
+  }
+  .verify-custom-modal .modal-footer .btn{
+    width: 100%!important;
+    
   }
 }
 
@@ -3665,6 +3760,75 @@ a:link{
 .verification-btn-section{
   display: flex;
   justify-content: center;
+}
+
+.verifyPage .modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.verifyPage .modal-content {
+  background-color: white;
+  margin-top: 40px;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  max-height: 550px;
+  width: 90%;
+  overflow-y: auto;
+}
+
+.modal{
+  overflow-y: hidden;
+}
+
+.verify-custom-modal {
+  max-width: 1000px; /* 设置更宽的宽度 */
+  overflow-y: auto;
+}
+
+.verify-custom-modal .modal-header{
+  background-color: #0FC2C0;
+  color: #fff;
+}
+
+.verify-custom-modal .modal-content{
+  overflow-y: auto;
+}
+
+.verify-custom-modal .modal-body{
+  max-height: 400px;
+  overflow-y:scroll;  
+  padding-right: 15px;
+}
+
+.verify-custom-modal .modal-footer{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.verify-custom-modal .modal-footer .btn{
+  width: 49%;
+}
+
+.verify-custom-modal .modal-footer .btn-secondary{
+  border: 1px #0FC2C0 solid;
+  background-color: #fff;
+  color: #0FC2C0;
+}
+
+.verify-custom-modal .modal-footer .btn-secondary:hover{
+  background-color: #0FC2C0;
+  color: #fff;
 }
 
 /* verifySuccess */
@@ -3867,14 +4031,13 @@ a:link{
 
 .createSuccess a {
   display: inline-block;
-  max-width: 40%;
+  width: 100%;
+  max-width: 150px;
   text-align: center;
 }
 
 .createSuccess .createSuccess-image-container{
   display: inline-block;
-  width: 400px;
-  height: 200px;
   border-radius: 0;
   margin: 0;
 }
@@ -3882,12 +4045,11 @@ a:link{
 .createSuccess .createSuccess-image-container img{
   border-radius: 0;
   display: block;
-  width: 400px;
-  height: 200px;
 }
 
 .createSuccess .btn{
   width: 40%;
+  height: auto;
   background-color: rgba(6, 157, 103, 0.89);
   box-shadow: 5px 5px rgba(6, 157, 103, 0.42);
   border-radius: 8px;
@@ -4181,13 +4343,6 @@ a:link{
     display: table-row; /* 点击行时显示详细信息 */
   }
 
-  .comicManagement .author-cell{
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* max-width: 80px; */
-  }
-
   .comicManagement .hash-cell-text{
     max-width: 390px;
     overflow-wrap: break-word;
@@ -4392,7 +4547,6 @@ a:link{
   .sub-table-row td {
     display: table-cell!important; 
     width: auto!important; 
-    padding: 8px;
     text-align: center!important;
     border-bottom: none!important;
   }
@@ -4482,24 +4636,10 @@ a:link{
 
   .dataAnalysis canvas{
     margin-top: 4%;
-    max-width: 300px!important;
-  }
-
-  .dataAnalysis .pie-chart-item{
-    display: flex;
-    justify-content: center;
-  }
-
-  .dataAnalysis .pie-chart-item canvas{
-    margin-bottom: 6%;
   }
 
   .dataAnalysis .pie-chart-container hr{
     margin: 10% 0;
-  }
-
-  .dataAnalysis .pie-chart-item h3{
-    padding-top: 2%;
   }
 }
 
@@ -4590,13 +4730,9 @@ a:link{
 }
 
 .dataAnalysis .sales-chart canvas{
-  max-width: 50%;
-  max-height: 70%;
-}
-
-.dataAnalysis .nft-income-chart canvas{
-  max-width: 60%;
-  max-height: 90%;
+  width: 100%;
+  max-width: 1300px;
+  max-height: 500px;
 }
 
 .dataAnalysis .income-table>tbody>tr:nth-of-type(odd)>*{
@@ -4616,25 +4752,26 @@ a:link{
   flex-direction: column;
 }
 
-.dataAnalysis .pie-chart-item {
-  display: block;
-  max-width: 500px;
-  max-height: 500px;
-  margin-bottom: 8%;
-}
-
 .dataAnalysis .table-striped>tbody>tr:nth-of-type(odd)>* {
   background-color: #deffff;
   --bs-table-bg-type: transparent;
 }
 
-.dataAnalysis .pie-chart-item h3,
 .dataAnalysis .pie-chart-item div{
-  text-align: center;
+  margin-left: 30px;
+}
+
+.dataAnalysis .pie-chart-item h3{
+  margin-left: 50px;
 }
 
 .dataAnalysis .pie-chart-item div{
+  display: block;
   padding: 1% 0 ;
+}
+
+.sub-table-row td:first-child {
+  padding-left: 20px;
 }
 
 @media (min-width: 1200px) {
@@ -4646,10 +4783,19 @@ a:link{
   .pie-chart-item {
     width: 45%;
   }
-
   
 }
 
+@media (max-width: 450px) {
+  .dataAnalysis .pie-chart-item div{
+    margin-left: 0px;
+  }
+
+  .dataAnalysis .pie-chart-item h3{
+    margin-left: 00px;
+  }
+  
+}
 
 /* authorProfile */
 .profile-section, .post-author {
@@ -4772,6 +4918,6 @@ a:link{
 }
 
 .piracy{
-  color: #dc3545!important;
+  color: #000!important;
   background-color: #c3c0c0!important;
 }

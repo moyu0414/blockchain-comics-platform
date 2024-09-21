@@ -38,12 +38,6 @@ function Bookcase() {
                 const comicMap = new Map(storedArray.map(comic => [comic.comic_id, comic]));
                 const readingMap = new Map(Object.entries(readingArray));
                 for (const data of bookcase) {
-                    let state = "存在";
-                    if (data.is_exist === 2) {
-                        state = "盜版漫畫<br>已下架";
-                    } else if (data.is_exist === 1) {
-                        state = "查核中<br>暫不開放";
-                    }
                     const comic = comicMap.get(data.comicHash);
                     if (comic) {
                         const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.filename}`, { responseType: 'blob', headers });
@@ -54,12 +48,11 @@ function Bookcase() {
                         if (readingValue) {
                             data.chapter = readingValue;
                         };
-                        data.state = state;
                     }
                 }
                 sortByPurchase(bookcase);
                 bookcase.sort((a, b) => (a.is_exist > 0) - (b.is_exist > 0));
-                console.log(bookcase);
+                //console.log(bookcase);
                 setCurrent(bookcase);
             } catch (error) {
                 console.error('Error fetching records:', error);
@@ -85,7 +78,6 @@ function Bookcase() {
                 }
             });
             let nftRecords = nftResponse.data;
-            console.log(nftRecords);
             const comicMap = new Map(storedArray.map(comic => [comic.comic_id, comic]));
             for (const data of nftRecords) {
                 const comic = comicMap.get(data.comicHash);
@@ -96,7 +88,7 @@ function Bookcase() {
                     data.names = parseAuthorizations(data.description).map(auth => auth.name);
                 }
             }
-            console.log(nftRecords);
+            nftRecords.sort((a, b) => (a.is_exist > 0) - (b.is_exist > 0));
             setNFTLogArray(nftRecords);
             if (nftRecords.length === 0) {
               setBeingNFT(false);
@@ -150,22 +142,21 @@ function Bookcase() {
                                     .filter(data => data.chapter) // 過濾出有 chapter 的數據
                                     .map((data, idx) => (
                                         <Col key={idx} xs={4} md={3}>
-                                            <Link to={data.state === "存在" ? (`/comicRead/${data.comicID}/${data.chapter}`) : (`/comicDetail/${data.comicID}`)}>
+                                            <Link to={data.is_exist === 0 ? (`/comicRead/${data.comicID}/${data.chapter}`) : (`/comicDetail/${data.comicID}`)}>
                                                 <Card>
-                                                    {data.state === "存在" ? (
-                                                        <Card.Img variant="top" src={data.image} />
+                                                    {data.is_exist === 0 ? (
+                                                        <>
+                                                            <Card.Img variant="top" src={data.image} />
+                                                            <div className="bookcase-overlay">{data.chapter}</div>
+                                                        </>
                                                     ) : (
-                                                        // <div className='card-remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
-                                                        //     <img src='/piraty.png' />
-                                                        //     <div
-                                                        //         id="notimage"
-                                                        //         className="hidden text-center"
-                                                        //         dangerouslySetInnerHTML={{ __html: data.state }}
-                                                        //     />
-                                                        // </div>
-                                                        <Card.Img variant="top" src='/piraty.png' />
+                                                        <div className="bookcase-position" style={{marginBottom: "30px"}}>
+                                                            <Card.Img variant="top" src='/piraty.png' />
+                                                            <p className="hidden">
+                                                                {data.is_exist === 1 ? t('查核中\n暫不開放') : t('盜版漫畫\n已下架')}
+                                                            </p>
+                                                        </div>
                                                     )}
-                                                    <div className="bookcase-overlay">{data.chapter}</div>
                                                     <Card.Body>
                                                         <Card.Title className='bookcase-read-text'>{data.title}</Card.Title>
                                                     </Card.Body>
@@ -188,18 +179,15 @@ function Bookcase() {
                                     <Col key={idx} xs={4} md={3}>
                                         <Link to={`/comicDetail/${data.comicID}`}>
                                             <Card>
-                                                {data.state === "存在" ? (
+                                                {data.is_exist === 0 ? (
                                                     <Card.Img variant="top" src={data.image} />
                                                 ) : (
-                                                    // <div className='card-remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    //     <img src='/piraty.png' />
-                                                    //     <div
-                                                    //         id="notimage"
-                                                    //         className="hidden text-center"
-                                                    //         dangerouslySetInnerHTML={{ __html: data.state }}
-                                                    //     />
-                                                    // </div>
-                                                    <Card.Img variant="top" src='/piraty.png' />
+                                                    <div className="bookcase-position">
+                                                        <Card.Img variant="top" src='/piraty.png' />
+                                                        <p className="hidden">
+                                                            {data.is_exist === 1 ? t('查核中\n暫不開放') : t('盜版漫畫\n已下架')}
+                                                        </p>
+                                                    </div>
                                                 )}
                                                 <div className="bookcase-purchase-overlay"></div>
                                                 <Card.Body>
@@ -224,15 +212,24 @@ function Bookcase() {
                                     <Col key={idx} xs={4} md={3}>
                                         <Link to={`/nftOwner/tokenId${data.tokenId}`}>
                                             <Card>
-                                                <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names)}>
-                                                    <div>
-                                                        <Card.Img variant="top" src={data.image} />
+                                                {data.is_exist === 0 ? (
+                                                    <>
+                                                        <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names)}>
+                                                            <Card.Img variant="top" src={data.image} />
+                                                        </OverlayTrigger>
                                                         <div className="bookcase-overlay">{data.title}</div>
-                                                        <Card.Body>
-                                                            <Card.Title className='bookcase-purchase-text'>{data.tokenTitle}</Card.Title>
-                                                        </Card.Body>
+                                                    </>
+                                                ) : (
+                                                    <div className="bookcase-position"  style={{marginBottom: "30px"}}>
+                                                        <Card.Img variant="top" src='/piraty.png' />
+                                                        <p className="hidden">
+                                                            {data.is_exist === 1 ? t('查核中\n暫不開放') : t('盜版NFT\n已下架')}
+                                                        </p>
                                                     </div>
-                                                </OverlayTrigger>
+                                                )}
+                                                <Card.Body>
+                                                    <Card.Title className='bookcase-read-text'>{data.tokenTitle}</Card.Title>
+                                                </Card.Body>
                                             </Card>
                                         </Link>
                                     </Col>

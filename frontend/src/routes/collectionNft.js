@@ -25,38 +25,38 @@ function CollectionNft() {
                 }
             });
             let collectNFT = response.data;
-            console.log(collectNFT);
             if (typeof collectNFT !== 'undefined' && typeof collectNFT.length === 'undefined' || collectNFT.length === 0) {
                 setBeingNFT(false);
             } else {
                 const fetchImage = async (data) => {
-                    const nftImgResponse = await axios.get(`${website}/api/nftIMG/${data.comic_id}/${data.tokenId}`, {
-                        responseType: 'blob',
-                        headers,
-                      });
-                      if (nftImgResponse.data.type === 'image/jpeg') {
-                        data.image = URL.createObjectURL(nftImgResponse.data);
-                      } else {
-                        const url = data.protoFilename === 1
-                          ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
-                          : `${website}/api/comicIMG/${data.filename}`;
-                        const coverImgResponse = await axios.get(url, { responseType: 'blob', headers });
-                        data.image = URL.createObjectURL(coverImgResponse.data);
+                    const conditionMet = data.status === true || (data.status === false && data.forSale === 1);
+                    if (conditionMet) {
+                        const nftImgResponse = await axios.get(`${website}/api/nftIMG/${data.comic_id}/${data.tokenId}`, {
+                            responseType: 'blob',
+                            headers,
+                        });
+                        data.image = nftImgResponse.data.type === 'image/jpeg'
+                            ? URL.createObjectURL(nftImgResponse.data)
+                            : URL.createObjectURL(
+                                await (await axios.get(
+                                    data.protoFilename === 1
+                                        ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
+                                        : `${website}/api/comicIMG/${data.filename}`,
+                                    { responseType: 'blob', headers }
+                                )).data
+                            );
+                        data.names = parseAuthorizations(data.description).map(auth => auth.name);
+                        data.price = data.status ? t('已擁有') : `$ ${Object.values(data.price).pop()}`;
+                        return data;
                     }
-                    data.names = parseAuthorizations(data.description).map(auth => auth.name);
-                    if (data.status) {
-                        data.price = t('已擁有');
-                    } else if (data.forSale === 0) {
-                        data.price = t('已售完');
-                    } else {
-                        const lastPriceValue = Object.values(data.price).pop();
-                        data.price = `$ ${lastPriceValue}`;
-                    }
+                    return null;
                 };
-                await Promise.all(collectNFT.map(fetchImage));
-
-                console.log(collectNFT);
-                setNFT(collectNFT);
+                const validNFTs = (await Promise.all(collectNFT
+                    .filter(data => data.status === true || (data.status === false && data.forSale === 1))
+                    .map(fetchImage))
+                ).filter(result => result !== null);
+                //console.log(validNFTs);
+                setNFT(validNFTs);
             }
             setLoading(false);
         } catch (error) {

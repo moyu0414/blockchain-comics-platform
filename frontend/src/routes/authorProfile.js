@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Card, Form, Button, Image } from 'react-bootstrap';
 import { useParams } from "react-router-dom";
+import { message } from 'antd';
 import { formatDate, disableAllButtons, enableAllButtons } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -36,7 +37,7 @@ const AuthorProfile = () => {
                         currentAccount: account
                     }
                 });
-                console.log('Account:', account);
+                //console.log('Account:', account);
                 let infoData = response.data;
                 if (infoData.length !== 0) {
                     const imageResponse = await axios.get(`${website}/api/creatorIMG/${account}`, { responseType: 'blob', headers });
@@ -44,7 +45,7 @@ const AuthorProfile = () => {
 
                     const updateInfo = infoData.map(data => ({
                         penName: data.penName,
-                        email: data.info.email,
+                        email: data.info.editEamil ? data.info.editEamil : data.info.email,
                         intro: data.info.intro,
                         image: image
                     }));
@@ -61,7 +62,7 @@ const AuthorProfile = () => {
                           msg,
                       }));
                     setMsg(reversedEntries);
-                    console.log(updateInfo[0]);
+                    //console.log(updateInfo[0]);
                     setInfo(updateInfo[0]);
                     setIsBeing(true);
                     setLoading(false);
@@ -109,15 +110,15 @@ const AuthorProfile = () => {
         try {
             disableAllButtons();
             if (editableInfo.email === '') {
-                alert(t('email不可為空!'))
+                message.info(t('email不可為空!'));
                 enableAllButtons();
                 return;
             } else if (editableInfo.penName === '') {
-                alert(t('筆名不可為空!'))
+                message.info(t('筆名不可為空!'));
                 enableAllButtons();
                 return;
             } else if (editableInfo.penName === info.penName && editableInfo.email === info.email && editableInfo.intro === info.intro) {
-                alert(t('目前您未編輯任何東西'));
+                message.info(t('目前您未編輯任何東西'));
                 enableAllButtons();
                 return;
             } else if (editableInfo.email !== info.email) {
@@ -125,11 +126,11 @@ const AuthorProfile = () => {
                     const editEamil = { editEamil: editableInfo.email, account: currentAccount, penName: editableInfo.penName };
                     const response = await axios.post(`${website}/api/authorProfile-send-verification-email`, editEamil, { headers });
                     if (response.data.state) {
-                        alert(t('驗證碼15分鐘內有效!'))
+                        message.info(t('驗證碼15分鐘內有效!'));
                         setIsEditEmail(true);
                         startCountdown();
                     } else {
-                        alert(t('email發送錯誤，請重新再試!'))
+                        message.info(t('email發送錯誤，請重新再試!'));
                     }
                 } catch (error) {
                     console.error('Mailbox verification error:', error);
@@ -139,10 +140,9 @@ const AuthorProfile = () => {
                     const updatedFormData = { ...editableInfo, account: currentAccount };
                     const response = await axios.put(`${website}/api/update/EditProfile`, updatedFormData, { headers });
                     if (response.data.state) {
-                        alert(t('資料更新成功!'));
                         window.location.reload();
                     } else {
-                        alert(t('資料更新失敗!'));
+                        message.info(t('資料更新失敗!'));
                     }
                 } catch (error) {
                     console.error('Mailbox verification error:', error);
@@ -158,7 +158,7 @@ const AuthorProfile = () => {
 
     const handleAdd = async () => {
         if (addMsgInfo.msg == '') {
-            alert(t('目前您未編輯任何東西'));
+            message.info(t('目前您未編輯任何東西'));
             return;
         }
         disableAllButtons();
@@ -170,12 +170,11 @@ const AuthorProfile = () => {
         };
         try {
             const response = await axios.put(`${website}/api/update/AddProfile`, updateMsgInfo, { headers });
-            console.log(response.data);
+            //console.log(response.data);
             if (response.data.state) {
-                alert(t('訊息新增成功!'));
                 window.location.reload();
             } else {
-                alert(t('訊息新增失敗!'));
+                message.info(t('訊息新增失敗!'));
             }
             enableAllButtons();
         } catch (error) {
@@ -215,20 +214,19 @@ const AuthorProfile = () => {
                 const updatedFormData = { ...editableInfo, account: currentAccount };
                 const response = await axios.put(`${website}/api/update/EditProfile`, updatedFormData, { headers });
                 if (response.data.state) {
-                    alert(t('資料更新成功!'));
                     window.location.reload();
                 } else {
-                    alert(t('資料更新失敗!'));
+                    message.info(t('資料更新失敗!'));
                 }
             } catch (error) {
                 console.error('Mailbox verification error:', error);
             }
           } else {
-            alert(`Verification failed: ${message}`);
+            alert(`${t('驗證錯誤')}: ${message}`);
           }
         } catch (error) {
           console.error('Verify email error:', error);
-          alert('An error occurred while verifying email. Please try again.');
+          message.info(t('電子郵件驗證錯誤，請重新在試!'));
         }
       };
       
@@ -273,7 +271,7 @@ const AuthorProfile = () => {
                         <Card>
                             <Card.Body>
                                 <Card.Title>
-                                    作者筆名：
+                                    {t('作者筆名')}：
                                     {isEditing ? (
                                         <Form.Control
                                             type="text"
@@ -285,9 +283,9 @@ const AuthorProfile = () => {
                                         info.penName
                                     )}
                                 </Card.Title>
-                                <Card.Text>作者帳號： {account}</Card.Text>
+                                <Card.Text>{t('作者帳號')}： {account}</Card.Text>
                                 <Card.Text>
-                                    作者 Email：
+                                    {t('作者 Email')}：
                                     {isEditing ? (
                                         <Form.Control
                                             type="email"
@@ -300,7 +298,7 @@ const AuthorProfile = () => {
                                     )}
                                 </Card.Text>
                                 <Card.Text>
-                                    作者簡介：
+                                    {t('作者簡介')}：
                                     {isEditing ? (
                                         <Form.Control
                                             as="textarea"
@@ -312,7 +310,7 @@ const AuthorProfile = () => {
                                     ) : (
                                         <div
                                             dangerouslySetInnerHTML={{
-                                                __html: (info.intro || '').replace(/\n/g, '<br/>') || '這是一段簡短的作者介紹。'
+                                                __html: (info.intro || '').replace(/\n/g, '<br/>') || t('這是一段簡短的作者介紹。')
                                             }}
                                             style={{ marginLeft: "20px" }}
                                         />
@@ -322,21 +320,21 @@ const AuthorProfile = () => {
                                     <div className="authorProfile-btn">
                                         {isEditing ? (
                                             <>
-                                                <Button className='profile-send' variant="primary" onClick={handleEdit}>提交</Button>
-                                                <Button className='profile-cancel' variant="secondary" onClick={handleEditToggle}>取消</Button>
+                                                <Button className='profile-send' variant="primary" onClick={handleEdit}>{t('提交')}</Button>
+                                                <Button className='profile-cancel' variant="secondary" onClick={handleEditToggle}>{t("取消")}</Button>
                                                 <br />
                                             </>
                                         ) : (
-                                                <Button className='profile-edit' variant="primary" onClick={handleEditToggle}>個資編輯</Button>
+                                                <Button className='profile-edit' variant="primary" onClick={handleEditToggle} disabled={isButtonDisabled}>{t('個資編輯')}</Button>
                                         )}
                                         {isAdding ? (
                                             <>
                                                 <br />
-                                                <Button className='profile-send' variant="primary" onClick={handleAdd}>提交</Button>
-                                                <Button className='profile-cancel' variant="secondary" onClick={handleAddToggle}>取消</Button>
+                                                <Button className='profile-send' variant="primary" onClick={handleAdd}>{t('提交')}</Button>
+                                                <Button className='profile-cancel' variant="secondary" onClick={handleAddToggle}>{t('取消')}</Button>
                                             </>
                                         ) : (
-                                                <Button className='profile-add' variant="primary" onClick={handleAddToggle}>新增訊息</Button>
+                                                <Button className='profile-add' variant="primary" onClick={handleAddToggle} disabled={isButtonDisabled}>{t('新增訊息')}</Button>
                                         )}
                                         {isEditEmail && (
                                             <>
@@ -390,7 +388,7 @@ const AuthorProfile = () => {
                                         </Card.Text>
                                     </Card.Body>
                                 )}
-                                <h4><center>訊息公告</center></h4>
+                                <h4><center>{t('訊息公告')}</center></h4>
                                 {msg.map((date, index) => (
                                     <div key={date.date}>
                                         <Card.Header>

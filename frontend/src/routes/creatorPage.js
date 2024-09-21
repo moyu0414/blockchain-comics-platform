@@ -26,6 +26,7 @@ const CustomToggle = React.forwardRef(({ onClick }, ref) => (
 function CreatorPage() {
     const [comic, setComic] = useState([]);
     const [isButtonEnabled, setIsButtonEnabled] = useState(false);
+    const [isCreator, setIsCreator] = useState(false);
     const [currentAccount, setCurrentAccount] = useState(false);
     const [ethBalance, setEthBalance] = useState('');
     const [profileInfo, setProfileInfo] = useState('');
@@ -78,7 +79,7 @@ function CreatorPage() {
                                             currentAccount: account
                                         }
                                     });
-                                    console.log(response.data);
+                                    //console.log(response.data);
                                     const imageResponse = await axios.get(`${website}/api/creatorIMG/${account}`, { responseType: 'blob', headers });
                                     const image = URL.createObjectURL(imageResponse.data);
                                     setProfileInfo({penName: response.data[0].penName, image: image})
@@ -87,13 +88,20 @@ function CreatorPage() {
                                     const image = URL.createObjectURL(imageResponse.data);
                                     setProfileInfo({penName: storedArray[0].penName, image: image})
                                 }
-                                console.log(temp);
+                                //console.log(temp);
                                 setComic(temp);
                                 setIsButtonEnabled(true);
+                                setIsCreator(true);
                                 setLoading(false);
                             } catch (error) {
                                 console.error('Error initializing contract:', error);
                             }
+                        } else if (response.data[0].is_creator === 3) {
+                            alert(t('您已被本平台禁用創作者權限！'));
+                            window.location.replace('/');
+                        } else if (response.data[0].is_creator === 2) {
+                            alert(t('管理者審核中，請稍後在試！'));
+                            window.location.replace('/');
                         } else {
                             alert(t('請先進行創作者驗證，才開放創作者專區'));
                             setLoading(false);
@@ -113,27 +121,22 @@ function CreatorPage() {
     }, []);
 
     const buttonData = [
-        t('收益分析'), t('數據分析'), t('已發行NFT'), t('管理漫畫'), t('新增漫畫'), t('個人主頁')
+        t('收益總攬'), t('數據分析'), t('管理漫畫'), t('新增漫畫'), t('個人主頁'), t('身分驗證')
     ];
 
     const pathMap = {
-        [t('收益分析')]: '/analysis',
+        [t('收益總攬')]: '/analysis',
         [t('數據分析')]: '/dataAnalysis',
-        [t('已發行NFT')]: '/creatorNft',
         [t('管理漫畫')]: '/manageComic',
         [t('新增漫畫')]: '/createWork',
         [t('個人主頁')]: `/authorProfile/${currentAccount}`
+        
     };
 
     const becomeWriter = {
-        name: t('成為作家'),
         pathMap: '/becomeWriter'
     };
 
-    const otherLinksEnabled = buttonData.some(label => label !== t('成為作家') && isButtonEnabled);
-    const isBecomeCreatorEnabled = !otherLinksEnabled && isButtonEnabled;
-
-    
     const comicCategory = () => {
         // 計算每個 category 的漫畫數量
         const categoryCount = comic.reduce((acc, comic) => {
@@ -227,26 +230,34 @@ function CreatorPage() {
                     <div><center>
                         <h4>{profileInfo.penName}</h4>
                         <h4 className="display-account">{currentAccount}</h4>
-                        <h5 className="display-ethBalance">{ethBalance} SepoliaETH</h5>
+                        <h5 className="display-ethBalance">{ethBalance} Sepolia ETH</h5>
                     </center></div>
                 )}
                 <Row className="pt-2 pb-3 btn-container justify-content-center w-100">
-                    {!isButtonEnabled && (
-                        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                            <Link to={becomeWriter.pathMap}>
-                                <Button variant="outline-dark" className="custom-button">
-                                    {becomeWriter.name}
-                                </Button>
-                            </Link>
-                        </div>
-                    )}
                     {buttonData.map((label, idx) => (
                         <Col key={idx} xs={6} sm={6} md={3} lg={1} className="pb-3 btn-section">
-                            <Link to={isButtonEnabled ? pathMap[label] : '#'}>
+                            <Link 
+                                to={
+                                    label === t('身分驗證')
+                                        ? (!isCreator && !isButtonEnabled ? becomeWriter.pathMap : '#')
+                                        : (isButtonEnabled ? pathMap[label] : '#')
+                                }
+                            >
                                 <Button
+                                    variant={
+                                        label === t('身分驗證')
+                                            ? (isButtonEnabled
+                                                ? (isCreator  ? "outline-secondary" : "outline-dark")
+                                                : "outline-secondary")
+                                            : (isButtonEnabled ? "outline-dark" : "outline-secondary")
+                                    }
                                     variant={isButtonEnabled ? "outline-dark" : "outline-secondary"}
                                     className="custom-button"
-                                    disabled={!isButtonEnabled} // 禁用按钮
+                                    disabled={
+                                        label === t('身分驗證')
+                                            ? (isCreator ? true : false)
+                                            : !isButtonEnabled
+                                    }
                                 >
                                     {label}
                                 </Button>

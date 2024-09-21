@@ -42,7 +42,7 @@ const RankingList = () => {
                             penName: match && match.penName ? match.penName : null
                         };
                     });
-                    console.log(updatedFetchedData);
+                    //console.log(updatedFetchedData);
                     setTotRankDatas(updatedFetchedData);
                     setLoading(false);
                 } catch (error) {
@@ -408,7 +408,7 @@ const RankingList = () => {
         }
         {loading &&  
             <div className="loading-container">
-                <div>頁面加載中，請稍後...</div>
+                <div>{t('頁面加載中')}</div>
             </div>
         }
         </>
