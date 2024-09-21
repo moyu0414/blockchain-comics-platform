@@ -52,7 +52,7 @@ function ReaderPage() {
                         const balance = await web3.eth.getBalance(account);
                         setEthBalance(parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(3));
                         setCurrentAccount(account);
-                        if (response.data[0].is_creator !== 3) {
+                        if (response.data[0].is_creator === 1) {
                             const imageResponse = await axios.get(`${website}/api/creatorIMG/${account}`, { responseType: 'blob', headers });
                             const image = URL.createObjectURL(imageResponse.data);
                             setImage(image);

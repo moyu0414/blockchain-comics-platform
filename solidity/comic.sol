@@ -125,7 +125,38 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
     //修改漫畫狀態
     function toggleComicExistence(bytes32 _comicHash) external onlyAdmin {
         require(comics[_comicHash].owner != address(0), "Comic does not exist");
-        comics[_comicHash].exists = !comics[_comicHash].exists;
+        require(status == 0 || status == 1 || status == 2, "Invalid status");
+
+
+        if (status == 2) {
+            uint256 totalCost = 0;
+            
+            // 確認所有NFT是否都可以購買以及計算總價
+            for (uint256 i = 0; i < comicChapters[_comicHash].length; i++) {
+                bytes32 _chapterhash = comicChapters[_comicHash][i];
+                uint256 _cnt = purchaserecord[_chapterhash].length;
+                totalCost += comicChapterdata[_comicHash][_chapterhash].price * _cnt;
+            }
+
+            require(msg.value >= totalCost, "Insufficient payment");
+
+            for (uint256 i = 0; i < comicChapters[_comicHash].length; i++) {
+                bytes32 _chapterhash = comicChapters[_comicHash][i];
+                for (uint256 n = 0; n < purchaserecord[_chapterhash].length; n++) {
+                    uint256 _price = comicChapterdata[_comicHash][_chapterhash].price;
+                    address receiver = purchaserecord[_chapterhash][n];
+                    payable(receiver).transfer(_price);
+                }
+            }
+            for (uint256 i = 0; i < creatorComics[comics[_comicHash].owner].length; i++) {
+                bytes32 _creatorcomicHash = creatorComics[comics[_comicHash].owner][i];
+                if (comics[_creatorcomicHash].status == 0) {
+                    comics[_creatorcomicHash].status = 1;
+                }
+            }
+        }
+
+        comics[_comicHash].status = status;
     }
 
     // 添加章節功能
