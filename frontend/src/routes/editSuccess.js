@@ -20,7 +20,7 @@ function EditSuccess() {
 
     const initData = async () => {
         try {
-            console.log(editArray);
+            //console.log(editArray);
             const comicHash = editArray.comicHash;
             const editFile = editArray.editFile;
             const editTitle = editArray.editTitle;
@@ -47,7 +47,7 @@ function EditSuccess() {
                     await new Promise(resolve => setTimeout(resolve, 1000)); // 等待1秒钟再尝试
                 }
             }
-            console.log(temp);
+            //console.log(temp);
             setComic(temp);
             setLoading(false);
         } catch (error) {

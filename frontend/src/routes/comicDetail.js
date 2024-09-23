@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Container, Card, Col, Row, Button, Table, ButtonToolbar, Pagination, Tooltip, OverlayTrigger } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill, CardImage } from 'react-bootstrap-icons';
+import { message } from 'antd';
 import comicData from '../contracts/ComicPlatform.json';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -33,7 +34,7 @@ function ComicDetail() {
 
     const initData = async () => {
         try {
-            const storedArray = JSON.parse(storedArrayJSON); // 假设 storedArrayJSON 是一个 JSON 字符串
+            const storedArray = JSON.parse(storedArrayJSON);
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].is_exist === 0) {
                     if (storedArray[i].comicID === comicID) {
@@ -67,7 +68,7 @@ function ComicDetail() {
                 }
             }
             if (temp.length !== 0){
-                console.log(temp);
+                //console.log(temp);
                 setComic(temp);
 
                 for (let i = 0; i < storedArray.length; i++) {
@@ -102,7 +103,7 @@ function ComicDetail() {
                     });
                     let chapters = response.data;
                     sortByTimestamp(chapters);
-                    console.log(chapters);
+                    //console.log(chapters);
     
                     chapters = chapters.map((chapter, index) => {
                         let isBuying, price;
@@ -120,14 +121,14 @@ function ComicDetail() {
                             price
                         };
                     });
-                    console.log(chapters);
+                    //console.log(chapters);
                     setChapters(chapters);
     
                     let lastChapterInfo = chapters[chapters.length - 1];
                     let updatedComic = temp.map(comic => {
                         return {...comic, chapter: lastChapterInfo.title, date: formatDate(new Date(Number(lastChapterInfo.create_timestamp)))};
                     });
-                    console.log(updatedComic);
+                    //console.log(updatedComic);
                     setComic(updatedComic);
                 } catch (error) {
                     console.error('Error fetching records:', error);
@@ -155,7 +156,7 @@ function ComicDetail() {
                     description: item.description,
                     author: item.creator,
                     penName: item.penName,
-                    state: item.is_exist === 2 ? "盜版漫畫，已下架，已退款" : "漫畫查核中，暫不開放，敬請見諒"
+                    state: item.is_exist === 2 ? t('盜版漫畫，已下架，已退款') : t('漫畫查核中，暫不開放，敬請見諒')
                     }));
                 setComic(temp);
             }
@@ -204,13 +205,13 @@ function ComicDetail() {
             const readingProgress = localStorage.getItem("readingProgress");
             const readingArray = readingProgress ? JSON.parse(readingProgress) : {};
             const exists = chapters.some(chapter => chapter.isBuying === t('閱讀') && chapter.chapterID === readingArray[comicID]);
-            if (comicID in readingArray && exists === true) {  // 有購買紀錄
+            if (comicID in readingArray && exists === true && reading.price !== t('免費')) {  // 有購買紀錄
                 window.location.replace(`/comicRead/${comicID}/${readingArray[comicID]}`);
             } else {  // 免費閱讀
                 window.location.replace(`/comicRead/${comicID}/${reading.chapterID}`);
             }
         } else {
-            alert(`${comic[0].title} ${t('沒有提供免費試讀')}`);
+            message.info(`${comic[0].title} ${t('沒有提供免費試讀')}`);
         }
     };
 
@@ -238,9 +239,9 @@ function ComicDetail() {
                 if (balance > price) {
                     const comicHash = comic[0].comicHash;
                     const chapterHash = chapter.chapterHash;
-                    console.log(comicHash);
-                    console.log(chapterHash);
-                    console.log(price);
+                    //console.log(comicHash);
+                    //console.log(chapterHash);
+                    //console.log(price);
                     price = web3.utils.toWei(price, 'ether');
     
                     let gasEstimate = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, price/10).estimateGas({
@@ -269,7 +270,7 @@ function ComicDetail() {
                             'api-key': API_KEY
                         }
                         });
-                        alert(t('章節購買成功'));
+                        message.info(t('章節購買成功'));
                         const updatedChapters = [...currentChapters];
                         updatedChapters[chapterId].isBuying = t('閱讀'); // 更新章節的購買狀態
                         setChapters(updatedChapters);
@@ -277,8 +278,7 @@ function ComicDetail() {
                         console.error('購買紀錄添加至資料庫時發生錯誤：', error);
                     }
                 } else {
-                    console.log('餘額不足');
-                    alert(t('餘額不足'));
+                    message.info(t('餘額不足'));
                 }
             } else {
                 alert(t('請先登入以太坊錢包，再進行購買'));
@@ -387,7 +387,7 @@ function ComicDetail() {
                             {comic[0].state ? (
                                 <div className='remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
                                     {/* <div id="start" style={{ display: 'block'}}> */}
-                                        <img src='/cry-Emoji.svg' />
+                                        <img src='/piratyPromo.jpg' />
                                         <div id="notimage" className="hidden">{t(comic[0].state)}</div>
                                     {/* </div> */}
                                 </div>
@@ -436,16 +436,23 @@ function ComicDetail() {
                         <Col className="text-section">
                             {comic.map((comic, index) => (
                                 <React.Fragment key={index}>
-                                    <h3 className="fw-bold">{comic.title}</h3>
-                                    <Link to={`/authorProfile/${comic.author === t('您是本作品的創作者') ? currentAccount : comic.author}`}>
+                                    <h3 className={`fw-bold ${comic.state && 'delete-line'}`}>{comic.title}</h3>
+                                    {comic.state ? (
                                         <p>
-                                            <span className="comicDetail-penName">{comic.penName}</span> 
-                                            <span className="text-secondary address">({comic.author})</span>
+                                            <span className="comicDetail-penName delete-line">{comic.penName}</span> 
+                                            <span className="address delete-line">({comic.author})</span>
                                         </p>
-                                    </Link>
+                                    ) : (
+                                        <Link to={`/authorProfile/${comic.author === t('您是本作品的創作者') ? currentAccount : comic.author}`}>
+                                            <p>
+                                                <span className="comicDetail-penName">{comic.penName}</span> 
+                                                <span className="address">({comic.author})</span>
+                                            </p>
+                                        </Link>
+                                    )}
                                     <p>{t('發布日期')}：{comic.release}</p>
                                     <p>{t('最新章節')}：{comic.chapter}<span className="text-secondary">...{comic.date}</span></p>
-                                    <p className="text-secondary">{comic.description}</p>
+                                    <p className={`text-secondary ${comic.state && 'delete-line'}`}>{comic.description}</p>
                                 </React.Fragment>
                             ))}
                         </Col>

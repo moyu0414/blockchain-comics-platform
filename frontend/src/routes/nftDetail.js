@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Container, Carousel, Card, Col, Row, ListGroup, Button } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
+import { message } from 'antd';
 import { initializeWeb3, disableAllButtons, enableAllButtons } from '../index';
 import comicData from '../contracts/ComicPlatform.json';
 import { useTranslation } from 'react-i18next';
@@ -68,7 +69,7 @@ function NftDetail() {
           state: currentState,
           image: imageUrl
         }));
-        console.log(newData);
+        //console.log(newData);
         setNFT(newData);
         const authorizations = parseAuthorizations(newData[0].description);
         setIP(authorizations);
@@ -120,7 +121,7 @@ function NftDetail() {
                 console.error('Error handleFavoriteClick', error);
             }
         } else {
-            alert(t('請先登入以太坊錢包，才可以收藏'));
+            message.info(t('請先登入以太坊錢包，才可以收藏'));
             return;
         }
     };
@@ -141,7 +142,7 @@ function NftDetail() {
     const handlePurchase = async () => {
         if (NFT[0].owner !== t('您擁有此NFT') && NFT[0].minter !== t('您是本作品的創作者')) {
             if (buttonData[0] === t('已售完')) {
-                alert(t('此NFT已售完'));
+                message.info(t('此NFT已售完'));
                 return;
             }
             try {
@@ -153,6 +154,25 @@ function NftDetail() {
                 const accounts = await web3.eth.getAccounts();
                 const account = accounts[0];
                 if (account) {
+                    if (NFT[0].verify === 1) {
+                        const res = await axios.get(`${website}/api/isCreator`, {
+                            headers: headers,
+                            params: {
+                                currentAccount: account
+                            }
+                        });
+                        const isCreator = res.data[0].is_creator;
+                        if (isCreator === 3) {
+                            message.info(`${t('購買此NFT需要進行身分驗證')}，${t('但您已被本平台禁用驗證權限！')}`);
+                            return;
+                        } else if (isCreator === 2) {
+                            message.info(`${t('購買此NFT需要進行身分驗證')}，${t('本平台管理者尚未審核您的身分，請稍後在試！')}`);
+                            return;
+                        } else if (isCreator === 0) {
+                            message.info(`${t('購買此NFT需要進行身分驗證')}，${t('您尚未在本平台進行身分驗證，請先到"個人資訊"進行身分驗證！')}`);
+                            return;
+                        }
+                    }
                     let balance = await web3.eth.getBalance(currentAccount);
                     balance = balance.toString() / 1e18;
                     let price = NFT[0].price;
@@ -171,7 +191,7 @@ function NftDetail() {
                             }, {
                                 headers: headers
                             });
-                            alert(t('NFT購買成功'));
+                            message.info(t('NFT購買成功'));
                             const updatedNFT = [...NFT];
                             updatedNFT[0].owner = t('您擁有此NFT'); // 更新購買狀態
                             updatedNFT[0].state = t('二次轉售');
@@ -181,25 +201,23 @@ function NftDetail() {
                             console.error('Error updating DB NFT:', error);
                         }
                     } else {
-                        console.log('餘額不足');
-                        alert(t('餘額不足'));
+                        message.info(t('餘額不足'));
                     }
                 } else {
-                    alert(t('請先登入以太坊錢包，再進行購買'));
+                    message.info(t('請先登入以太坊錢包，再進行購買'));
                     return;
                 }
             } catch (error) {
                 if (error.message.includes('User denied transaction signature')) {
-                    alert(t('拒绝交易'));
+                    message.info(t('拒绝交易'));
                 } else {
-                    console.error('購買NFT發生錯誤：', error);
-                    alert(error);
+                    alert(t('購買NFT發生錯誤：') + error);
                 }
             } finally {
                 enableAllButtons();
             }
         } else {
-            alert(t('您已經擁有此NFT了，不須再購買'));
+            message.info(t('您已經擁有此NFT了，不須再購買'));
         }
     };
 

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useParams } from "react-router-dom";
 import { Navbar, Container, Row, Col, Table, ButtonToolbar, Pagination } from 'react-bootstrap';
 import { ChevronLeft, List, ChevronDoubleLeft, ChevronRight, ChevronDoubleRight } from 'react-bootstrap-icons';
 import { useSwipeable } from 'react-swipeable';
+import { message } from 'antd';
 import comicData from '../contracts/ComicPlatform.json';
 import Web3 from 'web3';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +16,7 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 const ComicRead = () => {
     const [showNavbar, setShowNavbar] = useState(true);
     const [showIconBar, setShowIconBar] = useState(true);
-    const [lastScrollTop, setLastScrollTop] = useState(0);
+    const lastScrollTop = useRef(0);
     const [showOverlay, setShowOverlay] = useState(false);
     const [comic, setComic] = useState([]);
     const [allChapters, setAllChapters] = useState([]);
@@ -42,22 +43,21 @@ const ComicRead = () => {
 
     const handleScroll = () => {
         const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        if (currentScrollTop > lastScrollTop) {
-            // 向下滾動
+        if (currentScrollTop > lastScrollTop.current) {
+            // 向下滚动
             setShowNavbar(false);
             setShowIconBar(false);
         } else {
-            // 向上滾動
+            // 向上滚动
             setShowNavbar(true);
             setShowIconBar(true);
         }
-        setLastScrollTop(currentScrollTop <= 0 ? 0 : currentScrollTop);
+        lastScrollTop.current = currentScrollTop <= 0 ? 0 : currentScrollTop;
     };
 
-    
     const handleClick = () => {
-        setShowNavbar(true);
-        setShowIconBar(true);
+        setShowNavbar(prevState => !prevState);
+        setShowIconBar(prevState => !prevState);
     };
 
     const handleListClick = () => {
@@ -70,13 +70,12 @@ const ComicRead = () => {
 
     useEffect(() => {
         window.addEventListener('scroll', handleScroll);
-        window.addEventListener('click', handleClick);
 
         return () => {
             window.removeEventListener('scroll', handleScroll);
-            window.removeEventListener('click', handleClick);
         };
-    }, [lastScrollTop]);
+    }, []);
+
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
@@ -180,46 +179,24 @@ const ComicRead = () => {
     }, [comicID, chapterID, autoMode]);
 
     const processImage = (img) => {
-        const splitHeight = window.innerHeight * 1.6; // 设置为视口高度的75%
-        const numSplits = Math.ceil(img.height / splitHeight);
+        const splitWidth = 1200;
+        const numSplits = Math.ceil(img.width / splitWidth);
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         const newSplitImages = [];
-        
         for (let i = 0; i < numSplits; i++) {
-            canvas.width = img.width;
-            canvas.height = splitHeight;
+            canvas.width = splitWidth;
+            canvas.height = img.height;
             context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(img, 0, -i * splitHeight);
-            const splitImageURL = canvas.toDataURL();
+            context.drawImage(img, -i * splitWidth, 0);
+            const splitImageURL = canvas.toDataURL('image/png');
             newSplitImages.push({
                 id: i + 1,
                 image: splitImageURL,
             });
-        }
-        
+        };
         return newSplitImages;
-    };
-
-    // const processImage = (img) => {
-    //     const splitWidth = 600;
-    //     const numSplits = Math.ceil(img.width / splitWidth);
-    //     const canvas = document.createElement('canvas');
-    //     const context = canvas.getContext('2d');
-    //     const newSplitImages = [];
-    //     for (let i = 0; i < numSplits; i++) {
-    //         canvas.width = splitWidth;
-    //         canvas.height = img.height;
-    //         context.clearRect(0, 0, canvas.width, canvas.height);
-    //         context.drawImage(img, -i * splitWidth, 0);
-    //         const splitImageURL = canvas.toDataURL();
-    //         newSplitImages.push({
-    //             id: i + 1,
-    //             image: splitImageURL,
-    //         });
-    //     };
-    //     return newSplitImages;
-    // }
+    }
 
     // 章節購買 或 閱讀函數
     const handlePurchase = async (chapterId) => {
@@ -245,10 +222,10 @@ const ComicRead = () => {
                     if (balance > price) {
                         const comicHash = comic[0].comic_id;
                         const chapterHash = chapter.chapterHash;
-                        console.log(comicHash);
-                        console.log(comic[0].creator);
-                        console.log(chapterHash);
-                        console.log(price);
+                        //console.log(comicHash);
+                        //console.log(comic[0].creator);
+                        //console.log(chapterHash);
+                        //console.log(price);
                         price = web3.utils.toWei(price, 'ether');
 
                         let gasEstimate = await web3Instance.methods.purchaseChapter(comicHash, chapterHash, price/10).estimateGas({
@@ -279,7 +256,7 @@ const ComicRead = () => {
                                 'api-key': API_KEY
                             }
                             });
-                            alert(t('章節購買成功'));
+                            message.info(t('章節購買成功'));
                             const updatedChapters = [...currentChapters];
                             updatedChapters[chapterId].isBuying = t('閱讀'); // 更新章節的購買狀態
                             setAllChapters(updatedChapters);
@@ -287,8 +264,7 @@ const ComicRead = () => {
                             console.error('購買紀錄添加至資料庫時發生錯誤：', error);
                         }
                     } else {
-                        console.log('餘額不足');
-                        alert(t('餘額不足'));
+                        message.info(t('餘額不足'));
                     }
                 } else {
                     alert(t('請先登入以太坊錢包，再進行購買'));
@@ -312,17 +288,17 @@ const ComicRead = () => {
         const total = allChapters.length.toString();
         let id = parseInt(chapterID.replace("chapter", ""), 10);
         if (total == 1) {
-            alert(t('目前只有這個章節'));
+            message.info(t('目前只有這個章節'));
             return;
         } else if (allChapters[(id-2)]) {
             if (allChapters[(id-2)].isBuying === t('閱讀')) {
                 window.location.replace(`/comicRead/${comicID}/chapter${id-1}`);
             } else {
-                alert(t('您尚未購買第幾章節', { id: id - 1 }));
+                message.info(t('您尚未購買第幾章節', { id: id - 1 }));
                 return;
             }
         } else {
-            alert(t('本章節為第一章'));
+            message.info(t('本章節為第一章'));
             return;
         }
     };
@@ -332,17 +308,17 @@ const ComicRead = () => {
         let id = parseInt(chapterID.replace("chapter", ""), 10);
 
         if (total == 1) {
-            alert(t('目前只有這個章節'));
+            message.info(t('目前只有這個章節'));
             return;
         } else if (allChapters[(id)]) {
             if (allChapters[(id)].isBuying === t('閱讀')) {
                 window.location.replace(`/comicRead/${comicID}/chapter${id+1}`);
             } else {
-                alert(t('您尚未購買第幾章節', { id: id + 1 }));
+                message.info(t('您尚未購買第幾章節', { id: id + 1 }));
                 return;
             }
         } else {
-            alert(t('本章節為最新章'));
+            message.info(t('本章節為最新章'));
             return;
         }
     };
@@ -351,7 +327,7 @@ const ComicRead = () => {
         if (readPage > 0) {
             setReadPage(readPage - 1);
         } else if (readPage == 0) {
-            alert(t('此為第一頁'));
+            message.info(t('此為第一頁'));
         }
     };
 
@@ -359,7 +335,7 @@ const ComicRead = () => {
         if (readPage < splitImages.length - 1) {
             setReadPage(readPage + 1);
         } else if (readPage == splitImages.length-1) {
-            alert(t('本章節已閱讀完'));
+            message.info(t('本章節已閱讀完'));
         }
     };
 
@@ -477,19 +453,20 @@ const ComicRead = () => {
                             <div
                                 className="flip-comic"
                                 {...swipeHandlers}
+                                onClick={handleClick}
                             >
-                            <img
-                                key={splitImages[readPage].id}
-                                src={splitImages[readPage].image}
-                                alt="Page comics"
-                                className="split-image active"
-                                style={{ zIndex: 2 }}
-                            />
+                                <img
+                                    key={splitImages[readPage].id}
+                                    src={splitImages[readPage].image}
+                                    alt="Page comics"
+                                    className="split-image active"
+                                    style={{ zIndex: 2 }}
+                                />
                             </div>
                         )
                     ) : (
                         chapter.map((chapter, index) => (
-                            <div key={index} className="banner-image">
+                            <div key={index} onClick={handleClick} className="banner-image">
                                 <img src={chapter.image} alt="Long Banner" />
                             </div>
                         ))

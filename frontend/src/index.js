@@ -18,7 +18,6 @@ import ManageComic from './routes/manageComic';
 import CreatorPage from './routes/creatorPage';
 import CollectionPage from './routes/collectionPage';
 import CollectionNft from './routes/collectionNft';
-import CreatorNft from './routes/creatorNft';
 import CreateSuccess from './routes/createSuccess';
 import ReaderPage from './routes/readerPage';
 import Bookcase from './routes/bookcase';
@@ -156,7 +155,7 @@ async function getTransactionTimestamp(transactionHash) {
       const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
       return formattedDate;
   } catch (error) {
-      console.error('获取交易时间失败:', error);
+      alert(error);
       throw error;
   }
 }
@@ -189,7 +188,6 @@ const detectEthereumProvider = (t) => {
   } else if (window.web3) {
     return window.web3.currentProvider;
   } else {
-    console.log("偵測到非以太坊瀏覽器。請安裝 MetaMask 或其他支援的錢包");
     alert(t('非以太坊瀏覽器')); // 使用传入的翻译函数
     return null;
   }
@@ -248,9 +246,6 @@ const router = createBrowserRouter([
       },{
         path: "/analysis",
         element: <Analysis />,
-      },{
-        path: "/creatorNft",
-        element: <CreatorNft />,
       },{
         path: "/mintNFT",
         element: <MintNFT />,

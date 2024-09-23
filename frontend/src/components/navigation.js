@@ -210,7 +210,7 @@ function Navigation() {
                 }
             });
             if (response.data.exists === true) {
-                navigate('/comicManagement');
+                window.location.replace('/comicManagement')
             } else {
                 alert(t('您並非管理者'));
                 return;
@@ -279,14 +279,25 @@ function Navigation() {
                                             </Button>
                                         )}
                                         {!isMetamaskInstalled && (
-                                            <a
-                                                className="install-link"
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                href="https://metamask.io/download"
-                                            >
-                                                {t('請安裝MetaMask')}
-                                            </a>
+                                            <>
+                                                <a
+                                                    className="install-link"
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    href="https://metamask.io/download"
+                                                    style={{marginRight: '10px'}}
+                                                >
+                                                    MetaMask
+                                                </a>
+                                                <a
+                                                    className="install-link"
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    href="https://brave.com/"
+                                                >
+                                                    brave
+                                                </a>
+                                            </>
                                         )}
                                         {isLogged && (
                                             <div className="d-flex align-items-center justify-content-end login">

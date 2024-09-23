@@ -36,7 +36,7 @@ function ManageComic() {
                     });
                 }
             }
-            console.log(temp);
+            //console.log(temp);
             setComic(temp);
             if (temp.length === 0) {
                 setBeing(false);

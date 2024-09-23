@@ -93,7 +93,7 @@ function MessagePage() {
                     return !(dataItem && Number(dataItem.newCreate) < Number(readMsgItem.newCreate));
                 });
                 sortByTimestamp(readMsg);
-                console.log(readMsg);
+                //console.log(readMsg);
                 localStorage.setItem('readMsg', JSON.stringify(readMsg));
                 setComic(readMsg);
                 setLoading(false);

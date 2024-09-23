@@ -168,21 +168,23 @@ function SearchPage() {
                     </div>
                 </Navbar>
                 {isSearch &&
-                    <Row xs={1} md={2} className="searchPage pb-3">
-                        {searchResults.length > 0 && searchResults.map((data, idx) => (
-                            <Col key={idx} xs={12} md={12} className="pt-3 pb-1">
-                                <Link to={`/comicDetail/${data.comicID}`}>
-                                    <Card>
-                                        <div className="position-relative">
-                                            <Card.Img variant="top" src={data.protoFilename} />
-                                            <div className="category-title">{data.title}</div>
-                                            <div className="category-content" style={{bottom: "8px"}}>{data.text}</div>
-                                        </div>
-                                    </Card>
-                                </Link>
-                            </Col>
-                        ))}
-                    </Row>
+                    <Container className='searchPage pt-3 pb-3'>
+                        <Row xs={1} md={2} className="g-3 pb-5">
+                            {searchResults.length > 0 && searchResults.map((data, idx) => (
+                                <Col key={idx} xs={12} md={12} className="pt-3 pb-1">
+                                    <Link to={`/comicDetail/${data.comicID}`}>
+                                        <Card>
+                                            <div className="position-relative">
+                                                <Card.Img variant="top" src={data.protoFilename} />
+                                                <div className="category-title">{data.title}</div>
+                                                <div className="category-content" style={{bottom: "8px"}}>{data.text}</div>
+                                            </div>
+                                        </Card>
+                                    </Link>
+                                </Col>
+                            ))}
+                        </Row>
+                    </Container>
                 }
                 {!isSearch &&  
                     <Container className='searchPage pt-3 pb-3'>
@@ -198,7 +200,7 @@ function SearchPage() {
                             </Col>
                         </Row>
                         <h4>{t('常見分類')}</h4>
-                        <Row xs={1} md={2} className="g-4 pb-5">
+                        <Row xs={1} md={2} className="g-3 pb-5">
                             {promoPosition.map((data, idx) => (
                                 <Col key={idx} xs={12} md={12} className="pt-3">
                                     <Link to={"/category"}>

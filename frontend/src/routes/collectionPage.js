@@ -48,7 +48,7 @@ function CollectionPage() {
                 Promise.all(temp)
                     .then(results => {
                         const filteredResults = results.filter(result => result !== null);
-                        console.log(filteredResults);
+                        //console.log(filteredResults);
                         setComic(filteredResults);
                         if (filteredResults.length === 0) {
                             setBeingComic(false);

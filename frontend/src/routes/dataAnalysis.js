@@ -48,7 +48,7 @@ const initAllComicData = (comicOrigin) => {
   }, { year: {}, quarter: {}, month: {}, day: {} });
 };
 
-const computeSalesData = (salesArray, timePeriod) => {
+const computeSalesData = (salesArray, timePeriod, t) => {
   if (!salesArray || !salesArray[timePeriod]) {
     return null;
   }
@@ -88,7 +88,7 @@ const computeSalesData = (salesArray, timePeriod) => {
     labels,
     datasets: [
       {
-        label: '漫畫銷售額',
+        label: t('漫畫銷售額'),
         data: salesData,
         fill: false,
         borderColor: '#1890ff',
@@ -176,7 +176,7 @@ const initFilterComicData = (comicOrigin) => {
   return processedData;
 };
 
-const computeComicData = (comics, selectedComic, selectedPeriod) => {
+const computeComicData = (comics, selectedComic, selectedPeriod, t) => {
   if (!comics[selectedComic] || !comics[selectedComic][selectedPeriod]) return null;
   const comicData = comics[selectedComic][selectedPeriod];
   const aggregatedData = Object.values(comicData).reduce((acc, { date, sales, count }) => {
@@ -198,7 +198,7 @@ const computeComicData = (comics, selectedComic, selectedPeriod) => {
   return {
     labels: dateRange,
     datasets: [{
-      label: `${selectedComic} - 漫畫銷售額`,
+      label: `${selectedComic} - ${t('漫畫銷售額')}`,
       data: dateRange.map(date => aggregatedData[date].sales.toFixed(3)),
       backgroundColor: '#ff5733',
       borderColor: '#ff5733',
@@ -402,7 +402,7 @@ const initNFTData = (comicOrigin) => {
   };
 };
 
-const nftPieTot = (data, title) => {
+const nftPieTot = (data, title, t) => {
   let dataset;
   if (title === '總收益') {
     dataset = data.map(item => ({
@@ -412,7 +412,7 @@ const nftPieTot = (data, title) => {
     }));
   } else if (title === '轉手收益') {
     dataset = data.flatMap(item => item.nftTitles.map(nft => ({
-      title: nft.nftTitle,
+      title: `${item.comicTitle} - ${nft.nftTitle}`,
       revenue: parseFloat(nft.totalRevenue),
       count: nft.count,
     })));
@@ -431,7 +431,7 @@ const nftPieTot = (data, title) => {
           callbacks: {
             label: (context) => {
               const item = dataset[context.dataIndex];
-              return [`${title}：${item.revenue.toFixed(3)} ETH`, `總比數：${item.count}`];
+              return [`${title}：${item.revenue.toFixed(3)} ETH`, `${t('總比數')}：${item.count}`];
             }
           }
         },
@@ -443,7 +443,7 @@ const nftPieTot = (data, title) => {
   };
 };
 
-const nftChartData = (totRevenueResults, transferRevenueResults) => {
+const nftChartData = (totRevenueResults, transferRevenueResults, t) => {
   if (!Array.isArray(totRevenueResults) || !Array.isArray(transferRevenueResults)) {
     console.error('Invalid data: totRevenueResults or transferRevenueResults is not an array');
     return { data: null, options: null };
@@ -467,14 +467,14 @@ const nftChartData = (totRevenueResults, transferRevenueResults) => {
     labels: comicTitles,
     datasets: [
       {
-        label: '總收益',
+        label: t('總收益'),
         data: totalRevenueData.map(item => item.totalRevenue),
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         borderColor: 'rgba(75, 192, 192, 1)',
         borderWidth: 1,
       },
       {
-        label: '轉手收益',
+        label: t('轉手收益'),
         data: resaleRevenueData.map(item => item.totalRevenue),
         backgroundColor: 'rgba(153, 102, 255, 0.2)',
         borderColor: 'rgba(153, 102, 255, 1)',
@@ -493,9 +493,9 @@ const nftChartData = (totRevenueResults, transferRevenueResults) => {
           label: function (context) {
             const label = context.dataset.label;
             const dataIndex = context.dataIndex;
-            const data = label === '總收益' ? totalRevenueData : resaleRevenueData;
+            const data = label === t('總收益') ? totalRevenueData : resaleRevenueData;
             const { totalRevenue, count } = data[dataIndex];
-            return [`總收益：${totalRevenue.toFixed(3)}`, `總比數：${count}`];
+            return [`${t('總收益')}：${totalRevenue.toFixed(3)}`, `${t('總比數')}：${count}`];
           }
         }
       }
@@ -504,7 +504,7 @@ const nftChartData = (totRevenueResults, transferRevenueResults) => {
       x: {
         title: {
           display: true,
-          text: '漫畫名稱',
+          text: t('漫畫名稱'),
         },
       },
     },
@@ -1196,8 +1196,8 @@ const DataAnalysis = () => {
   const [pieChartData, setPieChartData] = useState('');
   const [selectedComicTitle, setSelectedComicTitle] = useState('');
 
-  const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
+  const [loading, setLoading] = useState(true);
   const currentAccount = localStorage.getItem("currentAccount");
   const headers = {'api-key': API_KEY};
 
@@ -1266,14 +1266,14 @@ const DataAnalysis = () => {
 
   // 漫畫－銷售額
   useEffect(() => {
-    setSalesData(computeSalesData(dataByPeriod, timePeriod));
+    setSalesData(computeSalesData(dataByPeriod, timePeriod, t));
   }, [dataByPeriod, timePeriod]);
 
   useEffect(() => {
     if (selectedComic === t('請選擇漫畫') || timePeriod === 'quarter') {
       return;
     }
-    const data = computeComicData(comics, selectedComic, timePeriod);
+    const data = computeComicData(comics, selectedComic, timePeriod, t);
     setLineData(data);
   }, [selectedComic, timePeriod]);
 
@@ -1285,12 +1285,12 @@ const DataAnalysis = () => {
     const firstPoint = points[0];
     const label = chart.data.labels[firstPoint.index];
     const generateFilteredData = (period, label, dataCalculator, labelGenerator) => {
-      const data = dataCalculator(comics, selectedComic, period);
+      const data = dataCalculator(comics, selectedComic, period, t);
       const allLabels = labelGenerator(label);
       return {
         labels: allLabels,
         datasets: [{
-          label: `${selectedComic} - 銷售額`,
+          label: `${selectedComic} - ${t('銷售額')}`,
           data: allLabels.map(l => {
             const index = data.labels.indexOf(l);
             return index >= 0 ? data.datasets[0].data[index] : 0;
@@ -1347,7 +1347,7 @@ const DataAnalysis = () => {
         day: 'day'
       };
       const timePeriodKey = timePeriods[timePeriod];
-      const timePeriodData = computeSalesData(dataByPeriod, timePeriodKey);
+      const timePeriodData = computeSalesData(dataByPeriod, timePeriodKey, t);
       const pieChartData = transformPieData(timePeriodData.datasets[0].pieData, label);
       const { labels, datasets } = pieChartData;
       const data = datasets[0].data;
@@ -1387,13 +1387,13 @@ const DataAnalysis = () => {
       x: {
         title: {
           display: true,
-          text: '日期',
+          text: t('日期'),
         },
       },
       y: {
         title: {
           display: true,
-          text: '銷售額',
+          text: t('銷售額'),
         },
       },
     },
@@ -1450,7 +1450,7 @@ const DataAnalysis = () => {
       y: {
         title: {
           display: true,
-          text: '銷售額',
+          text: t('銷售額'),
         },
       },
     },
@@ -1600,7 +1600,7 @@ const DataAnalysis = () => {
         }
       }
       if (Object.keys(aggregatedData).length > 0) {
-        console.log(aggregatedData);
+        //console.log(aggregatedData);
         setRankFilterData(aggregatedData);
       } else {
         message.info('沒有符合條件的資料');
@@ -1633,14 +1633,11 @@ const DataAnalysis = () => {
   // NFT－收益分布
   useEffect(() => {
     if (nftData && nftData.totRevenueResults && nftData.transferRevenueResults) {
-      console.log(nftData);
-      console.log(nftData.totRevenueResults.length);
-      
-      const { data, options } = nftChartData(nftData.totRevenueResults, nftData.transferRevenueResults);
+      const { data, options } = nftChartData(nftData.totRevenueResults, nftData.transferRevenueResults, t);
       setChartData({ data, options });
       setNftSalesData({
-        total: nftPieTot(nftData.totRevenueResults, '總收益'),
-        transfer: nftPieTot(nftData.transferRevenueResults, '轉手收益')
+        total: nftPieTot(nftData.totRevenueResults, '總收益', t),
+        transfer: nftPieTot(nftData.transferRevenueResults, '轉手收益', t)
       });
     }
   }, [nftData]);
@@ -1650,10 +1647,11 @@ const DataAnalysis = () => {
       <Pie
         data={chartData}
         options={chartData.options}
-        style={{ marginTop: "-40px" }}
+        style={{ marginTop: "-40px", maxWidth: "500px", maxHeight: "500px" }}
       />
       <div style={{ marginTop: "-40px", marginBottom: "0px", marginLeft: "5%" }}>
-        <h3>{title} TOP 5</h3>
+        <h3>{t(title)}</h3>
+        <h4>{t('前 5 名')}</h4>
         {nftSalesTop5(chartData)}
       </div>
     </div>
@@ -1677,7 +1675,7 @@ const DataAnalysis = () => {
     const index = points[0].index;
     const comicTitle = chartData.data.labels[index];
     const datasetLabel = chartData.data.datasets[points[0].datasetIndex].label;
-    const isTotRevenue = datasetLabel === '總收益';
+    const isTotRevenue = datasetLabel === t('總收益');
     const dataSource = isTotRevenue ? nftData.totRevenueResults : nftData.transferRevenueResults;
     const comic = dataSource.find(item => item.comicTitle === comicTitle);
     const nftTitles = comic ? comic.nftTitles : [];
@@ -1713,7 +1711,7 @@ const DataAnalysis = () => {
             const count = nftData.totRevenueResults
               .find(item => item.comicTitle === selectedComicTitle.title)
               ?.nftTitles.find(nft => nft.nftTitle === label)?.count || 0;
-            return [`總收益：${raw.toFixed(3)}`, `總比數：${count}`];
+            return [`${t('總收益')}：${raw.toFixed(3)}`, `${t('總比數')}：${count}`];
           }
         },
       },
@@ -1748,17 +1746,17 @@ const DataAnalysis = () => {
             <h2 className='text-center fw-bold' style={{backgroundColor: "green"}}>{t('數據分析')}</h2>
           </div>
           <Tabs defaultActiveKey="comic" id="data-analysis-tabs" className="mt-4 mb-3 w-100">
-            <Tab eventKey="comic" title="漫畫">
+            <Tab eventKey="comic" title={t('漫畫')}>
               <Tabs defaultActiveKey="comicSales" className="mb-3 w-100 custom-tabs second-tabs">
-                <Tab className='second-tab' eventKey="comicSales" title="銷售額">
+                <Tab className='second-tab' eventKey="comicSales" title={t('銷售額')}>
                   <div style={{marginBottom: "50px"}} className='sales-chart'>
                     <div className='d-flex align-items-center justify-content-between'>
                       <h1>{t('漫畫總銷售額')}</h1>
                       <Form.Select value={timePeriod} onChange={handlePeriodChange}>
-                        <option value="year">年</option>
-                        <option value="quarter">季</option>
-                        <option value="month">月</option>
-                        <option value="day">日</option>
+                        <option value="year">{t('年')}</option>
+                        <option value="quarter">{t('季')}</option>
+                        <option value="month">{t('月')}</option>
+                        <option value="day">{t('日')}</option>
                       </Form.Select>
                     </div>
                     {salesData && salesData.labels.length > 0 ? (
@@ -1770,15 +1768,17 @@ const DataAnalysis = () => {
                               <h2>{t('漫畫銷售佔比')}</h2>
                               {pieTop5 && pieTop5.title.length !== 0 ? (
                                 <>
-                                  {renderPieChart(pieData, pieOptions)}
-                                  <h3>{pieTop5.date} {t('TOP 5')}</h3>
+                                  <div style={{maxWidth: "500px", maxHeight: "500px"}}>
+                                    {renderPieChart(pieData, pieOptions)}
+                                  </div>
+                                  <h3>{pieTop5.date} {t('前 5 名')}</h3>
                                   {pieTop5.title && pieTop5.title.map((item, index) => (
                                     <p key={index}>{item}</p>
                                   ))}
                                 </>
                               ) : (
                                 <>
-                                  <h3>{pieTop5.date} {t('TOP 5')}</h3>
+                                  <h3>{pieTop5.date} {t('前 5 名')}</h3>
                                   <p>{t('目前沒有購買紀錄')}</p>
                                 </>
                               )}
@@ -1818,35 +1818,35 @@ const DataAnalysis = () => {
                     )}
                   </div>
                 </Tab>
-                <Tab className='second-tab' eventKey="comicCustomer" title="客户群">
+                <Tab className='second-tab' eventKey="comicCustomer" title={t('客户群')}>
                   <div>
-                    <h1 className='mb-2'>買家銷售總覽</h1>
+                    <h1 className='mb-2'>{t('買家銷售總覽')}</h1>
                     <div className="scrollable-container">
                       <div className="scrollable-buttons">
                         {Object.keys(buyer).map((period) => (
                           <Button
-                            className="mb-2"
+                            className="mb-2 btn"
                             key={period}
                             onClick={() => setBuyerPeriod(period)}
                           >
-                            {period}
+                            {t(period)}
                           </Button>
                         ))}
                       </div>
                     </div>
                     <div className='customer-text pt-3'>
-                      <Table striped hover className='mb-5 income-table'>
+                      <Table striped hover className='mb-4 income-table'>
                         <thead>
                           <tr>
-                              <th>區間</th>
-                              <th>買家數量</th>
-                              <th>總收益</th>
-                              <th>總數量</th>
+                              <th>{t('區間')}</th>
+                              <th>{t('買家數量')}</th>
+                              <th>{t('總收益')}</th>
+                              <th>{t('總數量')}</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr>
-                              <td>{buyerPeriod}</td>
+                              <td>{t(buyerPeriod)}</td>
                               <td>{summary.buyerCount}</td>
                               <td>${summary.total_amount.toFixed(3)}</td>
                               <td>{summary.count}</td>
@@ -1858,24 +1858,24 @@ const DataAnalysis = () => {
                         style={{ width: 200, marginBottom: 16 }}
                         onChange={handleSortChange}
                       >
-                        <Select.Option value="sales">銷售額排序</Select.Option>
-                        <Select.Option value="count">購買量排序</Select.Option>
+                        <Select.Option value="sales">{t('銷售額排序')}</Select.Option>
+                        <Select.Option value="count">{t('購買量排序')}</Select.Option>
                       </Select>
                       <Table striped hover>
                         <thead>
                           <tr>
-                            <th>買家</th>
-                            <th>銷售額</th>
-                            <th>總數量</th>
+                            <th>{t('買家')}</th>
+                            <th>{t('銷售額')}</th>
+                            <th>{t('總數量')}</th>
                           </tr>
                         </thead>
                         <tbody>
                           {sortedBuyers.map(([buyerId, stats]) => (
                             <React.Fragment key={buyerId}>
                               <tr onClick={() => setSelectedBuyer(buyerId === selectedBuyer ? null : buyerId)} className='pt-2'>
-                                <td data-label="買家">{formatBuyerId(buyerId)}</td>
-                                <td data-label="銷售額">${stats.total_amount.toFixed(3)}</td>
-                                <td data-label="總數量">{stats.count}</td>
+                                <td data-label={t('買家')}>{formatBuyerId(buyerId)}</td>
+                                <td data-label={t('銷售額')}>${stats.total_amount.toFixed(3)}</td>
+                                <td data-label={t('總數量')}>{stats.count}</td>
                               </tr>
                               {selectedBuyer === buyerId && (
                                 getComicsForBuyer(buyerId).map(([comicTitle, comicStats]) => (
@@ -1893,9 +1893,9 @@ const DataAnalysis = () => {
                     </div>
                   </div>
                 </Tab>
-                <Tab className='second-tab' eventKey="comicRank" title="排行榜">
+                <Tab className='second-tab' eventKey="comicRank" title={t('排行榜')}>
                   <div>
-                    <h2>選擇日期區間</h2>
+                    <h2>{t('選擇日期區間')}</h2>
                     <Row gutter={16}>
                       <Col span={12}>
                         <div style={{ marginBottom: 16 }}>
@@ -1903,7 +1903,7 @@ const DataAnalysis = () => {
                             onChange={(value) => setDates([value, dates ? dates[1] : null])}
                             format="YYYY/MM/DD"
                             style={{ width: '100%' }}
-                            placeholder="開始日期"
+                            placeholder={t('開始日期')}
                           />
                         </div>
                       </Col>
@@ -1913,7 +1913,7 @@ const DataAnalysis = () => {
                             onChange={(value) => setDates([dates ? dates[0] : null, value])}
                             format="YYYY/MM/DD"
                             style={{ width: '100%' }}
-                            placeholder="結束日期"
+                            placeholder={t('結束日期')}
                           />
                         </div>
                       </Col>
@@ -1924,19 +1924,19 @@ const DataAnalysis = () => {
                         onClick={filterDataByRange}
                         disabled={!dates || !dates[0] || !dates[1]}
                       >
-                        顯示資料
+                        {t('顯示資料')}
                       </Button>
                       <Select
                         defaultValue="sales"
                         style={{ width: 200}}
                         onChange={handleSortChange}
                       >
-                        <Select.Option value="sales">銷售額排序</Select.Option>
-                        <Select.Option value="count">購買量排序</Select.Option>
+                        <Select.Option value="sales">{t('銷售額排序')}</Select.Option>
+                        <Select.Option value="count">{t('購買量排序')}</Select.Option>
                       </Select>
                     </div>
                     <div style={{ marginTop: 16 }}>
-                      <h3>符合條件的資料：</h3>
+                      <h3>{t('符合條件的資料：')}</h3>
                       {Object.keys(rankFilterData).length > 0 ? (
                         <List
                           className="rankingList"
@@ -1949,15 +1949,15 @@ const DataAnalysis = () => {
                               </div>
                               <div className="ranking-card-info ms-3">
                                 <div className="ranking-title fw-bold">{comic}</div>
-                                <div className="ranking-title">類型：{category}</div>
-                                <div className="ranking-title">銷售額：{totalSales}</div>
-                                <div className="ranking-title">購買量：{totalCount}</div>
+                                <div className="ranking-title">{t('類型')}：{category}</div>
+                                <div className="ranking-title">{t('銷售額')}：{totalSales}</div>
+                                <div className="ranking-title">{t('購買量')}：{totalCount}</div>
                               </div>
                             </List.Item>
                           )}
                         />
                       ) : (
-                        <p>沒有符合條件的資料</p>
+                        <p>{t('沒有符合條件的資料')}</p>
                       )}
                     </div>
                   </div>
@@ -1966,24 +1966,24 @@ const DataAnalysis = () => {
             </Tab>
             <Tab eventKey="nft" title="NFT">
               <Tabs defaultActiveKey="nftSales" className="mb-3 w-100 custom-tabs second-tabs">
-                <Tab className='second-tab' eventKey="nftSales" title="銷售額">
-                  <center><h2>NFT 銷售額</h2></center><hr />
+                <Tab className='second-tab' eventKey="nftSales" title={t('銷售額')}>
+                  <center><h2>NFT {t("銷售額")}</h2></center><hr />
                   <div className="pie-chart-wrapper">
-                    {(nftData.totRevenueResults.length && nftSalesData && nftSalesData.total) ? (
+                    {(nftData.totRevenueResults.length > 0 && nftSalesData && nftSalesData.total) ? (
                       <div className="pie-chart-container">
                         <NftPieChart chartData={nftSalesData.total} title="總收益" />
                         <hr />
-                        {nftSalesData.transfer && <NftPieChart chartData={nftSalesData.transfer} title="轉手收益" />}
+                        {Object.keys(nftSalesData.transfer).length > 0 && <NftPieChart chartData={nftSalesData.transfer} title="轉手收益" />}
                       </div>
                     ) : (
                       <p>{t('目前沒有購買紀錄')}</p>
                     )}
                   </div>
                 </Tab>
-                <Tab className='second-tab revenueDist' eventKey="revenueDist" title="收益分布">
+                <Tab className='second-tab revenueDist' eventKey="revenueDist" title={t('收益分布')}>
                   <div>
-                    <center><h2>NFT 收益分布</h2></center><hr />
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} className='nft-income-chart'>
+                    <center><h2>NFT {t('收益分布')}</h2></center><hr />
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} className='sales-chart'>
                       {chartData && chartData.data && chartData.options && (
                         <>
                           <Bar
@@ -1999,7 +1999,7 @@ const DataAnalysis = () => {
                                 
                               />
                               <h3>{selectedComicTitle.title} {selectedComicTitle.state}</h3>
-                              <h3>{t('TOP 5')}</h3>
+                              <h3>{t('前 5 名')}</h3>
                               {pieChartData.top5 && pieChartData.top5.map((item, index) => (
                                 <p key={index}>{item}</p>
                               ))}
