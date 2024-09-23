@@ -218,8 +218,8 @@ app.post('/api/send-verification-email', async (req, res) => {
   const { name, penName, email, account, version, filename } = req.body;
   const code = Math.floor(100000 + Math.random() * 900000);  // 隨機生成 6 位數驗證碼
   const expires = new Date(Date.now() + 15 * 60 * 1000); // 驗證碼 15 分钟內有效
-  const imagePath = path.join(__dirname, 'uploads', 'terms', version, filename);  // localhost
-  //const imagePath = path.join('/var/www/html/', 'uploads', 'terms', version, filename);  // web3toon
+  //const imagePath = path.join(__dirname, 'uploads', 'terms', version, filename);  // localhost
+  const imagePath = path.join('/var/www/html/', 'uploads', 'terms', version, filename);  // web3toon
   const mailOptions = {
     from: emailAccount,
     to: email,
@@ -686,10 +686,10 @@ app.get('/api/termsIMG/:version/:language', async (req, res) => {
       const filename = `${language}.jpg`;
 
       // localhost
-      const imagePath = path.join(__dirname, 'uploads', 'terms', version, filename);
+      //const imagePath = path.join(__dirname, 'uploads', 'terms', version, filename);
 
       // web3toonapi
-      //const imagePath = path.join('/var/www/html/', 'uploads', 'terms', version, filename);
+      const imagePath = path.join('/var/www/html/', 'uploads', 'terms', version, filename);
 
       await fsPromises.access(imagePath);
       res.json({ state: true });
