@@ -29,12 +29,12 @@ function Navigation() {
     const [isConnected, setConnected] = useState(false);
     const [isLogged, setIsLogged] = useState(false);
     const [currentAccount, setCurrentAccount] = useState("");
-    const [subMenuOpen, setSubMenuOpen] = useState(Array(SidebarData.length).fill(false));
     const [menuExpanded, setMenuExpanded] = useState(false);
     const [ethBalance, setEthBalance] = useState('');
     const [account, setAccount] = useState('');
     const [accounts, setAccounts] = useState([]);
     const [expanded, setExpanded] = useState(false); // 状态用于控制菜单展开或折叠
+    const [isAdmin, setIsAdmin] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState('');
     const { t, i18n } = useTranslation();
     const headers = {'api-key': API_KEY};
@@ -85,6 +85,24 @@ function Navigation() {
                         alert(t('登入成功'));
                         navigate("/");
                         loadAccountBalance(accounts[0]);
+                        try {
+                            const response = await axios.get(`${website}/api/comicManagement/isAdmin`, {
+                              headers: headers,
+                              params: {
+                                currentAccount: accounts[0]
+                              }
+                            });
+                            let isAdminRes = response.data;
+                            if (isAdminRes.exists === true) {
+                                localStorage.setItem("isAdmin", true);
+                                setIsAdmin(true);
+                            } else {
+                                localStorage.setItem("isAdmin", false);
+                                setIsAdmin(false);
+                            }
+                        } catch (error) {
+                            console.error(error);
+                        }
                     } catch (error) {
                         console.error('Error fetching records:', error);
                     }
@@ -104,29 +122,6 @@ function Navigation() {
             return prefix + "..." + suffix;
         }
         return "尚未登入";
-    };
-
-    const handleSubMenuClick = (index, event) => {
-        event.stopPropagation();
-        setSubMenuOpen((prevState) => {
-            const newState = Array(SidebarData.length).fill(false);
-            newState[index] = true;
-            return newState;
-        });
-    };
-
-    const handleMenuItemClick = (index, event) => {
-        event.stopPropagation();
-        if (SidebarData[index].subMenu) {
-            event.preventDefault();
-            setSubMenuOpen((prevState) => {
-                const newState = [...prevState];
-                newState[index] = !newState[index];
-                return newState;
-            });
-        } else {
-            navigate(SidebarData[index].path);
-        }
     };
 
     const reloadAccount = async () => {
@@ -150,6 +145,25 @@ function Navigation() {
                         const balance = await web3.eth.getBalance(newAccount);
                         setEthBalance(parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(3));
                         setIsLogged(true);
+                        try {
+                            const response = await axios.get(`${website}/api/comicManagement/isAdmin`, {
+                              headers: headers,
+                              params: {
+                                currentAccount: newAccount
+                              }
+                            });
+                            let isAdminRes = response.data;
+                            console.log(isAdminRes);
+                            if (isAdminRes.exists === true) {
+                                localStorage.setItem("isAdmin", true);
+                                setIsAdmin(true);
+                            } else {
+                                localStorage.setItem("isAdmin", false);
+                                setIsAdmin(false);
+                            }
+                        } catch (error) {
+                            console.error(error);
+                        }
                         window.location.reload();
                     } catch (error) {
                         console.error('Error fetching records:', error);
@@ -183,6 +197,7 @@ function Navigation() {
                 setCurrentAccount(currentAccount);
                 setConnected(true);
                 loadAccountBalance(currentAccount);
+                setIsAdmin(JSON.parse(localStorage.getItem('isAdmin')));
             }
         };
         checkLoginStatus();
@@ -199,25 +214,6 @@ function Navigation() {
             setMetamaskInstalled(false);
         }
         return provider;
-    };
-
-    const handleAdminClick = async () => {
-        try {
-            const response = await axios.get(`${website}/api/comicManagement/isAdmin`, {
-                headers: headers,
-                params: {
-                    currentAccount: currentAccount
-                }
-            });
-            if (response.data.exists === true) {
-                window.location.replace('/comicManagement')
-            } else {
-                alert(t('您並非管理者'));
-                return;
-            }
-        } catch (error) {
-            console.error(error);
-        }
     };
 
     useEffect(() => {
@@ -268,7 +264,9 @@ function Navigation() {
                                         <Nav.Link href="/rankingList">{t('排行榜')}</Nav.Link>
                                         <Nav.Link href="/creatorPage">{t('創作者專區')}</Nav.Link>
                                         <Nav.Link href="/readerPage">{t('讀者專區')}</Nav.Link>
-                                        <Nav.Link onClick={handleAdminClick}>{t('管理者專區')}</Nav.Link>
+                                        {isAdmin && 
+                                            <Nav.Link href="/comicManagement">{t('管理者專區')}</Nav.Link>
+                                        }
                                     </Nav>
                                     {/* 登入區塊 */}
                                     <div className={`log-in-area ${expanded ? 'vertical-layout' : 'horizontal-layout'}`}>

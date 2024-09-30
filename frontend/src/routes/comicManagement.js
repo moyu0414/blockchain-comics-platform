@@ -169,10 +169,12 @@ const ComicManagement = ({ contractAddress }) => {
         });
         updateComics(searchResults, comicHash);
         updateArray(searchResults, comicHash);
+        message.info(t('漫畫刪除成功'));
 
         const creatorAccount = account.find(account => account.address === creator);
         
         if (creatorAccount.is_creator !== "禁用") {
+          message.info(t('接著執行刪除創作者帳號'));
           await meta.removeCreator(creator).send({from: currentAccount});
         
           const response = await axios.put(`${website}/api/update/userAccount`, null, {
