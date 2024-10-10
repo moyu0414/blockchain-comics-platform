@@ -837,7 +837,8 @@ const ComicManagement = ({ contractAddress }) => {
                     <th></th>
                     <th>#</th>
                     <th>{t('帳號')}</th>
-                    <th className="text-end">{t('創作者身分')}</th>
+                    <th>{t('身分狀態')}</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -846,7 +847,59 @@ const ComicManagement = ({ contractAddress }) => {
                       <th data-label={t('編號')}></th>
                       <th data-label={t('編號')}>{index + 1}</th>
                       <td data-label={t('帳號')} className="address-cell">{data.address}</td>
-                      <td data-label={t('創作者身分')} className="text-end">
+                      <td data-label={t('創作者身分')}>
+                        {data.is_creator === '否' && t('一般使用者')}
+                        {data.is_creator === '是' && t('創作者')}
+                        {data.is_creator === '審核' && t('待審核')}
+                        {data.is_creator === '禁用' && t('禁用中')}
+                      </td>
+                      <td className="text-end">
+                        {data.is_creator === '否' && (
+                          <OverlayTrigger placement="top" overlay={renderTooltip(t('非創作者'))}>
+                            <Button
+                              className="disabled-btn"
+                              disabled 
+                            >
+                              {t('非創作者')}
+                            </Button>
+                          </OverlayTrigger>
+                        )}
+
+                        {data.is_creator === '禁用' && (
+                          <OverlayTrigger placement="top" overlay={renderTooltip(t('創作者權限已禁用'))}>
+                            <Button
+                              className="disabled-btn"
+                              disabled // 禁用按鈕
+                            >
+                              {t('禁用中')}
+                            </Button>
+                          </OverlayTrigger>
+                        )}
+
+                        {data.is_creator === '是' && (
+                          <OverlayTrigger placement="top" overlay={renderTooltip(t('禁用創作者'))}>
+                            <Button
+                              onClick={() => accountChange(data.address, data.is_creator)}
+                              className="del-btn"
+                              data-backgroundcolor="#0FC2C0"
+                            >
+                              {t('刪除')}
+                            </Button>
+                          </OverlayTrigger>
+                        )}
+
+                        {data.is_creator === '審核' && (
+                          <OverlayTrigger placement="top" overlay={renderTooltip(t('審核創作者申請'))}>
+                            <Button
+                              onClick={() => accountChange(data.address, data.is_creator)}
+                              className="war-btn"
+                            >
+                              {t('審核')}
+                            </Button>
+                          </OverlayTrigger>
+                        )}
+                      </td>
+                      {/* <td className="text-end">
                         <OverlayTrigger placement="top" overlay={renderTooltip(t('修改創作者身分'))}>
                           <Button 
                             onClick={() => accountChange(data.address, data.is_creator)} 
@@ -856,7 +909,7 @@ const ComicManagement = ({ contractAddress }) => {
                             {t(data.is_creator)}
                           </Button>
                         </OverlayTrigger>
-                      </td>
+                      </td> */}
                     </tr>
                   ))}
                   {showUser && (
