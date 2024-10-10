@@ -2059,7 +2059,7 @@ app.get('/api/comicManagement/isAdmin', (req, res) => {
     }
     const allAddressesQuery = `
         SELECT 
-            address, is_creator, is_admin
+            address, is_creator, is_admin, penName
         FROM 
             user
     `;

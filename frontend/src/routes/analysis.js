@@ -310,17 +310,27 @@ function Analysis() {
                             <Row className="pb-1">
                                 {comic.map((data, index) => (
                                     <Col xs={4} md={3} className="pt-2" key={index}>
-                                        <Link to={`/nftDetail/tokenId${data.tokenId}`}>
-                                            <Card className="effect-image-1">
-                                                <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
-                                                <div className="creatorNft-overlay">
-                                                    <span>{t('已售')}: {data.saleQty} {t('總數')}: {data.totQty}</span>
-                                                </div>
-                                                <Card.Body className="simple-text">
-                                                    <Card.Text className="creatorNft-text">{data.tokenTitle}</Card.Text>
-                                                </Card.Body>
-                                            </Card>
-                                        </Link>
+                                    <Link to={`/nftDetail/tokenId${data.tokenId}`}>
+                                        <Card className="effect-image-1">
+                                        <Card.Img variant="top" src={data.image} alt={`image-${index + 1}`} />
+                                        <div className="creatorNft-overlay">
+                                            <span
+                                                style={{
+                                                    color: data.saleQty === 0 
+                                                    ? '#F44336' // 已售數量為 0 顯示紅色
+                                                    : data.saleQty === data.totQty 
+                                                    ? '#BBFFFF' // 已售數量等於總數時顯示綠色
+                                                    : '#FFC107' // 其他情況顯示橙色
+                                                }}
+                                            >
+                                            {t('已售')}: {data.saleQty} {t('總數')}: {data.totQty}
+                                            </span>
+                                        </div>
+                                        <Card.Body className="simple-text">
+                                            <Card.Text className="creatorNft-text">{data.tokenTitle}</Card.Text>
+                                        </Card.Body>
+                                        </Card>
+                                    </Link>
                                     </Col>
                                 ))}
                             </Row>
