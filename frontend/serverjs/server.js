@@ -1859,15 +1859,17 @@ app.get('/api/searchPage/Keyword', (req, res) => {
   const query = `
     SELECT title, description AS text, comic_id, filename, protoFilename
     FROM comics
+    INNER JOIN user ON comics.creator = user.address
     WHERE is_exist = 0 AND (
       creator LIKE ? OR
       title LIKE ? OR
       description LIKE ? OR
-      category LIKE ?
+      category LIKE ? OR
+      penName LIKE ?
     )
   `;
   const searchTermPattern = `%${searchTerm}%`;
-  pool.query(query, [searchTermPattern, searchTermPattern, searchTermPattern, searchTermPattern], (error, results) => {
+  pool.query(query, [searchTermPattern, searchTermPattern, searchTermPattern, searchTermPattern, searchTermPattern], (error, results) => {
     if (error) {
       console.error('Error fetching keyword results: ', error);
       return res.status(500).json({ message: 'Error fetching keyword results' });

@@ -325,7 +325,7 @@ const AuthorProfile = () => {
                                                 <br />
                                             </>
                                         ) : (
-                                                <Button className='profile-edit' variant="primary" onClick={handleEditToggle} disabled={isButtonDisabled}>{t('個資編輯')}</Button>
+                                                <Button className='profile-edit' variant="primary" onClick={handleEditToggle} disabled={isButtonDisabled || isAdding === true}>{t('個資編輯')}</Button>
                                         )}
                                         {isAdding ? (
                                             <>
@@ -334,7 +334,7 @@ const AuthorProfile = () => {
                                                 <Button className='profile-cancel' variant="secondary" onClick={handleAddToggle}>{t('取消')}</Button>
                                             </>
                                         ) : (
-                                                <Button className='profile-add' variant="primary" onClick={handleAddToggle} disabled={isButtonDisabled}>{t('新增訊息')}</Button>
+                                            <Button className='profile-add' variant="primary" onClick={handleAddToggle} disabled={isButtonDisabled || isEditing === true}>{t('新增訊息')}</Button>
                                         )}
                                         {isEditEmail && (
                                             <>
@@ -371,23 +371,25 @@ const AuthorProfile = () => {
                             </Card.Body>
                         </Card>
                         </Col>
+                        <Col>
+                            {isAdding && (
+                                <Card.Body className='post-section'>
+                                    <Card.Text>
+                                            <Form.Control
+                                                as="textarea"
+                                                rows={3}
+                                                name="msg"
+                                                value={addMsgInfo.msg}
+                                                onChange={handleAddMsg}
+                                            />
+                                    </Card.Text>
+                                </Card.Body>
+                            )}
+                        </Col>
                     </Row>
                     <Row className="my-4">
                         <Col xs={12}>
                             <Card>
-                                {isAdding && (
-                                    <Card.Body className='post-section'>
-                                        <Card.Text>
-                                                <Form.Control
-                                                    as="textarea"
-                                                    rows={3}
-                                                    name="msg"
-                                                    value={addMsgInfo.msg}
-                                                    onChange={handleAddMsg}
-                                                />
-                                        </Card.Text>
-                                    </Card.Body>
-                                )}
                                 <h4><center>{t('訊息公告')}</center></h4>
                                 {msg.map((date, index) => (
                                     <div key={date.date}>

@@ -110,6 +110,7 @@ function Analysis() {
                     });
                 }
             });
+            purchased.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
             allRecord.forEach(data => {
                 const key = data.keyData;
                 if (!CountComicDetails[key]) {
