@@ -38,13 +38,14 @@ function ComicDetail() {
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].is_exist === 0) {
                     if (storedArray[i].comicID === comicID) {
-                        const filename = storedArray[i].filename;
+                        const comicHash = storedArray[i].comic_id;
+                        
                         let protoFilename;
                         if (storedArray[i].protoFilename) {
-                            const protoResponse = await axios.get(`${website}/api/coverFile/${filename}/${storedArray[i].protoFilename}`, { responseType: 'blob', headers });
+                            const protoResponse = await axios.get(`${website}/api/coverFile/${comicHash}`, { responseType: 'blob', headers });
                             protoFilename = URL.createObjectURL(protoResponse.data); 
                         } else {
-                            const imageResponse = await axios.get(`${website}/api/comicIMG/${filename}`, { responseType: 'blob', headers });
+                            const imageResponse = await axios.get(`${website}/api/comicIMG/${comicHash}`, { responseType: 'blob', headers });
                             protoFilename = URL.createObjectURL(imageResponse.data);
                         }
                         let author;
@@ -54,7 +55,7 @@ function ComicDetail() {
                             author = storedArray[i].creator;
                         }
                         temp.push({
-                            comicHash: storedArray[i].comic_id,
+                            comicHash: comicHash,
                             comicID: storedArray[i].comicID,
                             title: storedArray[i].title,
                             description: storedArray[i].description,
@@ -74,7 +75,7 @@ function ComicDetail() {
                 for (let i = 0; i < storedArray.length; i++) {
                     // 類似漫畫 依據類型跟同作者取前4本
                     if ((storedArray[i].category == temp[0].category || storedArray[i].creator == temp[0].author) && storedArray[i].comicID != comicID && storedArray[i].is_exist === 0) {
-                        const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
+                        const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].comic_id}`, { responseType: 'blob', headers });
                         const image = URL.createObjectURL(imageResponse.data);
                         fetchedData.push({
                             comicID: storedArray[i].comicID,
@@ -179,7 +180,6 @@ function ComicDetail() {
         const accounts = await web3.eth.getAccounts();
         if (accounts[0]) {
             setIsFavorited(!isFavorited); // 切換收藏狀態
-            let data = chapters[chapters.length-1].create_timestamp;
             try {
                 const response = await axios.put(`${website}/api/update/comicDetail/favorite`, null, {
                     headers: headers,
@@ -187,7 +187,6 @@ function ComicDetail() {
                         currentAccount: currentAccount,
                         comicHash: comic[0].comicHash,
                         bool: !isFavorited,
-                        data: data
                     },
                 });
             } catch (error) {

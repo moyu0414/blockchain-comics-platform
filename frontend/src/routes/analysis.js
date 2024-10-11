@@ -131,8 +131,8 @@ function Analysis() {
                     data.image = URL.createObjectURL(nftImgResponse.data);
                 } else {
                     const url = data.protoFilename === 1
-                    ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
-                    : `${website}/api/comicIMG/${data.filename}`;
+                    ? `${website}/api/coverFile/${data.comicHash}`
+                    : `${website}/api/comicIMG/${data.comicHash}`;
                     const coverImgResponse = await axios.get(url, { responseType: 'blob', headers });
                     data.image = URL.createObjectURL(coverImgResponse.data);
                 }

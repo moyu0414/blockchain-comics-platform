@@ -40,8 +40,8 @@ function CollectionNft() {
                             : URL.createObjectURL(
                                 await (await axios.get(
                                     data.protoFilename === 1
-                                        ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
-                                        : `${website}/api/comicIMG/${data.filename}`,
+                                        ? `${website}/api/coverFile/${data.comic_id}`
+                                        : `${website}/api/comicIMG/${data.comic_id}`,
                                     { responseType: 'blob', headers }
                                 )).data
                             );

@@ -503,11 +503,6 @@ const handleGeneratePages = async () => {
   });
 };
 
-// 获取文件扩展名的函数
-const getFileExtension = (filename) => {
-  return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2);
-};
-
 
 return (
   <div className="upload-form">

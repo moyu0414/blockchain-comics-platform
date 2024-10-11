@@ -59,7 +59,7 @@ function CreatorPage() {
                                 const storedArray = JSON.parse(storedArrayJSON);
                                 for (let i = 0; i < storedArray.length; i++) {
                                     if (storedArray[i].is_exist === 0) {
-                                        const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
+                                        const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].comic_id}`, { responseType: 'blob', headers });
                                         const image = URL.createObjectURL(imageResponse.data);
                                         if (storedArray[i].creator == account) {
                                             temp.push({
