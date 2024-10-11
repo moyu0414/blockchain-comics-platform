@@ -168,7 +168,9 @@ contract ComicPlatform is ERC721, Ownable , ReentrancyGuard {
             }
             for (uint256 i = 0; i < creatorComics[comics[_comicHash].owner].length; i++) {
                 bytes32 _creatorcomicHash = creatorComics[comics[_comicHash].owner][i];
-                comics[_creatorcomicHash].status = 1;
+                if (comics[_creatorcomicHash].status == 0) {
+                    comics[_creatorcomicHash].status = 1;
+                }
             }
         }
 
