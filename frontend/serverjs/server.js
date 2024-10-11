@@ -259,7 +259,7 @@ app.post('/api/verify-email', upload.single('creatorIMG'),async (req, res) => {
   if (!image){
     return res.status(500).json({ state: false, message: 'Error upload image' });
   }
-  const query = 'SELECT info FROM user WHERE address = ?';
+  const query = 'SELECT info, date FROM user WHERE address = ?';
   pool.query(query, [account], (error, results) => {
     if (error) {
       console.error('Error fetching user data:', error);
@@ -278,8 +278,10 @@ app.post('/api/verify-email', upload.single('creatorIMG'),async (req, res) => {
     const penName = results[0].info.penName;
     const terms = JSON.parse(req.body.terms);
     const info = JSON.stringify({ name, email, image, terms });
-    const updateQuery = 'UPDATE user SET info = ?, is_creator = 2, penName = ? WHERE address = ?';
-    pool.query(updateQuery, [info, penName, account], (error, results) => {
+    const currentDate = results[0]?.date ? results[0].date : {};
+    currentDate[1] = Date.now();
+    const updateQuery = 'UPDATE user SET info = ?, is_creator = 2, penName = ?, date = ? WHERE address = ?';
+    pool.query(updateQuery, [info, penName, JSON.stringify(currentDate), account], (error, results) => {
       if (error) {
         console.error('Error updating user data:', error);
         return res.status(500).json({ state: false, message: 'Error updating user data' });
@@ -497,8 +499,8 @@ app.post('/api/add/user', upload.any(), (req, res) => {
       }
       // 如果地址不存在，则插入新记录
       pool.query(
-        'INSERT INTO user (address, is_creator, is_admin) VALUES (?, ?, ?)',
-        [address, 0, 0],
+        'INSERT INTO user (address, is_creator, is_admin, date) VALUES (?, ?, ?, ?)',
+        [address, 0, 0, JSON.stringify({ 0: Date.now() })],
         (error) => {
           if (error) {
             console.error('Error inserting into records: ', error);
@@ -880,18 +882,29 @@ app.put('/api/update/removeAdmin', async (req, res) => {
 
 
 app.put('/api/update/userAccount', async (req, res) => {
-  const address = req.query.address;
-  const state = req.query.state;
+  const { address, state } = req.query;
   try {
-    const updateQuery = 'UPDATE user SET is_creator = ? WHERE address = ?';
-    const queryResult = await new Promise((resolve, reject) => {
-      pool.query(updateQuery, [state, address.toLowerCase()], (error, results) => {
-        if (error) {
-          reject(error);
-        } else {
+    const [results] = await new Promise((resolve, reject) => {
+      pool.query('SELECT date FROM user WHERE address = ?', [address], (error, results) => {
+        if (error) return reject(error);
+        resolve(results);
+      });
+    });
+    const currentDate = results.date || '{}';
+    if (state == 1) {
+      currentDate[2] = Date.now(); // 審核成功
+    } else if (state == 3) {
+      currentDate[3] = Date.now(); // 禁用
+    }
+    await new Promise((resolve, reject) => {
+      pool.query(
+        'UPDATE user SET is_creator = ?, date = ? WHERE address = ?',
+        [state, JSON.stringify(currentDate), address.toLowerCase()],
+        (error, results) => {
+          if (error) return reject(error);
           resolve(results);
         }
-      });
+      );
     });
     res.status(200).json({ message: 'addAdmin successfully' });
   } catch (error) {
@@ -1859,15 +1872,17 @@ app.get('/api/searchPage/Keyword', (req, res) => {
   const query = `
     SELECT title, description AS text, comic_id, filename, protoFilename
     FROM comics
+    INNER JOIN user ON comics.creator = user.address
     WHERE is_exist = 0 AND (
       creator LIKE ? OR
       title LIKE ? OR
       description LIKE ? OR
-      category LIKE ?
+      category LIKE ? OR
+      penName LIKE ?
     )
   `;
   const searchTermPattern = `%${searchTerm}%`;
-  pool.query(query, [searchTermPattern, searchTermPattern, searchTermPattern, searchTermPattern], (error, results) => {
+  pool.query(query, [searchTermPattern, searchTermPattern, searchTermPattern, searchTermPattern, searchTermPattern], (error, results) => {
     if (error) {
       console.error('Error fetching keyword results: ', error);
       return res.status(500).json({ message: 'Error fetching keyword results' });
@@ -2057,7 +2072,7 @@ app.get('/api/comicManagement/isAdmin', (req, res) => {
     }
     const allAddressesQuery = `
         SELECT 
-            address, is_creator, is_admin
+            address, is_creator, is_admin, penName, date
         FROM 
             user
     `;

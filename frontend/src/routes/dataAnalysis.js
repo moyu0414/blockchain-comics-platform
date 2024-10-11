@@ -1008,7 +1008,7 @@ const test_data_1 = [
 //7.異界遊俠 冒險 /test/comic7.png
 //8.天啟之門 古風 /test/comic8.png
 
-
+// 測試數據 22 筆
 const test_data_2 = [
   {
     "forSale": 1,

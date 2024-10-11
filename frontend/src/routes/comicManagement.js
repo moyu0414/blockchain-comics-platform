@@ -3,6 +3,7 @@ import Web3 from 'web3';
 import comicData from '../contracts/ComicPlatform.json';
 import {  Container, Table, Button, Form, Tabs, Tab, InputGroup, FormControl, Modal, Tooltip, OverlayTrigger} from 'react-bootstrap';
 import { PlusLg, TrashFill, Search } from 'react-bootstrap-icons';
+import { formatDate } from '../index';
 import { message } from 'antd';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -76,7 +77,12 @@ const ComicManagement = ({ contractAddress }) => {
             const addresses = isAdmin.address
             .map(user => ({
               address: user.address,
-              is_creator: getCreatorStatus(user.is_creator)
+              is_creator: getCreatorStatus(user.is_creator),
+              penName: user.penName,
+              enable: user.date[0] ? formatDate(new Date(user.date[0])) : '-',  // 啟用日
+              applied: user.date[1] ? formatDate(new Date(user.date[1])) : '-',  // 申請日
+              approved: user.date[2] ? formatDate(new Date(user.date[2])) : '-',  // 審核通過日
+              disabled: user.date[3] ? formatDate(new Date(user.date[3])) : '-',  // 禁用日
             }))
             .sort((a, b) => {
               if (a.is_creator === '審核') return -1;
@@ -94,6 +100,7 @@ const ComicManagement = ({ contractAddress }) => {
               const status = statusMap[storedArray[i].is_exist];
               modifiedArray.push({
                 title: storedArray[i].title,
+                penName: storedArray[i].penName,
                 author: storedArray[i].creator,
                 hash: storedArray[i].comic_id,
                 exists: status
@@ -474,7 +481,8 @@ const ComicManagement = ({ contractAddress }) => {
     }
     const results = current.filter(item => 
       item.title.includes(searchTerm) ||
-      item.author.includes(searchTerm) ||
+      item.penName.includes(searchTerm) ||
+      item.author.includes(searchTerm.toLowerCase()) ||
       item.hash.includes(searchTerm)
     );
     setSearchResults(results);
@@ -574,7 +582,8 @@ const ComicManagement = ({ contractAddress }) => {
       return;
     }
     const results = account.filter(item => 
-      item.address.includes(userSearchTerm)
+      item.address.includes(userSearchTerm.toLowerCase()) ||
+      (item.penName && item.penName.includes(userSearchTerm))
     );
     setUserSearchResults(results);
   };
@@ -601,6 +610,12 @@ const ComicManagement = ({ contractAddress }) => {
     buttons.forEach(button => {
       button.disabled = false;
     });
+  };
+
+  const showAccount = (account) => {
+    const prefix = account.substr(0, 5);
+    const suffix = account.substr(36, 40);
+    return prefix + "..." + suffix;
   };
 
   
@@ -737,7 +752,15 @@ const ComicManagement = ({ contractAddress }) => {
                         <th></th>
                         <th data-label="ID">{index + 1}</th>
                         <td data-label={t('漫畫')}>{data.title}</td>
-                        <td data-label={t('作者')} className="address-cell">{data.author}</td>
+                        {!isMobile ? (
+                          <td data-label={t('作者')}  className="address-cell">
+                            {data.penName}({data.author})
+                          </td>
+                        ) : (
+                          <td data-label={t('作者')}  className="address-cell">
+                            {data.penName}（{showAccount(data.author)}）
+                          </td>
+                        )}
                         {!isMobile &&
                           <td data-label={t('漫畫Hash')}>
                             {data.hash}
@@ -823,7 +846,7 @@ const ComicManagement = ({ contractAddress }) => {
               <Form onSubmit={userSearchSubmit} className="d-flex mb-3">
                 <InputGroup>
                     <FormControl
-                        placeholder={t('請輸入帳號')}
+                        placeholder={t('請輸入筆名或帳號')}
                         aria-label="Search"
                         aria-describedby="basic-addon2"
                         value={userSearchTerm}
@@ -837,6 +860,9 @@ const ComicManagement = ({ contractAddress }) => {
                     <th></th>
                     <th>#</th>
                     <th>{t('帳號')}</th>
+                    <th>{t('啟用日')} / {t('禁用日')}</th>
+                    <th>{t('申請日')}</th>
+                    <th>{t('審核通過')}</th>
                     <th>{t('身分狀態')}</th>
                     <th></th>
                   </tr>
@@ -846,8 +872,22 @@ const ComicManagement = ({ contractAddress }) => {
                     <tr key={index}>
                       <th data-label={t('編號')}></th>
                       <th data-label={t('編號')}>{index + 1}</th>
-                      <td data-label={t('帳號')} className="address-cell">{data.address}</td>
-                      <td data-label={t('創作者身分')}>
+                      <td data-label={t('帳號')} className="address-cell">
+                        {!isMobile ? (
+                          `${data.penName}（${data.address}）`
+                        ) : (
+                          `${data.penName}（${showAccount(data.address)}）`
+                        )}
+                      </td>
+                      <td 
+                        data-label={t('啟用日') + ' / ' + t('禁用日')}
+                        style={{ color: data.is_creator === "禁用" ? 'red' : 'inherit' }}  
+                      >
+                        {data.is_creator === "禁用" ? data.disabled : data.enable}
+                      </td>
+                      <td data-label={t('申請日')}>{data.applied}</td>
+                      <td data-label={t('審核通過')}>{data.approved}</td>
+                      <td data-label={t('身分狀態')}>
                         {data.is_creator === '否' && t('一般使用者')}
                         {data.is_creator === '是' && t('創作者')}
                         {data.is_creator === '審核' && t('待審核')}
@@ -899,17 +939,6 @@ const ComicManagement = ({ contractAddress }) => {
                           </OverlayTrigger>
                         )}
                       </td>
-                      {/* <td className="text-end">
-                        <OverlayTrigger placement="top" overlay={renderTooltip(t('修改創作者身分'))}>
-                          <Button 
-                            onClick={() => accountChange(data.address, data.is_creator)} 
-                            className={`del-btn ${getButtonClass(data.is_creator)}`} 
-                            data-backgroundcolor="#0FC2C0"
-                          >
-                            {t(data.is_creator)}
-                          </Button>
-                        </OverlayTrigger>
-                      </td> */}
                     </tr>
                   ))}
                   {showUser && (
