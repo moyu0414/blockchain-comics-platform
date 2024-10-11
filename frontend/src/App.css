@@ -4925,3 +4925,8 @@ a:link{
   color: #000!important;
   background-color: #c3c0c0!important;
 }
+
+.required-text{
+  margin-left: 0.5%;
+  color: #F44336;
+}
