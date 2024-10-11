@@ -76,7 +76,8 @@ const ComicManagement = ({ contractAddress }) => {
             const addresses = isAdmin.address
             .map(user => ({
               address: user.address,
-              is_creator: getCreatorStatus(user.is_creator)
+              is_creator: getCreatorStatus(user.is_creator),
+              penName: user.penName
             }))
             .sort((a, b) => {
               if (a.is_creator === '審核') return -1;
@@ -94,6 +95,7 @@ const ComicManagement = ({ contractAddress }) => {
               const status = statusMap[storedArray[i].is_exist];
               modifiedArray.push({
                 title: storedArray[i].title,
+                penName: storedArray[i].penName,
                 author: storedArray[i].creator,
                 hash: storedArray[i].comic_id,
                 exists: status
@@ -474,6 +476,7 @@ const ComicManagement = ({ contractAddress }) => {
     }
     const results = current.filter(item => 
       item.title.includes(searchTerm) ||
+      item.penName.includes(searchTerm) ||
       item.author.includes(searchTerm) ||
       item.hash.includes(searchTerm)
     );
@@ -574,7 +577,8 @@ const ComicManagement = ({ contractAddress }) => {
       return;
     }
     const results = account.filter(item => 
-      item.address.includes(userSearchTerm)
+      item.address.includes(userSearchTerm) ||
+      (item.penName && item.penName.includes(userSearchTerm))
     );
     setUserSearchResults(results);
   };
@@ -601,6 +605,12 @@ const ComicManagement = ({ contractAddress }) => {
     buttons.forEach(button => {
       button.disabled = false;
     });
+  };
+
+  const showAccount = (account) => {
+    const prefix = account.substr(0, 5);
+    const suffix = account.substr(36, 40);
+    return prefix + "..." + suffix;
   };
 
   
@@ -737,7 +747,15 @@ const ComicManagement = ({ contractAddress }) => {
                         <th></th>
                         <th data-label="ID">{index + 1}</th>
                         <td data-label={t('漫畫')}>{data.title}</td>
-                        <td data-label={t('作者')} className="address-cell">{data.author}</td>
+                        {!isMobile ? (
+                          <td data-label={t('作者')}  className="address-cell">
+                            {data.penName}({data.author})
+                          </td>
+                        ) : (
+                          <td data-label={t('作者')}  className="address-cell">
+                            {data.penName}（{showAccount(data.author)}）
+                          </td>
+                        )}
                         {!isMobile &&
                           <td data-label={t('漫畫Hash')}>
                             {data.hash}
@@ -846,8 +864,16 @@ const ComicManagement = ({ contractAddress }) => {
                     <tr key={index}>
                       <th data-label={t('編號')}></th>
                       <th data-label={t('編號')}>{index + 1}</th>
-                      <td data-label={t('帳號')} className="address-cell">{data.address}</td>
-                      <td data-label={t('創作者身分')}>
+                      {!isMobile ? (
+                        <td data-label={t('帳號')}  className="address-cell">
+                          {data.penName}（{data.address}）
+                        </td>
+                      ) : (
+                        <td data-label={t('作者')}  className="address-cell">
+                          {data.penName}（{showAccount(data.address)}）
+                        </td>
+                      )}
+                      <td data-label={t('身分狀態')}>
                         {data.is_creator === '否' && t('一般使用者')}
                         {data.is_creator === '是' && t('創作者')}
                         {data.is_creator === '審核' && t('待審核')}

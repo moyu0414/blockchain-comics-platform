@@ -110,6 +110,7 @@ function Analysis() {
                     });
                 }
             });
+            purchased.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
             allRecord.forEach(data => {
                 const key = data.keyData;
                 if (!CountComicDetails[key]) {
@@ -318,7 +319,7 @@ function Analysis() {
                                                     color: data.saleQty === 0 
                                                     ? '#F44336' // 已售數量為 0 顯示紅色
                                                     : data.saleQty === data.totQty 
-                                                    ? '#069D67' // 已售數量等於總數時顯示綠色
+                                                    ? '#BBFFFF' // 已售數量等於總數時顯示綠色
                                                     : '#FFC107' // 其他情況顯示橙色
                                                 }}
                                             >
