@@ -26,12 +26,12 @@ const RankingList = () => {
             if (rankDatas.length > 0) {
                 try {
                     const rankInfo = await Promise.all(rankDatas.map(async (data) => {
-                        const url = `${website}/api/comicIMG/${data.filename}`;
+                        const url = `${website}/api/comicIMG/${data.comic_id}`;
                         const response = await axios.get(url, { responseType: 'blob', headers });
-                        const filename = URL.createObjectURL(response.data);
+                        const image = URL.createObjectURL(response.data);
                         return {
                             ...data,
-                            imageUrl: filename
+                            imageUrl: image
                         };
                     }));
                     const updatedFetchedData = rankInfo.map(fetchedItem => {
@@ -88,12 +88,12 @@ const RankingList = () => {
         let rankDatas = response.data;
         try {
             const rankInfo = await Promise.all(rankDatas.map(async (data) => {
-                const url = `${website}/api/comicIMG/${data.filename}`;
+                const url = `${website}/api/comicIMG/${data.comic_id}`;
                 const response = await axios.get(url, { responseType: 'blob', headers });
-                const filename = URL.createObjectURL(response.data);
+                const image = URL.createObjectURL(response.data);
                 return {
                     ...data,
-                    imageUrl: filename
+                    imageUrl: image
                 };
             }));
             const updatedFetchedData = rankInfo.map(fetchedItem => {
@@ -116,12 +116,12 @@ const RankingList = () => {
         let rankDatas = response.data;
         try {
             const rankInfo = await Promise.all(rankDatas.map(async (data) => {
-                const url = `${website}/api/comicIMG/${data.filename}`;
+                const url = `${website}/api/comicIMG/${data.comic_id}`;
                 const response = await axios.get(url, { responseType: 'blob', headers });
-                const filename = URL.createObjectURL(response.data);
+                const image = URL.createObjectURL(response.data);
                 return {
                     ...data,
-                    imageUrl: filename
+                    imageUrl: image
                 };
             }));
             const updatedFetchedData = rankInfo.map(fetchedItem => {
@@ -144,12 +144,12 @@ const RankingList = () => {
         let rankDatas = response.data;
         try {
             const rankInfo = await Promise.all(rankDatas.map(async (data) => {
-                const url = `${website}/api/comicIMG/${data.filename}`;
+                const url = `${website}/api/comicIMG/${data.comic_id}`;
                 const response = await axios.get(url, { responseType: 'blob', headers });
-                const filename = URL.createObjectURL(response.data);
+                const image = URL.createObjectURL(response.data);
                 return {
                     ...data,
-                    imageUrl: filename
+                    imageUrl: image
                 };
             }));
             const updatedFetchedData = rankInfo.map(fetchedItem => {
@@ -172,12 +172,12 @@ const RankingList = () => {
         let rankDatas = response.data;
         try {
             const rankInfo = await Promise.all(rankDatas.map(async (data) => {
-                const url = `${website}/api/comicIMG/${data.filename}`;
+                const url = `${website}/api/comicIMG/${data.comic_id}`;
                 const response = await axios.get(url, { responseType: 'blob', headers });
-                const filename = URL.createObjectURL(response.data);
+                const image = URL.createObjectURL(response.data);
                 return {
                     ...data,
-                    imageUrl: filename
+                    imageUrl: image
                 };
             }));
             const updatedFetchedData = rankInfo.map(fetchedItem => {

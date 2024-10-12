@@ -68,6 +68,7 @@ const ContactPage = () => {
         }
        });
       try {
+        console.log(response.data.fileName);
         emailjs.send(SERVICE_ID, TEMPLATE_ID, {
           name: form.name,
           account: currentAccount,
