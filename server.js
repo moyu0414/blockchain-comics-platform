@@ -25,8 +25,8 @@ const API_KEY = process.env.API_KEY; // web3toonapi
 const emailAccount = process.env.REACT_APP_EMAIL; // localhost
 const emailPassword = process.env.REACT_APP_EMAIL_PASSWORD; // localhost
 
-const BASE_PATH = __dirname;  // 取得當前檔案的路徑
-// const BASE_PATH = "/var/www/html" // web3toonapi
+// const BASE_PATH = __dirname;  // 取得當前檔案的路徑
+const BASE_PATH = "/var/www/html" // web3toonapi
 
 app.use(cors());
 //app.use(cors({
@@ -605,7 +605,7 @@ app.get('/api/chapterIMG/:chapterHash',async (req, res) => {
     // const imagePath = path.join(__dirname, 'uploads', comic_id, 'chapters', filename);
 
     // web3toonapi
-    const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'chapters', filename);
+    // const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'chapters', filename);
 
     const image = await fsPromises.readFile(imagePath);
     res.setHeader('Content-Type', 'image/jpeg');
@@ -654,7 +654,7 @@ app.get('/api/creatorIMG/:account', async (req, res) => {
       // const imagePath = path.join(__dirname, 'uploads', 'creator', filename);
 
       // web3toonapi
-      const imagePath = path.join('/var/www/html/', 'uploads', 'creator', filename);
+      // const imagePath = path.join('/var/www/html/', 'uploads', 'creator', filename);
 
       const extname = path.extname(filename).toLowerCase();
       let contentType = 'application/octet-stream'; // 默認為通用二進位流
@@ -689,7 +689,7 @@ app.get('/api/nftIMG/:comicHash/:tokenId', async (req, res) => {
       // const imagePath = path.join(__dirname, 'uploads', comicHash, 'NFT', filename);
 
       // web3toonapi
-      const imagePath = path.join('/var/www/html/uploads', comicHash, 'NFT', filename);
+      // const imagePath = path.join('/var/www/html/uploads', comicHash, 'NFT', filename);
 
       await fsPromises.access(imagePath);
       const image = await fsPromises.readFile(imagePath);
@@ -716,7 +716,7 @@ app.get('/api/termsIMG/:version/:language', async (req, res) => {
       // const imagePath = path.join(__dirname, 'uploads', 'terms', version, filename);
 
       // web3toonapi
-      const imagePath = path.join('/var/www/html/', 'uploads', 'terms', version, filename);
+      // const imagePath = path.join('/var/www/html/', 'uploads', 'terms', version, filename);
 
       await fsPromises.access(imagePath);
       res.json({ state: true });

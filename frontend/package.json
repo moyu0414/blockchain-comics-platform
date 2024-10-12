@@ -39,12 +39,12 @@
     "net": "^1.0.2",
     "nginx": "^1.0.8",
     "nodemailer": "^6.9.14",
-    "react": "^18.2.0",
+    "react": "^18.3.1",
     "react-beautiful-dnd": "^13.1.1",
     "react-bootstrap": "^2.10.4",
     "react-bootstrap-icons": "^1.11.4",
     "react-chartjs-2": "^5.2.0",
-    "react-dom": "^18.2.0",
+    "react-dom": "^18.3.1",
     "react-i18next": "^15.0.1",
     "react-icons": "^4.12.0",
     "react-router": "^6.4.2",
@@ -61,7 +61,7 @@
   },
   "scripts": {
     "start": "react-app-rewired start",
-    "build": "react-app-rewired build && node --max_old_space_size=4096 generateZipFile.js",
+    "build": "react-app-rewired build && node --max_old_space_size=4096",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "build:prod": "env-cmd -f .env.production react-scripts build"
