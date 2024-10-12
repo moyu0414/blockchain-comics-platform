@@ -78,7 +78,7 @@ const EditWork = (props) => {
               let id = 'Chapter' + (i+1);
               if (id == location.state.chapterID) {
                 let price = chapters[i].price;
-                const chapterResponse = await axios.get(`${website}/api/chapterIMG/${chapters[i].filename}`, { responseType: 'blob', headers });
+                const chapterResponse = await axios.get(`${website}/api/chapterIMG/${chapters[i].chapterHash}`, { responseType: 'blob', headers });
                 let imgURL = URL.createObjectURL(chapterResponse.data);
                 setNewChapter({
                   chapterTitle: chapters[i].title,
@@ -90,7 +90,6 @@ const EditWork = (props) => {
                   price: price,
                   chapterHash: chapters[i].chapterHash,
                   imgURL: imgURL,
-                  filename: chapters[i].filename
                 })
               }
           }
@@ -135,18 +134,14 @@ const EditWork = (props) => {
           formData.append('description', newComic.description);
           formData.append('category', newComic.category);
           formData.append('fileName', comic[0].filename);  // 原始圖檔名稱
-          let editComicData;
-          if (file) { // 有重新上傳圖片，重新產生新的fileName
-            formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
-            editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title, 'editFile': comic[0].filename};
-          } else {
-            editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title};
+          const editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title};
+          if (file) { // 有重新上傳圖片
+            formData.append('comicIMG', file);
           }
           if (coverFile) {
             formData.append('coverFile', coverFile);
-            const protoFilename = `promoCover.${getFileExtension(coverFile.name)}`;
+            const protoFilename = "promoCover.jpg";
             formData.append('protoFilename', protoFilename);
-            //console.log(protoFilename);
           } else {
             formData.append('protoFilename', '');
           };
@@ -164,25 +159,19 @@ const EditWork = (props) => {
           updateMsg("");
         }
       } else {
-        //console.log(comic[0].comic_id);
         const formData = new FormData();
         formData.append('id', comic[0].comic_id);
         formData.append('title', newComic.title);
         formData.append('description', newComic.description);
         formData.append('category', newComic.category);
-        formData.append('fileName', comic[0].filename);
-        let editComicData;
-        if (file) { // 有重新上傳圖片，重新產生新的fileName
-          formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
-          editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title, 'editFile': comic[0].filename};
-        } else {
-          editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title};
+        const editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title};
+        if (file) { // 有重新上傳圖片
+          formData.append('comicIMG', file);
         }
         if (coverFile) {
           formData.append('coverFile', coverFile);
-          const protoFilename = `promoCover.${getFileExtension(coverFile.name)}`;
+          const protoFilename = "promoCover.jpg";
           formData.append('protoFilename', protoFilename);
-          //console.log(protoFilename);
         } else {
           formData.append('protoFilename', '');
         };
@@ -235,7 +224,6 @@ const EditWork = (props) => {
           formData.append('chapter_id', chapter.chapterHash);
           formData.append('price', newChapter.price);
           formData.append('title', newChapter.chapterTitle);
-          formData.append('fileName', chapter.filename);
           if (file) {
             await handleGeneratePages();  // 等待合併圖片操作完成
             formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
@@ -260,7 +248,6 @@ const EditWork = (props) => {
         formData.append('chapter_id', chapter.chapterHash);
         formData.append('price', newChapter.price);
         formData.append('title', newChapter.chapterTitle);
-        formData.append('fileName', chapter.filename);
         if (file) {
           await handleGeneratePages();  // 等待合併圖片操作完成
           formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
@@ -449,8 +436,8 @@ const EditWork = (props) => {
             tempCH.push({'comicHash': temp[0].comic_id})
             try {
                 const [imageResponse, protoResponse] = await Promise.all([
-                    axios.get(`${website}/api/comicIMG/${temp[0].filename}`, { responseType: 'blob', headers }),
-                    temp[0].protoFilename ? axios.get(`${website}/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`, { responseType: 'blob', headers }) : Promise.resolve(null)
+                    axios.get(`${website}/api/comicIMG/${temp[0].comic_id}`, { responseType: 'blob', headers }),
+                    temp[0].protoFilename ? axios.get(`${website}/api/coverFile/${temp[0].comic_id}`, { responseType: 'blob', headers }) : Promise.resolve(null)
                 ]);
                 const imgURL = URL.createObjectURL(imageResponse.data);
                 const coverImg = protoResponse ? URL.createObjectURL(protoResponse.data) : '';
@@ -537,11 +524,6 @@ const EditWork = (props) => {
         }, 'image/jpeg');
       }
     });
-  };
-
-  // 获取文件扩展名的函数
-  const getFileExtension = (filename) => {
-    return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2);
   };
 
 
