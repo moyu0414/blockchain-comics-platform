@@ -40,7 +40,7 @@ function Bookcase() {
                 for (const data of bookcase) {
                     const comic = comicMap.get(data.comicHash);
                     if (comic) {
-                        const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.filename}`, { responseType: 'blob', headers });
+                        const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.comic_id}`, { responseType: 'blob', headers });
                         const image = URL.createObjectURL(imageResponse.data);
                         data.comicID = comic.comicID;
                         data.image = image;
@@ -82,7 +82,7 @@ function Bookcase() {
             for (const data of nftRecords) {
                 const comic = comicMap.get(data.comicHash);
                 if (comic) {
-                    const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.filename}`, { responseType: 'blob', headers });
+                    const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.comic_id}`, { responseType: 'blob', headers });
                     const image = URL.createObjectURL(imageResponse.data);
                     data.image = image;
                     data.names = parseAuthorizations(data.description).map(auth => auth.name);

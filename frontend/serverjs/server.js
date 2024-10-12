@@ -25,7 +25,13 @@ const API_KEY = process.env.REACT_APP_API_KEY; // localhost
 const emailAccount = process.env.REACT_APP_EMAIL; // localhost
 const emailPassword = process.env.REACT_APP_EMAIL_PASSWORD; // localhost
 
-app.use(cors());
+//app.use(cors());
+app.use(cors({
+  origin: ['https://web3toon.ddns.net', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'api-key'],
+}));
+
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');  // 允許所有来源的請求訪問資源
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
@@ -98,7 +104,7 @@ const upload = multer({ storage: storage });
 
 
 // 异步函数，用于重命名文件并将其移动到上传目录
-async function renameFilename(file, comic_id, type, protoFilename, coverFile) {
+async function renameFilename(file, comic_id, chapter_id, type, protoFilename, coverFile) {
   const comicFolder = path.join('uploads', comic_id);  // localhost
   //const comicFolder = path.join('/var/www/html/uploads', comic_id);  // web3toonapi
   const specificFolder = path.join(comicFolder, type === 'comicIMG' ? 'cover' : 'chapters');
@@ -117,10 +123,12 @@ async function renameFilename(file, comic_id, type, protoFilename, coverFile) {
       await fsPromises.rename(coverFile.path, protoFilePath);
     } 
     if (file) {
-      const timestamp = Date.now().toString();
-      const hashValue = await calculateHash(file.path);
-      const fileExtension = getFileExtension(file.originalname);
-      const filename = `${timestamp}_${hashValue}.${fileExtension}`;
+      let filename;
+      if (type === 'comicIMG') {
+        filename = 'cover.jpg';
+      } else {
+        filename = `${chapter_id}.jpg`;
+      }
       const filePath = path.join(specificFolder, filename);
       await fsPromises.rename(file.path, filePath);
       return filename;
@@ -191,6 +199,35 @@ async function termsFile(file, version, language) {
   }
 }
 
+async function evidenceFile(file) {
+  const folder = path.join('uploads', 'evidence');  //localhost
+  // const comicFolder = path.join('/var/www/html/uploads', 'evidence');  // web3toonapi
+  const timestamp = Date.now().toString();
+  const fileExtension = getFileExtension(file.originalname);
+  const filename = `${timestamp}.${fileExtension}`;
+  const filePath = path.join(folder, filename);
+  try {
+    await fsPromises.mkdir(folder, { recursive: true });
+    await fsPromises.rename(file.path, filePath);
+    return filename;
+  } catch (error) {
+    console.error('Error handling file:', error);
+    throw error;
+  }
+}
+
+app.post('/api/contactPage/uploadFile', upload.single('evidence'), async (req, res) => {
+  const evidence = req.file;
+  console.log(evidence);
+  try {
+    const fileName = await evidenceFile(req.file);
+    res.json({ state: true, url: fileName });
+  } catch (error) {
+    console.error('错误:', error);
+    res.json({ state: false });
+  }
+});
+
 // 获取文件扩展名的函数
 function getFileExtension(filename) {
   return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2);
@@ -259,7 +296,7 @@ app.post('/api/verify-email', upload.single('creatorIMG'),async (req, res) => {
   if (!image){
     return res.status(500).json({ state: false, message: 'Error upload image' });
   }
-  const query = 'SELECT info FROM user WHERE address = ?';
+  const query = 'SELECT info, date FROM user WHERE address = ?';
   pool.query(query, [account], (error, results) => {
     if (error) {
       console.error('Error fetching user data:', error);
@@ -278,8 +315,10 @@ app.post('/api/verify-email', upload.single('creatorIMG'),async (req, res) => {
     const penName = results[0].info.penName;
     const terms = JSON.parse(req.body.terms);
     const info = JSON.stringify({ name, email, image, terms });
-    const updateQuery = 'UPDATE user SET info = ?, is_creator = 2, penName = ? WHERE address = ?';
-    pool.query(updateQuery, [info, penName, account], (error, results) => {
+    const currentDate = results[0]?.date ? results[0].date : {};
+    currentDate[1] = Date.now();
+    const updateQuery = 'UPDATE user SET info = ?, is_creator = 2, penName = ?, date = ? WHERE address = ?';
+    pool.query(updateQuery, [info, penName, JSON.stringify(currentDate), account], (error, results) => {
       if (error) {
         console.error('Error updating user data:', error);
         return res.status(500).json({ state: false, message: 'Error updating user data' });
@@ -372,23 +411,23 @@ app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverF
   }
   try {
     const { creator, title, description, category, is_exist, comic_id, protoFilename, timestamp } = req.body;
-    let filename, protoFile;
+    let protoFile;
     if (coverFile) {
       protoFile = 1;
-      filename = await renameFilename(file, comic_id, 'comicIMG', protoFilename, coverFile);
+      await renameFilename(file, comic_id, '', 'comicIMG', protoFilename, coverFile);
     } else {
       protoFile = 0;
-      filename = await renameFilename(file, comic_id, 'comicIMG');
+      await renameFilename(file, comic_id, '', 'comicIMG');
     }
     pool.query(
-      'INSERT INTO comics (comic_id, creator, title, description, category, is_exist, filename, protoFilename, create_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [comic_id, creator, title, description, category, is_exist, filename, protoFile, timestamp],
+      'INSERT INTO comics (comic_id, creator, title, description, category, is_exist, protoFilename, create_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [comic_id, creator, title, description, category, is_exist, protoFile, timestamp],
       (error, results, fields) => {
         if (error) {
           console.error('Error inserting into comics: ', error);
           return res.status(500).json({ message: 'Error inserting into comics' });
         }
-        res.json({ message: 'Comic added successfully.', comic_id: comic_id, filename: filename });
+        res.json({ message: 'Comic added successfully.', comic_id: comic_id });
       }
     );
   } catch (error) {
@@ -406,16 +445,16 @@ app.post('/api/add/chapters', upload.single('chapterIMG'),async (req, res) => {
   }
   try {
     const { chapter_hash, comic_id, price, title, timestamp} = req.body;
-    const filename = await renameFilename(file, comic_id, 'chapterIMG');
+    await renameFilename(file, comic_id, chapter_hash, 'chapterIMG');
     pool.query(
-      'INSERT INTO chapters (chapter_id, comic_id, price, title, filename, create_timestamp) VALUES (?, ?, ?, ?, ?, ?)',
-      [chapter_hash, comic_id, price, title, filename, timestamp],
+      'INSERT INTO chapters (chapter_id, comic_id, price, title, create_timestamp) VALUES (?, ?, ?, ?, ?)',
+      [chapter_hash, comic_id, price, title, timestamp],
       (error, results, fields) => {
           if (error) {
               console.error('Error inserting into chapters: ', error);
               return res.status(500).json({ message: 'Error inserting into chapters' });
           }
-          res.json({ message: 'chapter added successfully.', chapter_hash: chapter_hash, filename: filename });
+          res.json({ message: 'chapter added successfully.', chapter_hash: chapter_hash });
       }
     );
   } catch (error) {
@@ -497,8 +536,8 @@ app.post('/api/add/user', upload.any(), (req, res) => {
       }
       // 如果地址不存在，则插入新记录
       pool.query(
-        'INSERT INTO user (address, is_creator, is_admin) VALUES (?, ?, ?)',
-        [address, 0, 0],
+        'INSERT INTO user (address, is_creator, is_admin, date) VALUES (?, ?, ?, ?)',
+        [address, 0, 0, JSON.stringify({ 0: Date.now() })],
         (error) => {
           if (error) {
             console.error('Error inserting into records: ', error);
@@ -512,37 +551,20 @@ app.post('/api/add/user', upload.any(), (req, res) => {
 });
 
 
-// 根据 filename 获取漫画图片的路由
-app.get('/api/comicIMG/:filename', async (req, res) => {
-  const { filename } = req.params;
+// 根据 comicHash 获取漫画图片的路由
+app.get('/api/comicIMG/:comicHash', async (req, res) => {
+  const { comicHash } = req.params;
   try {
-      const [results] = await query('SELECT * FROM comics WHERE filename = ?', [filename]);
-      if (results.length === 0) {
-          return res.status(404).json({ message: 'Filename not found.' });
-      }
-      const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
+      const filename = 'cover.jpg';
       
       // localhost
-      const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', filename);
+      const imagePath = path.join(__dirname, 'uploads', comicHash, 'cover', filename);
 
       // web3toonapi
-      //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', filename);
+      //const imagePath = path.join('/var/www/html/', 'uploads', comicHash, 'cover', filename);
       
-      const extname = path.extname(filename).toLowerCase();
-      let contentType = 'application/octet-stream'; // 默認為通用二進位流
-      switch (extname) {
-        case '.jpg':
-        case '.jpeg':
-          contentType = 'image/jpeg';
-          break;
-        case '.png':
-          contentType = 'image/png';
-          break;
-      }
-
-      // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
       const image = await fsPromises.readFile(imagePath);
-      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Type', 'image/jpeg');
       res.send(image);
   } catch (error) {
       console.error('Error fetching comic image path:', error);
@@ -551,15 +573,16 @@ app.get('/api/comicIMG/:filename', async (req, res) => {
 });
 
 
-// 根据 filename 获取章節图片的路由
-app.get('/api/chapterIMG/:filename',async (req, res) => {
-  const { filename } = req.params;
+// 根据 chapterHash 获取章節图片的路由
+app.get('/api/chapterIMG/:chapterHash',async (req, res) => {
+  const { chapterHash } = req.params;
   try {
-    const [results] = await query('SELECT * FROM chapters WHERE filename = ?', [filename]);
+    const [results] = await query('SELECT comic_id FROM chapters WHERE chapter_id = ?', [chapterHash]);
     if (results.length === 0) {
       return res.status(404).json({ message: 'filename not found.' });
     }
-    const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
+    const comic_id = results.comic_id;
+    const filename = `${chapterHash}.jpg`;
       
     // localhost
     const imagePath = path.join(__dirname, 'uploads', comic_id, 'chapters', filename);
@@ -567,21 +590,8 @@ app.get('/api/chapterIMG/:filename',async (req, res) => {
     // web3toonapi
     //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'chapters', filename);
 
-    const extname = path.extname(filename).toLowerCase();
-    let contentType = 'application/octet-stream'; // 默認為通用二進位流
-    switch (extname) {
-      case '.jpg':
-      case '.jpeg':
-        contentType = 'image/jpeg';
-        break;
-      case '.png':
-        contentType = 'image/png';
-        break;
-    }
-
-    // 使用 fsPromises.promises.readFile 直接读取文件内容并发送给响应流
     const image = await fsPromises.readFile(imagePath);
-    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Type', 'image/jpeg');
     res.send(image);
   } catch (error) {
     console.error('Error fetching chapterIMG:', error);
@@ -590,21 +600,17 @@ app.get('/api/chapterIMG/:filename',async (req, res) => {
 });
 
 
-// 根据 protoFilename 获取漫画图片的路由
-app.get('/api/coverFile/:filename/:protoFilename', async (req, res) => {
-  const { filename, protoFilename } = req.params;
+// 根据 comicHash 获取漫画图片的路由
+app.get('/api/coverFile/:comicHash', async (req, res) => {
+  const { comicHash } = req.params;
   try {
-    const [results] = await query('SELECT * FROM comics WHERE filename = ? AND protoFilename = ?', [filename, protoFilename]);
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'Comic image not found.' });
-    }
-    const comic_id = results.comic_id; // 假设数据库中有 comic_id 字段
+    const filename = 'promoCover.jpg';
     
     // localhost
-    const imagePath = path.join(__dirname, 'uploads', comic_id, 'cover', 'promoCover.jpg');
+    const imagePath = path.join(__dirname, 'uploads', comicHash, 'cover', filename);
 
     // web3toonapi
-    //const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'cover', 'promoCover.jpg');
+    //const imagePath = path.join('/var/www/html/', 'uploads', comicHash, 'cover', filename);
     
     const image = await fsPromises.readFile(imagePath);
     res.setHeader('Content-Type', 'image/jpeg');
@@ -704,6 +710,32 @@ app.get('/api/termsIMG/:version/:language', async (req, res) => {
 });
 
 
+app.get('/api/evidence/:fileName', async (req, res) => {
+  const { fileName } = req.params;
+  const apiKey = req.headers['api-key'];
+  if (apiKey !== API_KEY) {
+    return res.status(403).json({ state: false, message: 'Forbidden' });
+  }
+  try {
+      // localhost
+      const filePath = path.join(__dirname, 'uploads', 'evidence', fileName);
+
+      // web3toonapi
+      //const filePath = path.join('/var/www/html/', 'uploads', 'evidence', fileName);
+
+      await fsPromises.access(filePath);
+      res.json({ state: true, filePath: filePath });
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      res.json({ state: false });
+    } else {
+      console.error('Error fetching NFT image path:', error);
+      res.json({ state: false });
+    }
+  }
+});
+
+
 // 編輯漫畫資料的請求、添加漫畫信息到數據庫的路由
 app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {
   const { id, title, description, category, fileName, protoFilename } = req.body;
@@ -713,20 +745,20 @@ app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'c
   try {
     if (file && coverFile) {
       protoFile = 1;
-      filenameToUpdate = await renameFilename(file, id, 'comicIMG', protoFilename, coverFile);
+      filenameToUpdate = await renameFilename(file, id, '', 'comicIMG', protoFilename, coverFile);
     } else if (file) {
-      filenameToUpdate = await renameFilename(file, id, 'comicIMG');
+      filenameToUpdate = await renameFilename(file, id, '', 'comicIMG');
     } else if (coverFile) {
       protoFile = 1;
       filenameToUpdate = fileName;
-      await renameFilename('', id, 'comicIMG', protoFilename, coverFile);
+      await renameFilename('', id, '', 'comicIMG', protoFilename, coverFile);
     } else {
       filenameToUpdate = fileName;
     }
     if (coverFile) {
-      const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ?, filename = ?, protoFilename = ? WHERE comic_id = ?`;
+      const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ?, protoFilename = ? WHERE comic_id = ?`;
       await new Promise((resolve, reject) => {
-        pool.query(updateQuery, [title, description, category, filenameToUpdate, protoFile, id], (error, results, fields) => {
+        pool.query(updateQuery, [title, description, category, protoFile, id], (error, results, fields) => {
           if (error) {
             reject(error);
             return;
@@ -735,9 +767,9 @@ app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'c
         });
       });
     } else{
-      const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ?, filename = ? WHERE comic_id = ?`;
+      const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ?,WHERE comic_id = ?`;
       await new Promise((resolve, reject) => {
-        pool.query(updateQuery, [title, description, category, filenameToUpdate, id], (error, results, fields) => {
+        pool.query(updateQuery, [title, description, category, id], (error, results, fields) => {
           if (error) {
             reject(error);
             return;
@@ -745,10 +777,6 @@ app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'c
           resolve(results);
         });
       });
-    }
-    if (file) {
-      await deleteFile(`uploads/${id}/cover/${fileName}`);  // localhost
-      //await deleteFile(`/var/www/html/uploads/${id}/cover/${fileName}`);  // web3toon
     }
     return res.status(200).json({ message: 'comicData updated successfully' });
   } catch (error) {
@@ -760,18 +788,15 @@ app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'c
 
 // 編輯章節資料的請求、添加章節信息到數據庫的路由
 app.put('/api/update/chapterData', upload.single('chapterIMG'), async (req, res) => {
-  const { comic_id, chapter_id, price, title, fileName } = req.body;
+  const { comic_id, chapter_id, price, title } = req.body;
   const file = req.file;
-  let filenameToUpdate = '';
   try {
     if (file) {
-      filenameToUpdate = await renameFilename(file, comic_id, 'chapterIMG');
-    } else {
-      filenameToUpdate = fileName;
+      await renameFilename(file, comic_id, chapter_id, 'chapterIMG');
     }
-    const updateQuery = `UPDATE chapters SET price = ?, title = ?, filename = ? WHERE chapter_id = ?`;
+    const updateQuery = `UPDATE chapters SET price = ?, title = ? WHERE chapter_id = ?`;
     const queryResult = await new Promise((resolve, reject) => {
-      pool.query(updateQuery, [price, title, filenameToUpdate, chapter_id], (error, results, fields) => {
+      pool.query(updateQuery, [price, title, chapter_id], (error, results, fields) => {
         if (error) {
           reject(error);
           return;
@@ -779,10 +804,6 @@ app.put('/api/update/chapterData', upload.single('chapterIMG'), async (req, res)
         resolve(results);
       });
     });
-    if (file) {
-      await deleteFile(`uploads/${comic_id}/chapters/${fileName}`);  // localhost
-      //await deleteFile(`/var/www/html/uploads/${comic_id}/chapters/${fileName}`);  // web3toon
-    }
     return res.status(200).json({ message: 'chapterData updated successfully' });
   } catch (error) {
     console.error('Error updating Chapter data:', error);
@@ -880,18 +901,29 @@ app.put('/api/update/removeAdmin', async (req, res) => {
 
 
 app.put('/api/update/userAccount', async (req, res) => {
-  const address = req.query.address;
-  const state = req.query.state;
+  const { address, state } = req.query;
   try {
-    const updateQuery = 'UPDATE user SET is_creator = ? WHERE address = ?';
-    const queryResult = await new Promise((resolve, reject) => {
-      pool.query(updateQuery, [state, address.toLowerCase()], (error, results) => {
-        if (error) {
-          reject(error);
-        } else {
+    const [results] = await new Promise((resolve, reject) => {
+      pool.query('SELECT date FROM user WHERE address = ?', [address], (error, results) => {
+        if (error) return reject(error);
+        resolve(results);
+      });
+    });
+    const currentDate = results.date || '{}';
+    if (state == 1) {
+      currentDate[2] = Date.now(); // 審核成功
+    } else if (state == 3) {
+      currentDate[3] = Date.now(); // 禁用
+    }
+    await new Promise((resolve, reject) => {
+      pool.query(
+        'UPDATE user SET is_creator = ?, date = ? WHERE address = ?',
+        [state, JSON.stringify(currentDate), address.toLowerCase()],
+        (error, results) => {
+          if (error) return reject(error);
           resolve(results);
         }
-      });
+      );
     });
     res.status(200).json({ message: 'addAdmin successfully' });
   } catch (error) {
@@ -902,7 +934,7 @@ app.put('/api/update/userAccount', async (req, res) => {
 
 
 app.put('/api/update/comicDetail/favorite', async (req, res) => {
-  const { currentAccount, comicHash, bool, data } = req.query;
+  const { currentAccount, comicHash, bool } = req.query;
   if (!currentAccount || !comicHash || bool === undefined) {
     return res.status(400).json({ error: 'Missing required parameters' });
   }
@@ -918,17 +950,17 @@ app.put('/api/update/comicDetail/favorite', async (req, res) => {
         resolve(results);
       });
     });
-    let collectComic = results.collectComic ? results.collectComic : {};
     // 更新 collectComic 数据，只留存"收藏"的資料
-    if (bool == 'true') {
-      collectComic[comicHash] = data;
-    } else {
-      delete collectComic[comicHash];
-    }
+    const originalCollectComic = (results?.collectComic || '');
+    let collectComicArray = originalCollectComic.split(',').map(id => id.trim());
+    bool === 'true' 
+      ? collectComicArray.includes(comicHash) || collectComicArray.push(comicHash) 
+      : collectComicArray = collectComicArray.filter(id => id !== comicHash);
+    const updatedCollectComic = collectComicArray.join(',');
     // 将更新后的 collectComic 对象存回数据库
     const updateQuery = `UPDATE user SET collectComic = ? WHERE address = ?`;
     await new Promise((resolve, reject) => {
-      pool.query(updateQuery, [JSON.stringify(collectComic), currentAccount], (error, results) => {
+      pool.query(updateQuery, [updatedCollectComic, currentAccount], (error, results) => {
         if (error) {
           reject(error);
           return;
@@ -1139,7 +1171,7 @@ app.get('/api/comics', (req, res) => {
       // 如果資料庫中有資料，則執行原本的 SELECT * 查詢
       pool.query(`
         SELECT 
-          comics.comic_id, comics.creator, comics.title, comics.description, comics.category, comics.is_exist, comics.filename, comics.protoFilename, comics.create_timestamp,
+          comics.comic_id, comics.creator, comics.title, comics.description, comics.category, comics.is_exist, comics.protoFilename, comics.create_timestamp,
           user.penName
       FROM 
           comics
@@ -1160,28 +1192,6 @@ app.get('/api/comics', (req, res) => {
         res.json(comicsWithIDs);
       });
     }
-  });
-});
-
-
-// 這本漫畫的所有章節
-app.get('/api/chapters', (req, res) => {
-  const comicHash = req.query.comicHash;
-  const query = `
-    SELECT chapters.chapter_id AS chapterHash, chapters.title AS chapterTitle, chapters.price, chapters.filename, comics.title AS comicTitle, comics.creator
-    FROM chapters
-    INNER JOIN comics ON chapters.comic_id = comics.comic_id
-    WHERE comics.comic_id = ? AND comics.is_exist = 0
-  `;
-  pool.query(query, [comicHash], (error, results, fields) => {
-    if (error) {
-      console.error('Error fetching chapters records: ', error);
-      return res.status(500).json({ message: 'Error fetching chapters records' });
-    }
-    if (results.length === 0) {
-      return res.json([]);
-    }
-    res.json(results);
   });
 });
 
@@ -1276,30 +1286,6 @@ app.get('/api/selectChapter/records', (req, res) => {
 });
 
 
-// 購買紀錄_reading
-app.get('/api/reading/records', (req, res) => {
-  const currentAccount = req.query.currentAccount;
-  const comicHash = req.query.comicHash;
-  const query = `
-    SELECT comics.title AS comicTitle, chapters.title AS chapterTitle, chapters.filename, chapters.chapter_id
-    FROM records
-    INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
-    INNER JOIN comics ON chapters.comic_id = comics.comic_id
-    WHERE records.buyer = ? AND comics.comic_id = ? AND comics.is_exist = 0
-  `;
-  pool.query(query, [currentAccount, comicHash], (error, results, fields) => {
-    if (error) {
-      console.error('Error fetching reading records: ', error);
-      return res.status(500).json({ message: 'Error fetching reading records' });
-    }
-    if (results.length === 0) {
-      return res.json([]);
-    }
-    res.json(results);
-  });
-});
-
-
 app.get('/api/comicDetail', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const comicHash = req.query.comicHash;
@@ -1326,7 +1312,6 @@ app.get('/api/bookcase', (req, res) => {
     SELECT 
       comics.comic_id AS comicHash, 
       comics.title, 
-      comics.filename, 
       comics.create_timestamp, 
       comics.is_exist,
       ranked_records.purchase_date
@@ -1379,7 +1364,7 @@ app.get('/api/editWork/chapters', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const comicHash = req.query.comicHash;
   const query = `
-    SELECT chapters.title, chapters.price, comics.comic_id AS comicHash, chapters.chapter_id AS chapterHash, chapters.create_timestamp, chapters.filename
+    SELECT chapters.title, chapters.price, comics.comic_id AS comicHash, chapters.chapter_id AS chapterHash, chapters.create_timestamp
     FROM chapters
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
     WHERE comics.comic_id = ? AND comics.creator = ? AND comics.is_exist = 0
@@ -1462,12 +1447,12 @@ app.get('/api/homepage/updateStats', (req, res) => {
   const query = `
       SELECT 
           comics.comic_id,
-          COUNT(CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL THEN 1 END) AS totHearts,
+          COUNT(CASE WHEN user.collectComic IS NOT NULL AND FIND_IN_SET(comics.comic_id, user.collectComic) > 0 THEN 1 END) AS totHearts,
           COALESCE(purchase_stats.purchase_count, 0) AS totBuy
       FROM 
           comics
       LEFT JOIN 
-          user ON JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL
+        user ON user.collectComic IS NOT NULL AND FIND_IN_SET(comics.comic_id, user.collectComic) > 0
       LEFT JOIN (
           SELECT 
               comic_id,
@@ -1548,7 +1533,7 @@ app.get('/api/category/updateStats', (req, res) => {
       FROM 
           comics
       LEFT JOIN 
-          user ON JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL
+          user ON user.collectComic IS NOT NULL AND FIND_IN_SET(comics.comic_id, user.collectComic) > 0
       LEFT JOIN (
           SELECT 
               records.comic_id,
@@ -1592,8 +1577,8 @@ app.get('/api/comicDetail/isFavorited', (req, res) => {
       return res.status(500).json({ message: 'Error fetching data' });
     }
     if (comicHash) {
-      const collectComic = results[0]?.collectComic || {};
-      const isFavorited = collectComic.hasOwnProperty(comicHash);
+      const collectComicArray = (results[0]?.collectComic || '').split(',').map(id => id.trim());
+      const isFavorited = collectComicArray.includes(comicHash);
       return res.json({ isFavorited });
     } else {
       if (results.length === 0) {
@@ -1609,7 +1594,7 @@ app.get('/api/comicDetail/isFavorited', (req, res) => {
 app.get('/api/nftDetail/records', (req, res) => {
   const tokenId = req.query.tokenId;
   const query = `
-    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.filename , comics.protoFilename, user.penName
+    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.protoFilename, user.penName
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     INNER JOIN user ON nft.minter = user.address
@@ -1657,7 +1642,7 @@ app.get('/api/nftDetail/isFavorited', (req, res) => {
       const placeholders = tokenIds.map(() => '?').join(',');
       const queryString = `
         SELECT 
-          comics.title, comics.comic_id , comics.filename, comics.protoFilename, nft.tokenId, nft.tokenTitle, nft.price ,nft.description, nft.forSale ,nft.minter, nft.owner
+          comics.title, comics.comic_id , comics.protoFilename, nft.tokenId, nft.tokenTitle, nft.price ,nft.description, nft.forSale ,nft.minter, nft.owner
         FROM nft
         INNER JOIN comics ON nft.comicHash = comics.comic_id
         WHERE nft.tokenId IN (${placeholders}) AND comics.is_exist = 0
@@ -1682,7 +1667,7 @@ app.get('/api/nftOwner/records', (req, res) => {
   const tokenId = req.query.tokenId;
   const currentAccount = req.query.currentAccount;
   const query = `
-    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.filename , comics.protoFilename, comics.is_exist, user.penName
+    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.protoFilename, comics.is_exist, user.penName
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     INNER JOIN user ON nft.minter = user.address
@@ -1709,7 +1694,6 @@ app.get('/api/comicRead', (req, res) => {
       comics.title AS comicTitle,
       chapters.chapter_id AS chapterHash,
       chapters.title AS chapterTitle,
-      chapters.filename,
       comics.creator,
       chapters.create_timestamp,
       chapters.price AS chapterPrice,
@@ -1735,29 +1719,25 @@ app.get('/api/comicRead', (req, res) => {
 
 app.get('/api/messagePage', (req, res) => {
   const currentAccount = req.query.currentAccount;
-  const selectQuery = `
-    SELECT collectComic
-    FROM user
-    WHERE address = ?
-  `;
+  const selectQuery = `SELECT collectComic FROM user WHERE address = ?`;
   pool.query(selectQuery, [currentAccount], (selectError, selectResults) => {
     if (selectError) {
       console.error('查询 collectComic 字段时发生错误：', selectError);
       return res.status(500).json({ message: '查询 collectComic 字段时发生错误' });
     }
-    if (!selectResults.length || !selectResults[0].collectComic) {
+    const collectComicString = selectResults[0]?.collectComic;
+    if (!collectComicString) {
       return res.json({ message: '請先收藏漫畫!' });
     }
-    const collectComic = selectResults[0].collectComic;
-    const comicIDs = Object.keys(collectComic);
+    const comicIDs = collectComicString.split(',').map(id => id.trim());
     const updatedComics = [];
     let completedQueries = 0;
     comicIDs.forEach(comicID => {
       const sql = `
-        SELECT chapters.title AS chapterTitle, 
+        SELECT comics.comic_id AS comicHash,
+               chapters.title AS chapterTitle, 
                chapters.create_timestamp AS newCreate, 
-               comics.title AS comicTitle, 
-               comics.filename
+               comics.title AS comicTitle 
         FROM chapters
         INNER JOIN comics ON chapters.comic_id = comics.comic_id
         WHERE chapters.comic_id = ? 
@@ -1766,16 +1746,10 @@ app.get('/api/messagePage', (req, res) => {
         LIMIT 1
       `;
       pool.query(sql, [comicID], (error, results) => {
-        if (error) {
-          console.error(`Error occurred while querying the collect status for comicID ${comicID}:`, error);
-          return res.status(500).json({ message: 'Error occurred while querying the collect status' });
+        if (!error && results.length) {
+          updatedComics.push(results[0]);
         }
-        if (results.length) {
-          const { comicTitle, chapterTitle, filename, newCreate } = results[0];
-          updatedComics.push({ comicHash: comicID, comicTitle, chapterTitle, filename, newCreate });
-        }
-        completedQueries++;
-        if (completedQueries === comicIDs.length) {
+        if (++completedQueries === comicIDs.length) {
           res.json({ collectComic: updatedComics });
         }
       });
@@ -1787,7 +1761,7 @@ app.get('/api/messagePage', (req, res) => {
 app.get('/api/creatorNft/records', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const query = `
-    SELECT nft.*, comics.title, comics.filename , comics.protoFilename
+    SELECT nft.*, comics.title, comics.protoFilename
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     WHERE nft.minter = ? AND comics.is_exist = 0
@@ -1807,7 +1781,7 @@ app.get('/api/creatorNft/records', (req, res) => {
 
 app.get('/api/nftMarket/records', (req, res) => {
   const query = `
-    SELECT nft.*, comics.title, comics.filename , comics.protoFilename, user.penName
+    SELECT nft.*, comics.title, comics.protoFilename, user.penName
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     INNER JOIN user ON nft.minter = user.address
@@ -1859,15 +1833,17 @@ app.get('/api/searchPage/Keyword', (req, res) => {
   const query = `
     SELECT title, description AS text, comic_id, filename, protoFilename
     FROM comics
+    INNER JOIN user ON comics.creator = user.address
     WHERE is_exist = 0 AND (
       creator LIKE ? OR
       title LIKE ? OR
       description LIKE ? OR
-      category LIKE ?
+      category LIKE ? OR
+      penName LIKE ?
     )
   `;
   const searchTermPattern = `%${searchTerm}%`;
-  pool.query(query, [searchTermPattern, searchTermPattern, searchTermPattern, searchTermPattern], (error, results) => {
+  pool.query(query, [searchTermPattern, searchTermPattern, searchTermPattern, searchTermPattern, searchTermPattern], (error, results) => {
     if (error) {
       console.error('Error fetching keyword results: ', error);
       return res.status(500).json({ message: 'Error fetching keyword results' });
@@ -1880,14 +1856,14 @@ app.get('/api/searchPage/Keyword', (req, res) => {
 app.get('/api/rankingList/top10', (req, res) => {
   const query = `
       SELECT 
-          comics.comic_id, comics.creator, comics.title, comics.description, comics.filename,
-          COUNT(CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL THEN 1 END) AS totHearts,
+          comics.comic_id, comics.creator, comics.title, comics.description,
+          COUNT(CASE WHEN user.collectComic IS NOT NULL AND FIND_IN_SET(comics.comic_id, user.collectComic) > 0 THEN 1 END) AS totHearts,
           COALESCE(purchase_stats.purchase_count, 0) AS totBuy,
-          COUNT(CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL THEN 1 END) + COALESCE(purchase_stats.purchase_count, 0) AS total
+          COUNT(CASE WHEN user.collectComic IS NOT NULL AND FIND_IN_SET(comics.comic_id, user.collectComic) > 0 THEN 1 END) + COALESCE(purchase_stats.purchase_count, 0) AS total
       FROM 
           comics
       LEFT JOIN 
-          user ON JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL
+          user ON user.collectComic IS NOT NULL AND FIND_IN_SET(comics.comic_id, user.collectComic) > 0
       LEFT JOIN (
           SELECT 
               comic_id,
@@ -1954,12 +1930,12 @@ app.get('/api/rankingList/purRank', (req, res) => {
 app.get('/api/rankingList/favoriteRank', (req, res) => {
   const query = `
       SELECT 
-          comics.comic_id, comics.creator, comics.title, comics.description, comics.filename,
-          COUNT(CASE WHEN JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL THEN 1 END) AS totHearts
+          comics.comic_id, comics.creator, comics.title, comics.description
+          COUNT(CASE WHEN user.collectComic IS NOT NULL AND FIND_IN_SET(comics.comic_id, user.collectComic) > 0 THEN 1 END) AS totHearts
       FROM 
           comics
       LEFT JOIN 
-          user ON JSON_UNQUOTE(JSON_EXTRACT(user.collectComic, CONCAT('$."', comics.comic_id, '"'))) IS NOT NULL
+          user ON user.collectComic IS NOT NULL AND FIND_IN_SET(comics.comic_id, user.collectComic) > 0
       WHERE 
           comics.is_exist = 0
       GROUP BY 
@@ -1981,7 +1957,7 @@ app.get('/api/rankingList/favoriteRank', (req, res) => {
 app.get('/api/rankingList/weekRank', (req, res) => {
   const query = `
       SELECT 
-          comics.comic_id, comics.creator, comics.title, comics.description, comics.filename,
+          comics.comic_id, comics.creator, comics.title, comics.description
           COALESCE(purchase_stats.purchase_count, 0) AS totBuy
       FROM 
           comics
@@ -2057,7 +2033,7 @@ app.get('/api/comicManagement/isAdmin', (req, res) => {
     }
     const allAddressesQuery = `
         SELECT 
-            address, is_creator, is_admin
+            address, is_creator, is_admin, penName, date
         FROM 
             user
     `;
@@ -2114,7 +2090,7 @@ app.get('/api/authorProfile', (req, res) => {
 app.get('/api/dataAnalysis/records', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const recordsQuery = `
-    SELECT comics.title AS comicTitle, comics.category, comics.filename, 
+    SELECT comics.title AS comicTitle, comics.category, comics.comic_id AS filename,
            chapters.title AS chapterTitle, records.purchase_date, records.price, records.buyer
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
@@ -2157,6 +2133,23 @@ app.get('/api/dataAnalysis/records', (req, res) => {
     // 錯誤處理
     console.error(err.error, err.details);
     res.status(500).json({ message: err.error });
+  });
+});
+
+
+app.get('/api/contactPage/isAdmin', (req, res) => {
+  const currentAccount = req.query.currentAccount;
+  const query = `
+      SELECT is_admin
+      FROM  user
+      WHERE address = ?
+  `;
+  pool.query(query, [currentAccount], (error, results) => {
+    if (error) {
+      console.error('Error fetching addresses:', error);
+      return res.status(500).json({ message: 'Error fetching addresses' });
+    }
+    res.json({ isAdmin: results[0].is_admin });
   });
 });
 

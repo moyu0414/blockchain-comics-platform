@@ -19,6 +19,7 @@ import CreatorPage from './routes/creatorPage';
 import CollectionPage from './routes/collectionPage';
 import CollectionNft from './routes/collectionNft';
 import CreateSuccess from './routes/createSuccess';
+import ContactPage from './routes/contactPage';
 import ReaderPage from './routes/readerPage';
 import Bookcase from './routes/bookcase';
 import BecomeWriter from './routes/becomeWriter';
@@ -312,6 +313,9 @@ const router = createBrowserRouter([
       },{
         path: "/authorProfile/:account",
         element: <AuthorProfile />,
+      },{
+        path: "/contactPage",
+        element: <ContactPage />,
       }
     ],
   },

@@ -4820,8 +4820,6 @@ a:link{
   aspect-ratio: 1 / 1; /* 1:1 比例 */
 }
 
-
-
 .post-author img{
   height: auto; /* 高度自适应 */
   max-width: 60px; /* 最大宽度 */
@@ -4917,7 +4915,23 @@ a:link{
   background-color: #5a6268!important;
 }
 
+.disabled-btn{
+  background-color: #c3c0c0!important;
+}
+
 .piracy{
   color: #000!important;
   background-color: #c3c0c0!important;
+}
+
+.required-text{
+  margin-left: 0.5%;
+  color: #F44336;
+}
+
+/* contactPage */
+.contactPage h2{
+  color: #ffffff;
+  background-color: green;
+  line-height: 2;
 }

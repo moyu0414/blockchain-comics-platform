@@ -267,6 +267,7 @@ function Navigation() {
                                         {isAdmin && 
                                             <Nav.Link href="/comicManagement">{t('管理者專區')}</Nav.Link>
                                         }
+                                        <Nav.Link href="/contactPage">{t('聯絡我們')}</Nav.Link>
                                     </Nav>
                                     {/* 登入區塊 */}
                                     <div className={`log-in-area ${expanded ? 'vertical-layout' : 'horizontal-layout'}`}>

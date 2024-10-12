@@ -133,7 +133,7 @@ const ComicRead = () => {
 
                 for (var i = 0; i < records.length; i++) {
                     if (records[i].chapterID === chapterID && records[i].isBuying === t('閱讀')) {
-                        const chapterResponse = await axios.get(`${website}/api/chapterIMG/${records[i].filename}`, { responseType: 'blob', headers: headers });
+                        const chapterResponse = await axios.get(`${website}/api/chapterIMG/${records[i].chapterHash}`, { responseType: 'blob', headers });
                         const image = URL.createObjectURL(chapterResponse.data);
                         const img = new Image();
                         img.src = image;
