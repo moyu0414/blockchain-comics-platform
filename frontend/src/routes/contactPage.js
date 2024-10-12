@@ -77,15 +77,15 @@ const ContactPage = () => {
           fileName: response.data.fileName,
           from_email: form.email
         }, PUBLIC_KEY)
-        message.info(t('郵件已成功發送!'));
+        message.info(t('郵件已成功發送！'));
         setForm({name: "", title: "", message: "",  email: "", file: ''});
       } catch (error) {
         console.log('錯誤:', error);
-        message.info(t('郵件發送失敗，請稍後再試!'));
+        message.info(t('郵件發送失敗，請稍後再試！'));
       }
     } catch (error) {
       console.log('錯誤:', error);
-      message.info(t('檔案上傳錯誤!'));
+      message.info(t('檔案上傳錯誤！'));
     }
   };
 
@@ -97,12 +97,14 @@ const ContactPage = () => {
   const handleSearchSubmit = async (event) => {
     event.preventDefault();
     try {
-      const fileResponse = await axios.get(`${website}/api/evidence/${searchValue}`, { headers });
-      console.log(fileResponse.data);
-      if (fileResponse.data.state) {
-        window.open(fileResponse.data.filePath, '_blank');
+      const response = await axios.get(`${website}/api/evidence/${searchValue}`, { headers, responseType: 'blob' });
+      if (response.status === 200) {
+        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        URL.revokeObjectURL(url);
       } else {
-        message.info(t('檔案不存在!'));
+        message.info(t('檔案不存在！'));
       }
     } catch (error) {
       console.error('發生錯誤:', error);
@@ -114,15 +116,15 @@ const ContactPage = () => {
     <Container className="contactPage pb-5">
       <div className="text-center mb-5">
         <h2 className='text-center fw-bold'>{t('聯絡我們')}</h2>
-        <p className="text-muted">若有任何問題要聯絡我們請填寫以下欄位。</p>
+        <p className="text-muted">{t('若有任何問題要聯絡我們請填寫以下欄位。')}</p>
         {isAdmin &&  
           <Row>
-            <Form.Label>查詢檔案</Form.Label>
+            <Form.Label>{t('查詢檔案')}</Form.Label>
             <Col xs={9}>
               <Form.Control
                 type="text"
                 name="search"
-                placeholder="請輸入檔名"
+                placeholder={t('請輸入檔名')}
                 onChange={(e) => setSearchValue(e.target.value)}
                 disabled={!enabled}
               />
@@ -140,8 +142,8 @@ const ContactPage = () => {
         <Row className="mb-3">
           <Col>
             <Form.Group controlId="formCompany">
-              <Form.Label>標題</Form.Label><span className='required-text'>*</span>
-              <Form.Control type="text" name="title" placeholder="請輸入標題" value={form.title} onChange={handleChange} disabled={!enabled} required />
+              <Form.Label>{t('標題')}</Form.Label><span className='required-text'>*</span>
+              <Form.Control type="text" name="title" placeholder={t('請輸入標題')} value={form.title} onChange={handleChange} disabled={!enabled} required />
             </Form.Group>
           </Col>
         </Row>
@@ -149,14 +151,14 @@ const ContactPage = () => {
         <Row className="mb-3">
           <Col xs={12} sm={6} className="mb-3"> 
             <Form.Group controlId="formFirstName">
-              <Form.Label>名字</Form.Label><span className='required-text'>*</span>
-              <Form.Control type="text" name="name" placeholder="請輸入你的名字" value={form.name} onChange={handleChange} disabled={!enabled} required />
+              <Form.Label>{t('名字')}</Form.Label><span className='required-text'>*</span>
+              <Form.Control type="text" name="name" placeholder={t('請輸入你的名字')} value={form.name} onChange={handleChange} disabled={!enabled} required />
             </Form.Group>
           </Col>
           <Col xs={12} sm={6} className="mb-3"> 
             <Form.Group controlId="formLastName">
               <Form.Label>Email</Form.Label><span className='required-text'>*</span>
-              <Form.Control type="email" name="email" placeholder="請輸入你的email" value={form.email} onChange={handleChange} disabled={!enabled} required />
+              <Form.Control type="email" name="email" placeholder={t('請輸入你的email')} value={form.email} onChange={handleChange} disabled={!enabled} required />
             </Form.Group>
           </Col>
         </Row>
@@ -164,7 +166,7 @@ const ContactPage = () => {
         <Row className="mb-3">
           <Col>
             <Form.Group controlId="file-upload">
-              <Form.Label>上傳檔案（若為檢舉請提供相關附件舉證）</Form.Label>
+              <Form.Label>{t('上傳檔案（若為檢舉請提供相關附件舉證）')}</Form.Label>
               <Form.Control type="file" name="file-upload" onChange={handleFileUpload} disabled={!enabled}/>
             </Form.Group>
           </Col>
@@ -173,8 +175,8 @@ const ContactPage = () => {
         <Row className="mb-3">
           <Col>
             <Form.Group controlId="formMessage">
-              <Form.Label>內容</Form.Label><span className='required-text'>*</span>
-              <Form.Control as="textarea" name="message" rows={4} placeholder="請輸入內容" value={form.message} onChange={handleChange} disabled={!enabled} required />
+              <Form.Label>{t('內容')}</Form.Label><span className='required-text'>*</span>
+              <Form.Control as="textarea" name="message" rows={4} placeholder={t('請輸入內容')} value={form.message} onChange={handleChange} disabled={!enabled} required />
             </Form.Group>
           </Col>
         </Row>
@@ -182,7 +184,7 @@ const ContactPage = () => {
         <Row className='d-flex justify-content-end'>
           <Col xs="auto">
             <Button variant="primary" type="submit" disabled={!enabled}>
-              送出
+              {t('提交')}
             </Button>
           </Col>
         </Row>
