@@ -44,7 +44,7 @@ function NftOwner() {
         setUpdatePrice(nftData[0].price);
 
         if (nftData.length !== 0 && nftData[0].is_exist === 0) {
-            const { minter: initialMinter, price, forSale, protoFilename, filename, comicHash, tokenId: token } = nftData[0];
+            const { minter: initialMinter, price, forSale, protoFilename, comicHash, tokenId: token } = nftData[0];
             const currentState = forSale === 0 ? t('轉售') : t('已出售');
             const currentMinter = initialMinter === currentAccount ? t('您是本作品的創作者') : initialMinter;
             try {
@@ -56,8 +56,8 @@ function NftOwner() {
                     imageUrl = URL.createObjectURL(nftImgResponse.data);
                 } else {
                     const imageUrlPath = protoFilename === 1
-                        ? `${website}/api/coverFile/${filename}/${protoFilename}`
-                        : `${website}/api/comicIMG/${filename}`;
+                        ? `${website}/api/coverFile/${comicHash}`
+                        : `${website}/api/comicIMG/${comicHash}`;
                     const coverImgResponse = await axios.get(imageUrlPath, { responseType: 'blob', headers });
                     imageUrl = URL.createObjectURL(coverImgResponse.data);
                 }

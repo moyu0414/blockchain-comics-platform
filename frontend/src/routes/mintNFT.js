@@ -219,8 +219,8 @@ const MintNFT = (props) => {
             const temp = storedArray.find(item => item.comicID === location.state.comicID);
             setComic([temp]);
             const [imageResponse, protoResponse] = await Promise.all([
-                axios.get(`${website}/api/comicIMG/${temp.filename}`, { responseType: 'blob', headers }),
-                temp.protoFilename ? axios.get(`${website}/api/coverFile/${temp.filename}/${temp.protoFilename}`, { responseType: 'blob', headers }) : Promise.resolve(null)
+                axios.get(`${website}/api/comicIMG/${temp.comic_id}`, { responseType: 'blob', headers }),
+                temp.protoFilename ? axios.get(`${website}/api/coverFile/${temp.comic_id}`, { responseType: 'blob', headers }) : Promise.resolve(null)
             ]);
             const imgURL = URL.createObjectURL(imageResponse.data);
             const coverImg = protoResponse ? URL.createObjectURL(protoResponse.data) : '';

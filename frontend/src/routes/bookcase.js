@@ -144,22 +144,15 @@ function Bookcase() {
                                         <Col key={idx} xs={4} md={3}>
                                             <Link to={data.is_exist === 0 ? (`/comicRead/${data.comicID}/${data.chapter}`) : (`/comicDetail/${data.comicID}`)}>
                                                 <Card>
-                                                    {data.is_exist === 0 ? (
+                                                    {data.is_exist === 0 && (
                                                         <>
                                                             <Card.Img variant="top" src={data.image} />
                                                             <div className="bookcase-overlay">{data.chapter}</div>
+                                                            <Card.Body>
+                                                                <Card.Title className='bookcase-read-text'>{data.title}</Card.Title>
+                                                            </Card.Body>
                                                         </>
-                                                    ) : (
-                                                        <div className="bookcase-position" style={{marginBottom: "30px"}}>
-                                                            <Card.Img variant="top" src='/piraty.png' />
-                                                            <p className="hidden">
-                                                                {data.is_exist === 1 ? t('查核中\n暫不開放') : t('盜版漫畫\n已下架')}
-                                                            </p>
-                                                        </div>
                                                     )}
-                                                    <Card.Body>
-                                                        <Card.Title className='bookcase-read-text'>{data.title}</Card.Title>
-                                                    </Card.Body>
                                                 </Card>
                                             </Link>
                                         </Col>

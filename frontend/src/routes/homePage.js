@@ -48,13 +48,11 @@ const HomePage = () => {
             const fetchComicData = async (comic) => {
                 if (promoCategories.includes(comic.category)) {
                     try {
-                        // Fetch the main comic image
-                        const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.filename}`, { responseType: 'blob', headers });
+                        const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.comic_id}`, { responseType: 'blob', headers });
                         comic.image = URL.createObjectURL(imageResponse.data); // Set the comic image URL
             
-                        // Fetch the proto image if applicable
                         if (comic.protoFilename === 1) {
-                            const protoFilenameResponse = await axios.get(`${website}/api/coverFile/${comic.filename}/${comic.protoFilename}`, { responseType: 'blob', headers });
+                            const protoFilenameResponse = await axios.get(`${website}/api/coverFile/${comic.comic_id}`, { responseType: 'blob', headers });
                             comic.protoFilename = URL.createObjectURL(protoFilenameResponse.data); // Set the proto image URL
                         }
                     } catch (error) {

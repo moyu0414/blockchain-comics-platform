@@ -34,14 +34,14 @@ function MessagePage() {
             } else {
                 const fetchImage = async (item) => {
                     try {
-                        const response = await axios.get(`${website}/api/comicIMG/${item.filename}`, { responseType: 'blob', headers });
+                        const response = await axios.get(`${website}/api/comicIMG/${item.comicHash}`, { responseType: 'blob', headers });
                         item.image = URL.createObjectURL(response.data);
                         const storedItem = storedArray.find(stored => stored.is_exist === 0 && stored.comic_id === item.comicHash);
                         if (storedItem) {
                             item.comicID = storedItem.comicID;
                         }
                     } catch (error) {
-                        console.error(`Error fetching image for item with filename ${item.filename}: ${error.message}`);
+                        console.error(`Error fetching image ${item.comicHash}: ${error.message}`);
                     }
                 };
                 if (Array.isArray(data)) {

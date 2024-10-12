@@ -154,7 +154,7 @@ async function calculateHash(filePath) {
 
 async function creatorFile(file, account) {
   const creatorFolder = path.join('uploads', 'creator');  // localhost
-  //const comicFolder = path.join('/var/www/html/uploads', comic_id);  // web3toonapi
+  //const comicFolder = path.join('/var/www/html/uploads', creator);  // web3toonapi
   const fileExtension = getFileExtension(file.originalname);
   const filename = `${account}.${fileExtension}`;
   const filePath = path.join(creatorFolder, filename);
@@ -218,12 +218,11 @@ async function evidenceFile(file) {
 
 app.post('/api/contactPage/uploadFile', upload.single('evidence'), async (req, res) => {
   const evidence = req.file;
-  console.log(evidence);
   try {
     const fileName = await evidenceFile(req.file);
-    res.json({ state: true, url: fileName });
+    res.json({ state: true, fileName: fileName });
   } catch (error) {
-    console.error('错误:', error);
+    console.error('error', error);
     res.json({ state: false });
   }
 });
@@ -767,7 +766,7 @@ app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'c
         });
       });
     } else{
-      const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ?,WHERE comic_id = ?`;
+      const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ? WHERE comic_id = ?`;
       await new Promise((resolve, reject) => {
         pool.query(updateQuery, [title, description, category, id], (error, results, fields) => {
           if (error) {
@@ -1802,7 +1801,7 @@ app.get('/api/nftMarket/records', (req, res) => {
 
 app.get('/api/searchPage/LP', (req, res) => {
   const query = `
-    SELECT category, description AS text, filename, protoFilename
+    SELECT comic_id, category, description AS text, protoFilename
     FROM comics
     WHERE create_timestamp = (
         SELECT MAX(create_timestamp)
@@ -1810,7 +1809,7 @@ app.get('/api/searchPage/LP', (req, res) => {
         WHERE sub.category = comics.category AND sub.is_exist = 0
     )
       AND is_exist = 0
-    GROUP BY category, description, filename, protoFilename
+    GROUP BY comic_id, category, description, protoFilename
     ORDER BY (
         SELECT COUNT(*)
         FROM comics AS sub
@@ -1831,7 +1830,7 @@ app.get('/api/searchPage/LP', (req, res) => {
 app.get('/api/searchPage/Keyword', (req, res) => {
   const searchTerm = req.query.term;
   const query = `
-    SELECT title, description AS text, comic_id, filename, protoFilename
+    SELECT title, description AS text, comic_id, protoFilename
     FROM comics
     INNER JOIN user ON comics.creator = user.address
     WHERE is_exist = 0 AND (
@@ -1896,7 +1895,7 @@ app.get('/api/rankingList/top10', (req, res) => {
 app.get('/api/rankingList/purRank', (req, res) => {
   const query = `
       SELECT 
-          c.comic_id, c.creator, c.title, c.description, c.filename,
+          c.comic_id, c.creator, c.title, c.description,
           COALESCE(purchase_stats.purchase_count, 0) AS totBuy
       FROM 
           comics c
@@ -1930,7 +1929,7 @@ app.get('/api/rankingList/purRank', (req, res) => {
 app.get('/api/rankingList/favoriteRank', (req, res) => {
   const query = `
       SELECT 
-          comics.comic_id, comics.creator, comics.title, comics.description
+          comics.comic_id, comics.creator, comics.title, comics.description,
           COUNT(CASE WHEN user.collectComic IS NOT NULL AND FIND_IN_SET(comics.comic_id, user.collectComic) > 0 THEN 1 END) AS totHearts
       FROM 
           comics
@@ -1957,7 +1956,7 @@ app.get('/api/rankingList/favoriteRank', (req, res) => {
 app.get('/api/rankingList/weekRank', (req, res) => {
   const query = `
       SELECT 
-          comics.comic_id, comics.creator, comics.title, comics.description
+          comics.comic_id, comics.creator, comics.title, comics.description,
           COALESCE(purchase_stats.purchase_count, 0) AS totBuy
       FROM 
           comics
@@ -1994,7 +1993,7 @@ app.get('/api/rankingList/weekRank', (req, res) => {
 app.get('/api/rankingList/newRank', (req, res) => {
   const query = `
       SELECT 
-          comic_id, creator, title, description, filename, create_timestamp
+          comic_id, creator, title, description, create_timestamp
       FROM 
           comics
       WHERE 
