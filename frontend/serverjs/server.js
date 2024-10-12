@@ -715,22 +715,18 @@ app.get('/api/evidence/:fileName', async (req, res) => {
   if (apiKey !== API_KEY) {
     return res.status(403).json({ state: false, message: 'Forbidden' });
   }
+
+  // localhost
+  const filePath = path.join(__dirname, 'uploads', 'evidence', fileName);
+
+  // web3toonapi
+  //const filePath = path.join('/var/www/html/', 'uploads', 'evidence', fileName);
+
   try {
-      // localhost
-      const filePath = path.join(__dirname, 'uploads', 'evidence', fileName);
-
-      // web3toonapi
-      //const filePath = path.join('/var/www/html/', 'uploads', 'evidence', fileName);
-
-      await fsPromises.access(filePath);
-      res.json({ state: true, filePath: filePath });
+    await fsPromises.access(filePath);
+    res.download(filePath, fileName); // 直接發送檔案
   } catch (error) {
-    if (error.code === 'ENOENT') {
-      res.json({ state: false });
-    } else {
-      console.error('Error fetching NFT image path:', error);
-      res.json({ state: false });
-    }
+    return res.json({ state: false, message: error.code === 'ENOENT' ? 'File not found' : 'Server error' });
   }
 });
 
