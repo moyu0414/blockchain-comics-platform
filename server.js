@@ -154,7 +154,7 @@ async function calculateHash(filePath) {
 
 async function creatorFile(file, account) {
   // const creatorFolder = path.join('uploads', 'creator');  // localhost
-  const creatorFolder = path.join('/var/www/html/uploads', comic_id);  // web3toonapi
+  const creatorFolder = path.join('/var/www/html/uploads', creator);  // web3toonapi
   const fileExtension = getFileExtension(file.originalname);
   const filename = `${account}.${fileExtension}`;
   const filePath = path.join(creatorFolder, filename);
@@ -255,7 +255,7 @@ app.post('/api/send-verification-email', async (req, res) => {
   const code = Math.floor(100000 + Math.random() * 900000);  // 隨機生成 6 位數驗證碼
   const expires = new Date(Date.now() + 15 * 60 * 1000); // 驗證碼 15 分钟內有效
   // const imagePath = path.join(__dirname, 'uploads', 'terms', version, filename);  // localhost
-  const imagePath = path.join('/var/www/html/', 'uploads', 'terms', version, filename);  // web3toon
+  const imagePath = path.join('/var/www/html/', 'uploads', 'terms', version, filename);  // web3toonapi
   const mailOptions = {
     from: emailAccount,
     to: email,
@@ -494,8 +494,8 @@ app.post('/api/add/NFT', upload.single('nftIMG'), async (req, res) => {
           throw new Error('Invalid tokenId format');
         }
       }));
-      await deleteFile(`uploads/${file.filename}`);  // localhost
-      //await deleteFile(`/var/www/html/uploads/${file.filename}`);  // web3toon
+      // await deleteFile(`uploads/${file.filename}`);  // localhost
+      await deleteFile(`/var/www/html/uploads/${file.filename}`);  // web3toonapi
     }
     const sql = `
       INSERT INTO nft (tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner, verify)
