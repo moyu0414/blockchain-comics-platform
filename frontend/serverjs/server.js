@@ -25,12 +25,12 @@ const API_KEY = process.env.REACT_APP_API_KEY; // localhost
 const emailAccount = process.env.REACT_APP_EMAIL; // localhost
 const emailPassword = process.env.REACT_APP_EMAIL_PASSWORD; // localhost
 
-//app.use(cors());
-app.use(cors({
-  origin: ['https://web3toon.ddns.net', 'http://localhost:3000'],
-  methods: ['GET', 'POST', 'PUT'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'api-key'],
-}));
+app.use(cors());
+//app.use(cors({
+  //origin: ['https://web3toon.ddns.net', 'http://localhost:3000'],
+  //methods: ['GET', 'POST', 'PUT'],
+  //allowedHeaders: ['Content-Type', 'Authorization', 'api-key'],
+//}));
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');  // 允許所有来源的請求訪問資源

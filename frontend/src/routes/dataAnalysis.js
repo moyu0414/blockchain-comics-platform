@@ -1189,6 +1189,8 @@ const DataAnalysis = () => {
   const [dates, setDates] = useState(null);
   const [rankFilterData, setRankFilterData] = useState([]);
   const [rankSort, setRankSort] = useState('sales');
+  const [rankPeriodData, setRankPeriodData] = useState([]);
+  const [rankPeriod, setRankPeriod] = useState('28天');
 
   const [nftData, setNftData] = useState([]);
   const [nftSalesData, setNftSalesData] = useState({});
@@ -1517,17 +1519,18 @@ const DataAnalysis = () => {
 
 
   // 漫畫－客戶群
+  const today = new Date();
+  const periods = {
+    '7天': [new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000), today],
+    '28天': [new Date(today.getTime() - 28 * 24 * 60 * 60 * 1000), today],
+    '90天': [new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000), today],
+    '180天': [new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000), today],
+    '2023': [new Date('2023-01-01T00:00:00Z'), new Date('2023-12-31T23:59:59Z')],
+    '2024': [new Date('2024-01-01T00:00:00Z'), new Date('2024-12-31T23:59:59Z')],
+    '發布至今': [new Date('2023-01-01T00:00:00Z'), today],
+  };
+
   const initBuyerData = (data) => {
-    const today = new Date();
-    const periods = {
-      '7天': [new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000), today],
-      '28天': [new Date(today.getTime() - 28 * 24 * 60 * 60 * 1000), today],
-      '90天': [new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000), today],
-      '180天': [new Date(today.getTime() - 180 * 24 * 60 * 60 * 1000), today],
-      '2023': [new Date('2023-01-01T00:00:00Z'), new Date('2023-12-31T23:59:59Z')],
-      '2024': [new Date('2024-01-01T00:00:00Z'), new Date('2024-12-31T23:59:59Z')],
-      '發布至今': [new Date('2023-01-01T00:00:00Z'), today],
-    };
     const salesData = {};
     for (const [period, [start, end]] of Object.entries(periods)) {
       salesData[period] = calculateSales(data, start, end);
@@ -1570,6 +1573,47 @@ const DataAnalysis = () => {
 
 
   // 漫畫－排行榜
+  useEffect(() => {
+    initRankingData();
+  }, [cimicRank]);
+
+  const initRankingData = () => {
+    const aggregatedData = {};
+    for (const comic in cimicRank) {
+      const { category, filename, day } = cimicRank[comic];
+      const comicData = Object.keys(periods).reduce((acc, period) => {
+        acc[period] = { totalSales: 0, totalCount: 0, category, image: filename };
+        return acc;
+      }, {});
+      Object.values(day).forEach(({ date, sales, count }) => {
+        const saleDate = new Date(date);
+        for (const [period, [startDate, endDate]] of Object.entries(periods)) {
+          if (saleDate >= startDate && saleDate <= endDate) {
+            comicData[period].totalSales += sales;
+            comicData[period].totalCount += count;
+          }
+        }
+      });
+      Object.entries(comicData).forEach(([period, data]) => {
+        if (!aggregatedData[period]) aggregatedData[period] = {};
+        if (data.totalCount > 0) {
+          aggregatedData[period][comic] = {
+            totalSales: data.totalSales.toFixed(3),
+            totalCount: data.totalCount,
+            category: data.category,
+            image: data.image,
+          };
+        }
+      });
+    }
+    setRankPeriodData(aggregatedData);
+  };
+
+  const clickRankPeriod = (period) => {
+    setRankPeriod(period);
+    setRankFilterData(rankPeriodData[period] || {});
+  };
+
   const filterDataByRange = async () => {
     if (dates && dates[0] && dates[1]) {
       const start = dates[0].startOf('day').toDate();
@@ -1600,8 +1644,9 @@ const DataAnalysis = () => {
         }
       }
       if (Object.keys(aggregatedData).length > 0) {
-        //console.log(aggregatedData);
+        console.log(aggregatedData);
         setRankFilterData(aggregatedData);
+        setRankPeriod('');
       } else {
         message.info('沒有符合條件的資料');
         setRankFilterData({});
@@ -1895,7 +1940,20 @@ const DataAnalysis = () => {
                 </Tab>
                 <Tab className='second-tab' eventKey="comicRank" title={t('排行榜')}>
                   <div>
-                    <h2>{t('選擇日期區間')}</h2>
+                    <h2>{t('選擇日期區間')}：{t(rankPeriod)}</h2>
+                    <div className="scrollable-container">
+                      <div className="scrollable-buttons">
+                        {Object.keys(periods).map((period) => (
+                          <Button
+                            className="mb-2 btn"
+                            key={period}
+                            onClick={() => clickRankPeriod(period)}
+                          >
+                            {t(period)}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
                     <Row gutter={16}>
                       <Col span={12}>
                         <div style={{ marginBottom: 16 }}>
