@@ -17,7 +17,6 @@ function MessagePage() {
     const storedArray = JSON.parse(storedArrayJSON);
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
-    let readMsg = JSON.parse(localStorage.getItem('readMsg')) || [];
     let temp = [];
 
     const initData = async () => {
@@ -35,29 +34,14 @@ function MessagePage() {
             } else {
                 const fetchImage = async (item) => {
                     try {
-                        const response = await axios.get(`${website}/api/comicIMG/${item.filename}`, { responseType: 'blob', headers });
+                        const response = await axios.get(`${website}/api/comicIMG/${item.comicHash}`, { responseType: 'blob', headers });
                         item.image = URL.createObjectURL(response.data);
                         const storedItem = storedArray.find(stored => stored.is_exist === 0 && stored.comic_id === item.comicHash);
                         if (storedItem) {
                             item.comicID = storedItem.comicID;
                         }
                     } catch (error) {
-                        console.error(`Error fetching image for item with filename ${item.filename}: ${error.message}`);
-                    }
-                };
-                const updateFavorite = async (item) => {
-                    try {
-                        await axios.put(`${website}/api/update/comicDetail/favorite`, null, {
-                            headers: headers,
-                            params: {
-                                currentAccount: currentAccount,
-                                comicHash: item.comicHash,
-                                bool: true,
-                                data: item.newCreate
-                            }
-                        });
-                    } catch (error) {
-                        console.error('Error handleFavoriteClick', error);
+                        console.error(`Error fetching image ${item.comicHash}: ${error.message}`);
                     }
                 };
                 if (Array.isArray(data)) {
@@ -65,37 +49,8 @@ function MessagePage() {
                 } else if (typeof data === 'object') {
                     await fetchImage(data);
                 }
-                await Promise.all(data.map(updateFavorite));
-                
-                const dataComicHashes = new Set(data.map(item => item.comicHash));
-                readMsg = readMsg
-                    .filter(readMsgItem => dataComicHashes.has(readMsgItem.comicHash))
-                    .map(readMsgItem => {
-                        const dataItem = data.find(item => item.comicHash === readMsgItem.comicHash);
-                        if (dataItem) {
-                            readMsgItem.image = dataItem.image;
-                        }
-                        return readMsgItem;
-                    });
-                data.forEach(item => {
-                    const index = readMsg.findIndex(readMsgItem =>
-                        readMsgItem.comicHash === item.comicHash &&
-                        readMsgItem.comicID === item.comicID &&
-                        readMsgItem.chapterTitle === item.chapterTitle
-                    );
-                    if (index !== -1) {
-                        readMsg.splice(index, 1);
-                    }
-                    readMsg.unshift(item);
-                });
-                readMsg = readMsg.filter(readMsgItem => {
-                    const dataItem = data.find(item => item.comicHash === readMsgItem.comicHash);
-                    return !(dataItem && Number(dataItem.newCreate) < Number(readMsgItem.newCreate));
-                });
-                sortByTimestamp(readMsg);
-                //console.log(readMsg);
-                localStorage.setItem('readMsg', JSON.stringify(readMsg));
-                setComic(readMsg);
+                sortByTimestamp(data);
+                setComic(data);
                 setLoading(false);
             }
         } catch (error) {

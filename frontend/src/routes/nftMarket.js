@@ -128,8 +128,8 @@ function NftMarket() {
                     data.image = URL.createObjectURL(nftImgResponse.data);
                   } else {
                     const url = data.protoFilename === 1
-                      ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
-                      : `${website}/api/comicIMG/${data.filename}`;
+                      ? `${website}/api/coverFile/${data.comicHash}`
+                      : `${website}/api/comicIMG/${data.comicHash}`;
                     const coverImgResponse = await axios.get(url, { responseType: 'blob', headers });
                     data.image = URL.createObjectURL(coverImgResponse.data);
                 }
@@ -307,7 +307,7 @@ function NftMarket() {
             let price = totalAmount;
             if (balance > price) {
                 const tokenIds = cartItems.flatMap(({ tokenId, saleQty }) =>
-                    Array.from({ length: saleQty }, (_, j) => tokenId + j)
+                    Array.from({ length: saleQty }, (_, j) => tokenId - j)
                 );
                 price = web3.utils.toWei(price, 'ether');
                 //console.log(totalAmount);

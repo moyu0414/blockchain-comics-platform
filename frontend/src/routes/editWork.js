@@ -13,6 +13,7 @@ import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import { MdClose, MdDragHandle } from 'react-icons/md';  // 導入小叉叉圖標和拖曳圖標
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';  // 拖放功能，讓使用者可以拖曳圖片來重新排列它們的順序。
+import imageCompression from 'browser-image-compression';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
@@ -77,7 +78,7 @@ const EditWork = (props) => {
               let id = 'Chapter' + (i+1);
               if (id == location.state.chapterID) {
                 let price = chapters[i].price;
-                const chapterResponse = await axios.get(`${website}/api/chapterIMG/${chapters[i].filename}`, { responseType: 'blob', headers });
+                const chapterResponse = await axios.get(`${website}/api/chapterIMG/${chapters[i].chapterHash}`, { responseType: 'blob', headers });
                 let imgURL = URL.createObjectURL(chapterResponse.data);
                 setNewChapter({
                   chapterTitle: chapters[i].title,
@@ -89,7 +90,6 @@ const EditWork = (props) => {
                   price: price,
                   chapterHash: chapters[i].chapterHash,
                   imgURL: imgURL,
-                  filename: chapters[i].filename
                 })
               }
           }
@@ -134,18 +134,14 @@ const EditWork = (props) => {
           formData.append('description', newComic.description);
           formData.append('category', newComic.category);
           formData.append('fileName', comic[0].filename);  // 原始圖檔名稱
-          let editComicData;
-          if (file) { // 有重新上傳圖片，重新產生新的fileName
-            formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
-            editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title, 'editFile': comic[0].filename};
-          } else {
-            editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title};
+          const editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title};
+          if (file) { // 有重新上傳圖片
+            formData.append('comicIMG', file);
           }
           if (coverFile) {
             formData.append('coverFile', coverFile);
-            const protoFilename = `promoCover.${getFileExtension(coverFile.name)}`;
+            const protoFilename = "promoCover.jpg";
             formData.append('protoFilename', protoFilename);
-            //console.log(protoFilename);
           } else {
             formData.append('protoFilename', '');
           };
@@ -163,25 +159,19 @@ const EditWork = (props) => {
           updateMsg("");
         }
       } else {
-        //console.log(comic[0].comic_id);
         const formData = new FormData();
         formData.append('id', comic[0].comic_id);
         formData.append('title', newComic.title);
         formData.append('description', newComic.description);
         formData.append('category', newComic.category);
-        formData.append('fileName', comic[0].filename);
-        let editComicData;
-        if (file) { // 有重新上傳圖片，重新產生新的fileName
-          formData.append('comicIMG', file);  // 使用正确的字段名，这里是 'comicIMG'
-          editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title, 'editFile': comic[0].filename};
-        } else {
-          editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title};
+        const editComicData = {'comicHash': comic[0].comic_id, 'editTitle': newComic.title};
+        if (file) { // 有重新上傳圖片
+          formData.append('comicIMG', file);
         }
         if (coverFile) {
           formData.append('coverFile', coverFile);
-          const protoFilename = `promoCover.${getFileExtension(coverFile.name)}`;
+          const protoFilename = "promoCover.jpg";
           formData.append('protoFilename', protoFilename);
-          //console.log(protoFilename);
         } else {
           formData.append('protoFilename', '');
         };
@@ -234,7 +224,6 @@ const EditWork = (props) => {
           formData.append('chapter_id', chapter.chapterHash);
           formData.append('price', newChapter.price);
           formData.append('title', newChapter.chapterTitle);
-          formData.append('fileName', chapter.filename);
           if (file) {
             await handleGeneratePages();  // 等待合併圖片操作完成
             formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
@@ -259,7 +248,6 @@ const EditWork = (props) => {
         formData.append('chapter_id', chapter.chapterHash);
         formData.append('price', newChapter.price);
         formData.append('title', newChapter.chapterTitle);
-        formData.append('fileName', chapter.filename);
         if (file) {
           await handleGeneratePages();  // 等待合併圖片操作完成
           formData.append('chapterIMG', mergedFile);  // 使用正确的字段名，这里是 'chapterIMG'
@@ -281,18 +269,28 @@ const EditWork = (props) => {
   };
 
   // 處理單張圖片，資料驗證、預覽
-  const handleFileInputChange = (event) => {
+  const handleFileInputChange = async (event) => {
     const file = event.target.files[0];
     if (!file) {
       return;
     }
     if (validateFileType(file)) {
       previewImage(file);
+      if (file.size < 600 * 1024) {
+        setFiles(file);
+        return;
+      }
+      try {
+        const compressedBlob = await imageCompression(file, { maxSizeMB: 0.6 });
+        const compressFile = new File([compressedBlob], 'file.jpg', { type: 'image/jpeg', lastModified: Date.now() });
+        setFiles(compressFile);
+      } catch (error) {
+        alert(t('圖片壓縮錯誤：') + error);
+      }
     } else {
       message.info(t('文件類型不支持，請上傳...格式的圖片'));
       return -1;
     }
-    setFiles(file);
     const reader = new FileReader();
     reader.readAsArrayBuffer(file);
   };
@@ -315,14 +313,24 @@ const EditWork = (props) => {
   };
   
 
-  const createPromoCover = (event) => {
+  const createPromoCover = async (event) => {
     const file = event.target.files[0];
     if (!file) {
       return;
     }
     if (validateFileType(file)) {
       previewPromoCover(file);
-      setCoverFile(file);
+      if (file.size < 600 * 1024) {
+        setCoverFile(file);
+        return;
+      }
+      try {
+        const compressedBlob = await imageCompression(file, { maxSizeMB: 0.6 });
+        const compressFile = new File([compressedBlob], 'file.jpg', { type: 'image/jpeg', lastModified: Date.now() });
+        setCoverFile(compressFile);
+      } catch (error) {
+        alert(t('圖片壓縮錯誤：') + error);
+      }
     } else {
       message.info(t('文件類型不支持，請上傳...格式的圖片'));
       return -1;
@@ -428,8 +436,8 @@ const EditWork = (props) => {
             tempCH.push({'comicHash': temp[0].comic_id})
             try {
                 const [imageResponse, protoResponse] = await Promise.all([
-                    axios.get(`${website}/api/comicIMG/${temp[0].filename}`, { responseType: 'blob', headers }),
-                    temp[0].protoFilename ? axios.get(`${website}/api/coverFile/${temp[0].filename}/${temp[0].protoFilename}`, { responseType: 'blob', headers }) : Promise.resolve(null)
+                    axios.get(`${website}/api/comicIMG/${temp[0].comic_id}`, { responseType: 'blob', headers }),
+                    temp[0].protoFilename ? axios.get(`${website}/api/coverFile/${temp[0].comic_id}`, { responseType: 'blob', headers }) : Promise.resolve(null)
                 ]);
                 const imgURL = URL.createObjectURL(imageResponse.data);
                 const coverImg = protoResponse ? URL.createObjectURL(protoResponse.data) : '';
@@ -456,53 +464,66 @@ const EditWork = (props) => {
 
   // 处理生成合并图片并进行翻页
   const handleGeneratePages = async () => {
-    return new Promise((resolve, reject) => {
-      if (file.length == 1) {
-        mergedFile = file[0];
-        const reader = new FileReader();
-        reader.readAsArrayBuffer(file[0]);
-        resolve();
+    return new Promise(async (resolve, reject) => {
+      const singleFile = file[0];
+      if (file.length === 1) {
+        if (singleFile.size < 600 * 1024) {
+          mergedFile = singleFile; // 尺寸小於600KB，直接回傳
+          resolve();
+          return;
+        }
+        try {
+          const compressedBlob = await imageCompression(singleFile, { maxSizeMB: 0.6 });
+          mergedFile = new File([compressedBlob], 'compress.jpg', { type: 'image/jpeg', lastModified: Date.now() });
+            resolve();
+        } catch (error) {
+          alert(t('圖片壓縮錯誤：') + error);
+          reject(error);
+        }
       } else {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = file.length * 1200; // 调整 canvas 的宽度和高度，根据需要
-        canvas.height = 1600;
-        // 遍历图片数组绘制到 canvas 上
-        let xOffset = 0;
-        const promises = file.map((file, index) => {
+        canvas.width = file.length * 1200; // 合併後的寬度
+        canvas.height = 1600; // 固定高度
+        await Promise.all(file.map((file, index) => {
           return new Promise((resolve) => {
             const img = new Image();
             img.onload = () => {
-              ctx.drawImage(img, xOffset, 0, 1200, 1600);  // 绘制每张图片
-              xOffset += 1200;  // 图片间距，根据实际需要调整
+              ctx.drawImage(img, index * 1200, 0, 1200, 1600);
               resolve();
             };
-            img.src = URL.createObjectURL(file); // 使用文件对象的 URL 绘制到 canvas
+            img.src = URL.createObjectURL(file);
           });
-        });
-        Promise.all(promises).then(() => {
-          // 导出合并后的图片
-          canvas.toBlob((blob) => {
-            const extension = getFileExtension(file[0].name); // 获取第一个文件的扩展名
-            const fileName = `mergedImages_page.${extension}`;
-            mergedFile = new File([blob], fileName, { type: 'image/jpeg' }); // 创建合并后的文件对象
-
-            // 创建下载链接并触发下载
-            //const downloadLink = document.createElement('a');
-            //downloadLink.href = URL.createObjectURL(mergedFile);
-            //downloadLink.download = fileName;
-            //downloadLink.click();
-
-            resolve(); // 完成 handleGeneratePages 的 Promise
-          }, 'image/jpeg');
-        });
-      };
+        }));
+        canvas.toBlob(async (blob) => {
+          const mergedFileBlob = new Blob([blob], { type: 'image/jpeg' });
+          try {
+            const compressedBlob = await imageCompression(mergedFileBlob, { maxSizeMB: 0.6, useWebWorker: true });
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = canvas.width;
+            finalCanvas.height = canvas.height;
+            const finalCtx = finalCanvas.getContext('2d');
+            const compressedImage = new Image();
+            compressedImage.onload = () => {
+              finalCtx.drawImage(compressedImage, 0, 0, finalCanvas.width, finalCanvas.height);
+              finalCanvas.toBlob((finalBlob) => {
+                mergedFile = new File([finalBlob], 'compress.jpg', { type: 'image/jpeg', lastModified: Date.now() });
+                // 创建下载链接并触发下载
+                //const downloadLink = document.createElement('a');
+                //downloadLink.href = URL.createObjectURL(mergedFile);
+                //downloadLink.download = fileName;
+                //downloadLink.click();
+                resolve();
+              }, 'image/jpeg');
+            };
+            compressedImage.src = URL.createObjectURL(new Blob([compressedBlob]));
+          } catch (error) {
+            alert(t('圖片壓縮錯誤：') + error);
+            reject(error);
+          }
+        }, 'image/jpeg');
+      }
     });
-  };
-
-  // 获取文件扩展名的函数
-  const getFileExtension = (filename) => {
-    return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2);
   };
 
 

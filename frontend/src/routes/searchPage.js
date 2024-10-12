@@ -33,8 +33,8 @@ function SearchPage() {
                 try {
                     const lpInfo = await Promise.all(lpDatas.map(async (data) => {
                         const url = data.protoFilename === 1
-                            ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
-                            : `${website}/api/comicIMG/${data.filename}`;
+                            ? `${website}/api/coverFile/${data.comic_id}`
+                            : `${website}/api/comicIMG/${data.comic_id}`;
                         const response = await axios.get(url, { responseType: 'blob', headers });
                         const protoFilename = URL.createObjectURL(response.data);
                         return {
@@ -113,8 +113,8 @@ function SearchPage() {
             let keywordResults = response.data;
             const fetchedData = await Promise.all(keywordResults.map(async (data) => {
                 const url = data.protoFilename === 1
-                    ? `${website}/api/coverFile/${data.filename}/${data.protoFilename}`
-                    : `${website}/api/comicIMG/${data.filename}`;
+                    ? `${website}/api/coverFile/${data.comic_id}`
+                    : `${website}/api/comicIMG/${data.comic_id}`;
                 const { data: blobData } = await axios.get(url, { responseType: 'blob', headers });
                 const protoFilename = URL.createObjectURL(blobData);
                 return { ...data, protoFilename };

@@ -28,7 +28,7 @@ function CreateSuccess() {
                 const storedArray = JSON.parse(storedArrayJSON);
                 for (let i = 0; i < storedArray.length; i++) {
                     if (comicHash === storedArray[i].comic_id) {
-                        const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
+                        const imageResponse = await axios.get(`${website}/api/comicIMG/${comicHash}`, { responseType: 'blob', headers });
                         const image = URL.createObjectURL(imageResponse.data);
                         temp.push({
                             comicID: storedArray[i].comicID,

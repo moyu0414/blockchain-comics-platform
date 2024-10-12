@@ -26,14 +26,14 @@ function CollectionPage() {
                     currentAccount: currentAccount,
                 }
             });
-            const collectComicSet = new Set(Object.keys(response.data.collectComic));
+            const collectComicSet = new Set(response.data.collectComic.split(',').map(id => id.trim()));
             try {
                 const storedArray = JSON.parse(storedArrayJSON);
                 const temp = storedArray
                     .filter(item => item.is_exist === 0 && collectComicSet.has(item.comic_id))
                     .map(async item => {
                         try {
-                            const imageResponse = await axios.get(`${website}/api/comicIMG/${item.filename}`, { responseType: 'blob', headers });
+                            const imageResponse = await axios.get(`${website}/api/comicIMG/${item.comic_id}`, { responseType: 'blob', headers });
                             const imageUrl = URL.createObjectURL(imageResponse.data);
                             return {
                                 comicID: item.comicID,
@@ -85,7 +85,7 @@ function CollectionPage() {
                     }
                     <Row xs={1} md={2} className="g-4 pb-5">
                         {comic.map((data, idx) => (
-                            <Col key={idx} xs={4} md={3} className="pt-3">
+                            <Col key={idx} xs={4} md={3} className="pt-2">
                                 <Link to={`/comicDetail/${data.comicID}`}>
                                     <Card>
                                         <div className="position-relative">

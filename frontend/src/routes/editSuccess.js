@@ -22,7 +22,6 @@ function EditSuccess() {
         try {
             //console.log(editArray);
             const comicHash = editArray.comicHash;
-            const editFile = editArray.editFile;
             const editTitle = editArray.editTitle;
             const editChapter = editArray.editChapter;
             let found = false;
@@ -30,8 +29,8 @@ function EditSuccess() {
                 const storedArrayJSON = localStorage.getItem('comicDatas');
                 const storedArray = JSON.parse(storedArrayJSON);
                 for (let i = 0; i < storedArray.length; i++) {
-                    if ((!editFile || editFile !== storedArray[i].filename) && comicHash === storedArray[i].comic_id) {
-                        const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].filename}`, { responseType: 'blob', headers });
+                    if (comicHash === storedArray[i].comic_id) {
+                        const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].comic_id}`, { responseType: 'blob', headers });
                         const image = URL.createObjectURL(imageResponse.data);
                         temp.push({
                             comicID: storedArray[i].comicID,
