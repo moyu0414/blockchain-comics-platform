@@ -16,17 +16,17 @@ const rename = promisify(fsPromises.rename); // 圖片重命名
 const app = express();
 const port = 5000;
 const dotenv = require('dotenv');
-// const envPath = path.join('../', '.env');  // localhost
-const envPath = path.join('/var/www/html/src', '.env');  // web3toonapi
+const envPath = path.join('./', '.env');  // localhost
+// const envPath = path.join('/var/www/html/src', '.env');  // web3toonapi
 dotenv.config({ path: envPath });
-// const API_KEY = process.env.REACT_APP_API_KEY; // localhost
-const API_KEY = process.env.API_KEY; // web3toonapi
+const API_KEY = process.env.REACT_APP_API_KEY; // localhost
+// const API_KEY = process.env.API_KEY; // web3toonapi
 
 const emailAccount = process.env.REACT_APP_EMAIL; // localhost
 const emailPassword = process.env.REACT_APP_EMAIL_PASSWORD; // localhost
 
-// const BASE_PATH = __dirname;  // 取得當前檔案的路徑
-const BASE_PATH = "/var/www/html" // web3toonapi
+const BASE_PATH = __dirname;  // 取得當前檔案的路徑
+// const BASE_PATH = "/var/www/html" // web3toonapi
 
 app.use(cors());
 //app.use(cors({
@@ -97,8 +97,6 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     
     cb(null, `${BASE_PATH}/uploads`);
-    // cb(null, './uploads');  // localhost
-    // cb(null, '/var/www/html/uploads');  // web3toonapi
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname); // 保持文件名不变，或者根据需要修改
@@ -112,8 +110,6 @@ const upload = multer({ storage: storage });
 async function renameFilename(file, comic_id, chapter_id, type, protoFilename, coverFile) {
 
   const comicFolder = path.join(BASE_PATH, 'uploads', comic_id);
-  // const comicFolder = path.join('uploads', comic_id);  // localhost
-  //const comicFolder = path.join('/var/www/html/uploads', comic_id);  // web3toonapi
   const specificFolder = path.join(comicFolder, type === 'comicIMG' ? 'cover' : 'chapters');
   try {
     await fsPromises.mkdir(comicFolder, { recursive: true });
@@ -161,8 +157,6 @@ async function calculateHash(filePath) {
 
 async function creatorFile(file, account) {
   const creatorFolder = path.join(BASE_PATH,'uploads', 'creator');
-  // const creatorFolder = path.join('uploads', 'creator');  // localhost
-  //const comicFolder = path.join('/var/www/html/uploads', creator);  // web3toonapi
   const fileExtension = getFileExtension(file.originalname);
   const filename = `${account}.${fileExtension}`;
   const filePath = path.join(creatorFolder, filename);
@@ -178,8 +172,6 @@ async function creatorFile(file, account) {
 
 async function nftFile(file, comic_id, tokenId) {
   const creatorFolder = path.join(BASE_PATH,'uploads', comic_id, 'NFT');
-  // const creatorFolder = path.join('uploads', comic_id, 'NFT');  //localhost
-  // const comicFolder = path.join('/var/www/html/uploads', comic_id, 'NFT');  // web3toonapi
   const filename = `${tokenId}.jpg`;
   const filePath = path.join(creatorFolder, filename);
   try {
@@ -194,11 +186,7 @@ async function nftFile(file, comic_id, tokenId) {
 }
 
 async function termsFile(file, version, language) {
-  
-  const creatorFolder = path.join(BASE_PATH,'uploads', 'terms', version);  //localhost
-
-  // const creatorFolder = path.join('uploads', 'terms', version);  //localhost
-  // const comicFolder = path.join('/var/www/html/uploads', 'terms', version);  // web3toonapi
+  const creatorFolder = path.join(BASE_PATH,'uploads', 'terms', version);
   const filename = `${language}.jpg`;
   const filePath = path.join(creatorFolder, filename);
   try {
@@ -213,9 +201,7 @@ async function termsFile(file, version, language) {
 
 async function evidenceFile(file) {
   
-  const folder = path.join(BASE_PATH, 'uploads', 'evidence');  //localhost
-  // const folder = path.join('uploads', 'evidence');  //localhost
-  // const comicFolder = path.join('/var/www/html/uploads', 'evidence');  // web3toonapi
+  const folder = path.join(BASE_PATH, 'uploads', 'evidence');
   const timestamp = Date.now().toString();
   const fileExtension = getFileExtension(file.originalname);
   const filename = `${timestamp}.${fileExtension}`;
@@ -268,8 +254,7 @@ app.post('/api/send-verification-email', async (req, res) => {
   const { name, penName, email, account, version, filename } = req.body;
   const code = Math.floor(100000 + Math.random() * 900000);  // 隨機生成 6 位數驗證碼
   const expires = new Date(Date.now() + 15 * 60 * 1000); // 驗證碼 15 分钟內有效
-  // const imagePath = path.join(__dirname, 'uploads', 'terms', version, filename);  // localhost
-  const imagePath = path.join('/var/www/html/', 'uploads', 'terms', version, filename);  // web3toonapi
+  const imagePath = path.join(BASE_PATH, 'uploads', 'terms', version, filename);
   const mailOptions = {
     from: emailAccount,
     to: email,
@@ -509,8 +494,6 @@ app.post('/api/add/NFT', upload.single('nftIMG'), async (req, res) => {
         }
       }));
       await deleteFile(`${BASE_PATH}/uploads/${file.filename}`);
-      // await deleteFile(`uploads/${file.filename}`);  // localhost
-      //await deleteFile(`/var/www/html/uploads/${file.filename}`);  // web3toonapi
     }
     const sql = `
       INSERT INTO nft (tokenId, comicHash, minter, price, tokenTitle, description, forSale, royalty, owner, verify)
@@ -570,14 +553,7 @@ app.get('/api/comicIMG/:comicHash', async (req, res) => {
   const { comicHash } = req.params;
   try {
       const filename = 'cover.jpg';
-      
       const imagePath = path.join(BASE_PATH, 'uploads', comicHash, 'cover', filename);
-      // localhost
-      // const imagePath = path.join(__dirname, 'uploads', comicHash, 'cover', filename);
-
-      // web3toonapi
-      //const imagePath = path.join('/var/www/html/', 'uploads', comicHash, 'cover', filename);
-      
       const image = await fsPromises.readFile(imagePath);
       res.setHeader('Content-Type', 'image/jpeg');
       res.send(image);
@@ -598,15 +574,7 @@ app.get('/api/chapterIMG/:chapterHash',async (req, res) => {
     }
     const comic_id = results.comic_id;
     const filename = `${chapterHash}.jpg`;
-    
-    
     const imagePath = path.join(BASE_PATH, 'uploads', comic_id, 'chapters', filename);
-    // localhost
-    // const imagePath = path.join(__dirname, 'uploads', comic_id, 'chapters', filename);
-
-    // web3toonapi
-    // const imagePath = path.join('/var/www/html/', 'uploads', comic_id, 'chapters', filename);
-
     const image = await fsPromises.readFile(imagePath);
     res.setHeader('Content-Type', 'image/jpeg');
     res.send(image);
@@ -622,14 +590,7 @@ app.get('/api/coverFile/:comicHash', async (req, res) => {
   const { comicHash } = req.params;
   try {
     const filename = 'promoCover.jpg';
-    
     const imagePath = path.join(BASE_PATH, 'uploads', comicHash, 'cover', filename);
-    // localhost
-    // const imagePath = path.join(__dirname, 'uploads', comicHash, 'cover', filename);
-
-    // web3toonapi
-    //const imagePath = path.join('/var/www/html/', 'uploads', comicHash, 'cover', filename);
-    
     const image = await fsPromises.readFile(imagePath);
     res.setHeader('Content-Type', 'image/jpeg');
     res.send(image);
@@ -648,14 +609,7 @@ app.get('/api/creatorIMG/:account', async (req, res) => {
           return res.status(404).json({ message: 'Image not found.' });
       }
       const filename = results.info.image;
-
       const imagePath = path.join(BASE_PATH, 'uploads', 'creator', filename);
-      // localhost
-      // const imagePath = path.join(__dirname, 'uploads', 'creator', filename);
-
-      // web3toonapi
-      // const imagePath = path.join('/var/www/html/', 'uploads', 'creator', filename);
-
       const extname = path.extname(filename).toLowerCase();
       let contentType = 'application/octet-stream'; // 默認為通用二進位流
       switch (extname) {
@@ -683,14 +637,7 @@ app.get('/api/nftIMG/:comicHash/:tokenId', async (req, res) => {
   const { comicHash, tokenId } = req.params;
   try {
       const filename = `${tokenId}.jpg`;
-
       const imagePath = path.join(BASE_PATH, 'uploads', comicHash, 'NFT', filename);
-      // localhost
-      // const imagePath = path.join(__dirname, 'uploads', comicHash, 'NFT', filename);
-
-      // web3toonapi
-      // const imagePath = path.join('/var/www/html/uploads', comicHash, 'NFT', filename);
-
       await fsPromises.access(imagePath);
       const image = await fsPromises.readFile(imagePath);
       res.setHeader('Content-Type', 'image/jpeg');
@@ -711,13 +658,6 @@ app.get('/api/termsIMG/:version/:language', async (req, res) => {
   try {
       const filename = `${language}.jpg`;
       const imagePath = path.join(BASE_PATH, 'uploads', 'terms', version, filename);
-
-      // localhost
-      // const imagePath = path.join(__dirname, 'uploads', 'terms', version, filename);
-
-      // web3toonapi
-      // const imagePath = path.join('/var/www/html/', 'uploads', 'terms', version, filename);
-
       await fsPromises.access(imagePath);
       res.json({ state: true });
   } catch (error) {
@@ -737,14 +677,7 @@ app.get('/api/evidence/:fileName', async (req, res) => {
   if (apiKey !== API_KEY) {
     return res.status(403).json({ state: false, message: 'Forbidden' });
   }
-
   const filePath = path.join(BASE_PATH, 'uploads', 'evidence', fileName);
-  // localhost
-  // const filePath = path.join(__dirname, 'uploads', 'evidence', fileName);
-
-  // web3toonapi
-  //const filePath = path.join('/var/www/html/', 'uploads', 'evidence', fileName);
-
   try {
     await fsPromises.access(filePath);
     res.download(filePath, fileName); // 直接發送檔案

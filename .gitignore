@@ -3,3 +3,5 @@ frontend/.env
 frontend/.env
 frontend/.env
 frontend/.env
+.env
+node_modules
