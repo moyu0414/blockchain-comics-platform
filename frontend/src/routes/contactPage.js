@@ -113,12 +113,12 @@ const ContactPage = () => {
 
 
   return (
-    <Container className="contactPage pb-5">
+    <Container className="contactPage">
       <div className="text-center mb-5">
         <h2 className='text-center fw-bold'>{t('聯絡我們')}</h2>
         <p className="text-muted">{t('若有任何問題要聯絡我們請填寫以下欄位。')}</p>
         {isAdmin &&  
-          <Row>
+          <Row className='search-file-input'>
             <Form.Label>{t('查詢檔案')}</Form.Label>
             <Col xs={9}>
               <Form.Control
