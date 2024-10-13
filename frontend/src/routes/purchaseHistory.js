@@ -81,13 +81,14 @@ const PurchaseHistory = () => {
             }
         });
         let nftRecords = nftResponse.data;
+        console.log(nftRecords);
         for (var n = 0; n < nftRecords.length; n++) {
           const values = Object.values(nftRecords[n].price);
           const selectedPrice = nftRecords[n].forSale === 1 && values.length > 1 ? values[values.length - 2] : values[values.length - 1];
           if (nftRecords[n].is_exist === 0) {
             nftArray.push({
               tokenId: nftRecords[n].tokenId,
-              title: nftRecords[n].title,
+              title: nftRecords[n].title + " / " + nftRecords[n].tokenTitle,
               price: selectedPrice,
             });
           } else {
@@ -260,7 +261,7 @@ const PurchaseHistory = () => {
                   <thead>
                     <tr>
                       <th className='text-center fw-bold'>tokenId</th>
-                      <th className='text-center fw-bold'>{t('名稱')}</th>
+                      <th className='text-center fw-bold'>{t('漫畫')} / NFT{t('名稱')}</th>
                       <th className='text-center fw-bold'>{t('支出')}</th>
                       <th className='text-center fw-bold'>{t('詳情')}</th>
                     </tr>
