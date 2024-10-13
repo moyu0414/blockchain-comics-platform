@@ -4404,9 +4404,9 @@ a:link{
   margin-top: 2px;
 }
 
-.comicManagement .table td{
+/* .comicManagement .table td{
   width: 40%;
-}
+} */
 
 .comicManagement .table td a {
   font-weight: bold;
@@ -4934,4 +4934,9 @@ a:link{
   color: #ffffff;
   background-color: green;
   line-height: 2;
+}
+
+.search-file-input .btn{
+  width: 100%;
+  padding: 0;
 }
