@@ -81,7 +81,7 @@ const PurchaseHistory = () => {
             }
         });
         let nftRecords = nftResponse.data;
-        console.log(nftRecords);
+        //console.log(nftRecords);
         for (var n = 0; n < nftRecords.length; n++) {
           const values = Object.values(nftRecords[n].price);
           const selectedPrice = nftRecords[n].forSale === 1 && values.length > 1 ? values[values.length - 2] : values[values.length - 1];
