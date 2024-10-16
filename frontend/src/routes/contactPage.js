@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, InputGroup } from 'react-bootstrap';
 import emailjs from "@emailjs/browser";
 import { message } from 'antd';
 import { Search } from 'react-bootstrap-icons';
@@ -114,83 +114,125 @@ const ContactPage = () => {
 
   return (
     <Container className="contactPage">
-      <div className="text-center mb-5">
-        <h2 className='text-center fw-bold'>{t('聯絡我們')}</h2>
-        <p className="text-muted">{t('若有任何問題要聯絡我們請填寫以下欄位。')}</p>
-        {isAdmin &&  
-          <Row className='search-file-input'>
-            <Form.Label>{t('查詢檔案')}</Form.Label>
-            <Col xs={9}>
-              <Form.Control
-                type="text"
-                name="search"
-                placeholder={t('請輸入檔名')}
-                onChange={(e) => setSearchValue(e.target.value)}
-                disabled={!enabled}
-              />
-            </Col>
-            <Col xs={3}>
-              <Button onClick={handleSearchSubmit}>
-                <Search title="Search" size={24}/>
-              </Button>
-            </Col>
-          </Row>
-        }
-      </div>
+  <div className="text-center mb-5">
+    <h2 className="fw-bold">{t('聯絡我們')}</h2>
+    <p className="text-muted">{t('若有任何問題要聯絡我們請填寫以下欄位。')}</p>
 
-      <Form onSubmit={handleSubmit}>
-        <Row className="mb-3">
-          <Col>
-            <Form.Group controlId="formCompany">
-              <Form.Label>{t('標題')}</Form.Label><span className='required-text'>*</span>
-              <Form.Control type="text" name="title" placeholder={t('請輸入標題')} value={form.title} onChange={handleChange} disabled={!enabled} required />
-            </Form.Group>
-          </Col>
-        </Row>
-
-        <Row className="mb-3">
-          <Col xs={12} sm={6} className="mb-3"> 
-            <Form.Group controlId="formFirstName">
-              <Form.Label>{t('名字')}</Form.Label><span className='required-text'>*</span>
-              <Form.Control type="text" name="name" placeholder={t('請輸入你的名字')} value={form.name} onChange={handleChange} disabled={!enabled} required />
-            </Form.Group>
-          </Col>
-          <Col xs={12} sm={6} className="mb-3"> 
-            <Form.Group controlId="formLastName">
-              <Form.Label>Email</Form.Label><span className='required-text'>*</span>
-              <Form.Control type="email" name="email" placeholder={t('請輸入你的email')} value={form.email} onChange={handleChange} disabled={!enabled} required />
-            </Form.Group>
-          </Col>
-        </Row>
-
-        <Row className="mb-3">
-          <Col>
-            <Form.Group controlId="file-upload">
-              <Form.Label>{t('上傳檔案（若為檢舉請提供相關附件舉證）')}</Form.Label>
-              <Form.Control type="file" name="file-upload" onChange={handleFileUpload} disabled={!enabled}/>
-            </Form.Group>
-          </Col>
-        </Row>
-
-        <Row className="mb-3">
-          <Col>
-            <Form.Group controlId="formMessage">
-              <Form.Label>{t('內容')}</Form.Label><span className='required-text'>*</span>
-              <Form.Control as="textarea" name="message" rows={4} placeholder={t('請輸入內容')} value={form.message} onChange={handleChange} disabled={!enabled} required />
-            </Form.Group>
-          </Col>
-        </Row>
-
-        <Row className='d-flex justify-content-end'>
-          <Col xs="auto">
-            <Button variant="primary" type="submit" disabled={!enabled}>
-              {t('提交')}
+    {isAdmin && (
+      <Row className="mb-3">
+        <Form.Label>{t('查詢檔案')}</Form.Label>
+        <Col md={12}>
+          <InputGroup className="mb-3">
+            <Form.Control
+              type="text"
+              name="search"
+              placeholder={t('請輸入檔名')}
+              onChange={(e) => setSearchValue(e.target.value)}
+              disabled={!enabled}
+            />
+            <Button onClick={handleSearchSubmit}>
+              <Search title="Search" size={24} />
             </Button>
-          </Col>
-        </Row>
-          
-      </Form>
-    </Container>
+          </InputGroup>
+        </Col>
+      </Row>
+    )}
+  </div>
+
+  <Form onSubmit={handleSubmit}>
+    <Row className="mb-3">
+      <Col>
+        <Form.Group controlId="formCompany">
+          <Form.Label>{t('標題')}</Form.Label>
+          <span className="required-text">*</span>
+          <Form.Control
+            type="text"
+            name="title"
+            placeholder={t('請輸入標題')}
+            value={form.title}
+            onChange={handleChange}
+            disabled={!enabled}
+            required
+          />
+        </Form.Group>
+      </Col>
+    </Row>
+
+    <Row className="mb-3">
+      <Col xs={12} sm={6}>
+        <Form.Group controlId="formFirstName">
+          <Form.Label>{t('名字')}</Form.Label>
+          <span className="required-text">*</span>
+          <Form.Control
+            type="text"
+            name="name"
+            placeholder={t('請輸入你的名字')}
+            value={form.name}
+            onChange={handleChange}
+            disabled={!enabled}
+            required
+          />
+        </Form.Group>
+      </Col>
+      <Col xs={12} sm={6}>
+        <Form.Group controlId="formLastName">
+          <Form.Label>Email</Form.Label>
+          <span className="required-text">*</span>
+          <Form.Control
+            type="email"
+            name="email"
+            placeholder={t('請輸入你的email')}
+            value={form.email}
+            onChange={handleChange}
+            disabled={!enabled}
+            required
+          />
+        </Form.Group>
+      </Col>
+    </Row>
+
+    <Row className="mb-3">
+      <Col>
+        <Form.Group controlId="file-upload">
+          <Form.Label>{t('上傳檔案（若為檢舉請提供相關附件舉證）')}</Form.Label>
+          <Form.Control
+            type="file"
+            name="file-upload"
+            onChange={handleFileUpload}
+            disabled={!enabled}
+          />
+        </Form.Group>
+      </Col>
+    </Row>
+
+    <Row className="mb-3">
+      <Col>
+        <Form.Group controlId="formMessage">
+          <Form.Label>{t('內容')}</Form.Label>
+          <span className="required-text">*</span>
+          <Form.Control
+            as="textarea"
+            name="message"
+            rows={4}
+            placeholder={t('請輸入內容')}
+            value={form.message}
+            onChange={handleChange}
+            disabled={!enabled}
+            required
+          />
+        </Form.Group>
+      </Col>
+    </Row>
+
+    <Row className="d-flex justify-content-end">
+      <Col xs="auto">
+        <Button variant="primary" type="submit" disabled={!enabled}>
+          {t('提交')}
+        </Button>
+      </Col>
+    </Row>
+  </Form>
+</Container>
   );
 }
 
