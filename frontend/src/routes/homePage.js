@@ -144,7 +144,7 @@ const HomePage = () => {
                                 <Carousel.Item>
                                     <div className="carousel-row">
                                         {current.filter(data => data.category === category).map((data, idx) => (
-                                            <Col key={idx} xs={6} md={3} className="mx-1">
+                                            <Col key={idx} xs={6} sm={4} md={4} lg={3} className="mx-1">
                                                 <Card style={{marginRight: "8%"}} className="ranking-thumbnail-position">
                                                     <Link to={`/comicDetail/${data.comicID}`}>
                                                         <Card.Img variant="top" src={data.image} />

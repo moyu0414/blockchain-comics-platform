@@ -128,7 +128,7 @@ function Bookcase() {
     
     return (
         <>
-            <Container className='creatorPage'>
+            <Container className='creatorPage bookcase'>
                 <Row className="pt-4 align-items-center">
                     <Col>
                         <h3 className="fw-bold">{t('我的書櫃')}</h3>

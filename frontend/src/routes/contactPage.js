@@ -142,7 +142,7 @@ const ContactPage = () => {
         <Row className="mb-3">
           <Col>
             <Form.Group controlId="formCompany">
-              <Form.Label>{t('標題')}</Form.Label><span className='required-text'>*</span>
+              <span className='required-text'>*</span><Form.Label>{t('標題')}</Form.Label>
               <Form.Control type="text" name="title" placeholder={t('請輸入標題')} value={form.title} onChange={handleChange} disabled={!enabled} required />
             </Form.Group>
           </Col>
@@ -151,13 +151,13 @@ const ContactPage = () => {
         <Row className="mb-3">
           <Col xs={12} sm={6} className="mb-3"> 
             <Form.Group controlId="formFirstName">
-              <Form.Label>{t('名字')}</Form.Label><span className='required-text'>*</span>
+            <span className='required-text'>*</span><Form.Label>{t('名字')}</Form.Label>
               <Form.Control type="text" name="name" placeholder={t('請輸入你的名字')} value={form.name} onChange={handleChange} disabled={!enabled} required />
             </Form.Group>
           </Col>
           <Col xs={12} sm={6} className="mb-3"> 
             <Form.Group controlId="formLastName">
-              <Form.Label>Email</Form.Label><span className='required-text'>*</span>
+              <span className='required-text'>*</span><Form.Label>Email</Form.Label>
               <Form.Control type="email" name="email" placeholder={t('請輸入你的email')} value={form.email} onChange={handleChange} disabled={!enabled} required />
             </Form.Group>
           </Col>
@@ -175,7 +175,7 @@ const ContactPage = () => {
         <Row className="mb-3">
           <Col>
             <Form.Group controlId="formMessage">
-              <Form.Label>{t('內容')}</Form.Label><span className='required-text'>*</span>
+              <span className='required-text'>*</span><Form.Label>{t('內容')}</Form.Label>
               <Form.Control as="textarea" name="message" rows={4} placeholder={t('請輸入內容')} value={form.message} onChange={handleChange} disabled={!enabled} required />
             </Form.Group>
           </Col>
