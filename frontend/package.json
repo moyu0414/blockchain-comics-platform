@@ -21,6 +21,7 @@
     "body-parser": "^1.20.2",
     "bootstrap": "^5.3.3",
     "browser-image-compression": "^2.0.2",
+    "caniuse-lite": "^1.0.30001668",
     "chart.js": "^4.4.4",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
@@ -38,12 +39,12 @@
     "net": "^1.0.2",
     "nginx": "^1.0.8",
     "nodemailer": "^6.9.14",
-    "react": "^18.2.0",
+    "react": "^18.3.1",
     "react-beautiful-dnd": "^13.1.1",
     "react-bootstrap": "^2.10.4",
     "react-bootstrap-icons": "^1.11.4",
     "react-chartjs-2": "^5.2.0",
-    "react-dom": "^18.2.0",
+    "react-dom": "^18.3.1",
     "react-i18next": "^15.0.1",
     "react-icons": "^4.12.0",
     "react-router": "^6.4.2",
@@ -60,9 +61,10 @@
   },
   "scripts": {
     "start": "react-app-rewired start",
-    "build": "react-app-rewired build && node --max_old_space_size=4096 generateZipFile.js",
+    "build": "react-app-rewired build && node --max_old_space_size=4096",
     "test": "react-app-rewired test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build:prod": "env-cmd -f .env.production react-scripts build"
   },
   "eslintConfig": {
     "extends": [
@@ -87,6 +89,7 @@
     "@types/jquery": "^3.5.29",
     "buffer": "^6.0.3",
     "copy-webpack-plugin": "^12.0.2",
+    "env-cmd": "^10.1.0",
     "fs": "^0.0.1-security",
     "has-symbols": "^1.0.3",
     "inherits": "^2.0.4",

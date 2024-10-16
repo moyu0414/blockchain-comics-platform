@@ -61,6 +61,7 @@ const AuthorProfile = () => {
                           date,
                           msg,
                       }));
+                    console.log(reversedEntries);
                     setMsg(reversedEntries);
                     //console.log(updateInfo[0]);
                     setInfo(updateInfo[0]);
@@ -162,10 +163,12 @@ const AuthorProfile = () => {
             return;
         }
         disableAllButtons();
-        const date = new Date().toISOString().replace('T', ' ').split('.')[0];
+        const options = { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+        const formatter = new Intl.DateTimeFormat('zh-TW', options);
+        const formattedDate = formatter.format(new Date()).replace(/\//g, '-').replace(',', '');
         const updateMsgInfo = {
             ...addMsgInfo,
-            date: date,
+            date: formattedDate,
             account: currentAccount
         };
         try {
@@ -391,8 +394,8 @@ const AuthorProfile = () => {
                         <Col xs={12}>
                             <Card>
                                 <h4><center>{t('訊息公告')}</center></h4>
-                                {msg.map((date, index) => (
-                                    <div key={date.date}>
+                                {msg.map((data, index) => (
+                                    <div key={data.date}>
                                         <Card.Header>
                                             <Row className="align-items-center">
                                                 <Col xs={2} className='post-author'>
@@ -406,14 +409,14 @@ const AuthorProfile = () => {
                                                 <Col xs={10}>
                                                     <strong>{info.penName}</strong>
                                                     <p className="mb-0 text-muted">
-                                                        <strong>{date.date}</strong>
+                                                        <strong>{data.date}</strong>
                                                     </p>
                                                 </Col>
                                             </Row>
                                         </Card.Header>
                                         <Card.Body className='post-section'>
                                             <Card.Text>
-                                                <div>{date.msg.split('\n').map((line, index) => <div key={index}>{line}</div>)}</div>
+                                                <div>{data.msg.split('\n').map((line, index) => <div key={index}>{line}</div>)}</div>
                                             </Card.Text>
                                         </Card.Body>
                                     </div>

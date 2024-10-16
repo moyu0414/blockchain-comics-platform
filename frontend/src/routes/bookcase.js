@@ -115,8 +115,9 @@ function Bookcase() {
         });
     }
 
-    const renderTooltip = (title, names) => (props) => (
+    const renderTooltip = (title, names, tokenId) => (props) => (
         <Tooltip id="button-tooltip" {...props}>
+            tokenId：{tokenId}<br />
             {title}
             <hr />
             {names.map((name, index) => (
@@ -207,7 +208,7 @@ function Bookcase() {
                                             <Card>
                                                 {data.is_exist === 0 ? (
                                                     <>
-                                                        <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names)}>
+                                                        <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names, data.tokenId)}>
                                                             <Card.Img variant="top" src={data.image} />
                                                         </OverlayTrigger>
                                                         <div className="bookcase-overlay">{data.title}</div>
@@ -221,7 +222,7 @@ function Bookcase() {
                                                     </div>
                                                 )}
                                                 <Card.Body>
-                                                    <Card.Title className='bookcase-read-text'>{data.tokenTitle}</Card.Title>
+                                                    <Card.Title className='bookcase-read-text'>{data.tokenId}：{data.tokenTitle}</Card.Title>
                                                 </Card.Body>
                                             </Card>
                                         </Link>
