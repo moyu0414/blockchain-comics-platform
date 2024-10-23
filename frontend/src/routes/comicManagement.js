@@ -691,7 +691,7 @@ const ComicManagement = ({ contractAddress }) => {
                       <td data-label={t('帳號')} className="address-cell">{data}</td>
                       <td data-label={t('狀態')} className="text-end">
                         <OverlayTrigger placement="top" overlay={renderTooltip(t('刪除管理者帳號'))}>
-                          <Button onClick={() => removeAdmin(data)} className='del-btn' variant="outline-danger" data-backgroundcolor="#0FC2C0">
+                          <Button onClick={() => removeAdmin(data)} className='trash-btn' variant="outline-danger" data-backgroundcolor="#0FC2C0">
                             <TrashFill title="Delete" /> <span className="del-text">{t('刪除')}</span>
                           </Button>
                         </OverlayTrigger>
