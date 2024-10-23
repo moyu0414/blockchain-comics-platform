@@ -135,7 +135,6 @@ function NftOwner() {
                     data: data
                 },
             });
-            //console.log(response.data);
         } catch (error) {
             console.error('Error handleFavoriteClick', error);
         }
@@ -342,7 +341,9 @@ function NftOwner() {
                                                     </Link>
                                                 </p>
                                             )}
-                                            <p className={`nftDetail-text-secondary ${data.tips && 'delete-line'}`}>{t('持有者')}：{data.owner}</p>
+                                            <p className="nftDetail-text-secondary">{t('持有者')}：
+                                                <span className={`${data.tips && 'delete-line'}`} style={{ marginLeft: "0"}}>{data.owner}</span>
+                                            </p>
                                             <p className={`nftDetail-text-secondary ${data.tips && 'delete-line'}`}>{data.comicDesc}</p>
                                         </React.Fragment>
                                     ))}

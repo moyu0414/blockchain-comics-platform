@@ -205,16 +205,6 @@ const ComicManagement = ({ contractAddress }) => {
       }
     } else if (exists === 1) {  // 漫畫審核中
         try{
-          const response = await axios.get(`${website}/api/comicManagement/totalCost`, {
-            headers: headers,
-            params: {
-              comicHash: comicHash
-            }
-          });
-          //console.log(response.data);
-          const totalCost = web3Instance.utils.toWei(response.data, 'ether');
-          //console.log(totalCost);
-
           await meta.toggleComicExistence(comicHash, 1).send({ from: currentAccount });
           await axios.put(`${website}/api/update/comicExist`, null, {
             headers: headers,
