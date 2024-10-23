@@ -192,7 +192,20 @@ const ComicManagement = ({ contractAddress }) => {
             },
           });
         }
-        window.location.reload();
+
+        const updatedComics = searchResults.map(comic =>
+          comic.hash === comicHash
+            ? { ...comic, exists: '盜版' }
+            : comic
+        );
+        setSearchResults(updatedComics);
+        const updatedArray = storedArray.map(item =>
+          item.comic_id === comicHash
+            ? { ...item, is_exist: 2 }
+            : item
+        );
+        const updatedArrayJSON = JSON.stringify(updatedArray);
+        localStorage.setItem('comicDatas', updatedArrayJSON);
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
           message.info(t('拒绝交易'));
