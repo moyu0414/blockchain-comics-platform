@@ -25,8 +25,8 @@ const API_KEY = process.env.REACT_APP_API_KEY; // localhost
 const emailAccount = process.env.REACT_APP_EMAIL; // localhost
 const emailPassword = process.env.REACT_APP_EMAIL_PASSWORD; // localhost
 
-const BASE_PATH = __dirname;  // 取得當前檔案的路徑
-// const BASE_PATH = "/var/www/html" // web3toonapi
+// const BASE_PATH = __dirname;  // 取得當前檔案的路徑
+const BASE_PATH = "/var/www/html" // web3toonapi
 
 app.use(cors());
 //app.use(cors({
