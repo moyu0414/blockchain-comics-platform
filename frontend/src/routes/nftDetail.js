@@ -23,7 +23,7 @@ function NftDetail() {
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
     const buttonData = [
-        NFT[0]?.forSale === 0 ? t('已售完') : `$ ${parseFloat(NFT[0]?.price).toFixed(2)}`, t('收藏')
+        `${NFT[0]?.price}`, t('收藏')
     ];
     let records = [];
     let temp = [];
@@ -39,56 +39,69 @@ function NftDetail() {
         let nftData = response.data;
         setInitPrice(nftData[0].price);
 
-        const { minter: initialMinter, owner: initialOwner, price, forSale, protoFilename, comicHash, tokenId: token } = nftData[0];
-        const currentState = initialMinter === initialOwner ? t('原創授權') : t('二次轉售');
-        const currentOwner = initialOwner === currentAccount ? t('您擁有此NFT') : initialOwner;
-        const currentMinter = initialMinter === currentAccount ? t('您是本作品的創作者') : initialMinter;
-        try {
-          const nftImgResponse = await axios.get(`${website}/api/nftIMG/${comicHash}/${token}`, {
-            responseType: 'blob',
-            headers,
-          });
-          if (nftImgResponse.data.type === 'image/jpeg') {
-            imageUrl = URL.createObjectURL(nftImgResponse.data);
-          } else {
-            const imageUrlPath = protoFilename === 1
-              ? `${website}/api/coverFile/${comicHash}`
-              : `${website}/api/comicIMG/${comicHash}`;
-            const coverImgResponse = await axios.get(imageUrlPath, { responseType: 'blob', headers });
-            imageUrl = URL.createObjectURL(coverImgResponse.data);
-          }
-        } catch (error) {
-          console.error('Error fetching image:', error);
-        }
-        const lastPriceValue = Object.values(price).pop();
-        const newData = nftData.map(data => ({
-          ...data,
-          price: lastPriceValue,
-          minter: currentMinter,
-          owner: currentOwner,
-          state: currentState,
-          image: imageUrl
-        }));
-        //console.log(newData);
-        setNFT(newData);
-        const authorizations = parseAuthorizations(newData[0].description);
-        setIP(authorizations);
-
-        try {
-            const response = await axios.get(`${website}/api/nftDetail/isFavorited`, {
-                headers: headers,
-                params: {
-                    currentAccount: currentAccount,
-                    comicHash: comicHash
-                }
+        if (nftData.length !== 0 && nftData[0].is_exist === 0) {
+            const { minter: initialMinter, owner: initialOwner, price, forSale, protoFilename, comicHash, tokenId: token } = nftData[0];
+            const currentState = initialMinter === initialOwner ? t('原創授權') : t('二次轉售');
+            const currentOwner = initialOwner === currentAccount ? t('您擁有此NFT') : initialOwner;
+            const currentMinter = initialMinter === currentAccount ? t('您是本作品的創作者') : initialMinter;
+            try {
+            const nftImgResponse = await axios.get(`${website}/api/nftIMG/${comicHash}/${token}`, {
+                responseType: 'blob',
+                headers,
             });
-            if (Array.isArray(response.data.value) && response.data.value.includes(tokenId)) {
-                setIsFavorited(response.data.isFavorited);
+            if (nftImgResponse.data.type === 'image/jpeg') {
+                imageUrl = URL.createObjectURL(nftImgResponse.data);
+            } else {
+                const imageUrlPath = protoFilename === 1
+                ? `${website}/api/coverFile/${comicHash}`
+                : `${website}/api/comicIMG/${comicHash}`;
+                const coverImgResponse = await axios.get(imageUrlPath, { responseType: 'blob', headers });
+                imageUrl = URL.createObjectURL(coverImgResponse.data);
             }
-        } catch (error) {
-            console.error('Error fetching records:', error);
+            } catch (error) {
+            console.error('Error fetching image:', error);
+            }
+            const lastPriceValue = Object.values(price).pop();
+            const newData = nftData.map(data => ({
+            ...data,
+            price: lastPriceValue,
+            minter: currentMinter,
+            owner: currentOwner,
+            state: currentState,
+            image: imageUrl
+            }));
+            setNFT(newData);
+            const authorizations = parseAuthorizations(newData[0].description);
+            setIP(authorizations);
+
+            try {
+                const response = await axios.get(`${website}/api/nftDetail/isFavorited`, {
+                    headers: headers,
+                    params: {
+                        currentAccount: currentAccount,
+                        comicHash: comicHash
+                    }
+                });
+                if (Array.isArray(response.data.value) && response.data.value.includes(tokenId)) {
+                    setIsFavorited(response.data.isFavorited);
+                }
+            } catch (error) {
+                console.error('Error fetching records:', error);
+            }
+            setLoading(false);
+        } else {
+            const newData = nftData.map(data => ({
+                ...data,
+                price: t('禁售'),
+                minter: data.minter === currentAccount ? t('您是本作品的創作者') : data.minter,
+                owner: data.owner === currentAccount ? t('您擁有此NFT') : data.owner,
+                tips: data.is_exist === 2 ? t('此為盜版漫畫所衍生的NFT，不予販售、使用') : t('此NFT的漫畫查核中，暫不開放，敬請見諒')
+            }));
+            setNFT(newData);
+            const authorizations = parseAuthorizations(newData[0].description);
+            setIP(authorizations);
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     useEffect(() => {
@@ -116,7 +129,6 @@ function NftDetail() {
                         data: data
                     },
                 });
-                //console.log(response.data);
             } catch (error) {
                 console.error('Error handleFavoriteClick', error);
             }
@@ -228,17 +240,30 @@ function NftDetail() {
                 <Container className='comicDetail'>
                     <Row className="pt-5">
                         <div className="d-block mx-auto img-fluid carousel-image-container">
-                            <img
-                            className="d-block mx-auto img-fluid"
-                            src={NFT[0].image}
-                            alt="800x400"
-                            />
+                            {NFT[0].tips ? (
+                                <div className='remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <img src='/piratyPromo.jpg' />
+                                    <div id="notimage" className="hidden">{t(NFT[0].tips)}</div>
+                                </div>
+                            ) : (
+                                <img
+                                    className="d-block mx-auto img-fluid"
+                                    src={NFT[0].image}
+                                    alt="800x400"
+                                />
+                            )}
                         </div>
                     </Row>
                     <Row className="pt-2 pb-3 btn-container justify-content-center">
                         {buttonData.map((label, idx) => (
                             <Col key={idx} xs={2} md={2} lg={2} className="pb-3 btn-section d-flex justify-content-center">
-                                <Button variant="outline-dark" className="custom-button" onClick={label === t('收藏') ? handleFavoriteClick : handlePurchase} data-backgroundcolor="#fff">
+                                <Button 
+                                    variant="outline-dark"
+                                    className="custom-button"
+                                    onClick={label === t('收藏') ? handleFavoriteClick : handlePurchase}
+                                    data-backgroundcolor="#fff"
+                                    disabled={NFT[0].tips ? true : false}
+                                >
                                     {label === t('收藏') && (
                                         <>
                                             {isFavorited ? (
@@ -265,17 +290,26 @@ function NftDetail() {
                         <Col xs={8} className="text-section ">
                             {NFT.map((data, index) => (
                                 <React.Fragment key={index}>
-                                    <div className="nftDetail-text-secondary">
-                                        <h3 className="fw-bold">{data.tokenTitle}</h3>
-                                        <h4 className="fw-bold">{data.title}－{data.state}</h4>
-                                        {t('作者')}：
+                                    <h3 className={`fw-bold ${data.tips && 'delete-line'}`}>{data.tokenTitle}</h3>
+                                    <h4 className={`fw-bold ${data.tips && 'delete-line'}`}>{data.title}－{data.state}</h4>
+                                    {data.tips ? (
+                                        <p className="nftDetail-text-secondary">{t('作者')}：
+                                            <span className="comicDetail-penName delete-line" style={{ marginRight: "10px"}}>{data.penName}</span> 
+                                            <span style={{color: "#722bd4", marginLeft: "0"}} className="delete-line">({data.minter})</span>
+                                        </p>
+                                    ) : (
+                                        <p className="nftDetail-text-secondary">{t('作者')}：
                                         <Link to={`/authorProfile/${data.minter === t('您是本作品的創作者') ? currentAccount : data.minter}`}>
                                             <span className="comicDetail-penName" style={{ marginRight: "10px"}}>{data.penName}</span> 
                                             <span style={{color: "#722bd4", marginLeft: "0"}}>({data.minter})</span>
                                         </Link>
-                                    </div>
-                                    <p className="nftDetail-text-secondary">{t('持有者')}：{data.owner}</p>
-                                    <p className="nftDetail-text-secondary">{data.comicDesc}</p>
+                                        </p>
+                                    )}
+
+                                    <p className="nftDetail-text-secondary">{t('持有者')}：
+                                        <span className={`${data.tips && 'delete-line'}`} style={{ marginLeft: "0"}}>{data.owner}</span>
+                                    </p>
+                                    <p className={`nftDetail-text-secondary ${data.tips && 'delete-line'}`}>{data.comicDesc}</p>
                                 </React.Fragment>
                             ))}
                         </Col>
@@ -285,8 +319,8 @@ function NftDetail() {
                             <h3 className="fw-bold">{t('授權範圍')}</h3>
                             <ul>
                                 {IP.map((item, index) => (
-                                    <li key={index}>
-                                    <strong>{item.name}</strong>
+                                    <li key={index} className={NFT[0].tips && 'delete-line'}>
+                                        <strong>{item.name}</strong>
                                     </li>
                                 ))}
                             </ul>
@@ -296,7 +330,7 @@ function NftDetail() {
                         <Col className="text-section">
                             <h3 className="fw-bold">{t('授權說明')}</h3>
                                 {IP.map((item, index) => (
-                                    <li key={index}>
+                                    <li key={index} className={NFT[0].tips && 'delete-line'}>
                                         <strong>{item.name}：</strong>{item.description}
                                     </li>
                                 ))}

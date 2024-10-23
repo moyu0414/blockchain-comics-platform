@@ -1574,6 +1574,15 @@ a:link{
   .verifyPage .verify-btn{
     margin-bottom: 0px!important;
   }
+
+  .trash-btn{
+    width: 100%;
+    background-color: #F44336;
+  }
+
+  .trash-btn:hover{
+    background-color: #bb2d3b;
+  }
 }
 
 @media only screen and (max-width: 550px) {
@@ -1934,6 +1943,15 @@ a:link{
 
 .chapter-table .btn{
   width: 50%;
+  background-color: #F6B93B;
+  border-radius: 0;
+  color: #000;
+  border: 2px solid black;
+  box-shadow: none!important;
+}
+
+.editChapter .chapter-table .btn{
+  width: 100%;
   background-color: #F6B93B;
   border-radius: 0;
   color: #000;
@@ -3407,6 +3425,11 @@ a:link{
   z-index: 1;
 }
 
+.bookcase .card-img-top{
+  max-height: 407px;
+  object-fit: cover;
+}
+
 /* 關閉按鈕 */
 .overlay-close {
   position: absolute;
@@ -4348,9 +4371,9 @@ a:link{
     overflow-wrap: break-word;
   }
 
-  .comicManagement .table td .del-btn {
-    width: 60%;
-  }
+  /* .comicManagement .table td .del-btn {
+    width: 100%;
+  } */
 
   .comicManagement .table td .del-btn-comic {
     width: 100%;
@@ -4422,6 +4445,14 @@ a:link{
 }
 
 .del-btn:hover {
+  background-color: #bb2d3b;
+}
+
+.trash-btn{
+  background-color: #F44336;
+}
+
+.trash-btn:hover{
   background-color: #bb2d3b;
 }
 
