@@ -192,7 +192,17 @@ const ComicManagement = ({ contractAddress }) => {
             },
           });
         }
-        window.location.reload();
+        const updatedArray = storedArray.map(item => {
+          if (item.comic_id === comicHash) {
+            return { ...item, is_exist: 2 };
+          } else if (item.creator === creator && item.is_exist !== 2) {
+            return { ...item, is_exist: 1 };
+          }
+          return item;
+        });
+        const updatedArrayJSON = JSON.stringify(updatedArray);
+        localStorage.setItem('comicDatas', updatedArrayJSON);
+        window.location.replace("/comicManagement");
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
           message.info(t('拒绝交易'));
