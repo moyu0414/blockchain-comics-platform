@@ -1545,11 +1545,11 @@ app.get('/api/comicDetail/isFavorited', (req, res) => {
 app.get('/api/nftDetail/records', (req, res) => {
   const tokenId = req.query.tokenId;
   const query = `
-    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.protoFilename, user.penName
+    SELECT nft.*, comics.title, comics.description AS comicDesc, comics.protoFilename, comics.is_exist, user.penName
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     INNER JOIN user ON nft.minter = user.address
-    WHERE nft.tokenId = ? AND comics.is_exist = 0
+    WHERE nft.tokenId = ?
   `;
   pool.query(query, [tokenId], (error, results, fields) => {
     if (error) {

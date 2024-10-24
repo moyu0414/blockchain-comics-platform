@@ -26,40 +26,41 @@ function CollectionPage() {
                     currentAccount: currentAccount,
                 }
             });
-            const collectComicSet = new Set(response.data.collectComic.split(',').map(id => id.trim()));
-            try {
-                const storedArray = JSON.parse(storedArrayJSON);
-                const temp = storedArray
-                    .filter(item => item.is_exist === 0 && collectComicSet.has(item.comic_id))
-                    .map(async item => {
-                        try {
-                            const imageResponse = await axios.get(`${website}/api/comicIMG/${item.comic_id}`, { responseType: 'blob', headers });
-                            const imageUrl = URL.createObjectURL(imageResponse.data);
-                            return {
-                                comicID: item.comicID,
-                                title: item.title,
-                                category: item.category,
-                                image: imageUrl
-                            };
-                        } catch (error) {
-                            console.error(`Error fetching image for ${item.title}: ${error.message}`);
-                        }
-                    });
-                Promise.all(temp)
-                    .then(results => {
-                        const filteredResults = results.filter(result => result !== null);
-                        //console.log(filteredResults);
-                        setComic(filteredResults);
-                        if (filteredResults.length === 0) {
-                            setBeingComic(false);
-                        }
-                        setLoading(false);
-                    })
-                    .catch(error => {
-                        console.error(`Error processing stored data: ${error.message}`);
-                    });
-            } catch (error) {
-                console.error('Error initializing comic:', error);
+            if (Object.keys(response.data.collectComic).length === 0) {
+                setBeingComic(false);
+                setLoading(false);
+            } else{
+                const collectComicSet = new Set(response.data.collectComic.split(',').map(id => id.trim()));
+                try {
+                    const storedArray = JSON.parse(storedArrayJSON);
+                    const temp = storedArray
+                        .filter(item => item.is_exist === 0 && collectComicSet.has(item.comic_id))
+                        .map(async item => {
+                            try {
+                                const imageResponse = await axios.get(`${website}/api/comicIMG/${item.comic_id}`, { responseType: 'blob', headers });
+                                const imageUrl = URL.createObjectURL(imageResponse.data);
+                                return {
+                                    comicID: item.comicID,
+                                    title: item.title,
+                                    category: item.category,
+                                    image: imageUrl
+                                };
+                            } catch (error) {
+                                console.error(`Error fetching image for ${item.title}: ${error.message}`);
+                            }
+                        });
+                    Promise.all(temp)
+                        .then(results => {
+                            const filteredResults = results.filter(result => result !== null);
+                            setComic(filteredResults);
+                            setLoading(false);
+                        })
+                        .catch(error => {
+                            console.error(`Error processing stored data: ${error.message}`);
+                        });
+                } catch (error) {
+                    console.error('Error initializing comic:', error);
+                }
             }
         } catch (error) {
             console.error('Error fetching records:', error);

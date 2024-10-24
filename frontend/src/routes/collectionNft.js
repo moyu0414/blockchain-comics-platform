@@ -55,8 +55,11 @@ function CollectionNft() {
                     .filter(data => data.status === true || (data.status === false && data.forSale === 1))
                     .map(fetchImage))
                 ).filter(result => result !== null);
-                //console.log(validNFTs);
-                setNFT(validNFTs);
+                if (validNFTs.length !== 0) {
+                    setNFT(validNFTs);
+                } else {
+                    setBeingNFT(false);
+                }
             }
             setLoading(false);
         } catch (error) {
