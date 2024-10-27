@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Card, Button, Row,Col } from 'react-bootstrap';
 import './bootstrap.min.css';
+import { formatDate, getImageSrc } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
@@ -16,6 +17,7 @@ function MessagePage() {
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
     const currentAccount = localStorage.getItem("currentAccount");
+    const language = localStorage.getItem('language') || i18n.language;
     const headers = {'api-key': API_KEY};
     let temp = [];
 
@@ -39,6 +41,8 @@ function MessagePage() {
                         const storedItem = storedArray.find(stored => stored.is_exist === 0 && stored.comic_id === item.comicHash);
                         if (storedItem) {
                             item.comicID = storedItem.comicID;
+                            item.level = storedItem.level;
+                            item.newCreate = formatDate(new Date(Number(item.newCreate)));
                         }
                     } catch (error) {
                         console.error(`Error fetching image ${item.comicHash}: ${error.message}`);
@@ -49,6 +53,7 @@ function MessagePage() {
                 } else if (typeof data === 'object') {
                     await fetchImage(data);
                 }
+                console.log(data);
                 sortByTimestamp(data);
                 setComic(data);
                 setLoading(false);
@@ -87,19 +92,30 @@ function MessagePage() {
                                 </Row>
                             ) : (
                                 comic.map((message, index) => (
-                                    <Card className="mt-4" key={index} style={{ display: 'flex' }}>
-                                        <div style={{ flex: '1' }}>
-                                            <Link to={`/comicDetail/${message.comicID}`}>
-                                                <Card.Img variant="top" src={message.image} alt={message.comicTitle} style={{ width: '100%', maxWidth: '100%' }} />
-                                            </Link>
-                                        </div>
-                                        <div style={{ flex: '2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                            <Card.Body className="text-section text-left">
-                                                <Card.Title>{t('漫畫')}：{message.comicTitle}</Card.Title>
-                                                <Card.Title>{t('章節更新至')}：{message.chapterTitle}</Card.Title>
-                                            </Card.Body>
-                                        </div>
-                                    </Card>
+                                    <Col key={index} xs={12} lg={6}>
+                                        <Card className="mt-1">
+                                            <div style={{ flex: '1', position: 'relative' }}>
+                                                <Link to={`/comicDetail/${message.comicID}`}>
+                                                    <Card.Img 
+                                                        variant="top" 
+                                                        src={message.image} 
+                                                        alt={message.comicTitle} 
+                                                        style={{ width: '100%', maxWidth: '100%' }} 
+                                                    />
+                                                    {message.level === '限制級' && (
+                                                        <Card.Img src={getImageSrc(language)} className="level" />
+                                                    )}
+                                                </Link>
+                                            </div>
+                                            <div style={{ flex: '2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                                <Card.Body className="text-section text-left">
+                                                    <Card.Title>{t('漫畫')}：{message.comicTitle}</Card.Title>
+                                                    <Card.Title>{t('章節更新至')}：{message.chapterTitle}</Card.Title>
+                                                    <Card.Title>{t('更新時間')}：{message.newCreate}</Card.Title>
+                                                </Card.Body>
+                                            </div>
+                                        </Card>
+                                    </Col>
                                 ))
                             )}
                         </>

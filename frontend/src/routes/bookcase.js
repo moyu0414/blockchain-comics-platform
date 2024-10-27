@@ -6,7 +6,7 @@ import { CardImage } from 'react-bootstrap-icons';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
-import { sortByTimestamp } from '../index';
+import { sortByTimestamp, getImageSrc } from '../index';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
@@ -21,6 +21,7 @@ function Bookcase() {
     const readingProgress = localStorage.getItem("readingProgress");
     const readingArray = readingProgress ? JSON.parse(readingProgress) : {}; 
     const currentAccount = localStorage.getItem("currentAccount");
+    const language = localStorage.getItem('language') || i18n.language;
     const headers = {'api-key': API_KEY};
     let bookcase = [];
     let fetchedData = [];
@@ -148,6 +149,9 @@ function Bookcase() {
                                                     {data.is_exist === 0 && (
                                                         <>
                                                             <Card.Img variant="top" src={data.image} />
+                                                            {data.level === '限制級' && (
+                                                                <Card.Img src={getImageSrc(language)} className="level" />
+                                                            )}
                                                             <div className="bookcase-overlay">{data.chapter}</div>
                                                             <Card.Body>
                                                                 <Card.Title className='bookcase-read-text'>{data.title}</Card.Title>
@@ -174,7 +178,12 @@ function Bookcase() {
                                         <Link to={`/comicDetail/${data.comicID}`}>
                                             <Card>
                                                 {data.is_exist === 0 ? (
-                                                    <Card.Img variant="top" src={data.image} />
+                                                    <>
+                                                        <Card.Img variant="top" src={data.image} />
+                                                        {data.level === '限制級' && (
+                                                            <Card.Img src={getImageSrc(language)} className="level" />
+                                                        )}
+                                                    </>
                                                 ) : (
                                                     <div className="bookcase-position">
                                                         <Card.Img variant="top" src='/piraty.png' />
@@ -209,8 +218,14 @@ function Bookcase() {
                                                 {data.is_exist === 0 ? (
                                                     <>
                                                         <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names, data.tokenId)}>
-                                                            <Card.Img variant="top" src={data.image} />
+                                                            <div onContextMenu={(e) => e.preventDefault()}>
+                                                                <Card.Img variant="top" src={data.image} />
+
+                                                            </div>
                                                         </OverlayTrigger>
+                                                        {data.level === '限制級' && (
+                                                            <Card.Img src={getImageSrc(language)} className="level" />
+                                                        )}
                                                         <div className="bookcase-overlay">{data.title}</div>
                                                     </>
                                                 ) : (

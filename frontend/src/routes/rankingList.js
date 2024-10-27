@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Row, Col, Card, ListGroup, ListGroupItem, Tabs, Tab, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { getImageSrc } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
@@ -16,6 +17,7 @@ const RankingList = () => {
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
     const storedArrayJSON = localStorage.getItem('comicDatas');
+    const language = localStorage.getItem('language') || i18n.language;
     const storedArray = JSON.parse(storedArrayJSON);
     const headers = {'api-key': API_KEY};
 
@@ -39,7 +41,8 @@ const RankingList = () => {
                         return { 
                             ...fetchedItem, 
                             comicID: match ? match.comicID : null, 
-                            penName: match && match.penName ? match.penName : null
+                            penName: match && match.penName ? match.penName : null,
+                            level: match ? match.level : null
                         };
                     });
                     //console.log(updatedFetchedData);
@@ -101,7 +104,8 @@ const RankingList = () => {
                 return { 
                     ...fetchedItem, 
                     comicID: match ? match.comicID : null, 
-                    penName: match && match.penName ? match.penName : null
+                    penName: match && match.penName ? match.penName : null,
+                    level: match ? match.level : null
                 };
             });
             //console.log(updatedFetchedData);
@@ -129,7 +133,8 @@ const RankingList = () => {
                 return { 
                     ...fetchedItem, 
                     comicID: match ? match.comicID : null, 
-                    penName: match && match.penName ? match.penName : null
+                    penName: match && match.penName ? match.penName : null,
+                    level: match ? match.level : null
                 };
             });
             //console.log(updatedFetchedData);
@@ -157,7 +162,8 @@ const RankingList = () => {
                 return { 
                     ...fetchedItem, 
                     comicID: match ? match.comicID : null, 
-                    penName: match && match.penName ? match.penName : null
+                    penName: match && match.penName ? match.penName : null,
+                    level: match ? match.level : null
                 };
             });
             //console.log(updatedFetchedData);
@@ -186,7 +192,8 @@ const RankingList = () => {
                     ...fetchedItem, 
                     comicID: match ? match.comicID : null, 
                     penName: match && match.penName ? match.penName : null,
-                    date: match.date
+                    date: match.date,
+                    level: match ? match.level : null
                 };
 
             });
@@ -284,6 +291,9 @@ const RankingList = () => {
                                             <div className="ranking-image ranking-thumbnail-position">
                                                 <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
                                                 <div className="rankingList-overlay">{item.total}</div>
+                                                {item.level === '限制級' && (
+                                                    <Card.Img src={getImageSrc(language)} className="level" />
+                                                )}
                                             </div>
                                             <div className="ranking-card-info ms-3">
                                                 <div className="ranking-title">{item.title}</div>
@@ -311,6 +321,9 @@ const RankingList = () => {
                                         <div className="ranking-image ranking-thumbnail-position">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
                                             <div className="rankingList-overlay">{item.totBuy}</div>
+                                            {item.level === '限制級' && (
+                                                <Card.Img src={getImageSrc(language)} className="level" />
+                                            )}
                                         </div>
                                         <div className="ranking-card-info ms-3">
                                             <div className="ranking-title">{item.title}</div>
@@ -338,6 +351,9 @@ const RankingList = () => {
                                         <div className="ranking-image ranking-thumbnail-position">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
                                             <div className="rankingList-overlay">{item.totHearts}</div>
+                                            {item.level === '限制級' && (
+                                                <Card.Img src={getImageSrc(language)} className="level" />
+                                            )}
                                         </div>
                                         <div className="ranking-card-info ms-3">
                                             <div className="ranking-title">{item.title}</div>
@@ -365,6 +381,9 @@ const RankingList = () => {
                                         <div className="ranking-image ranking-thumbnail-position">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
                                             <div className="rankingList-overlay">{item.totBuy}</div>
+                                            {item.level === '限制級' && (
+                                                <Card.Img src={getImageSrc(language)} className="level" />
+                                            )}
                                         </div>
                                         <div className="ranking-card-info ms-3">
                                             <div className="ranking-title">{item.title}</div>
@@ -392,6 +411,9 @@ const RankingList = () => {
                                         <div className="ranking-image ranking-thumbnail-position">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
                                             <div className="rankingList-createTime">{item.date}</div>
+                                            {item.level === '限制級' && (
+                                                <Card.Img src={getImageSrc(language)} className="level" />
+                                            )}
                                         </div>
                                         <div className="ranking-card-info ms-3">
                                             <div className="ranking-title">{item.title}</div>

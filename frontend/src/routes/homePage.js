@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Container, Carousel, Card, Col, Row, Button } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { HeartFill, CartFill } from 'react-bootstrap-icons';
+import { getImageSrc } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
@@ -15,6 +16,7 @@ const HomePage = () => {
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
     const storedArrayJSON = localStorage.getItem('comicDatas');
+    const language = localStorage.getItem('language') || i18n.language;
     const storedArray = JSON.parse(storedArrayJSON);
     const headers = {'api-key': API_KEY};
     
@@ -148,6 +150,9 @@ const HomePage = () => {
                                                 <Card style={{marginRight: "8%"}} className="ranking-thumbnail-position">
                                                     <Link to={`/comicDetail/${data.comicID}`}>
                                                         <Card.Img variant="top" src={data.image} />
+                                                        {data.level === '限制級' && (
+                                                            <Card.Img src={getImageSrc(language)} className="level" />
+                                                        )}
                                                         <div className="homepage-penName">
                                                             {data.penName}<br />
                                                             <CartFill style={{ marginRight: '5px', marginBottom: "3px" }} />

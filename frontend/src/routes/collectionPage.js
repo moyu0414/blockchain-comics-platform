@@ -4,6 +4,8 @@ import { Container, Card, Col, Row } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel } from 'react-bootstrap-icons';
 import { useTranslation } from 'react-i18next';
+import { getImageSrc } from '../index';
+import i18n from '../i18n';
 import axios from 'axios';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -15,6 +17,7 @@ function CollectionPage() {
     const { t } = useTranslation();
     const storedArrayJSON = localStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
+    const language = localStorage.getItem('language') || i18n.language;
     const headers = {'api-key': API_KEY};
     let temp = [];
 
@@ -43,6 +46,7 @@ function CollectionPage() {
                                     comicID: item.comicID,
                                     title: item.title,
                                     category: item.category,
+                                    level: item.level,
                                     image: imageUrl
                                 };
                             } catch (error) {
@@ -91,6 +95,9 @@ function CollectionPage() {
                                     <Card>
                                         <div className="position-relative">
                                             <Card.Img variant="top" src={data.image} />
+                                            {data.level === '限制級' && (
+                                                <Card.Img src={getImageSrc(language)} className="level" />
+                                            )}
                                             <div className="category-overlay">{t(data.category)}</div>
                                         </div>
                                         <Card.Body>

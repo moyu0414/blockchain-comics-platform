@@ -8,7 +8,7 @@ const path = require('path');
 //const fs = require('fs');
 const fsPromises = require('fs').promises;
 const crypto = require('crypto');
-const CryptoJS = require('crypto-js');
+//const CryptoJS = require('crypto-js');
 const moment = require('moment');
 const { format } = require('date-fns');
 const { promisify } = require('util');
@@ -29,12 +29,6 @@ const BASE_PATH = __dirname;  // 取得當前檔案的路徑
 // const BASE_PATH = "/var/www/html" // web3toonapi
 
 app.use(cors());
-//app.use(cors({
-  //origin: ['https://web3toon.ddns.net', 'http://localhost:3000'],
-  //methods: ['GET', 'POST', 'PUT'],
-  //allowedHeaders: ['Content-Type', 'Authorization', 'api-key'],
-//}));
-
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');  // 允許所有来源的請求訪問資源
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
@@ -64,7 +58,7 @@ const pool = mysql.createPool({
     database: '113-113410',
     port: 3306,
     waitForConnections: true,
-    connectionLimit: 10,  // 適當設置連線池大小
+    connectionLimit: 30,  // 適當設置連線池大小
     connectTimeout: 30000, // 將連接超時時間增加到 30 秒
 });
 
@@ -95,7 +89,6 @@ const transporter = nodemailer.createTransport({
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    
     cb(null, `${BASE_PATH}/uploads`);
   },
   filename: function (req, file, cb) {
@@ -103,12 +96,10 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
-//const upload = multer({ dest: 'uploads/' });  // 圖片存到跟目錄下的 uploads 資料夾，檔名隨機生成
 
 
 // 异步函数，用于重命名文件并将其移动到上传目录
 async function renameFilename(file, comic_id, chapter_id, type, protoFilename, coverFile) {
-
   const comicFolder = path.join(BASE_PATH, 'uploads', comic_id);
   const specificFolder = path.join(comicFolder, type === 'comicIMG' ? 'cover' : 'chapters');
   try {
@@ -139,19 +130,6 @@ async function renameFilename(file, comic_id, chapter_id, type, protoFilename, c
   } catch (error) {
     console.error('Error moving file or creating directory:', error);
     throw error;
-  }
-}
-
-// 計算圖檔hash值
-async function calculateHash(filePath) {
-  try {
-      const hash = crypto.createHash('sha256');
-      const input = await fsPromises.readFile(filePath); // 使用 fsPromises.promises 的 readFile 方法读取文件内容
-      hash.update(input); // 直接更新哈希值
-      return hash.digest('hex'); // 返回计算后的哈希值
-  } catch (error) {
-      console.error('Error reading file or calculating hash:', error);
-      throw error;
   }
 }
 
@@ -200,7 +178,6 @@ async function termsFile(file, version, language) {
 }
 
 async function evidenceFile(file) {
-  
   const folder = path.join(BASE_PATH, 'uploads', 'evidence');
   const timestamp = Date.now().toString();
   const fileExtension = getFileExtension(file.originalname);
@@ -408,7 +385,7 @@ app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverF
     return res.status(400).json({ error: 'Main comic image file must be uploaded' });
   }
   try {
-    const { creator, title, description, category, is_exist, comic_id, protoFilename, timestamp } = req.body;
+    const { creator, title, description, category, level, is_exist, comic_id, protoFilename, timestamp } = req.body;
     let protoFile;
     if (coverFile) {
       protoFile = 1;
@@ -418,8 +395,8 @@ app.post('/api/add/comics', upload.fields([{ name: 'comicIMG' }, { name: 'coverF
       await renameFilename(file, comic_id, '', 'comicIMG');
     }
     pool.query(
-      'INSERT INTO comics (comic_id, creator, title, description, category, is_exist, protoFilename, create_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [comic_id, creator, title, description, category, is_exist, protoFile, timestamp],
+      'INSERT INTO comics (comic_id, creator, title, description, category, level, is_exist, protoFilename, create_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [comic_id, creator, title, description, category, level, is_exist, protoFile, timestamp],
       (error, results, fields) => {
         if (error) {
           console.error('Error inserting into comics: ', error);
@@ -689,7 +666,7 @@ app.get('/api/evidence/:fileName', async (req, res) => {
 
 // 編輯漫畫資料的請求、添加漫畫信息到數據庫的路由
 app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'coverFile' }]), async (req, res) => {
-  const { id, title, description, category, fileName, protoFilename } = req.body;
+  const { id, title, description, category, level, fileName, protoFilename } = req.body;
   const file = req.files['comicIMG'] ? req.files['comicIMG'][0] : null;
   const coverFile = req.files['coverFile'] ? req.files['coverFile'][0] : null;
   let filenameToUpdate, protoFile;
@@ -707,9 +684,9 @@ app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'c
       filenameToUpdate = fileName;
     }
     if (coverFile) {
-      const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ?, protoFilename = ? WHERE comic_id = ?`;
+      const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ?, level = ?, protoFilename = ? WHERE comic_id = ?`;
       await new Promise((resolve, reject) => {
-        pool.query(updateQuery, [title, description, category, protoFile, id], (error, results, fields) => {
+        pool.query(updateQuery, [title, description, category, level, protoFile, id], (error, results, fields) => {
           if (error) {
             reject(error);
             return;
@@ -718,9 +695,9 @@ app.put('/api/update/comicData', upload.fields([{ name: 'comicIMG' }, { name: 'c
         });
       });
     } else{
-      const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ? WHERE comic_id = ?`;
+      const updateQuery = `UPDATE comics SET title = ?, description = ?, category = ?, level = ? WHERE comic_id = ?`;
       await new Promise((resolve, reject) => {
-        pool.query(updateQuery, [title, description, category, id], (error, results, fields) => {
+        pool.query(updateQuery, [title, description, category, level, id], (error, results, fields) => {
           if (error) {
             reject(error);
             return;
@@ -1122,7 +1099,7 @@ app.get('/api/comics', (req, res) => {
       // 如果資料庫中有資料，則執行原本的 SELECT * 查詢
       pool.query(`
         SELECT 
-          comics.comic_id, comics.creator, comics.title, comics.description, comics.category, comics.is_exist, comics.protoFilename, comics.create_timestamp,
+          comics.*,
           user.penName
       FROM 
           comics
@@ -1265,6 +1242,7 @@ app.get('/api/bookcase', (req, res) => {
       comics.title, 
       comics.create_timestamp, 
       comics.is_exist,
+      comics.level,
       ranked_records.purchase_date
     FROM comics
     LEFT JOIN (
@@ -1293,7 +1271,7 @@ app.get('/api/bookcase/nftRecords', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const query = `
     SELECT 
-      nft.tokenId, nft.tokenTitle ,comics.title, nft.comicHash, nft.description, comics.is_exist
+      nft.tokenId, nft.tokenTitle ,comics.title, nft.comicHash, nft.description, comics.is_exist, comics.level
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     WHERE nft.owner = ? AND nft.owner <> nft.minter
@@ -2041,7 +2019,7 @@ app.get('/api/authorProfile', (req, res) => {
 app.get('/api/dataAnalysis/records', (req, res) => {
   const currentAccount = req.query.currentAccount;
   const recordsQuery = `
-    SELECT comics.title AS comicTitle, comics.category, comics.comic_id AS filename,
+    SELECT comics.title AS comicTitle, comics.category, comics.comic_id AS filename, comics.level,
            chapters.title AS chapterTitle, records.purchase_date, records.price, records.buyer
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id

@@ -4,7 +4,7 @@ import { Container, Carousel, Card, Col, Row, Button, Dropdown } from 'react-boo
 import './bootstrap.min.css';
 import { Funnel, HeartFill, CartFill } from 'react-bootstrap-icons';
 import { useTranslation } from 'react-i18next';
-import { getTranslationKey } from '../index';
+import { getTranslationKey, getImageSrc } from '../index';
 import i18n from '../i18n';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
@@ -51,7 +51,7 @@ function Category() {
                 if (storedArray[i].is_exist == 0 && storedArray[i].category == rewind) {
                     const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].comic_id}`, { responseType: 'blob', headers });
                     const image = URL.createObjectURL(imageResponse.data);
-                    fetchedData.push({ comicHash: storedArray[i].comic_id, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, category: storedArray[i].category, image: image, penName: storedArray[i].penName});
+                    fetchedData.push({ comicHash: storedArray[i].comic_id, comicID: storedArray[i].comicID, title: storedArray[i].title, text: storedArray[i].description, category: storedArray[i].category, level: storedArray[i].level, image: image, penName: storedArray[i].penName});
                 }
             };
             const categoryCounts = {};
@@ -258,6 +258,9 @@ function Category() {
                                             <Card className="ranking-thumbnail-position">
                                                 <Link to={`/comicDetail/${current[idx].comicID}`}>
                                                     <Card.Img variant="top" src={data.image} />
+                                                    {data.level === '限制級' && (
+                                                        <Card.Img src={getImageSrc(language)} className="level" />
+                                                    )}
                                                     <div className="homepage-penName">
                                                         {data.penName}<br />
                                                         <CartFill style={{ marginRight: '5px' }} />

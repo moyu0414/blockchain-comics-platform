@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Container, Card, Col, Row, Button, Figure, Dropdown } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { Funnel, CartFill } from 'react-bootstrap-icons';
+import { getImageSrc } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
@@ -34,6 +35,7 @@ function CreatorPage() {
     const { t } = useTranslation();
     const [selectedCategory, setSelectedCategory] = useState(t('已經發布'));
     const storedArrayJSON = localStorage.getItem('comicDatas');
+    const language = localStorage.getItem('language') || i18n.language;
     const headers = {'api-key': API_KEY};
     let temp = [];
 
@@ -59,14 +61,15 @@ function CreatorPage() {
                                 const storedArray = JSON.parse(storedArrayJSON);
                                 for (let i = 0; i < storedArray.length; i++) {
                                     if (storedArray[i].is_exist === 0) {
-                                        const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].comic_id}`, { responseType: 'blob', headers });
-                                        const image = URL.createObjectURL(imageResponse.data);
                                         if (storedArray[i].creator == account) {
+                                            const imageResponse = await axios.get(`${website}/api/comicIMG/${storedArray[i].comic_id}`, { responseType: 'blob', headers });
+                                            const image = URL.createObjectURL(imageResponse.data);
                                             temp.push({
                                                 comicHash: storedArray[i].comic_id,
                                                 comicID: storedArray[i].comicID,
                                                 title: storedArray[i].title,
                                                 category: t(storedArray[i].category),
+                                                level: t(storedArray[i].level),
                                                 image: image
                                             });
                                         }
@@ -288,6 +291,9 @@ function CreatorPage() {
                                     <div className="position-relative">
                                         <Card.Img variant="top" src={data.image} />
                                         <div className="category-overlay">{data.category}{data.totBuy}</div>
+                                        {data.level === '限制級' && (
+                                            <Card.Img src={getImageSrc(language)} className="level" />
+                                        )}
                                     </div>
                                     <Card.Body>
                                         <Card.Title className='creatorPage-text'>{data.title}</Card.Title>

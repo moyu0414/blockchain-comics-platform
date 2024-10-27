@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { Outlet, useLocation } from 'react-router-dom';
 import { createRoot } from "react-dom/client";
 import {
   createBrowserRouter,
@@ -92,18 +92,6 @@ const AppLayout = () => {
     </>
   );
 };
-
-// const Root = () => (
-//   <Router>
-//     <Routes>
-//       <Route path="/" element={<AppLayout />}>
-//         {/* 定義其他路由 */}
-//         <Route path="/comicRead" element={<ComicRead />} />
-//         {/* 其他頁面路由 */}
-//       </Route>
-//     </Routes>
-//   </Router>
-// );
 
 //日期轉換格式 yyyy/mm/dd
 function formatDate(date) {
@@ -213,6 +201,44 @@ const getTranslationKey = (value, language) => {
       return acc;
   }, {});
   return reversedTranslations[value] || null;
+};
+
+
+// 覆蓋層、禁用右键菜单
+const OverlayComponent = ({ height, onContextMenu }) => {
+  const overlayStyle = {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: height,
+      backgroundColor: 'rgba(0, 0, 0, 0)', // 透明背景
+      cursor: 'not-allowed',
+      pointerEvents: 'auto', // 确保覆盖层可以接收事件
+  };
+
+  return (
+      <div
+          style={overlayStyle}
+          onContextMenu={onContextMenu} // 禁用右键菜单
+      />
+  );
+};
+
+
+const getImageSrc = (language) => {
+  switch (language) {
+      case 'zh':
+          return '/R_tw.png';
+      case 'en':
+          return 'R_en.png';
+      case 'ja':
+          return 'R_ja.png';
+      case 'ko':
+          return 'R_ko.png';
+      default:
+          return '/R_tw.png';
+  }
 };
 
 
@@ -326,4 +352,4 @@ createRoot(document.getElementById("root")).render(
   <RouterProvider router={router} />
 );
 
-export { formatDate, formatTime, sortByTimestamp, sortByDatetime, getTransactionTimestamp, disableAllButtons, enableAllButtons, detectEthereumProvider, initializeWeb3, getTranslationKey };
+export { formatDate, formatTime, sortByTimestamp, sortByDatetime, getTransactionTimestamp, disableAllButtons, enableAllButtons, detectEthereumProvider, initializeWeb3, getTranslationKey, OverlayComponent, getImageSrc };

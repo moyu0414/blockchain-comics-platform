@@ -7,9 +7,8 @@ import { DatePicker, Button, List, Card, message, Select, Row, Col } from 'antd'
 import dayjs from 'dayjs';
 import './bootstrap.min.css';
 import { useTranslation } from 'react-i18next';
-import i18n from '../i18n';
 import axios from 'axios';
-import { formatDate } from '../index.js';
+import { formatDate, getImageSrc } from '../index.js';
 ChartJS.register( CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend );
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
@@ -151,14 +150,14 @@ const transformPieData = (pieData, period) => {
 };
 
 const initFilterComicData = (comicOrigin) => {
-  const processedData = comicOrigin.reduce((acc, { purchase_date, price, comicTitle, category, filename }) => {
+  const processedData = comicOrigin.reduce((acc, { purchase_date, price, comicTitle, category, filename, level }) => {
     const date = new Date(purchase_date);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const income = (parseFloat(price) * 0.9);
     if (!acc[comicTitle]) {
-      acc[comicTitle] = { year: {}, quarter: {}, month: {}, day: {}, category: category, filename: filename };
+      acc[comicTitle] = { year: {}, quarter: {}, month: {}, day: {}, category: category, filename: filename, level: level };
     }
     const updateData = (type, key) => {
       if (!acc[comicTitle][type][key]) {
@@ -520,6 +519,7 @@ const test_data_1 = [
   {
     "buyer": "0x7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v4w6x",
     "category": "玄幻",
+    "level": "普遍級",
     "chapterTitle": "002-1",
     "comicTitle": "幽靈學院",
     "filename": "/test/comic1.png",
@@ -528,6 +528,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "003-1",
     "comicTitle": "笑爆天",
     "filename": "/test/comic2.png",
@@ -536,6 +537,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "004-1",
     "comicTitle": "笑爆天",
     "filename": "/test/comic2.png",
@@ -544,6 +546,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x",
     "category": "武俠",
+    "level": "普遍級",
     "chapterTitle": "005-1",
     "comicTitle": "流浪武士",
     "filename": "/test/comic3.png",
@@ -552,6 +555,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x",
     "category": "武俠",
+    "level": "普遍級",
     "chapterTitle": "001-2",
     "comicTitle": "流浪武士",
     "filename": "/test/comic3.png",
@@ -560,6 +564,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7d8e9f0g1h2i3j4k5l6m7n8o9p0q1r2s3t4u5v6w",
     "category": "玄幻",
+    "level": "普遍級",
     "chapterTitle": "007-2",
     "comicTitle": "隱秘之城",
     "filename": "/test/comic4.png",
@@ -568,6 +573,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x",
     "category": "玄幻",
+    "level": "普遍級",
     "chapterTitle": "006-2",
     "comicTitle": "幽靈學院",
     "filename": "/test/comic1.png",
@@ -576,6 +582,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x",
     "category": "玄幻",
+    "level": "普遍級",
     "chapterTitle": "003-1",
     "comicTitle": "隱秘之城",
     "filename": "/test/comic4.png",
@@ -584,6 +591,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x",
     "category": "戀愛",
+    "level": "普遍級",
     "chapterTitle": "002-2",
     "comicTitle": "絕世戀人",
     "filename": "/test/comic5.png",
@@ -592,6 +600,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x",
     "category": "戀愛",
+    "level": "普遍級",
     "chapterTitle": "007-1",
     "comicTitle": "絕世戀人",
     "filename": "/test/comic5.png",
@@ -600,6 +609,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x",
     "category": "戀愛",
+    "level": "普遍級",
     "chapterTitle": "002-1",
     "comicTitle": "絕世戀人",
     "filename": "/test/comic5.png",
@@ -608,6 +618,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x8a9b0c1d2e3f4g5h6i7j8k9l0m1n2o3p4q5r6s7t",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "001-1",
     "comicTitle": "風起雲湧",
     "filename": "/test/comic6.png",
@@ -616,6 +627,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x6b7c8d9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "003-2",
     "comicTitle": "風起雲湧",
     "filename": "/test/comic6.png",
@@ -624,6 +636,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u6v7w8x",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "005-1",
     "comicTitle": "風起雲湧",
     "filename": "/test/comic6.png",
@@ -632,6 +645,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u6v7w8x",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "004-2",
     "comicTitle": "風起雲湧",
     "filename": "/test/comic6.png",
@@ -640,6 +654,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x6b7c8d9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u",
     "category": "冒險",
+    "level": "普遍級",
     "chapterTitle": "004-2",
     "comicTitle": "異界遊俠",
     "filename": "/test/comic7.png",
@@ -648,6 +663,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7d8e9f0g1h2i3j4k5l6m7n8o9p0q1r2s3t4u5v6w",
     "category": "冒險",
+    "level": "普遍級",
     "chapterTitle": "006-1",
     "comicTitle": "異界遊俠",
     "filename": "/test/comic7.png",
@@ -656,6 +672,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x1d2e3f4g5h6i7j8k9l0m1n2o3p4q5r6s7t8u9v0w",
     "category": "冒險",
+    "level": "普遍級",
     "chapterTitle": "002-2",
     "comicTitle": "異界遊俠",
     "filename": "/test/comic7.png",
@@ -664,6 +681,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x4c5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v",
     "category": "戀愛",
+    "level": "普遍級",
     "chapterTitle": "002-1",
     "comicTitle": "絕世戀人",
     "filename": "/test/comic5.png",
@@ -672,6 +690,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x",
     "category": "武俠",
+    "level": "普遍級",
     "chapterTitle": "006-2",
     "comicTitle": "流浪武士",
     "filename": "/test/comic3.png",
@@ -680,6 +699,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x8a9b0c1d2e3f4g5h6i7j8k9l0m1n2o3p4q5r6s7t",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "003-1",
     "comicTitle": "風起雲湧",
     "filename": "/test/comic6.png",
@@ -688,6 +708,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x6b7c8d9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "003-2",
     "comicTitle": "風起雲湧",
     "filename": "/test/comic6.png",
@@ -696,6 +717,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u6v7w8x",
     "category": "古風",
+    "level": "普遍級",
     "chapterTitle": "001-1",
     "comicTitle": "天啟之門",
     "filename": "/test/comic8.png",
@@ -704,6 +726,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t",
     "category": "古風",
+    "level": "普遍級",
     "chapterTitle": "005-1",
     "comicTitle": "天啟之門",
     "filename": "/test/comic8.png",
@@ -712,6 +735,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x6b7c8d9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u",
     "category": "古風",
+    "level": "普遍級",
     "chapterTitle": "008-1",
     "comicTitle": "天啟之門",
     "filename": "/test/comic8.png",
@@ -720,6 +744,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u6v7w8x",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "002-2",
     "comicTitle": "笑爆天",
     "filename": "/test/comic2.png",
@@ -728,6 +753,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x6b7c8d9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u",
     "category": "玄幻",
+    "level": "普遍級",
     "chapterTitle": "003-2",
     "comicTitle": "隱秘之城",
     "filename": "/test/comic4.png",
@@ -736,6 +762,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "001-1",
     "comicTitle": "笑爆天",
     "filename": "/test/comic2.png",
@@ -744,6 +771,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x1c2d3e4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v",
     "category": "古風",
+    "level": "普遍級",
     "chapterTitle": "006-2",
     "comicTitle": "天啟之門",
     "filename": "/test/comic8.png",
@@ -752,6 +780,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x6b7c8d9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u",
     "category": "玄幻",
+    "level": "普遍級",
     "chapterTitle": "008-2",
     "comicTitle": "隱秘之城",
     "filename": "/test/comic4.png",
@@ -760,6 +789,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y",
     "category": "古風",
+    "level": "普遍級",
     "chapterTitle": "002-2",
     "comicTitle": "天啟之門",
     "filename": "/test/comic8.png",
@@ -768,6 +798,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x9b0c1d2e3f4g5h6i7j8k9l0m1n2o3p4q5r6s7t8u",
     "category": "古風",
+    "level": "普遍級",
     "chapterTitle": "007-1",
     "comicTitle": "天啟之門",
     "filename": "/test/comic8.png",
@@ -776,6 +807,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x6b7c8d9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u",
     "category": "古風",
+    "level": "普遍級",
     "chapterTitle": "003-2",
     "comicTitle": "天啟之門",
     "filename": "/test/comic8.png",
@@ -784,6 +816,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u6v7w8x",
     "category": "戀愛",
+    "level": "普遍級",
     "chapterTitle": "004-2",
     "comicTitle": "絕世戀人",
     "filename": "/test/comic5.png",
@@ -792,6 +825,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u6v7w8x",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "003-1",
     "comicTitle": "風起雲湧",
     "filename": "/test/comic6.png",
@@ -800,6 +834,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u6v7w8x",
     "category": "玄幻",
+    "level": "普遍級",
     "chapterTitle": "003-1",
     "comicTitle": "幽靈學院",
     "filename": "/test/comic1.png",
@@ -808,6 +843,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x1d2e3f4g5h6i7j8k9l0m1n2o3p4q5r6s7t8u9v0w",
     "category": "玄幻",
+    "level": "普遍級",
     "chapterTitle": "007-2",
     "comicTitle": "幽靈學院",
     "filename": "/test/comic1.png",
@@ -816,6 +852,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u6v7w8x",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "004-2",
     "comicTitle": "笑爆天",
     "filename": "/test/comic2.png",
@@ -824,6 +861,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v",
     "category": "冒險",
+    "level": "普遍級",
     "chapterTitle": "009-1",
     "comicTitle": "異界遊俠",
     "filename": "/test/comic7.png",
@@ -832,6 +870,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v",
     "category": "冒險",
+    "level": "普遍級",
     "chapterTitle": "004-2",
     "comicTitle": "異界遊俠",
     "filename": "/test/comic7.png",
@@ -840,6 +879,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "008-1",
     "comicTitle": "笑爆天",
     "filename": "/test/comic2.png",
@@ -848,6 +888,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x1d2e3f4g5h6i7j8k9l0m1n2o3p4q5r6s7t8u9v0w",
     "category": "戀愛",
+    "level": "普遍級",
     "chapterTitle": "004-1",
     "comicTitle": "絕世戀人",
     "filename": "/test/comic5.png",
@@ -856,6 +897,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x1d2e3f4g5h6i7j8k9l0m1n2o3p4q5r6s7t8u9v0w",
     "category": "戀愛",
+    "level": "普遍級",
     "chapterTitle": "004-2",
     "comicTitle": "絕世戀人",
     "filename": "/test/comic5.png",
@@ -864,6 +906,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v",
     "category": "玄幻",
+    "level": "普遍級",
     "chapterTitle": "008-1",
     "comicTitle": "幽靈學院",
     "filename": "/test/comic1.png",
@@ -872,6 +915,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v",
     "category": "冒險",
+    "level": "普遍級",
     "chapterTitle": "005-1",
     "comicTitle": "異界遊俠",
     "filename": "/test/comic7.png",
@@ -880,6 +924,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v",
     "category": "古風",
+    "level": "普遍級",
     "chapterTitle": "005-1",
     "comicTitle": "天啟之門",
     "filename": "/test/comic8.png",
@@ -888,6 +933,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7d8e9f0g1h2i3j4k5l6m7n8o9p0q1r2s3t4u5v6w",
     "category": "古風",
+    "level": "普遍級",
     "chapterTitle": "006-1",
     "comicTitle": "天啟之門",
     "filename": "/test/comic8.png",
@@ -896,6 +942,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x1d2e3f4g5h6i7j8k9l0m1n2o3p4q5r6s7t8u9v0w",
     "category": "古風",
+    "level": "普遍級",
     "chapterTitle": "007-2",
     "comicTitle": "天啟之門",
     "filename": "/test/comic8.png",
@@ -904,6 +951,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v",
     "category": "戀愛",
+    "level": "普遍級",
     "chapterTitle": "007-1",
     "comicTitle": "絕世戀人",
     "filename": "/test/comic5.png",
@@ -912,6 +960,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v",
     "category": "玄幻",
+    "level": "普遍級",
     "chapterTitle": "007-2",
     "comicTitle": "幽靈學院",
     "filename": "/test/comic1.png",
@@ -920,6 +969,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v",
     "category": "搞笑",
+    "level": "普遍級",
     "chapterTitle": "001-1",
     "comicTitle": "風起雲湧",
     "filename": "/test/comic6.png",
@@ -928,6 +978,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x1d2e3f4g5h6i7j8k9l0m1n2o3p4q5r6s7t8u9v0w",
     "category": "玄幻",
+    "level": "普遍級",
     "chapterTitle": "009-1",
     "comicTitle": "幽靈學院",
     "filename": "/test/comic1.png",
@@ -936,6 +987,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x4c5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v",
     "category": "戀愛",
+    "level": "普遍級",
     "chapterTitle": "007-1",
     "comicTitle": "絕世戀人",
     "filename": "/test/comic5.png",
@@ -944,6 +996,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v",
     "category": "冒險",
+    "level": "普遍級",
     "chapterTitle": "008-1",
     "comicTitle": "異界遊俠",
     "filename": "/test/comic7.png",
@@ -952,6 +1005,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y",
     "category": "冒險",
+    "level": "普遍級",
     "chapterTitle": "005-2",
     "comicTitle": "異界遊俠",
     "filename": "/test/comic7.png",
@@ -960,6 +1014,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z",
     "category": "古風",
+    "level": "普遍級",
     "chapterTitle": "008-1",
     "comicTitle": "天啟之門",
     "filename": "/test/comic8.png",
@@ -968,6 +1023,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a",
     "category": "戀愛",
+    "level": "普遍級",
     "chapterTitle": "009-2",
     "comicTitle": "絕世戀人",
     "filename": "/test/comic5.png",
@@ -976,6 +1032,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b",
     "category": "武俠",
+    "level": "普遍級",
     "chapterTitle": "003-2",
     "comicTitle": "流浪武士",
     "filename": "/test/comic3.png",
@@ -984,6 +1041,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x1d2e3f4g5h6i7j8k9l0m1n2o3p4q5r6s7t8u9v0w",
     "category": "古風",
+    "level": "普遍級",
     "chapterTitle": "007-1",
     "comicTitle": "天啟之門",
     "filename": "/test/comic8.png",
@@ -992,6 +1050,7 @@ const test_data_1 = [
   }, {
     "buyer": "0x1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b9c0d",
     "category": "武俠",
+    "level": "普遍級",
     "chapterTitle": "010-1",
     "comicTitle": "流浪武士",
     "filename": "/test/comic3.png",
@@ -1243,7 +1302,8 @@ const DataAnalysis = () => {
           filtered[key] = {
             day: comics[key].day,
             category: comics[key].category,
-            filename: comics[key].filename
+            filename: comics[key].filename,
+            level: comics[key].level
           };
         };
       };
@@ -1609,9 +1669,42 @@ const DataAnalysis = () => {
     setRankPeriodData(aggregatedData);
   };
 
-  const clickRankPeriod = (period) => {
+  const clickRankPeriod = async (period) => {
+    const aggregatedData = {};
+    const dateRange = periods[period];
+    const startDate = new Date(dateRange[0]);
+    const endDate = new Date(dateRange[1]);
+    for (const comic in cimicRank) {
+      const days = cimicRank[comic].day;
+      const filteredDays = Object.values(days).filter((item) => {
+        const itemDate = new Date(item.date);
+        return itemDate >= startDate && itemDate <= endDate;
+      });
+      if (filteredDays.length > 0) {
+        let totalSales = 0;
+        let totalCount = 0;
+        filteredDays.forEach(({ sales, count }) => {
+          totalSales += sales;
+          totalCount += count;
+        });
+        try {
+          //const response = await axios.get(`${website}/api/comicIMG/${cimicRank[comic].filename}`, { responseType: 'blob', headers });
+          //const image = URL.createObjectURL(response.data);
+          aggregatedData[comic] = {
+            totalSales: totalSales.toFixed(3),
+            totalCount,
+            category: cimicRank[comic].category,
+            level: cimicRank[comic].level,
+            //image: image
+            image: cimicRank[comic].filename
+          };
+        } catch (error) {
+          console.error(`Error fetching image for ${comic}:`, error);
+        }
+      }
+    }
     setRankPeriod(period);
-    setRankFilterData(rankPeriodData[period] || {});
+    setRankFilterData(aggregatedData || {});
   };
 
   const filterDataByRange = async () => {
@@ -1638,13 +1731,13 @@ const DataAnalysis = () => {
             totalSales: totalSales.toFixed(3),
             totalCount,
             category: cimicRank[comic].category,
+            level: cimicRank[comic].level,
             //image: image
             image: cimicRank[comic].filename
           };
         }
       }
       if (Object.keys(aggregatedData).length > 0) {
-        console.log(aggregatedData);
         setRankFilterData(aggregatedData);
         setRankPeriod('');
       } else {
@@ -2000,14 +2093,15 @@ const DataAnalysis = () => {
                           className="rankingList"
                           bordered
                           dataSource={sortedRank()}
-                          renderItem={([comic, { totalSales, totalCount, image, category }]) => (
+                          renderItem={([comic, { totalSales, totalCount, image, category, level }]) => (
                             <List.Item className="d-flex align-items-center ranking-list">
                               <div className="ranking-image">
-                                <img src={image} alt={comic} className="ranking-thumbnail" />
+                                <img src={image} alt={comic} className="ranking-thumbnail" style={{width: '140px', margin: '0', padding: '0'}} />
                               </div>
-                              <div className="ranking-card-info ms-3">
+                              <div className="ranking-card-info ms-3" style={{marginLeft: '-50px'}}>
                                 <div className="ranking-title fw-bold">{comic}</div>
                                 <div className="ranking-title">{t('類型')}：{category}</div>
+                                <div className="ranking-title">{t('分級')}：{level}</div>
                                 <div className="ranking-title">{t('銷售額')}：{totalSales}</div>
                                 <div className="ranking-title">{t('購買量')}：{totalCount}</div>
                               </div>
