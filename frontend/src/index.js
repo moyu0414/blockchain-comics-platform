@@ -51,6 +51,7 @@ const AppLayout = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [accounts, setAccounts] = useState([]);
   const location = useLocation();
+  const isAdult = sessionStorage.getItem('isAdult');  // 網頁第一次開啟時，初始化
   const isComicReadPage = location.pathname.startsWith('/comicRead/');
   const isSearchPage = location.pathname.startsWith('/searchPage');
   const hideNavbar = isComicReadPage || isSearchPage;
@@ -64,25 +65,30 @@ const AppLayout = () => {
 
   useEffect(() => {
     const initialData = async () => {
-      await axios.get(`${website}/api/comics`, { headers })
-      .then(response => {
-        let comicDatas = response.data;
-        console.log("comicDatas：" , comicDatas);
-        //儲存comicDatas資料至各分頁
-        localStorage.setItem('comicDatas', JSON.stringify(comicDatas));
-        //要刪除可以用下列的程式
-        //localStorage.removeItem('web3Instance');
-      })
-      .catch(error => {
-        console.error('Error fetching comics: ', error);
-      });
-    }
-
+      if (isAdult !== null) {
+        try {
+          const response = await axios.get(`${website}/api/comics`, {
+            headers: headers,
+            params: {
+              isAdult: isAdult
+            }
+          });
+          const comicDatas = response.data;
+          console.log("comicDatas:", comicDatas);
+          sessionStorage.setItem('comicDatas', JSON.stringify(comicDatas));
+        } catch (error) {
+          console.error('Error fetching comics: ', error);
+        }
+      }
+    };
     initialData();
+}, [isAdult]);
 
-    // 處理登錄狀態
+// 處理登錄狀態
+useEffect(() => {
     handleLogin();
-  }, []);
+}, []);
+
 
   return (
     <>

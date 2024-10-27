@@ -35,7 +35,7 @@ function Category() {
     const location = useLocation();
     const { t } = useTranslation();
     const language = localStorage.getItem('language') || i18n.language;
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     let savedCurrentCategory = localStorage.getItem('currentCategory');
     let savedFilter = localStorage.getItem('filter');

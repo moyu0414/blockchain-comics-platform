@@ -19,15 +19,21 @@ function SearchPage() {
     const [isSearch, setIsSearch] = useState(false);
     const [searchHistory, setSearchHistory] = useState([]);
     const { t } = useTranslation();
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
+    const isAdult = sessionStorage.getItem('isAdult');
     const fetchedData = [];
     const lpInfo = [];
     const headers = {'api-key': API_KEY};
 
     const initData = async () => {
         try {
-            const response = await axios.get(`${website}/api/searchPage/LP`, { headers });
+            const response = await axios.get(`${website}/api/searchPage/LP`, {
+                headers: headers,
+                params: {
+                    isAdult: isAdult
+                }
+            });
             let lpDatas = response.data;
             if (lpDatas.length > 0) {
                 try {
@@ -108,7 +114,10 @@ function SearchPage() {
         try {
             const response = await axios.get(`${website}/api/searchPage/Keyword`, {
                 headers: headers,
-                params: { term: searchTerm }
+                params: { 
+                    term: searchTerm,
+                    isAdult: isAdult
+                }
             });
             let keywordResults = response.data;
             const fetchedData = await Promise.all(keywordResults.map(async (data) => {

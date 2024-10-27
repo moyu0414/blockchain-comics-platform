@@ -12,7 +12,6 @@ const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
 const ComicManagement = ({ contractAddress }) => {
-  const storedArrayJSON = localStorage.getItem('comicDatas');
   const currentAccount = localStorage.getItem("currentAccount");
   const [storedArray, setStoredArray] = useState([]);
   const [meta, setMeta] = useState('');
@@ -94,29 +93,41 @@ const ComicManagement = ({ contractAddress }) => {
               setUserSearchResults(addresses);
             }
 
-            let storedArray = JSON.parse(storedArrayJSON);
-            setStoredArray(storedArray);
-            for (let i = 0; i < storedArray.length; i++) {
-              const status = statusMap[storedArray[i].is_exist];
-              modifiedArray.push({
-                title: storedArray[i].title,
-                penName: storedArray[i].penName,
-                author: storedArray[i].creator,
-                hash: storedArray[i].comic_id,
-                exists: status
+            try {
+              const response = await axios.get(`${website}/api/comics`, {
+                headers: headers,
+                params: {
+                  isAdult: true
+                }
               });
+              const storedArray = response.data;
+              sessionStorage.setItem('comicDatas', JSON.stringify(storedArray));
+
+              setStoredArray(storedArray);
+              for (let i = 0; i < storedArray.length; i++) {
+                const status = statusMap[storedArray[i].is_exist];
+                modifiedArray.push({
+                  title: storedArray[i].title,
+                  penName: storedArray[i].penName,
+                  author: storedArray[i].creator,
+                  hash: storedArray[i].comic_id,
+                  exists: status,
+                  level: storedArray[i].level
+                });
+              }
+              const sortedArray = modifiedArray.sort((a, b) => {
+                if (a.exists === "查核") return -1;
+                if (b.exists === "查核") return 1;
+                if (a.exists === "盜版") return 1;
+                if (b.exists === "盜版") return -1;
+                return 0;
+              });
+              setCurrent(sortedArray);
+              setSearchResults(sortedArray);
+              setLoading(false);
+            } catch (error) {
+              console.error('Error fetching comics: ', error);
             }
-            const sortedArray = modifiedArray.sort((a, b) => {
-              if (a.exists === "查核") return -1;
-              if (b.exists === "查核") return 1;
-              if (a.exists === "盜版") return 1;
-              if (b.exists === "盜版") return -1;
-              return 0;
-            });
-            //console.log(sortedArray);
-            setCurrent(sortedArray);
-            setSearchResults(sortedArray);
-            setLoading(false);
           } catch (error) {
             console.error(error);
           }
@@ -201,7 +212,7 @@ const ComicManagement = ({ contractAddress }) => {
           return item;
         });
         const updatedArrayJSON = JSON.stringify(updatedArray);
-        localStorage.setItem('comicDatas', updatedArrayJSON);
+        sessionStorage.setItem('comicDatas', updatedArrayJSON);
         window.location.replace("/comicManagement");
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
@@ -236,7 +247,7 @@ const ComicManagement = ({ contractAddress }) => {
               : item
           );
           const updatedArrayJSON = JSON.stringify(updatedArray);
-          localStorage.setItem('comicDatas', updatedArrayJSON);
+          sessionStorage.setItem('comicDatas', updatedArrayJSON);
         } catch (error) {
           if (error.message.includes('User denied transaction signature')) {
             message.info(t('拒绝交易'));
@@ -270,7 +281,7 @@ const ComicManagement = ({ contractAddress }) => {
             : item
         );
         const updatedArrayJSON = JSON.stringify(updatedArray);
-        localStorage.setItem('comicDatas', updatedArrayJSON);
+        sessionStorage.setItem('comicDatas', updatedArrayJSON);
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
           message.info(t('拒绝交易'));
@@ -312,7 +323,7 @@ const ComicManagement = ({ contractAddress }) => {
       return comic;
     });
     const updatedArrayJSON = JSON.stringify(updatedArray);
-    localStorage.setItem('comicDatas', updatedArrayJSON);
+    sessionStorage.setItem('comicDatas', updatedArrayJSON);
   };
 
   const handleShow = (data, isConfirm = false) => {
@@ -739,6 +750,7 @@ const ComicManagement = ({ contractAddress }) => {
                         <th>{t('漫畫Hash')}</th>
                       </td>
                     }
+                    <th>{t('分級')}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -752,20 +764,15 @@ const ComicManagement = ({ contractAddress }) => {
                         <th></th>
                         <th data-label="ID">{index + 1}</th>
                         <td data-label={t('漫畫')}>{data.title}</td>
-                        {!isMobile ? (
-                          <td data-label={t('作者')}  className="address-cell">
-                            {data.penName}({data.author})
-                          </td>
-                        ) : (
-                          <td data-label={t('作者')}  className="address-cell">
-                            {data.penName}（{showAccount(data.author)}）
-                          </td>
-                        )}
+                        <td data-label={t('作者')}  className="address-cell">
+                          {data.penName}（{showAccount(data.author)}）
+                        </td>
                         {!isMobile &&
                           <td data-label={t('漫畫Hash')}>
                             {data.hash}
                           </td>
                         }
+                        <td data-label={t('分級')}>{t(data.level)}</td>
                         <td data-label={t('狀態')} className="text-end">
                           <OverlayTrigger placement="top" overlay={renderTooltip(data.exists !== '盜版' ? t('修改漫畫存續狀態') : `${t('盜版漫畫已下架')}、${t('已退款')}`)}>
                             <Button

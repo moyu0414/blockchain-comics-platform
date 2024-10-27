@@ -15,7 +15,7 @@ function EditChapter() {
     const { comicID } = useParams();
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
     const fetchedData = [];

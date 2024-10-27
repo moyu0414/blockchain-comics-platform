@@ -25,6 +25,7 @@ function NftOwner() {
     const [isInputVisible, setIsInputVisible] = useState(false);
     const { t } = useTranslation();
     const currentAccount = localStorage.getItem("currentAccount");
+    const isAdult = sessionStorage.getItem('isAdult');
     const headers = {'api-key': API_KEY};
     const buttonData = [
         `${NFT[0]?.state}`, t('收藏')
@@ -37,13 +38,13 @@ function NftOwner() {
             headers: headers,
             params: {
                 tokenId: tokenId.replace("tokenId", ""),
-                currentAccount: currentAccount
+                currentAccount: currentAccount,
+                isAdult: isAdult
             }
         });
         let nftData = response.data;
-        setUpdatePrice(nftData[0].price);
-
         if (nftData.length !== 0 && nftData[0].is_exist === 0) {
+            setUpdatePrice(nftData[0].price);
             const { minter: initialMinter, price, forSale, protoFilename, comicHash, tokenId: token } = nftData[0];
             const currentState = forSale === 0 ? t('轉售') : t('已出售');
             const currentMinter = initialMinter === currentAccount ? t('您是本作品的創作者') : initialMinter;
@@ -91,6 +92,10 @@ function NftOwner() {
             }
             setBeingNFT(true);
             setLoading(false);
+        } else if (nftData.length === 0) {
+            alert(t('此NFT不存在，或者您不是用擁有者'));
+            window.location.replace("/nftMarket");
+            return;
         } else {
             const newData = nftData.map(data => ({
                 ...data,

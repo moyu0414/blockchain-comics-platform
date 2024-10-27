@@ -19,8 +19,7 @@ const PurchaseHistory = () => {
   const [beingNFT, setBeingNFT] = useState(true);
   const { t } = useTranslation();
   const currentAccount = localStorage.getItem("currentAccount");
-  const storedArrayJSON = localStorage.getItem('comicDatas');
-  const storedArray = JSON.parse(storedArrayJSON);
+  const isAdult = sessionStorage.getItem('isAdult');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10; // 每頁顯示的收益數量
   const headers = {'api-key': API_KEY};
@@ -33,7 +32,8 @@ const PurchaseHistory = () => {
         const response = await axios.get(`${website}/api/reader/records`, {
             headers: headers,
             params: {
-                currentAccount: currentAccount
+                currentAccount: currentAccount,
+                isAdult: isAdult
             }
         });
         let analysis = response.data;
@@ -77,7 +77,8 @@ const PurchaseHistory = () => {
         const nftResponse = await axios.get(`${website}/api/purchaseHistory/nftRecords`, {
             headers: headers,
             params: {
-                currentAccount: currentAccount
+                currentAccount: currentAccount,
+                isAdult: isAdult
             }
         });
         let nftRecords = nftResponse.data;

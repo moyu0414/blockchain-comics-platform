@@ -14,9 +14,10 @@ function MessagePage() {
     const [loading, setLoading] = useState(true);
     const [being, setBeing] = useState(true);
     const { t } = useTranslation();
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
     const currentAccount = localStorage.getItem("currentAccount");
+    const isAdult = sessionStorage.getItem('isAdult');
     const language = localStorage.getItem('language') || i18n.language;
     const headers = {'api-key': API_KEY};
     let temp = [];
@@ -27,6 +28,7 @@ function MessagePage() {
                 headers: headers,
                 params: {
                     currentAccount: currentAccount,
+                    isAdult: isAdult
                 }
             });
             let data = response.data.collectComic;
@@ -53,7 +55,6 @@ function MessagePage() {
                 } else if (typeof data === 'object') {
                     await fetchImage(data);
                 }
-                console.log(data);
                 sortByTimestamp(data);
                 setComic(data);
                 setLoading(false);

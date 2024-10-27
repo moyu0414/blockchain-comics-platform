@@ -1082,57 +1082,54 @@ app.get('/api/getIP', (req, res) => {
 });
 
 
-// 讀取所有漫畫
+// 讀取所有漫畫，年齡篩選
 app.get('/api/comics', (req, res) => {
-  // 執行 COUNT(*) 查詢以確定資料庫中是否有資料
-  pool.query('SELECT COUNT(*) AS count FROM comics', (error, results, fields) => {
+  pool.query('SELECT COUNT(*) AS count FROM comics', (error, results) => {
     if (error) {
       console.error('Error checking comics data: ', error);
       return res.status(500).json({ message: 'Internal Server Error' });
     }
-    // 取得結果中的第一筆資料的 count 欄位值
     const count = results[0].count;
-    if (count === 0) {
-      // 如果資料庫中沒有資料，返回空陣列
-      return res.json([]);
-    } else {
-      // 如果資料庫中有資料，則執行原本的 SELECT * 查詢
-      pool.query(`
-        SELECT 
-          comics.*,
-          user.penName
+    if (count === 0) return res.json([]);
+    const isAdult = req.query.isAdult === 'true';
+    const levelCondition = isAdult ? '' : "WHERE comics.level <> '限制級'";
+    const query = `
+      SELECT 
+        comics.*, user.penName
       FROM 
-          comics
+        comics
       LEFT JOIN 
-          user ON user.address = comics.creator
-      ORDER BY 
-          comics.create_timestamp ASC
-      `, (error, results, fields) => {
-        if (error) {
-          console.error('Error fetching comics: ', error);
-          return res.status(500).json({ message: 'Error fetching comics' });
-        }
-        const comicsWithIDs = results.map((comic, index) => ({
-          ...comic,
-          comicID: `Comic${index + 1}`,
-          date: moment(Number(comic.create_timestamp)).format('YYYY-MM-DD')
-        }));
-        res.json(comicsWithIDs);
-      });
-    }
+        user ON user.address = comics.creator
+      ${levelCondition}
+      ORDER BY comics.create_timestamp ASC
+    `;
+    pool.query(query, (error, results) => {
+      if (error) {
+        console.error('Error fetching comics: ', error);
+        return res.status(500).json({ message: 'Error fetching comics' });
+      }
+      const comicsWithIDs = results.map((comic, index) => ({
+        ...comic,
+        comicID: `Comic${index + 1}`,
+        date: moment(Number(comic.create_timestamp)).format('YYYY-MM-DD')
+      }));
+      res.json(comicsWithIDs);
+    });
   });
 });
 
 
 app.get('/api/creator/records', (req, res) => {
   const currentAccount = req.query.currentAccount;
+  const isAdult = req.query.isAdult === 'true';
+  const levelCondition = isAdult ? '' : "AND comics.level <> '限制級'";
   const query = `
     SELECT comics.title AS comicTitle, chapters.title AS chapterTitle, records.purchase_date, records.price, records.buyer
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
     INNER JOIN user ON comics.creator = user.address
-    WHERE comics.creator = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 0 AND user.is_creator = 1
+    WHERE comics.creator = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 0 AND user.is_creator = 1 ${levelCondition}
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -1149,12 +1146,14 @@ app.get('/api/creator/records', (req, res) => {
 
 app.get('/api/reader/records', (req, res) => {
   const currentAccount = req.query.currentAccount;
+  const isAdult = req.query.isAdult === 'true';
+  const levelCondition = isAdult ? '' : "AND comics.level <> '限制級'";
   const query = `
     SELECT comics.title AS comicTitle, chapters.title AS chapterTitle, comics.is_exist, records.purchase_date, records.price
     FROM records
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
-    WHERE records.buyer = ? AND comics.comic_id = records.comic_id
+    WHERE records.buyer = ? AND comics.comic_id = records.comic_id ${levelCondition}
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -1171,11 +1170,13 @@ app.get('/api/reader/records', (req, res) => {
 
 app.get('/api/purchaseHistory/nftRecords', (req, res) => {
   const currentAccount = req.query.currentAccount;
+  const isAdult = req.query.isAdult === 'true';
+  const levelCondition = isAdult ? '' : "AND comics.level <> '限制級'";
   const query = `
     SELECT nft.tokenId, nft.price, nft.forSale , comics.title, nft.tokenTitle , comics.is_exist
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
-    WHERE nft.owner = ? AND nft.owner <> nft.minter
+    WHERE nft.owner = ? AND nft.owner <> nft.minter ${levelCondition}
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -1522,13 +1523,17 @@ app.get('/api/comicDetail/isFavorited', (req, res) => {
 
 app.get('/api/nftDetail/records', (req, res) => {
   const tokenId = req.query.tokenId;
-  const query = `
+  const isAdult = req.query.isAdult;
+  const baseQuery = `
     SELECT nft.*, comics.title, comics.description AS comicDesc, comics.protoFilename, comics.is_exist, user.penName
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     INNER JOIN user ON nft.minter = user.address
     WHERE nft.tokenId = ?
   `;
+  const query = isAdult === 'false' 
+    ? `${baseQuery} AND comics.level <> '限制級'` 
+    : baseQuery;
   pool.query(query, [tokenId], (error, results, fields) => {
     if (error) {
       console.error('Error fetching creator NFT records: ', error);
@@ -1560,6 +1565,8 @@ app.get('/api/nftDetail/isFavorited', (req, res) => {
       const value = isFavorited ? collectNFT[comicHash] : null;
       return res.json({ isFavorited, value });
     } else {
+      const isAdult = req.query.isAdult === 'true';
+      const levelCondition = isAdult ? '' : "AND comics.level <> '限制級'";
       const allValues = Object.values(collectNFT).flat();
       const tokenIds = allValues.map(value => {
         const match = value.match(/tokenId(\d+)/);
@@ -1574,7 +1581,7 @@ app.get('/api/nftDetail/isFavorited', (req, res) => {
           comics.title, comics.comic_id , comics.protoFilename, nft.tokenId, nft.tokenTitle, nft.price ,nft.description, nft.forSale ,nft.minter, nft.owner
         FROM nft
         INNER JOIN comics ON nft.comicHash = comics.comic_id
-        WHERE nft.tokenId IN (${placeholders}) AND comics.is_exist = 0
+        WHERE nft.tokenId IN (${placeholders}) AND comics.is_exist = 0 ${levelCondition}
       `;
       pool.query(queryString, tokenIds, (error, results) => {
         if (error) {
@@ -1595,13 +1602,17 @@ app.get('/api/nftDetail/isFavorited', (req, res) => {
 app.get('/api/nftOwner/records', (req, res) => {
   const tokenId = req.query.tokenId;
   const currentAccount = req.query.currentAccount;
-  const query = `
+  const isAdult = req.query.isAdult;
+  const baseQuery = `
     SELECT nft.*, comics.title, comics.description AS comicDesc, comics.protoFilename, comics.is_exist, user.penName
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     INNER JOIN user ON nft.minter = user.address
     WHERE nft.tokenId = ? AND nft.owner = ?
   `;
+  const query = isAdult === 'false' 
+    ? `${baseQuery} AND comics.level <> '限制級'` 
+    : baseQuery;
   pool.query(query, [tokenId, currentAccount], (error, results, fields) => {
     if (error) {
       console.error('Error fetching creator NFT records: ', error);
@@ -1648,6 +1659,8 @@ app.get('/api/comicRead', (req, res) => {
 
 app.get('/api/messagePage', (req, res) => {
   const currentAccount = req.query.currentAccount;
+  const isAdult = req.query.isAdult === 'true';
+  const levelCondition = isAdult ? '' : "AND comics.level <> '限制級'";
   const selectQuery = `SELECT collectComic FROM user WHERE address = ?`;
   pool.query(selectQuery, [currentAccount], (selectError, selectResults) => {
     if (selectError) {
@@ -1671,6 +1684,7 @@ app.get('/api/messagePage', (req, res) => {
         INNER JOIN comics ON chapters.comic_id = comics.comic_id
         WHERE chapters.comic_id = ? 
           AND comics.is_exist = 0
+          ${levelCondition}
         ORDER BY chapters.create_timestamp DESC 
         LIMIT 1
       `;
@@ -1689,11 +1703,13 @@ app.get('/api/messagePage', (req, res) => {
 
 app.get('/api/creatorNft/records', (req, res) => {
   const currentAccount = req.query.currentAccount;
+  const isAdult = req.query.isAdult === 'true';
+  const levelCondition = isAdult ? '' : "AND comics.level <> '限制級'";
   const query = `
     SELECT nft.*, comics.title, comics.protoFilename
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
-    WHERE nft.minter = ? AND comics.is_exist = 0
+    WHERE nft.minter = ? AND comics.is_exist = 0 ${levelCondition}
   `;
   pool.query(query, [currentAccount], (error, results, fields) => {
     if (error) {
@@ -1709,12 +1725,14 @@ app.get('/api/creatorNft/records', (req, res) => {
 
 
 app.get('/api/nftMarket/records', (req, res) => {
+  const isAdult = req.query.isAdult === 'true';
+  const levelCondition = isAdult ? '' : "AND comics.level <> '限制級'";
   const query = `
     SELECT nft.*, comics.title, comics.protoFilename, user.penName
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     INNER JOIN user ON nft.minter = user.address
-    WHERE comics.is_exist = 0
+    WHERE comics.is_exist = 0 ${levelCondition}
   `;
   pool.query(query, (error, results, fields) => {
     if (error) {
@@ -1730,6 +1748,8 @@ app.get('/api/nftMarket/records', (req, res) => {
 
 
 app.get('/api/searchPage/LP', (req, res) => {
+  const isAdult = req.query.isAdult === 'true';
+const levelCondition = isAdult ? '' : "AND comics.level <> '限制級'";
   const query = `
     SELECT comic_id, category, description AS text, protoFilename
     FROM comics
@@ -1738,7 +1758,7 @@ app.get('/api/searchPage/LP', (req, res) => {
         FROM comics AS sub
         WHERE sub.category = comics.category AND sub.is_exist = 0
     )
-      AND is_exist = 0
+      AND is_exist = 0 ${levelCondition}
     GROUP BY comic_id, category, description, protoFilename
     ORDER BY (
         SELECT COUNT(*)
@@ -1759,11 +1779,13 @@ app.get('/api/searchPage/LP', (req, res) => {
 
 app.get('/api/searchPage/Keyword', (req, res) => {
   const searchTerm = req.query.term;
+  const isAdult = req.query.isAdult === 'true';
+  const levelCondition = isAdult ? '' : "AND comics.level <> '限制級'";
   const query = `
     SELECT title, description AS text, comic_id, protoFilename
     FROM comics
     INNER JOIN user ON comics.creator = user.address
-    WHERE is_exist = 0 AND (
+    WHERE is_exist = 0 ${levelCondition} AND (
       creator LIKE ? OR
       title LIKE ? OR
       description LIKE ? OR
@@ -1783,6 +1805,8 @@ app.get('/api/searchPage/Keyword', (req, res) => {
 
 
 app.get('/api/rankingList/top10', (req, res) => {
+  const isAdult = req.query.isAdult === 'true';
+  const levelCondition = isAdult ? '' : "AND comics.level <> '限制級'";
   const query = `
       SELECT 
           comics.comic_id, comics.creator, comics.title, comics.description,
@@ -1805,7 +1829,7 @@ app.get('/api/rankingList/top10', (req, res) => {
               comic_id
       ) AS purchase_stats ON purchase_stats.comic_id = comics.comic_id
       WHERE 
-          comics.is_exist = 0
+          comics.is_exist = 0 ${levelCondition}
       GROUP BY 
           comics.comic_id
       ORDER BY 
@@ -1823,6 +1847,8 @@ app.get('/api/rankingList/top10', (req, res) => {
 
 
 app.get('/api/rankingList/purRank', (req, res) => {
+  const isAdult = req.query.isAdult === 'true';
+  const levelCondition = isAdult ? '' : "AND c.level <> '限制級'";
   const query = `
       SELECT 
           c.comic_id, c.creator, c.title, c.description,
@@ -1841,7 +1867,7 @@ app.get('/api/rankingList/purRank', (req, res) => {
               comic_id
       ) AS purchase_stats ON purchase_stats.comic_id = c.comic_id
       WHERE 
-          c.is_exist = 0
+          c.is_exist = 0 ${levelCondition}
       ORDER BY 
           totBuy DESC
       LIMIT 10
@@ -1857,6 +1883,8 @@ app.get('/api/rankingList/purRank', (req, res) => {
 
 
 app.get('/api/rankingList/favoriteRank', (req, res) => {
+  const isAdult = req.query.isAdult === 'true';
+  const levelCondition = isAdult ? '' : "AND comics.level <> '限制級'";
   const query = `
       SELECT 
           comics.comic_id, comics.creator, comics.title, comics.description,
@@ -1866,7 +1894,7 @@ app.get('/api/rankingList/favoriteRank', (req, res) => {
       LEFT JOIN 
           user ON user.collectComic IS NOT NULL AND FIND_IN_SET(comics.comic_id, user.collectComic) > 0
       WHERE 
-          comics.is_exist = 0
+          comics.is_exist = 0 ${levelCondition}
       GROUP BY 
           comics.comic_id
       ORDER BY 
@@ -1884,6 +1912,8 @@ app.get('/api/rankingList/favoriteRank', (req, res) => {
 
 
 app.get('/api/rankingList/weekRank', (req, res) => {
+  const isAdult = req.query.isAdult === 'true';
+  const levelCondition = isAdult ? '' : "AND comics.level <> '限制級'";
   const query = `
       SELECT 
           comics.comic_id, comics.creator, comics.title, comics.description,
@@ -1903,7 +1933,7 @@ app.get('/api/rankingList/weekRank', (req, res) => {
               comic_id
       ) AS purchase_stats ON purchase_stats.comic_id = comics.comic_id
       WHERE 
-          comics.is_exist = 0
+          comics.is_exist = 0 ${levelCondition}
       GROUP BY 
           comics.comic_id
       ORDER BY 
@@ -1921,13 +1951,15 @@ app.get('/api/rankingList/weekRank', (req, res) => {
 
 
 app.get('/api/rankingList/newRank', (req, res) => {
+  const isAdult = req.query.isAdult === 'true';
+  const levelCondition = isAdult ? '' : "AND level <> '限制級'";
   const query = `
       SELECT 
           comic_id, creator, title, description, create_timestamp
       FROM 
           comics
       WHERE 
-          is_exist = 0
+          is_exist = 0 ${levelCondition}
       ORDER BY 
           create_timestamp DESC
       LIMIT 10
@@ -2018,6 +2050,8 @@ app.get('/api/authorProfile', (req, res) => {
 
 app.get('/api/dataAnalysis/records', (req, res) => {
   const currentAccount = req.query.currentAccount;
+  const isAdult = req.query.isAdult === 'true';
+  const levelCondition = isAdult ? '' : "AND comics.level <> '限制級'";
   const recordsQuery = `
     SELECT comics.title AS comicTitle, comics.category, comics.comic_id AS filename, comics.level,
            chapters.title AS chapterTitle, records.purchase_date, records.price, records.buyer
@@ -2025,14 +2059,14 @@ app.get('/api/dataAnalysis/records', (req, res) => {
     INNER JOIN chapters ON records.chapter_id = chapters.chapter_id
     INNER JOIN comics ON chapters.comic_id = comics.comic_id
     INNER JOIN user ON comics.creator = user.address
-    WHERE comics.creator = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 0 AND user.is_creator = 1
+    WHERE comics.creator = ? AND comics.comic_id = records.comic_id AND comics.is_exist = 0 AND user.is_creator = 1 ${levelCondition}
   `;
   const nftQuery = `
     SELECT nft.tokenTitle, nft.price, nft.forSale, nft.royalty ,comics.title
     FROM nft
     INNER JOIN comics ON nft.comicHash = comics.comic_id
     INNER JOIN user ON nft.minter = user.address
-    WHERE nft.minter = ? AND comics.is_exist = 0 AND user.is_creator = 1
+    WHERE nft.minter = ? AND comics.is_exist = 0 AND user.is_creator = 1 ${levelCondition}
   `;
   Promise.all([
     new Promise((resolve, reject) => {

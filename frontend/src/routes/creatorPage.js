@@ -34,7 +34,7 @@ function CreatorPage() {
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
     const [selectedCategory, setSelectedCategory] = useState(t('已經發布'));
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const language = localStorage.getItem('language') || i18n.language;
     const headers = {'api-key': API_KEY};
     let temp = [];

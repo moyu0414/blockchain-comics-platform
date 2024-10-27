@@ -31,7 +31,7 @@ const ComicRead = () => {
     const [readPage, setReadPage] = useState(0);
     const itemsPerPage = 10; // 每頁顯示的章節數量
     const { t } = useTranslation();
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const [readingProgress, setReadingProgress] = useState(() => {
         const savedProgress = localStorage.getItem('readingProgress');

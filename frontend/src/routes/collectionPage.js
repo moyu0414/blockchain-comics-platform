@@ -15,7 +15,7 @@ function CollectionPage() {
     const [loading, setLoading] = useState(true);
     const [beingComic, setBeingComic] = useState(true);
     const { t } = useTranslation();
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const language = localStorage.getItem('language') || i18n.language;
     const headers = {'api-key': API_KEY};
@@ -56,7 +56,11 @@ function CollectionPage() {
                     Promise.all(temp)
                         .then(results => {
                             const filteredResults = results.filter(result => result !== null);
-                            setComic(filteredResults);
+                            if (filteredResults.length !== 0) {
+                                setComic(filteredResults);
+                            } else {
+                                setBeingComic(false);
+                            }
                             setLoading(false);
                         })
                         .catch(error => {

@@ -214,7 +214,7 @@ const MintNFT = (props) => {
         if (!location.state) return;
         //console.log("Location state:", location.state);
         try {
-            const storedArrayJSON = localStorage.getItem('comicDatas');
+            const storedArrayJSON = sessionStorage.getItem('comicDatas');
             const storedArray = JSON.parse(storedArrayJSON);
             const temp = storedArray.find(item => item.comicID === location.state.comicID);
             setComic([temp]);

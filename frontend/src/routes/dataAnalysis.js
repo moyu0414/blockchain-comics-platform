@@ -1260,13 +1260,17 @@ const DataAnalysis = () => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const currentAccount = localStorage.getItem("currentAccount");
+  const isAdult = sessionStorage.getItem('isAdult');
   const headers = {'api-key': API_KEY};
 
   const initData = async () => {
     try {
       const response = await axios.get(`${website}/api/dataAnalysis/records`, {
         headers,
-        params: { currentAccount }
+        params: { 
+          currentAccount: currentAccount, 
+          isAdult: isAdult 
+        }
       });
       const comicOrigin = response.data;
       //console.log(comicOrigin);
@@ -2096,12 +2100,12 @@ const DataAnalysis = () => {
                           renderItem={([comic, { totalSales, totalCount, image, category, level }]) => (
                             <List.Item className="d-flex align-items-center ranking-list">
                               <div className="ranking-image">
-                                <img src={image} alt={comic} className="ranking-thumbnail" style={{width: '140px', margin: '0', padding: '0'}} />
+                                <img src={image} alt={comic} className="ranking-thumbnail" style={{margin: '0', padding: '0'}} />
                               </div>
-                              <div className="ranking-card-info ms-3" style={{marginLeft: '-50px'}}>
+                              <div className="ranking-card-info ms-3">
                                 <div className="ranking-title fw-bold">{comic}</div>
-                                <div className="ranking-title">{t('類型')}：{category}</div>
-                                <div className="ranking-title">{t('分級')}：{level}</div>
+                                <div className="ranking-title">{t('類型')}：{t(category)}</div>
+                                <div className="ranking-title">{t('分級')}：{t(level)}</div>
                                 <div className="ranking-title">{t('銷售額')}：{totalSales}</div>
                                 <div className="ranking-title">{t('購買量')}：{totalCount}</div>
                               </div>

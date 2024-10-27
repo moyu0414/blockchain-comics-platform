@@ -445,7 +445,7 @@ const EditWork = (props) => {
         if (location.state) {
             //console.log("Location state:", location.state);
             setShowChapterForm(location.state.showChapterForm);
-            const storedArrayJSON = localStorage.getItem('comicDatas');
+            const storedArrayJSON = sessionStorage.getItem('comicDatas');
             const storedArray = JSON.parse(storedArrayJSON);
             const temp = storedArray.filter(item => item.comicID === location.state.comicID);
             //console.log(temp);

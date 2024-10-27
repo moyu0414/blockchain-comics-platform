@@ -22,7 +22,7 @@ function ComicDetail() {
     const [currentPage, setCurrentPage] = useState(1);
     const [piracy, setPiracy] = useState([]);
     const { t } = useTranslation();
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
     const fetchedData = [];
@@ -35,6 +35,11 @@ function ComicDetail() {
     const initData = async () => {
         try {
             const storedArray = JSON.parse(storedArrayJSON);
+            if (!storedArray.some(item => item.comicID === comicID)) {
+                alert(t('漫畫不存在'));
+                window.location.replace("/");
+                return;
+            }
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].is_exist === 0) {
                     if (storedArray[i].comicID === comicID) {

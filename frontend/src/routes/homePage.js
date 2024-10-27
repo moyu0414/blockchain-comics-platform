@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Carousel, Card, Col, Row, Button } from 'react-bootstrap';
+import { Container, Carousel, Card, Col, Row, Button, Modal, Form } from 'react-bootstrap';
 import './bootstrap.min.css';
 import { HeartFill, CartFill } from 'react-bootstrap-icons';
+import { message } from 'antd';
 import { getImageSrc } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -14,17 +15,22 @@ const HomePage = () => {
     const [current, setCurrent] = useState([]);
     const [promoPosition, setPromoPosition] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
     const { t } = useTranslation();
-    const storedArrayJSON = localStorage.getItem('comicDatas');
     const language = localStorage.getItem('language') || i18n.language;
-    const storedArray = JSON.parse(storedArrayJSON);
+    const isAdult = sessionStorage.getItem('isAdult');
     const headers = {'api-key': API_KEY};
     
     const initData = async () => {
         try {
+            const storedArrayJSON = sessionStorage.getItem('comicDatas');
+            const storedArray = JSON.parse(storedArrayJSON);
+            if (!storedArray) {
+                setTimeout(initData, 1000);
+                return;
+            }
             const response = await axios.get(`${website}/api/homepage/updateStats`, { headers });
             let comics = response.data;
-            //console.log(comics);
             const totalCountMap = comics.reduce((map, comic) => {
                 map[comic.comic_id] = {
                     totHearts: comic.totHearts, // 收藏数
@@ -73,9 +79,13 @@ const HomePage = () => {
     };
 
     useEffect(() => {
-        initData();
+        if (isAdult === null) {
+            setShowModal(true); // 如果是第一次訪問，顯示模態框
+        } else {
+            setTimeout(initData, 1000);
+        }
     }, []);
-    
+
     const buttonData = [
         '戀愛', '懸疑', '恐怖', '冒險',
         '古風', '玄幻', '武俠', '搞笑',
@@ -85,9 +95,63 @@ const HomePage = () => {
         localStorage.setItem('currentCategory', category);
     };
 
+    const TermsModal = ({ onAccept }) => {
+        const [checked, setChecked] = useState(false);
+        const handleAccept = () => {
+            if (checked) {
+                sessionStorage.setItem('isAdult', true);  // 網頁第一次開啟時，初始化
+                setShowModal(false);
+                window.location.reload();
+            } else {
+                message.info(t('請先勾選上述同意方框！'));
+            }
+        };
+        const handleReject = () => {
+            if (checked) {
+                sessionStorage.setItem('isAdult', false);  // 網頁第一次開啟時，初始化
+                setShowModal(false);
+                window.location.reload();
+            } else {
+                message.info(t('請先勾選上述同意方框！'));
+            }
+        };
+        return (
+            <Modal show={showModal} onHide={handleReject} centered dialogClassName="verify-custom-modal">
+                <Modal.Header>
+                    <Modal.Title>
+                        <b>web3toon</b> {t('年齡驗證聲明')}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>{t('本網站包含限制級漫畫，涵蓋性、暴力、藥物使用、粗俗語言以及社會禁忌等內容。在使用本平台之前，請您先確認您的年齡是否滿18歲。')}</p>
+                    <p>{t('我們將根據您的選擇決定後續內容的顯示。')}</p>
+                    <p>{t('您在使用本平台的過程中，承認並同意對於訪問限制級內容的決定及其後果自負責任。')}</p>
+                    <p>{t('感謝您的理解與配合。')}</p>
+                    <Form.Group className="mb-3">
+                        <Form.Check
+                            type="checkbox"
+                            label={t('我已確實了解上述說明並同意遵守')}
+                            checked={checked}
+                            onChange={() => setChecked(!checked)}
+                        />
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleAccept}>
+                        {t('已滿18歲(成年)')}
+                    </Button>
+                    <Button variant="primary" onClick={handleReject}>
+                        {t('未滿18歲(未成年)')}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+        );
+    };
+
 
     return (
         <>
+            {showModal && <TermsModal onAccept={() => setShowModal(false)} />}
             {!loading &&
                 <Container className='homepage pt-2'>
                     <Carousel>

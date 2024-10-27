@@ -53,8 +53,7 @@ function NftMarket() {
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
     const [selectedGrading, setSelectedGrading] = useState(t('角色商品化'));
-    const storedArrayJSON = localStorage.getItem('comicDatas');
-    const storedArray = JSON.parse(storedArrayJSON);
+    const isAdult = sessionStorage.getItem('isAdult');
     const headers = {'api-key': API_KEY};
     const [grading, setGrading] = useState([
         t('角色商品化'),
@@ -74,7 +73,10 @@ function NftMarket() {
 
     const initData = async () => {
         try {
-            const response = await axios.get(`${website}/api/nftMarket/records`, { headers });
+            const response = await axios.get(`${website}/api/nftMarket/records`, {
+                headers: headers,
+                params: { isAdult: isAdult }
+            });
             let nftData = response.data;
             nftData.forEach(item => {
                     const keyData = `${item.comicHash}-${item.price}-${item.royalty}-${item.description || ""}`;

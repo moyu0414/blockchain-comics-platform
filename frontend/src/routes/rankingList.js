@@ -16,14 +16,21 @@ const RankingList = () => {
     const [newData, setNewData] = useState([]);
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
-    const storedArrayJSON = localStorage.getItem('comicDatas');
-    const language = localStorage.getItem('language') || i18n.language;
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
+    const isAdult = sessionStorage.getItem('isAdult');
+    const language = localStorage.getItem('language') || i18n.language;
     const headers = {'api-key': API_KEY};
 
     const initData = async () => {
         try {
-            const response = await axios.get(`${website}/api/rankingList/top10`, { headers });
+            const response = await axios.get(`${website}/api/rankingList/top10`, {
+                headers: headers,
+                params: {
+                    //isAdult: true
+                    isAdult: isAdult
+                }
+            });
             let rankDatas = response.data;
             if (rankDatas.length > 0) {
                 try {
@@ -87,7 +94,12 @@ const RankingList = () => {
     };
 
     const purchaseRank = async () => {
-        const response = await axios.get(`${website}/api/rankingList/purRank`, { headers });
+        const response = await axios.get(`${website}/api/rankingList/purRank`, {
+            headers: headers,
+            params: {
+                isAdult: isAdult
+            }
+        });
         let rankDatas = response.data;
         try {
             const rankInfo = await Promise.all(rankDatas.map(async (data) => {
@@ -116,7 +128,12 @@ const RankingList = () => {
     };
 
     const favoriteRank = async () => {
-        const response = await axios.get(`${website}/api/rankingList/favoriteRank`, { headers });
+        const response = await axios.get(`${website}/api/rankingList/favoriteRank`, {
+            headers: headers,
+            params: {
+                isAdult: isAdult
+            }
+        });
         let rankDatas = response.data;
         try {
             const rankInfo = await Promise.all(rankDatas.map(async (data) => {
@@ -145,7 +162,12 @@ const RankingList = () => {
     };
 
     const weekRank = async () => {
-        const response = await axios.get(`${website}/api/rankingList/weekRank`, { headers });
+        const response = await axios.get(`${website}/api/rankingList/weekRank`, {
+            headers: headers,
+            params: {
+                isAdult: isAdult
+            }
+        });
         let rankDatas = response.data;
         try {
             const rankInfo = await Promise.all(rankDatas.map(async (data) => {
@@ -174,7 +196,12 @@ const RankingList = () => {
     };
 
     const newRank = async () => {
-        const response = await axios.get(`${website}/api/rankingList/newRank`, { headers });
+        const response = await axios.get(`${website}/api/rankingList/newRank`, {
+            headers: headers,
+            params: {
+                isAdult: isAdult
+            }
+        });
         let rankDatas = response.data;
         try {
             const rankInfo = await Promise.all(rankDatas.map(async (data) => {
@@ -236,40 +263,46 @@ const RankingList = () => {
                     <Col sm={4} className="ranking r2 animated mb-5">
                         <Card>
                             <Card.Header className="header">
-                                <h3>{totRankDatas[1].title}</h3>
+                                <h3>{totRankDatas[1]?.title || ''}</h3>
                             </Card.Header>
-                            <Link to={`/comicDetail/${totRankDatas[1].comicID}`}>
-                                <Card.Body className="ranking-content">
-                                    <img src={totRankDatas[1].imageUrl} alt="Segundo Lugar" className="ranking-image" />
-                                    <div className="place">2</div>
-                                </Card.Body>
-                            </Link>
+                            <Card.Body className="ranking-content">
+                                {totRankDatas[1] && (
+                                    <Link to={`/comicDetail/${totRankDatas[1]?.comicID || ''}`}>
+                                        <img src={totRankDatas[1].imageUrl} alt="Segundo Lugar" className="ranking-image" />
+                                    </Link>
+                                )}
+                                <div className="place">2</div>
+                            </Card.Body>
                         </Card>
                     </Col>
                     <Col sm={4} className="ranking r1 animated first mb-5">
                         <Card>
                             <Card.Header className="header">
-                                <h3>{totRankDatas[0].title}</h3>
+                                <h3>{totRankDatas[0]?.title || ''}</h3>
                             </Card.Header>
-                            <Link to={`/comicDetail/${totRankDatas[0].comicID}`}>
-                                <Card.Body className="ranking-content">
-                                    <img src={totRankDatas[0].imageUrl} alt="Primer Lugar" className="ranking-image" />
-                                    <div className="place">1</div>
-                                </Card.Body>
-                            </Link>
+                            <Card.Body className="ranking-content">
+                                {totRankDatas[0] && (
+                                    <Link to={`/comicDetail/${totRankDatas[0]?.comicID || ''}`}>
+                                        <img src={totRankDatas[0].imageUrl} alt="Primer Lugar" className="ranking-image" />
+                                    </Link>
+                                )}
+                                <div className="place">1</div>
+                            </Card.Body>
                         </Card>
                     </Col>
                     <Col sm={4} className="ranking r3 animated mb-5">
                         <Card>
                             <Card.Header className="header">
-                                <h3>{totRankDatas[2].title}</h3>
+                                <h3>{totRankDatas[2]?.title || ''}</h3>
                             </Card.Header>
-                            <Link to={`/comicDetail/${totRankDatas[2].comicID}`}>
-                                <Card.Body className="ranking-content">
-                                    <img src={totRankDatas[2].imageUrl} alt="Tercer Lugar" className="ranking-image" />
-                                    <div className="place">3</div>
-                                </Card.Body>
-                            </Link>
+                            <Card.Body className="ranking-content">
+                                {totRankDatas[2] && (
+                                    <Link to={`/comicDetail/${totRankDatas[2]?.comicID || ''}`}>
+                                        <img src={totRankDatas[2].imageUrl} alt="Tercer Lugar" className="ranking-image" />
+                                    </Link>
+                                )}
+                                <div className="place">3</div>
+                            </Card.Body>
                         </Card>
                     </Col>
                 </Row>
