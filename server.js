@@ -861,6 +861,28 @@ app.put('/api/update/userAccount', async (req, res) => {
 });
 
 
+app.put('/api/update/comicLevel', async (req, res) => {
+  const comicHash = req.query.comicHash;
+  const level = req.query.level;
+  try {
+    const updateQuery = 'UPDATE comics SET level = ? WHERE comic_id = ?';
+    const queryResult = await new Promise((resolve, reject) => {
+      pool.query(updateQuery, [level, comicHash], (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+    res.json({ state: true });
+  } catch (error) {
+    console.error('Error update comicLevel:', error);
+    res.json({ state: false, message: error });
+  }
+});
+
+
 app.put('/api/update/comicDetail/favorite', async (req, res) => {
   const { currentAccount, comicHash, bool } = req.query;
   if (!currentAccount || !comicHash || bool === undefined) {

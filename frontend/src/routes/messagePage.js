@@ -111,8 +111,8 @@ function MessagePage() {
                                     <div style={{ flex: '2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                         <Card.Body className="text-section text-left">
                                             <Card.Title>{t('漫畫')}：{message.comicTitle}</Card.Title>
-                                            <Card.Title>{t('章節更新至')}：{message.chapterTitle}</Card.Title>
-                                            <Card.Title>{t('更新時間')}：{message.newCreate}</Card.Title>
+                                            <Card.Title>{t('章節更新至')}：<br />{message.chapterTitle}</Card.Title>
+                                            <Card.Title>{t('更新時間')}：<br />{message.newCreate}</Card.Title>
                                         </Card.Body>
                                     </div>
                                 </Card>
