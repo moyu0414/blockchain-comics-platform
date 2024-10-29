@@ -809,6 +809,8 @@ const ComicManagement = ({ contractAddress }) => {
                         }
                         <td
                           data-label={t('分級')}
+                          onClick={() => data.exists !== '盜版' && setLevelModal(true)}
+                          disabled={data.exists === '盜版'}
                           className={
                             data.level === '普遍級' ? 'general-level' :
                             data.level === '保護級' ? 'protected-level' :

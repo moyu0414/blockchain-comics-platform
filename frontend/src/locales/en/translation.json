@@ -266,6 +266,10 @@
     "創作者權限已禁用": "Creator Permissions Disabled",
     "禁用創作者": "Disable Creator",
     "審核創作者申請": "Review Creator Application",
+    "編輯漫畫分級": "Edit Comic Rating",
+    "原始資料為您目前所選的分級，請重新選擇": "The original data is the rating you have currently selected, please reselect",
+    "編輯漫畫分級成功": "Edit Comic Rating Successful",
+    "編輯漫畫分級失敗": "Edit Comic Rating Failed",
 
     "rankingList_comment": "rankingList",
     "總排行": "Overall Rank",
