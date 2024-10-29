@@ -30,6 +30,10 @@ const ComicManagement = ({ contractAddress }) => {
   const [deleteUser, setDeleteUser] = useState('');
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [userSearchResults, setUserSearchResults] = useState([]);
+  const [levelModal, setLevelModal] = useState(false);
+  const [selectedlevelIndex, setSelectedlevelIndex] = useState(null);
+  const [selectLevel, setSelectLevel] = useState('');
+  const grading = ["普遍級", "保護級", "輔12級", "輔15級", "限制級"];
   const [modalState, setModalState] = useState({
     show: false,
     isConfirm: false,
@@ -503,6 +507,7 @@ const ComicManagement = ({ contractAddress }) => {
     if (isMobile) {
       setSelectedIndex(selectedIndex === index ? null : index);
     }
+    setSelectedlevelIndex(index);
   };
 
   
@@ -555,6 +560,8 @@ const ComicManagement = ({ contractAddress }) => {
   const handleClose = () => {
     setShowUser(false);
     setDeleteUser(null);
+    setLevelModal(false);
+    setSelectLevel('');
   };
 
   const userDeleteConfirm = async () => {
@@ -629,6 +636,34 @@ const ComicManagement = ({ contractAddress }) => {
     return prefix + "..." + suffix;
   };
 
+  function ChoseLevel(e){
+    let choseLevel = e.target.value;
+    setSelectLevel(choseLevel);
+  };
+
+  const handleLevelChange = async () => {
+    if (!selectLevel || selectLevel === '請選擇分級') {
+      message.info(t('目前您未編輯任何東西'));
+      return;
+    } else if (searchResults[selectedlevelIndex].level === selectLevel) {
+      message.info(t('原始資料為您目前所選的分級，請重新選擇'));
+      return;
+    };
+    const response = await axios.put(`${website}/api/update/comicLevel`, null, {
+      headers: headers,
+      params: {
+        comicHash: searchResults[selectedlevelIndex].hash,
+        level: selectLevel,
+      },
+    });
+    if (response.data.state) {
+      message.info(t('編輯漫畫分級成功'));
+      window.location.reload();
+    } else {
+      alert(t('編輯漫畫分級失敗'), response.data.message);
+    };
+  };
+  
   
   return (
     <>
@@ -845,7 +880,7 @@ const ComicManagement = ({ contractAddress }) => {
                         <tr className="hash-cell expanded">
                           <td style={{ width: "1%" }}></td>
                           <td style={{ width: "1%" }}></td>
-                          <td colSpan="3">
+                          <td colSpan="4">
                             <div className="hash-cell-text">
                               <strong>{t('漫畫Hash')}:</strong> {data.hash}
                             </div>
@@ -856,6 +891,36 @@ const ComicManagement = ({ contractAddress }) => {
                   ))}
                 </tbody>
               </Table>
+              {levelModal && (
+                <Modal show={levelModal} onHide={handleClose} dialogClassName="custom-modal-content">
+                    <Modal.Body>
+                        <h3>{t('編輯漫畫分級')}</h3>
+                        <Form.Label style={{ fontSize: "18px" }}>
+                        {searchResults[selectedIndex] ? searchResults[selectedIndex].title : ''}
+                      </Form.Label>
+                      <Form.Group>
+                        <Form.Control
+                          as="select"
+                          className="form-select"
+                          onChange={ChoseLevel}
+                        >
+                          <option>{t('請選擇分級')}</option>
+                          {grading.map((name, index) => (
+                            <option key={index} value={name}>{t(name)}</option>
+                          ))}
+                        </Form.Control>
+                      </Form.Group>
+                    </Modal.Body>
+                    <Modal.Footer className="custom-modal-footer">
+                      <Button className='pri-btn' onClick={handleLevelChange}>
+                          {t('確定')}
+                      </Button>
+                      <Button className='cancel-btn' onClick={handleClose}>
+                          {t('取消')}
+                      </Button>
+                    </Modal.Footer>
+                </Modal>
+              )}
             </Tab>
             <Tab eventKey="isCreator" title={t('使用者')}>
               <div className="table-title mb-3 d-flex justify-content-between align-items-center">
