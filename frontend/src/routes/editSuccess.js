@@ -26,7 +26,7 @@ function EditSuccess() {
             const editChapter = editArray.editChapter;
             let found = false;
             while (!found) {
-                const storedArrayJSON = localStorage.getItem('comicDatas');
+                const storedArrayJSON = sessionStorage.getItem('comicDatas');
                 const storedArray = JSON.parse(storedArrayJSON);
                 for (let i = 0; i < storedArray.length; i++) {
                     if (comicHash === storedArray[i].comic_id) {

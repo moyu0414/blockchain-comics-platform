@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Row, Col, Card, ListGroup, ListGroupItem, Tabs, Tab, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { getImageSrc } from '../index';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
@@ -15,13 +16,21 @@ const RankingList = () => {
     const [newData, setNewData] = useState([]);
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
+    const isAdult = sessionStorage.getItem('isAdult');
+    const language = localStorage.getItem('language') || i18n.language;
     const headers = {'api-key': API_KEY};
 
     const initData = async () => {
         try {
-            const response = await axios.get(`${website}/api/rankingList/top10`, { headers });
+            const response = await axios.get(`${website}/api/rankingList/top10`, {
+                headers: headers,
+                params: {
+                    //isAdult: true
+                    isAdult: isAdult
+                }
+            });
             let rankDatas = response.data;
             if (rankDatas.length > 0) {
                 try {
@@ -39,7 +48,8 @@ const RankingList = () => {
                         return { 
                             ...fetchedItem, 
                             comicID: match ? match.comicID : null, 
-                            penName: match && match.penName ? match.penName : null
+                            penName: match && match.penName ? match.penName : null,
+                            level: match ? match.level : null
                         };
                     });
                     //console.log(updatedFetchedData);
@@ -84,91 +94,12 @@ const RankingList = () => {
     };
 
     const purchaseRank = async () => {
-        const response = await axios.get(`${website}/api/rankingList/purRank`, { headers });
-        let rankDatas = response.data;
-        try {
-            const rankInfo = await Promise.all(rankDatas.map(async (data) => {
-                const url = `${website}/api/comicIMG/${data.comic_id}`;
-                const response = await axios.get(url, { responseType: 'blob', headers });
-                const image = URL.createObjectURL(response.data);
-                return {
-                    ...data,
-                    imageUrl: image
-                };
-            }));
-            const updatedFetchedData = rankInfo.map(fetchedItem => {
-                const match = storedArray.find(storedItem => storedItem.comic_id === fetchedItem.comic_id);
-                return { 
-                    ...fetchedItem, 
-                    comicID: match ? match.comicID : null, 
-                    penName: match && match.penName ? match.penName : null
-                };
-            });
-            //console.log(updatedFetchedData);
-            setPurRank(updatedFetchedData);
-        } catch (error) {
-            console.error('Error fetching image:', error);
-        }
-    };
-
-    const favoriteRank = async () => {
-        const response = await axios.get(`${website}/api/rankingList/favoriteRank`, { headers });
-        let rankDatas = response.data;
-        try {
-            const rankInfo = await Promise.all(rankDatas.map(async (data) => {
-                const url = `${website}/api/comicIMG/${data.comic_id}`;
-                const response = await axios.get(url, { responseType: 'blob', headers });
-                const image = URL.createObjectURL(response.data);
-                return {
-                    ...data,
-                    imageUrl: image
-                };
-            }));
-            const updatedFetchedData = rankInfo.map(fetchedItem => {
-                const match = storedArray.find(storedItem => storedItem.comic_id === fetchedItem.comic_id);
-                return { 
-                    ...fetchedItem, 
-                    comicID: match ? match.comicID : null, 
-                    penName: match && match.penName ? match.penName : null
-                };
-            });
-            //console.log(updatedFetchedData);
-            setFavRank(updatedFetchedData);
-        } catch (error) {
-            console.error('Error fetching image:', error);
-        }
-    };
-
-    const weekRank = async () => {
-        const response = await axios.get(`${website}/api/rankingList/weekRank`, { headers });
-        let rankDatas = response.data;
-        try {
-            const rankInfo = await Promise.all(rankDatas.map(async (data) => {
-                const url = `${website}/api/comicIMG/${data.comic_id}`;
-                const response = await axios.get(url, { responseType: 'blob', headers });
-                const image = URL.createObjectURL(response.data);
-                return {
-                    ...data,
-                    imageUrl: image
-                };
-            }));
-            const updatedFetchedData = rankInfo.map(fetchedItem => {
-                const match = storedArray.find(storedItem => storedItem.comic_id === fetchedItem.comic_id);
-                return { 
-                    ...fetchedItem, 
-                    comicID: match ? match.comicID : null, 
-                    penName: match && match.penName ? match.penName : null
-                };
-            });
-            //console.log(updatedFetchedData);
-            setWeekData(updatedFetchedData);
-        } catch (error) {
-            console.error('Error fetching image:', error);
-        }
-    };
-
-    const newRank = async () => {
-        const response = await axios.get(`${website}/api/rankingList/newRank`, { headers });
+        const response = await axios.get(`${website}/api/rankingList/purRank`, {
+            headers: headers,
+            params: {
+                isAdult: isAdult
+            }
+        });
         let rankDatas = response.data;
         try {
             const rankInfo = await Promise.all(rankDatas.map(async (data) => {
@@ -186,7 +117,110 @@ const RankingList = () => {
                     ...fetchedItem, 
                     comicID: match ? match.comicID : null, 
                     penName: match && match.penName ? match.penName : null,
-                    date: match.date
+                    level: match ? match.level : null
+                };
+            });
+            //console.log(updatedFetchedData);
+            setPurRank(updatedFetchedData);
+        } catch (error) {
+            console.error('Error fetching image:', error);
+        }
+    };
+
+    const favoriteRank = async () => {
+        const response = await axios.get(`${website}/api/rankingList/favoriteRank`, {
+            headers: headers,
+            params: {
+                isAdult: isAdult
+            }
+        });
+        let rankDatas = response.data;
+        try {
+            const rankInfo = await Promise.all(rankDatas.map(async (data) => {
+                const url = `${website}/api/comicIMG/${data.comic_id}`;
+                const response = await axios.get(url, { responseType: 'blob', headers });
+                const image = URL.createObjectURL(response.data);
+                return {
+                    ...data,
+                    imageUrl: image
+                };
+            }));
+            const updatedFetchedData = rankInfo.map(fetchedItem => {
+                const match = storedArray.find(storedItem => storedItem.comic_id === fetchedItem.comic_id);
+                return { 
+                    ...fetchedItem, 
+                    comicID: match ? match.comicID : null, 
+                    penName: match && match.penName ? match.penName : null,
+                    level: match ? match.level : null
+                };
+            });
+            //console.log(updatedFetchedData);
+            setFavRank(updatedFetchedData);
+        } catch (error) {
+            console.error('Error fetching image:', error);
+        }
+    };
+
+    const weekRank = async () => {
+        const response = await axios.get(`${website}/api/rankingList/weekRank`, {
+            headers: headers,
+            params: {
+                isAdult: isAdult
+            }
+        });
+        let rankDatas = response.data;
+        try {
+            const rankInfo = await Promise.all(rankDatas.map(async (data) => {
+                const url = `${website}/api/comicIMG/${data.comic_id}`;
+                const response = await axios.get(url, { responseType: 'blob', headers });
+                const image = URL.createObjectURL(response.data);
+                return {
+                    ...data,
+                    imageUrl: image
+                };
+            }));
+            const updatedFetchedData = rankInfo.map(fetchedItem => {
+                const match = storedArray.find(storedItem => storedItem.comic_id === fetchedItem.comic_id);
+                return { 
+                    ...fetchedItem, 
+                    comicID: match ? match.comicID : null, 
+                    penName: match && match.penName ? match.penName : null,
+                    level: match ? match.level : null
+                };
+            });
+            //console.log(updatedFetchedData);
+            setWeekData(updatedFetchedData);
+        } catch (error) {
+            console.error('Error fetching image:', error);
+        }
+    };
+
+    const newRank = async () => {
+        const response = await axios.get(`${website}/api/rankingList/newRank`, {
+            headers: headers,
+            params: {
+                isAdult: isAdult
+            }
+        });
+        let rankDatas = response.data;
+        try {
+            const rankInfo = await Promise.all(rankDatas.map(async (data) => {
+                const url = `${website}/api/comicIMG/${data.comic_id}`;
+                const response = await axios.get(url, { responseType: 'blob', headers });
+                const image = URL.createObjectURL(response.data);
+                return {
+                    ...data,
+                    imageUrl: image
+                };
+            }));
+            const updatedFetchedData = rankInfo.map(fetchedItem => {
+                const match = storedArray.find(storedItem => storedItem.comic_id === fetchedItem.comic_id);
+                return { 
+                    ...fetchedItem, 
+                    comicID: match ? match.comicID : null, 
+                    penName: match && match.penName ? match.penName : null,
+                    date: match.date,
+                    level: match ? match.level : null
                 };
 
             });
@@ -229,40 +263,46 @@ const RankingList = () => {
                     <Col sm={4} className="ranking r2 animated mb-5">
                         <Card>
                             <Card.Header className="header">
-                                <h3>{totRankDatas[1].title}</h3>
+                                <h3>{totRankDatas[1]?.title || ''}</h3>
                             </Card.Header>
-                            <Link to={`/comicDetail/${totRankDatas[1].comicID}`}>
-                                <Card.Body className="ranking-content">
-                                    <img src={totRankDatas[1].imageUrl} alt="Segundo Lugar" className="ranking-image" />
-                                    <div className="place">2</div>
-                                </Card.Body>
-                            </Link>
+                            <Card.Body className="ranking-content">
+                                {totRankDatas[1] && (
+                                    <Link to={`/comicDetail/${totRankDatas[1]?.comicID || ''}`}>
+                                        <img src={totRankDatas[1].imageUrl} alt="Segundo Lugar" className="ranking-image" />
+                                    </Link>
+                                )}
+                                <div className="place">2</div>
+                            </Card.Body>
                         </Card>
                     </Col>
                     <Col sm={4} className="ranking r1 animated first mb-5">
                         <Card>
                             <Card.Header className="header">
-                                <h3>{totRankDatas[0].title}</h3>
+                                <h3>{totRankDatas[0]?.title || ''}</h3>
                             </Card.Header>
-                            <Link to={`/comicDetail/${totRankDatas[0].comicID}`}>
-                                <Card.Body className="ranking-content">
-                                    <img src={totRankDatas[0].imageUrl} alt="Primer Lugar" className="ranking-image" />
-                                    <div className="place">1</div>
-                                </Card.Body>
-                            </Link>
+                            <Card.Body className="ranking-content">
+                                {totRankDatas[0] && (
+                                    <Link to={`/comicDetail/${totRankDatas[0]?.comicID || ''}`}>
+                                        <img src={totRankDatas[0].imageUrl} alt="Primer Lugar" className="ranking-image" />
+                                    </Link>
+                                )}
+                                <div className="place">1</div>
+                            </Card.Body>
                         </Card>
                     </Col>
                     <Col sm={4} className="ranking r3 animated mb-5">
                         <Card>
                             <Card.Header className="header">
-                                <h3>{totRankDatas[2].title}</h3>
+                                <h3>{totRankDatas[2]?.title || ''}</h3>
                             </Card.Header>
-                            <Link to={`/comicDetail/${totRankDatas[2].comicID}`}>
-                                <Card.Body className="ranking-content">
-                                    <img src={totRankDatas[2].imageUrl} alt="Tercer Lugar" className="ranking-image" />
-                                    <div className="place">3</div>
-                                </Card.Body>
-                            </Link>
+                            <Card.Body className="ranking-content">
+                                {totRankDatas[2] && (
+                                    <Link to={`/comicDetail/${totRankDatas[2]?.comicID || ''}`}>
+                                        <img src={totRankDatas[2].imageUrl} alt="Tercer Lugar" className="ranking-image" />
+                                    </Link>
+                                )}
+                                <div className="place">3</div>
+                            </Card.Body>
                         </Card>
                     </Col>
                 </Row>
@@ -284,6 +324,9 @@ const RankingList = () => {
                                             <div className="ranking-image ranking-thumbnail-position">
                                                 <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
                                                 <div className="rankingList-overlay">{item.total}</div>
+                                                {item.level === '限制級' && (
+                                                    <Card.Img src={getImageSrc(language)} className="level" />
+                                                )}
                                             </div>
                                             <div className="ranking-card-info ms-3">
                                                 <div className="ranking-title">{item.title}</div>
@@ -311,6 +354,9 @@ const RankingList = () => {
                                         <div className="ranking-image ranking-thumbnail-position">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
                                             <div className="rankingList-overlay">{item.totBuy}</div>
+                                            {item.level === '限制級' && (
+                                                <Card.Img src={getImageSrc(language)} className="level" />
+                                            )}
                                         </div>
                                         <div className="ranking-card-info ms-3">
                                             <div className="ranking-title">{item.title}</div>
@@ -338,6 +384,9 @@ const RankingList = () => {
                                         <div className="ranking-image ranking-thumbnail-position">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
                                             <div className="rankingList-overlay">{item.totHearts}</div>
+                                            {item.level === '限制級' && (
+                                                <Card.Img src={getImageSrc(language)} className="level" />
+                                            )}
                                         </div>
                                         <div className="ranking-card-info ms-3">
                                             <div className="ranking-title">{item.title}</div>
@@ -365,6 +414,9 @@ const RankingList = () => {
                                         <div className="ranking-image ranking-thumbnail-position">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
                                             <div className="rankingList-overlay">{item.totBuy}</div>
+                                            {item.level === '限制級' && (
+                                                <Card.Img src={getImageSrc(language)} className="level" />
+                                            )}
                                         </div>
                                         <div className="ranking-card-info ms-3">
                                             <div className="ranking-title">{item.title}</div>
@@ -392,6 +444,9 @@ const RankingList = () => {
                                         <div className="ranking-image ranking-thumbnail-position">
                                             <img src={item.imageUrl} alt={item.title} className="ranking-thumbnail" />
                                             <div className="rankingList-createTime">{item.date}</div>
+                                            {item.level === '限制級' && (
+                                                <Card.Img src={getImageSrc(language)} className="level" />
+                                            )}
                                         </div>
                                         <div className="ranking-card-info ms-3">
                                             <div className="ranking-title">{item.title}</div>

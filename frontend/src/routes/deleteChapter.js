@@ -12,7 +12,7 @@ function DeleteChapter() {
     const [chapters, setChapters] = useState([]);
     const { comicID } = useParams();
     const [loading, setLoading] = useState(true);
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const fetchedData = [];
     const [show, setShow] = useState(false);

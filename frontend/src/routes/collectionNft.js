@@ -14,6 +14,7 @@ function CollectionNft() {
     const [beingNFT, setBeingNFT] = useState(true);
     const { t } = useTranslation();
     const currentAccount = localStorage.getItem("currentAccount");
+    const isAdult = sessionStorage.getItem('isAdult');
     const headers = {'api-key': API_KEY};
 
     const initData = async () => {
@@ -22,6 +23,7 @@ function CollectionNft() {
                 headers: headers,
                 params: {
                     currentAccount: currentAccount,
+                    isAdult: isAdult
                 }
             });
             let collectNFT = response.data;

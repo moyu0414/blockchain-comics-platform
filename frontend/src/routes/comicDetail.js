@@ -22,7 +22,7 @@ function ComicDetail() {
     const [currentPage, setCurrentPage] = useState(1);
     const [piracy, setPiracy] = useState([]);
     const { t } = useTranslation();
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const headers = {'api-key': API_KEY};
     const fetchedData = [];
@@ -35,6 +35,11 @@ function ComicDetail() {
     const initData = async () => {
         try {
             const storedArray = JSON.parse(storedArrayJSON);
+            if (!storedArray.some(item => item.comicID === comicID)) {
+                alert(t('漫畫不存在'));
+                window.location.replace("/");
+                return;
+            }
             for (let i = 0; i < storedArray.length; i++) {
                 if (storedArray[i].is_exist === 0) {
                     if (storedArray[i].comicID === comicID) {
@@ -62,6 +67,7 @@ function ComicDetail() {
                             author: author,
                             penName: storedArray[i].penName,
                             category: storedArray[i].category,
+                            level: storedArray[i].level,
                             protoFilename: protoFilename,
                             release: storedArray[i].date
                         });
@@ -220,7 +226,7 @@ function ComicDetail() {
         const operationValue = chapter.isBuying;
 
         if (operationValue === t('閱讀')) {
-        window.location.href = `/comicRead/${comicID}/${chapter.chapterID}`;
+            window.location.href = `/comicRead/${comicID}/${chapter.chapterID}`;
         } else {
         try {
             disableAllButtons();
@@ -385,10 +391,8 @@ function ComicDetail() {
                         <div className="d-block mx-auto img-fluid carousel-image-container">
                             {comic[0].state ? (
                                 <div className='remove-section' style={{ display: 'flex', flexDirection: 'column' }}>
-                                    {/* <div id="start" style={{ display: 'block'}}> */}
-                                        <img src='/piratyPromo.jpg' />
-                                        <div id="notimage" className="hidden">{t(comic[0].state)}</div>
-                                    {/* </div> */}
+                                    <img src='/piratyPromo.jpg' alt="Promo" />
+                                    <div id="notimage" className="hidden">{t(comic[0].state)}</div>
                                 </div>
                             ) : (
                                 <img
@@ -449,7 +453,7 @@ function ComicDetail() {
                                             </p>
                                         </Link>
                                     )}
-                                    <p>{t('發布日期')}：{comic.release}</p>
+                                    <p>{t('發布日期')}：{comic.release}<span></span>{t('分級')}：{t(comic.level)}</p>
                                     <p>{t('最新章節')}：{comic.chapter}<span className="text-secondary">...{comic.date}</span></p>
                                     <p className={`text-secondary ${comic.state && 'delete-line'}`}>{comic.description}</p>
                                 </React.Fragment>
@@ -509,7 +513,9 @@ function ComicDetail() {
                                 <Link to={`/comicDetail/${data.comicID}`}>
                                     <Card className="ranking-thumbnail-position">
                                         <OverlayTrigger placement="top" overlay={renderTooltip(data.description)}>
-                                            <Card.Img variant="top" src={data.image} />
+                                            <div onContextMenu={(e) => e.preventDefault()}>
+                                                <Card.Img variant="top" src={data.image} />
+                                            </div>
                                         </OverlayTrigger>
                                         <div className="comicDetail-createTime" style={{marginBottom: "0px"}}>{data.penName}</div>
                                         <div className="comicDetail-createTime">{data.date}</div>

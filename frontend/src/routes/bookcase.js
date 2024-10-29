@@ -6,7 +6,7 @@ import { CardImage } from 'react-bootstrap-icons';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
-import { sortByTimestamp } from '../index';
+import { sortByTimestamp, getImageSrc } from '../index';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
@@ -16,13 +16,14 @@ function Bookcase() {
     const [NFTLogArray, setNFTLogArray] = useState([]);
     const [beingNFT, setBeingNFT] = useState(true);
     const { t } = useTranslation();
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const storedArray = JSON.parse(storedArrayJSON);
     const readingProgress = localStorage.getItem("readingProgress");
     const readingArray = readingProgress ? JSON.parse(readingProgress) : {}; 
     const currentAccount = localStorage.getItem("currentAccount");
+    const language = localStorage.getItem('language') || i18n.language;
     const headers = {'api-key': API_KEY};
-    let bookcase = [];
+    let filteredBookcase = [];
     let fetchedData = [];
     
     const initData = async () => {
@@ -34,10 +35,11 @@ function Bookcase() {
                         currentAccount: currentAccount
                     }
                 });
-                bookcase = response.data;
+                const bookcase = response.data;
                 const comicMap = new Map(storedArray.map(comic => [comic.comic_id, comic]));
                 const readingMap = new Map(Object.entries(readingArray));
-                for (const data of bookcase) {
+                let filteredBookcase = bookcase.filter(data => comicMap.get(data.comicHash));
+                for (const data of filteredBookcase) {
                     const comic = comicMap.get(data.comicHash);
                     if (comic) {
                         const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.comic_id}`, { responseType: 'blob', headers });
@@ -50,15 +52,17 @@ function Bookcase() {
                         };
                     }
                 }
-                sortByPurchase(bookcase);
-                bookcase.sort((a, b) => (a.is_exist > 0) - (b.is_exist > 0));
-                //console.log(bookcase);
-                setCurrent(bookcase);
+                sortByPurchase(filteredBookcase);
+                filteredBookcase.sort((a, b) => (a.is_exist > 0) - (b.is_exist > 0));
+                setCurrent(filteredBookcase);
+                if (filteredBookcase.length == 0) {
+                    setIsBuying(false);
+                }
             } catch (error) {
                 console.error('Error fetching records:', error);
-            }
-            if (bookcase.length == 0) {
-                setIsBuying(false);
+                if (filteredBookcase.length == 0) {
+                    setIsBuying(false);
+                }
             }
         } catch (error) {
             console.error('Error initializing data:', error);
@@ -79,7 +83,8 @@ function Bookcase() {
             });
             let nftRecords = nftResponse.data;
             const comicMap = new Map(storedArray.map(comic => [comic.comic_id, comic]));
-            for (const data of nftRecords) {
+            const validNftRecords = nftRecords.filter(data => comicMap.has(data.comicHash));
+            for (const data of validNftRecords) {
                 const comic = comicMap.get(data.comicHash);
                 if (comic) {
                     const imageResponse = await axios.get(`${website}/api/comicIMG/${comic.comic_id}`, { responseType: 'blob', headers });
@@ -88,9 +93,9 @@ function Bookcase() {
                     data.names = parseAuthorizations(data.description).map(auth => auth.name);
                 }
             }
-            nftRecords.sort((a, b) => (a.is_exist > 0) - (b.is_exist > 0));
-            setNFTLogArray(nftRecords);
-            if (nftRecords.length === 0) {
+            validNftRecords.sort((a, b) => (a.is_exist > 0) - (b.is_exist > 0));
+            setNFTLogArray(validNftRecords);
+            if (validNftRecords.length === 0) {
               setBeingNFT(false);
             }
         }
@@ -148,6 +153,9 @@ function Bookcase() {
                                                     {data.is_exist === 0 && (
                                                         <>
                                                             <Card.Img variant="top" src={data.image} />
+                                                            {data.level === '限制級' && (
+                                                                <Card.Img src={getImageSrc(language)} className="level" />
+                                                            )}
                                                             <div className="bookcase-overlay">{data.chapter}</div>
                                                             <Card.Body>
                                                                 <Card.Title className='bookcase-read-text'>{data.title}</Card.Title>
@@ -174,7 +182,12 @@ function Bookcase() {
                                         <Link to={`/comicDetail/${data.comicID}`}>
                                             <Card>
                                                 {data.is_exist === 0 ? (
-                                                    <Card.Img variant="top" src={data.image} />
+                                                    <>
+                                                        <Card.Img variant="top" src={data.image} />
+                                                        {data.level === '限制級' && (
+                                                            <Card.Img src={getImageSrc(language)} className="level" />
+                                                        )}
+                                                    </>
                                                 ) : (
                                                     <div className="bookcase-position">
                                                         <Card.Img variant="top" src='/piraty.png' />
@@ -209,8 +222,14 @@ function Bookcase() {
                                                 {data.is_exist === 0 ? (
                                                     <>
                                                         <OverlayTrigger placement="top" overlay={renderTooltip(data.title, data.names, data.tokenId)}>
-                                                            <Card.Img variant="top" src={data.image} />
+                                                            <div onContextMenu={(e) => e.preventDefault()}>
+                                                                <Card.Img variant="top" src={data.image} />
+
+                                                            </div>
                                                         </OverlayTrigger>
+                                                        {data.level === '限制級' && (
+                                                            <Card.Img src={getImageSrc(language)} className="level" />
+                                                        )}
                                                         <div className="bookcase-overlay">{data.title}</div>
                                                     </>
                                                 ) : (

@@ -29,6 +29,15 @@
     "愛心排序": "Love Sort",
     "新上市": "New Releases",
     "最近更新": "Recent Updates",
+    "請先勾選上述同意方框！": "Please check the consent box above first!",
+    "年齡驗證聲明": "Age Verification Statement",
+    "本網站包含限制級漫畫，涵蓋性、暴力、藥物使用、粗俗語言以及社會禁忌等內容。在使用本平台之前，請您先確認您的年齡是否滿18歲。": "This site contains adult-rated manga that includes content related to sex, violence, drug use, vulgar language, and social taboos. Please confirm that you are at least 18 years old before using this platform.",
+    "我們將根據您的選擇決定後續內容的顯示。": "We will determine the subsequent content display based on your choice.",
+    "您在使用本平台的過程中，承認並同意對於訪問限制級內容的決定及其後果自負責任。": "By using this platform, you acknowledge and agree to take responsibility for your decision to access adult content and its consequences.",
+    "感謝您的理解與配合。": "Thank you for your understanding and cooperation.",
+    "我已確實了解上述說明並同意遵守": "I have read and agree to the above statement.",
+    "已滿18歲(成年)": "I am 18 years old or older (adult)",
+    "未滿18歲(未成年)": "I am under 18 years old (minor)",
 
     "searchPage_comment": "searchPage",
     "搜尋歷史": "Search History",
@@ -67,6 +76,8 @@
     "盜版漫畫，已下架，已退款": "The pirated comic has been removed and refunded.",
     "漫畫查核中，暫不開放，敬請見諒": "The comic is under review and is temporarily unavailable. We apologize for the inconvenience.",
     "發布日期": "Release Date",
+    "分級": "Rating",
+    "漫畫不存在": "Manga Not Found",
 
     "comicRead_comment": "comicRead",
     "目前只有這個章節": "Currently, only this chapter!",
@@ -78,6 +89,7 @@
     "切換模式：": "Switch：",
     "條漫": "Webtoon",
     "頁漫": "Paged manga",
+    "版權保護": "Copyright Protection",
 
     "nftMarket_comment": "nftMarket",
     "角色商品化": "Character Merchandising",
@@ -124,7 +136,8 @@
     "但您已被本平台禁用驗證權限！": "But you have been disabled from verification on this platform!",
     "本平台管理者尚未審核您的身分，請稍後在試！": "The platform administrator has not yet reviewed your identity; please try again later!",
     "您尚未在本平台進行身分驗證，請先到\"個人資訊\"進行身分驗證！": "You have not completed identity verification on this platform. Please go to 'Profile' to verify your identity first!",
-
+    "此NFT不存在": "This NFT does not exist",
+    
     "readerPage_comment": "readerPage",
     "請先登入以太坊錢包，才開放讀者專區": "Please log in to your Ethereum wallet to access the reader's area!",
     "漫畫收藏": "Comic Collection",
@@ -154,6 +167,7 @@
     "請先收藏漫畫": "Please collect the comic first!",
     "目前沒有更新通知": "No update notifications at the moment!",
     "章節更新至": "Chapter Updated to",
+    "更新時間": "Update Time",
 
     "collectionNft_comment": "collectionNft",
     "已擁有": "Owned",
@@ -297,6 +311,14 @@
     "漫畫添加至資料庫時發生錯誤：": "Error occurred while adding manga to the database:",
     "章節內容添加至資料庫時發生錯誤：": "Error occurred while adding chapter content to the database:",
     "標題命名不可超過50個字!": "Title name cannot exceed 50 characters!",
+    "普遍級": "G",
+    "保護級": "PG",
+    "輔12級": "PG-13",
+    "輔15級": "R/PG-17",
+    "限制級": "NC-17",
+    "漫畫分級": "Rating",
+    "請選擇分級": "Please Select Rating",
+    "簡介請在200個字以內!": "Please keep the summary under 200 words!",
 
     "manageComic_comment": "manageComic",
     "新增章節": "Add Chap",
@@ -389,6 +411,7 @@
     "禁售": "Not for Sale",
     "此為盜版漫畫所衍生的NFT，不予販售、使用": "This NFT is derived from pirated comics and is not for sale or use.",
     "此NFT的漫畫查核中，暫不開放，敬請見諒": "The comic for this NFT is under review and is temporarily unavailable. Thank you for your understanding.",
+    "此NFT不存在，或者您不是用擁有者": "This NFT does not exist, or you are not the owner",
 
     "becomeWriter_comment": "becomeWriter",
     "您好～": "Hello~",
@@ -514,7 +537,7 @@
     "購買量": "Purchase Volume",
 
     "bottomNavbar_comment": "bottomNavbar",
-    "書櫃":"Bookcase",
+    "書櫃":"Book",
     "首頁":"Home",
     "分類":"Category",
     "個人資訊":"Profile",

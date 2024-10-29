@@ -12,7 +12,6 @@ const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
 const ComicManagement = ({ contractAddress }) => {
-  const storedArrayJSON = localStorage.getItem('comicDatas');
   const currentAccount = localStorage.getItem("currentAccount");
   const [storedArray, setStoredArray] = useState([]);
   const [meta, setMeta] = useState('');
@@ -31,6 +30,10 @@ const ComicManagement = ({ contractAddress }) => {
   const [deleteUser, setDeleteUser] = useState('');
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [userSearchResults, setUserSearchResults] = useState([]);
+  const [levelModal, setLevelModal] = useState(false);
+  const [selectedlevelIndex, setSelectedlevelIndex] = useState(null);
+  const [selectLevel, setSelectLevel] = useState('');
+  const grading = ["普遍級", "保護級", "輔12級", "輔15級", "限制級"];
   const [modalState, setModalState] = useState({
     show: false,
     isConfirm: false,
@@ -94,29 +97,41 @@ const ComicManagement = ({ contractAddress }) => {
               setUserSearchResults(addresses);
             }
 
-            let storedArray = JSON.parse(storedArrayJSON);
-            setStoredArray(storedArray);
-            for (let i = 0; i < storedArray.length; i++) {
-              const status = statusMap[storedArray[i].is_exist];
-              modifiedArray.push({
-                title: storedArray[i].title,
-                penName: storedArray[i].penName,
-                author: storedArray[i].creator,
-                hash: storedArray[i].comic_id,
-                exists: status
+            try {
+              const response = await axios.get(`${website}/api/comics`, {
+                headers: headers,
+                params: {
+                  isAdult: true
+                }
               });
+              const storedArray = response.data;
+              sessionStorage.setItem('comicDatas', JSON.stringify(storedArray));
+
+              setStoredArray(storedArray);
+              for (let i = 0; i < storedArray.length; i++) {
+                const status = statusMap[storedArray[i].is_exist];
+                modifiedArray.push({
+                  title: storedArray[i].title,
+                  penName: storedArray[i].penName,
+                  author: storedArray[i].creator,
+                  hash: storedArray[i].comic_id,
+                  exists: status,
+                  level: storedArray[i].level
+                });
+              }
+              const sortedArray = modifiedArray.sort((a, b) => {
+                if (a.exists === "查核") return -1;
+                if (b.exists === "查核") return 1;
+                if (a.exists === "盜版") return 1;
+                if (b.exists === "盜版") return -1;
+                return 0;
+              });
+              setCurrent(sortedArray);
+              setSearchResults(sortedArray);
+              setLoading(false);
+            } catch (error) {
+              console.error('Error fetching comics: ', error);
             }
-            const sortedArray = modifiedArray.sort((a, b) => {
-              if (a.exists === "查核") return -1;
-              if (b.exists === "查核") return 1;
-              if (a.exists === "盜版") return 1;
-              if (b.exists === "盜版") return -1;
-              return 0;
-            });
-            //console.log(sortedArray);
-            setCurrent(sortedArray);
-            setSearchResults(sortedArray);
-            setLoading(false);
           } catch (error) {
             console.error(error);
           }
@@ -201,7 +216,7 @@ const ComicManagement = ({ contractAddress }) => {
           return item;
         });
         const updatedArrayJSON = JSON.stringify(updatedArray);
-        localStorage.setItem('comicDatas', updatedArrayJSON);
+        sessionStorage.setItem('comicDatas', updatedArrayJSON);
         window.location.replace("/comicManagement");
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
@@ -236,7 +251,7 @@ const ComicManagement = ({ contractAddress }) => {
               : item
           );
           const updatedArrayJSON = JSON.stringify(updatedArray);
-          localStorage.setItem('comicDatas', updatedArrayJSON);
+          sessionStorage.setItem('comicDatas', updatedArrayJSON);
         } catch (error) {
           if (error.message.includes('User denied transaction signature')) {
             message.info(t('拒绝交易'));
@@ -270,7 +285,7 @@ const ComicManagement = ({ contractAddress }) => {
             : item
         );
         const updatedArrayJSON = JSON.stringify(updatedArray);
-        localStorage.setItem('comicDatas', updatedArrayJSON);
+        sessionStorage.setItem('comicDatas', updatedArrayJSON);
       } catch (error) {
         if (error.message.includes('User denied transaction signature')) {
           message.info(t('拒绝交易'));
@@ -312,7 +327,7 @@ const ComicManagement = ({ contractAddress }) => {
       return comic;
     });
     const updatedArrayJSON = JSON.stringify(updatedArray);
-    localStorage.setItem('comicDatas', updatedArrayJSON);
+    sessionStorage.setItem('comicDatas', updatedArrayJSON);
   };
 
   const handleShow = (data, isConfirm = false) => {
@@ -492,6 +507,7 @@ const ComicManagement = ({ contractAddress }) => {
     if (isMobile) {
       setSelectedIndex(selectedIndex === index ? null : index);
     }
+    setSelectedlevelIndex(index);
   };
 
   
@@ -544,6 +560,8 @@ const ComicManagement = ({ contractAddress }) => {
   const handleClose = () => {
     setShowUser(false);
     setDeleteUser(null);
+    setLevelModal(false);
+    setSelectLevel('');
   };
 
   const userDeleteConfirm = async () => {
@@ -618,6 +636,34 @@ const ComicManagement = ({ contractAddress }) => {
     return prefix + "..." + suffix;
   };
 
+  function ChoseLevel(e){
+    let choseLevel = e.target.value;
+    setSelectLevel(choseLevel);
+  };
+
+  const handleLevelChange = async () => {
+    if (!selectLevel || selectLevel === '請選擇分級') {
+      message.info(t('目前您未編輯任何東西'));
+      return;
+    } else if (searchResults[selectedlevelIndex].level === selectLevel) {
+      message.info(t('原始資料為您目前所選的分級，請重新選擇'));
+      return;
+    };
+    const response = await axios.put(`${website}/api/update/comicLevel`, null, {
+      headers: headers,
+      params: {
+        comicHash: searchResults[selectedlevelIndex].hash,
+        level: selectLevel,
+      },
+    });
+    if (response.data.state) {
+      message.info(t('編輯漫畫分級成功'));
+      window.location.reload();
+    } else {
+      alert(t('編輯漫畫分級失敗'), response.data.message);
+    };
+  };
+  
   
   return (
     <>
@@ -739,6 +785,7 @@ const ComicManagement = ({ contractAddress }) => {
                         <th>{t('漫畫Hash')}</th>
                       </td>
                     }
+                    <th>{t('分級')}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -752,20 +799,27 @@ const ComicManagement = ({ contractAddress }) => {
                         <th></th>
                         <th data-label="ID">{index + 1}</th>
                         <td data-label={t('漫畫')}>{data.title}</td>
-                        {!isMobile ? (
-                          <td data-label={t('作者')}  className="address-cell">
-                            {data.penName}({data.author})
-                          </td>
-                        ) : (
-                          <td data-label={t('作者')}  className="address-cell">
-                            {data.penName}（{showAccount(data.author)}）
-                          </td>
-                        )}
+                        <td data-label={t('作者')}  className="address-cell">
+                          {data.penName}（{showAccount(data.author)}）
+                        </td>
                         {!isMobile &&
                           <td data-label={t('漫畫Hash')}>
                             {data.hash}
                           </td>
                         }
+                        <td
+                          data-label={t('分級')}
+                          className={
+                            data.level === '普遍級' ? 'general-level' :
+                            data.level === '保護級' ? 'protected-level' :
+                            data.level === '輔12級' ? 'guidance-12' :
+                            data.level === '輔15級' ? 'guidance-15' :
+                            data.level === '限制級' ? 'restricted-level' :
+                            ''
+                          }
+                        >
+                          {t(data.level)}
+                        </td>
                         <td data-label={t('狀態')} className="text-end">
                           <OverlayTrigger placement="top" overlay={renderTooltip(data.exists !== '盜版' ? t('修改漫畫存續狀態') : `${t('盜版漫畫已下架')}、${t('已退款')}`)}>
                             <Button
@@ -826,7 +880,7 @@ const ComicManagement = ({ contractAddress }) => {
                         <tr className="hash-cell expanded">
                           <td style={{ width: "1%" }}></td>
                           <td style={{ width: "1%" }}></td>
-                          <td colSpan="3">
+                          <td colSpan="4">
                             <div className="hash-cell-text">
                               <strong>{t('漫畫Hash')}:</strong> {data.hash}
                             </div>
@@ -837,6 +891,36 @@ const ComicManagement = ({ contractAddress }) => {
                   ))}
                 </tbody>
               </Table>
+              {levelModal && (
+                <Modal show={levelModal} onHide={handleClose} dialogClassName="custom-modal-content">
+                    <Modal.Body>
+                        <h3>{t('編輯漫畫分級')}</h3>
+                        <Form.Label style={{ fontSize: "18px" }}>
+                        {searchResults[selectedIndex] ? searchResults[selectedIndex].title : ''}
+                      </Form.Label>
+                      <Form.Group>
+                        <Form.Control
+                          as="select"
+                          className="form-select"
+                          onChange={ChoseLevel}
+                        >
+                          <option>{t('請選擇分級')}</option>
+                          {grading.map((name, index) => (
+                            <option key={index} value={name}>{t(name)}</option>
+                          ))}
+                        </Form.Control>
+                      </Form.Group>
+                    </Modal.Body>
+                    <Modal.Footer className="custom-modal-footer">
+                      <Button className='pri-btn' onClick={handleLevelChange}>
+                          {t('確定')}
+                      </Button>
+                      <Button className='cancel-btn' onClick={handleClose}>
+                          {t('取消')}
+                      </Button>
+                    </Modal.Footer>
+                </Modal>
+              )}
             </Tab>
             <Tab eventKey="isCreator" title={t('使用者')}>
               <div className="table-title mb-3 d-flex justify-content-between align-items-center">

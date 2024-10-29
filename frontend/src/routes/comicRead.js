@@ -9,7 +9,7 @@ import Web3 from 'web3';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import axios from 'axios';
-import { sortByTimestamp, getTransactionTimestamp, disableAllButtons, enableAllButtons, initializeWeb3 } from '../index';
+import { sortByTimestamp, getTransactionTimestamp, disableAllButtons, enableAllButtons, initializeWeb3, OverlayComponent } from '../index';
 const website = process.env.REACT_APP_Website;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
@@ -24,13 +24,14 @@ const ComicRead = () => {
     const [splitImages, setSplitImages] = useState([]);
     const [autoMode, setAutoMode] = useState(true);
     const [pageMode, setPageMode] = useState('');
+    const [imgHeight, setImgHeight] = useState(5000);
     const { comicID, chapterID } = useParams();
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [readPage, setReadPage] = useState(0);
     const itemsPerPage = 10; // 每頁顯示的章節數量
     const { t } = useTranslation();
-    const storedArrayJSON = localStorage.getItem('comicDatas');
+    const storedArrayJSON = sessionStorage.getItem('comicDatas');
     const currentAccount = localStorage.getItem("currentAccount");
     const [readingProgress, setReadingProgress] = useState(() => {
         const savedProgress = localStorage.getItem('readingProgress');
@@ -350,6 +351,52 @@ const ComicRead = () => {
         setPageMode((prevMode) => !prevMode);
         setAutoMode(false);
     };
+
+    const updateImageHeight = (img) => {
+        const screenWidth = window.innerWidth;
+        const newHeight = screenWidth >= 580 
+            ? (580 * img.height) / img.width 
+            : (screenWidth * img.height) / img.width * 0.95;
+        setImgHeight(newHeight);
+    };
+
+    useEffect(() => {
+        if (chapter.length > 0) {
+            const img = new Image();
+            img.src = chapter[0].image; // 使用 Blob URL
+            img.onload = () => {
+                updateImageHeight(img); // 初始设置高度
+                window.addEventListener('resize', () => updateImageHeight(img)); // 监听窗口变化
+            };
+            return () => {
+                window.removeEventListener('resize', () => updateImageHeight(img)); // 清理监听器
+            };
+        }
+    }, [chapter]);
+
+    const getWatermarkCount = () => {
+        const screenHeight = window.innerHeight;
+        return Math.ceil(imgHeight / 700);
+    };
+
+    const watermarkCount = getWatermarkCount();
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'PrintScreen') {
+                e.preventDefault();
+                message.info(t('版權保護'));
+            }
+            if (e.ctrlKey && (e.key === 's' || e.key === 'p')) {
+                e.preventDefault();
+                message.info(t('版權保護'));
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, []);
     
     const totalPages = Math.ceil(allChapters.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -434,7 +481,7 @@ const ComicRead = () => {
         <>
         {!loading && (
             <>
-                <div className='comicRead no-padding-bottom'>
+                <div className='comicRead no-padding-bottom' onContextMenu={(e) => e.preventDefault()}>
                     <Navbar className={`comic-custom-navbar ${showNavbar ? 'show' : 'hide'}`} expand="lg">
                         <Navbar.Brand className="navbar-left">
                             <Link to={`/comicDetail/${comicID}`}>
@@ -462,12 +509,22 @@ const ComicRead = () => {
                                     className="split-image active"
                                     style={{ zIndex: 2 }}
                                 />
+                                <OverlayComponent height={imgHeight} />
+                                <div className="watermark" style={{ bottom: '20%', zIndex: '900'}}>
+                                    <img src="/icon_1.png" alt="web3toon"/>
+                                </div>
                             </div>
                         )
                     ) : (
                         chapter.map((chapter, index) => (
                             <div key={index} onClick={handleClick} className="banner-image">
-                                <img src={chapter.image} alt="Long Banner" />
+                                <img src={chapter.image} alt="Long Banner"/>
+                                <OverlayComponent height={imgHeight} />
+                                {[...Array(watermarkCount)].map((_, index) => (
+                                    <div key={index} className="watermark" style={{ top: `${index * 700}px`, width: '30%', right: '10%'}}>
+                                        <img src="/icon_1.png" alt="web3toon"/>
+                                    </div>
+                                ))}
                             </div>
                         ))
                     )}

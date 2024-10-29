@@ -21,6 +21,7 @@ function NftDetail() {
     const [isFavorited, setIsFavorited] = useState('');
     const { t } = useTranslation();
     const currentAccount = localStorage.getItem("currentAccount");
+    const isAdult = sessionStorage.getItem('isAdult');
     const headers = {'api-key': API_KEY};
     const buttonData = [
         `${NFT[0]?.price}`, t('收藏')
@@ -33,13 +34,14 @@ function NftDetail() {
         const response = await axios.get(`${website}/api/nftDetail/records`, {
             headers: headers,
             params: {
-                tokenId: tokenId.replace("tokenId", "")
+                tokenId: tokenId.replace("tokenId", ""),
+                isAdult: isAdult
             }
         });
         let nftData = response.data;
-        setInitPrice(nftData[0].price);
 
         if (nftData.length !== 0 && nftData[0].is_exist === 0) {
+            setInitPrice(nftData[0].price);
             const { minter: initialMinter, owner: initialOwner, price, forSale, protoFilename, comicHash, tokenId: token } = nftData[0];
             const currentState = initialMinter === initialOwner ? t('原創授權') : t('二次轉售');
             const currentOwner = initialOwner === currentAccount ? t('您擁有此NFT') : initialOwner;
@@ -89,6 +91,10 @@ function NftDetail() {
                 console.error('Error fetching records:', error);
             }
             setLoading(false);
+        } else if (nftData.length === 0) {
+            alert(t('此NFT不存在'));
+            window.location.replace("/nftMarket");
+            return;
         } else {
             const newData = nftData.map(data => ({
                 ...data,

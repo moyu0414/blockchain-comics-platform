@@ -20,6 +20,7 @@ function Analysis() {
 
     const { t } = useTranslation();
     const currentAccount = localStorage.getItem("currentAccount");
+    const isAdult = sessionStorage.getItem('isAdult');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // 每頁顯示的收益數量
     const headers = {'api-key': API_KEY};
@@ -36,7 +37,8 @@ function Analysis() {
             const response = await axios.get(`${website}/api/creator/records`, {
                 headers: headers,
                 params: {
-                    currentAccount: currentAccount
+                    currentAccount: currentAccount,
+                    isAdult: isAdult
                 }
             });
             let analysis = response.data;
@@ -56,7 +58,8 @@ function Analysis() {
             const nftResponse = await axios.get(`${website}/api/creatorNft/records`, {
                 headers: headers,
                 params: {
-                    currentAccount: currentAccount
+                    currentAccount: currentAccount,
+                    isAdult: isAdult
                 }
             });
             let nftData = nftResponse.data;

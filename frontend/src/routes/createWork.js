@@ -21,7 +21,7 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 const CreateWork = (props) => {
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
-  const [formParams, updateFormParams] = useState({title:'', description:'',  category: ''});
+  const [formParams, updateFormParams] = useState({title:'', description:'', level: '', category: ''});
   const [formParams_1, updateFormParams_1] = useState({title: '', price: '', isFree: false});
   const [msg, updateMsg] = useState('');
   const [stepCompleted, setStepCompleted] = useState(false);
@@ -41,7 +41,8 @@ const CreateWork = (props) => {
   const headers = {'api-key': API_KEY};
   let mergedFile = '';
   let chapterHash = '';
-  const [grading, setGrading] = useState([
+  const grading = ["普遍級", "保護級", "輔12級", "輔15級", "限制級"];
+  const type = [
     "戀愛",
     "懸疑",
     "恐怖",
@@ -50,7 +51,7 @@ const CreateWork = (props) => {
     "玄幻",
     "武俠",
     "搞笑"
-  ]);
+  ];
 
   // 連接到 Web3 的函數
   async function connectToWeb3(){
@@ -109,7 +110,7 @@ const CreateWork = (props) => {
       disableAllButtons();
       updateMsg(t('正在上傳漫畫至合約中'));
 
-      //console.log("comicHash：" + hashValue);
+      console.log("comicHash：" + hashValue);
       //console.log("title：" + formParams.title);
       //console.log("author：" + currentAccount);
       //console.log("description：" + formParams.description);
@@ -126,6 +127,7 @@ const CreateWork = (props) => {
       formData.append('title', formParams.title);
       formData.append('description', formParams.description);
       formData.append('category', formParams.category);
+      formData.append('level', formParams.level);
       formData.append('is_exist', 0);
       formData.append('comic_id', hashValue);
       formData.append('timestamp', timestamp);
@@ -199,7 +201,7 @@ const CreateWork = (props) => {
       await handleGeneratePages();  // 等待合併圖片操作完成
       await handleFileReaderLoad();  // 等待計算 chapterHash 值操作完成
 
-      //console.log("comicHash：" + comicHash);
+      console.log("comicHash：" + comicHash);
       //console.log("chapterHash：" + chapterHash);
       //console.log("title：" + formParams_1.title);
       //console.log("price：" + formParams_1.price);
@@ -397,20 +399,28 @@ const CreateWork = (props) => {
     setPreviewImageUrls(urls);
   };
   
-  // 漫畫等級取值
+  // 漫畫類型取值
+  function ChoseCategory(e){
+    let choseCategory = e.target.value;
+    formParams.category = choseCategory;
+  };
+
   function ChoseLevel(e){
     let choseLevel = e.target.value;
-    formParams.category = choseLevel;
+    formParams.level = choseLevel;
   };
 
   // 檔案不可為空
   async function checkFile() {
     if(showChapterForm == false){
-      const {category, title, description} = formParams;
+      const {category, title, description, level} = formParams;
       if (title && title.length > 50) {
         message.info(t('標題命名不可超過50個字!'));
         return -1;
-      } else if( !category || !title || !description || file.length === 0) {
+      } else if (description && description.length > 200) {
+        message.info(t('簡介請在200個字以內!'));
+        return -1;
+      } else if( !category || category === '請選擇漫畫類型' || !title || !description || !level || level === '請選擇分級' || file.length === 0) {
         updateMsg(t('請填寫所有欄位'))
         return -1;
       } 
@@ -477,26 +487,37 @@ const handleGeneratePages = async () => {
         try {
           const compressedBlob = await imageCompression(mergedFileBlob, { maxSizeMB: 0.6, useWebWorker: true });
           const finalCanvas = document.createElement('canvas');
-          finalCanvas.width = canvas.width;
-          finalCanvas.height = canvas.height;
+          finalCanvas.width = canvas.width; // 保持原寬度
+          finalCanvas.height = canvas.height; // 根據需要設定高度
           const finalCtx = finalCanvas.getContext('2d');
           const compressedImage = new Image();
           compressedImage.onload = () => {
             finalCtx.drawImage(compressedImage, 0, 0, finalCanvas.width, finalCanvas.height);
-            finalCanvas.toBlob((finalBlob) => {
-              mergedFile = new File([finalBlob], 'compress.jpg', { type: 'image/jpeg', lastModified: Date.now() });
-              // 创建下载链接并触发下载
-              //const downloadLink = document.createElement('a');
-              //downloadLink.href = URL.createObjectURL(mergedFile);
-              //downloadLink.download = fileName;
-              //downloadLink.click();
-              resolve();
-            }, 'image/jpeg');
+            // 將 canvas 轉換為 WebP 格式的 Blob，並調整質量
+            finalCanvas.toBlob(async (finalBlob) => {
+              // 如果需要，重試降低質量
+              if (finalBlob.size > 600 * 1024) { // 如果超過600KB
+                // 使用低質量重新壓縮為 WebP
+                finalCanvas.toBlob((finalBlobLowQuality) => {
+                  mergedFile = new File([finalBlobLowQuality], 'compress.webp', { type: 'image/webp', lastModified: Date.now() });
+                  resolve();
+                }, 'image/webp', 0.5); // 降低質量至 0.5
+              } else {
+                mergedFile = new File([finalBlob], 'compress.webp', { type: 'image/webp', lastModified: Date.now() });
+                resolve();
+              }
+              // 如果需要，這裡可以添加下載鏈接的代碼
+              // const downloadLink = document.createElement('a');
+              // downloadLink.href = URL.createObjectURL(mergedFile);
+              // downloadLink.download = fileName;
+              // downloadLink.click();
+            }, 'image/webp', 0.8); // 初始質量設置為0.8
           };
+          // 將壓縮的 Blob 轉換為 URL 並加載圖片
           compressedImage.src = URL.createObjectURL(new Blob([compressedBlob]));
         } catch (error) {
-          alert(t('圖片壓縮錯誤：') + error);
-          reject(error);
+            alert(t('圖片壓縮錯誤：') + error);
+            reject(error);
         }
       }, 'image/jpeg');
     }
@@ -678,7 +699,7 @@ return (
 
           <Form.Group as={Row} className='mb-3 label-container'>
             <Form.Label column sm={3} className='label-style label-section'>
-              {t('漫畫類型')}
+              {t('漫畫分級')}
             </Form.Label>
             <Col sm={9}>
               <Form.Control
@@ -687,8 +708,27 @@ return (
                 onChange={ChoseLevel}
                 disabled={!isCreator}
               >
-                <option>{t('請選擇漫畫類型')}</option>
+                <option>{t('請選擇分級')}</option>
                 {grading.map((name, index) => (
+                  <option key={index} value={name}>{t(name)}</option>
+                ))}
+              </Form.Control>
+            </Col>
+          </Form.Group>
+
+          <Form.Group as={Row} className='mb-3 label-container'>
+            <Form.Label column sm={3} className='label-style label-section'>
+              {t('漫畫類型')}
+            </Form.Label>
+            <Col sm={9}>
+              <Form.Control
+                as="select"
+                className="form-select"
+                onChange={ChoseCategory}
+                disabled={!isCreator}
+              >
+                <option>{t('請選擇漫畫類型')}</option>
+                {type.map((name, index) => (
                   <option key={index} value={name}>{t(name)}</option>
                 ))}
               </Form.Control>
