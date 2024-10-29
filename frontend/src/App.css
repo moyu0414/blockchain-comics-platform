@@ -5010,3 +5010,23 @@ a:link{
 .search-file-input .btn{
   width: 100%;
 }
+
+.general-level {
+  color: #62B535!important;
+}
+
+.protected-level {
+  color: #01A2E9!important;
+}
+
+.guidance-12 {
+  color: #FFC800!important;
+}
+
+.guidance-15 {
+  color: #E57D0B!important;
+}
+
+.restricted-level {
+  color: #DB0B0C!important;
+}

@@ -772,7 +772,19 @@ const ComicManagement = ({ contractAddress }) => {
                             {data.hash}
                           </td>
                         }
-                        <td data-label={t('分級')}>{t(data.level)}</td>
+                        <td
+                          data-label={t('分級')}
+                          className={
+                            data.level === '普遍級' ? 'general-level' :
+                            data.level === '保護級' ? 'protected-level' :
+                            data.level === '輔12級' ? 'guidance-12' :
+                            data.level === '輔15級' ? 'guidance-15' :
+                            data.level === '限制級' ? 'restricted-level' :
+                            ''
+                          }
+                        >
+                          {t(data.level)}
+                        </td>
                         <td data-label={t('狀態')} className="text-end">
                           <OverlayTrigger placement="top" overlay={renderTooltip(data.exists !== '盜版' ? t('修改漫畫存續狀態') : `${t('盜版漫畫已下架')}、${t('已退款')}`)}>
                             <Button
