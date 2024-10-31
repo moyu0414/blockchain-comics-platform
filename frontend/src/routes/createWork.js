@@ -110,7 +110,7 @@ const CreateWork = (props) => {
       disableAllButtons();
       updateMsg(t('正在上傳漫畫至合約中'));
 
-      console.log("comicHash：" + hashValue);
+      //console.log("comicHash：" + hashValue);
       //console.log("title：" + formParams.title);
       //console.log("author：" + currentAccount);
       //console.log("description：" + formParams.description);
@@ -166,6 +166,7 @@ const CreateWork = (props) => {
       } else {
         alert(t('上傳漫畫時發生錯誤') + error);
       }
+    } finally {
       enableAllButtons();
       setShowChapterForm(false);
       updateMsg("");
@@ -201,7 +202,7 @@ const CreateWork = (props) => {
       await handleGeneratePages();  // 等待合併圖片操作完成
       await handleFileReaderLoad();  // 等待計算 chapterHash 值操作完成
 
-      console.log("comicHash：" + comicHash);
+      //console.log("comicHash：" + comicHash);
       //console.log("chapterHash：" + chapterHash);
       //console.log("title：" + formParams_1.title);
       //console.log("price：" + formParams_1.price);
@@ -244,6 +245,7 @@ const CreateWork = (props) => {
       } else {
         alert(t('添加章節時發生錯誤') + error);
       }
+    } finally {
       enableAllButtons();
       setShowChapterForm(true);
       updateMsg("");

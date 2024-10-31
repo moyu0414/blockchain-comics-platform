@@ -273,7 +273,7 @@ const ComicRead = () => {
                 }
             } catch (error) {
                 if (error.message.includes('User denied transaction signature')) {
-                    alert(t('拒绝交易'));
+                    message.info(t('拒绝交易'));
                   } else {
                     console.error('章節購買時發生錯誤：', error);
                     alert(error);
