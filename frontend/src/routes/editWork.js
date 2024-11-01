@@ -158,6 +158,7 @@ const EditWork = (props) => {
           } else {
             alert(error);
           }
+        } finally {
           enableAllButtons();
           updateMsg("");
         }
@@ -243,6 +244,7 @@ const EditWork = (props) => {
           } else {
             alert(error);
           }
+        } finally {
           enableAllButtons();
           updateMsg("");
         }
